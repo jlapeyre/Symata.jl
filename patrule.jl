@@ -3,7 +3,8 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
-# Ha this is not used at all!
+# This is not used at all. We only construct expressions
+# with pvars, but never evaluate them
 # pattern capture variable
 # type pvar
 #     name::Symbol  # name
@@ -31,9 +32,9 @@ isexpr(x) = (typeof(x) == Expr)
 # ie.  :( pat(sym,cond) )
 # the head is :call, but we don't check for that here.
 ispvar(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pvar
-patsym(pat) = pat.args[2]
-patcond(pat) = pat.args[3]
-setpatcond(pat,cond) = pat.args[3] = cond
+pvarsym(pat) = pat.args[2]
+pvarcond(pat) = pat.args[3]
+setpvarcond(pat,cond) = pat.args[3] = cond
 
 # high-level pattern match and capture
 function cmppat1(ex,pat::ExSym)
@@ -89,12 +90,12 @@ end
 
 # store captured expression in Dict. Here only the capture var name
 function storecapt(pat,cap,cd)
-    cd[patsym(pat)] = cap
+    cd[pvarsym(pat)] = cap
 end
 
 # retrieve captured expression by caption var name
 function retrivecapt(pat,cd)
-    cd[patsym(pat)]
+    cd[pvarsym(pat)]
 end
 
 # if we don't know what the condition is, try to evalute it.
@@ -112,13 +113,14 @@ end
 # No condition is signaled by None
 # Only matching DataType and anonymous functions are implemented
 function matchpat(cvar,ex)
-    c = patcond(cvar)
+    c = pvarcond(cvar)
     c == :None && return true # no condition
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
             f = eval(c)
-            setpatcond(cvar,f)  # Does not work. Why ?
+# Replacing expression with compiled anonymous function does not work.            .
+            setpvarcond(cvar,f)  
             return f(ex)
         end
     end
