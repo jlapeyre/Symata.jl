@@ -54,6 +54,23 @@ macro pattcond(ex,cond)
     Pattern(ustopat(ex),cond)
 end
 
+macro rule(ex)
+    ex.head != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(ex.args[1]),pattern(ex.args[2]))
+end
+
+function mkrule(ex::Expr)
+    ex.head != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(ex.args[1]),pattern(ex.args[2]))
+end
+
+macro replaceall(ex,therule)
+    r = mkrule(therule)
+    ex1 = Expr(:quote, ex)
+    Expr(:call, :replaceall, ex1, mkrule(therule))
+end
+
+
 # replacement rule
 # lhs is a pattern for matching.
 # rhs is a template pattern for replacing.
@@ -243,7 +260,9 @@ function replaceall(ex,pat1::Pattern,pat2::Pattern)
 end
 
 # same as above, but patterns are wrapped in a rule
-replaceall(ex::ExSym, r::PRule) = replaceall(ex,r.lhs,r.rhs)
+function replaceall(ex::ExSym, r::PRule)
+    replaceall(ex,r.lhs,r.rhs)
+end
 
 # Apply an array of rules. each subexpression is tested.
 # Continue after first match for each expression.
