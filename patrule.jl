@@ -6,9 +6,12 @@ typealias ExSym Union(Expr,Symbol)
 # pattern capture variable
 type pat
     name::Symbol  # name
-    cond::ExSym   # condition for matching. Data
+    cond::ExSym   # condition for matching. DataType, function...
 end
 
+# replacement rule
+# lhs is a pattern for matching
+# rhs is a template pattern for replacing.
 type PRule
     lhs::ExSym
     rhs::ExSym
@@ -16,27 +19,37 @@ end
 
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 
-PRule(lhs::String, rhs::String) = PRule(parse(lhs),parse(rhs))
 prule(x,y) = PRule(x,y)
 
+# syntax for creating a rule. collides with Dict syntax sometimes.
 =>(lhs::ExSym,rhs::ExSym) = prule(lhs,rhs)
 
 isexpr(x) = (typeof(x) == Expr)
+
+# These operate on the expression for a pattern capture variable.
+# ie.  :( pat(sym,cond) )
+# the head is :call, but we don't check for that here.
 ispat(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pat
 patsym(pat) = pat.args[2]
 patcond(pat) = pat.args[3]
 
+# high-level pattern match and capture
 function cmppat1(ex,pat::ExSym)
-    pat = ustopat(pat)
-    capt = Array(Any,0)
-    res = _cmppat(ex,pat,capt)
-    return (res,capt)
+    pat = ustopat(pat)   # convert underscore vars to pat()'s
+    capt = Array(Any,0)  # allocate capture array
+    success_flag = _cmppat(ex,pat,capt) # do the matching
+    return (success_flag,capt)  # report whether matched, and return captures
 end
 
-
+# pattern vars are exactly those ending with '_'
 ispatsym(x) = string(x)[end] == '_'
+
+# convert var_ to pat(var,None), else pass through
 ustopat(sym::Symbol) = ispatsym(sym) ? :(pat($sym,None)) : sym
 
+# conditions are signaled by expression pat_::cond
+# Construct pat() if we have this kind of expression.
+# Else it is an ordinary expression and we walk it.
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispatsym(ex.args[1])
@@ -47,36 +60,43 @@ function ustopat(ex::Expr)
     Expr(ex.head, map(ustopat,ex.args)...)
 end
 
+# everything else falls through
 ustopat(x) = x
 
-# check if one pattern var captured different things.
+# Perform match and capture.
+# and check consistency of assigne capture variables
 function cmppat(ex,pat)
     (res,capt) = cmppat1(ex,pat)
-    res == false && return (res,capt)
+    res == false && return (res,capt) # match failed
     cd = Dict{Any,Any}()
     for (p,c) in capt
         v = get(cd,p,nothing)
         if v == nothing
             cd[p] = c
         else
-            v != c && return (false,capt)
+            v != c && return (false,capt) # one named var captured two different things
         end
     end
     return (true,capt)
 end
 
+# push onto array as we capture expressions
 function capturepat(capt,pat,ex)
     push!(capt,(pat,ex))
 end
 
+# store captured expression in Dict. Here only the capture var name
 function storecapt(pat,cap,cd)
     cd[patsym(pat)] = cap
 end
 
+# retrieve captured expression by caption var name
 function retrivecapt(pat,cd)
     cd[patsym(pat)]
 end
 
+# if we don't know what the condition is, try to evalute it.
+# slow.
 function evalcond(c)
     res = try
         eval(c)
@@ -86,8 +106,11 @@ function evalcond(c)
     return res
 end
 
-function matchpat(pat,ex)
-    c = patcond(pat)
+# check if conditions on capture var cvar are satisfied by ex
+# No condition is signaled by None
+# Only matching DataType is implemented
+function matchpat(cvar,ex)
+    c = patcond(cvar)
     c == :None && return true
     if typeof(c) == DataType
         if typeof(ex) <: c
@@ -104,32 +127,39 @@ function matchpat(pat,ex)
     true
 end
 
+# Descend expression tree. If there is no pattern var in
+# a subexpression of pattern `pat', then the subexpressions in
+# ex and pat must match exactly.
+# If pat is a capture var, then it matches the subexpression ex,
+# if the condition as checked by matchpat is satisfied.
 function _cmppat(ex,pat,capt)
     if ispat(pat) && matchpat(pat,ex)
         capturepat(capt,pat,ex)
         return true
     end
-    !isexpr(ex)  && return ex == pat
+    !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly
     if !isexpr(pat) || pat.head != ex.head ||
         length(pat.args) != length(ex.args)
         return false
     end
-    for i in 1:length(ex.args)
+    for i in 1:length(ex.args) # match and capture subexpressions.
          _cmppat(ex.args[i],pat.args[i],capt) == false && return false
     end
     return true
 end
 
+# match and capture on ex with pattern pat1.
+# Replace pattern vars in pat2 with expressions captured from
+# ex.
 function patrule(ex,pat1,pat2)
     (res,capt) = cmppat(ex,pat1)
-    res == false && return false
+    res == false && return false # match failed
     npat = ustopat(pat2) # deep copy and x_ -> pat(x)
-    cd = Dict{Any,Any}()    
+    cd = Dict{Any,Any}()   
     for (p,c) in capt
-        storecapt(p,c,cd)
-#        cd[p] = c
+        storecapt(p,c,cd) # throw away condition information
     end
-    nnpat = patsubst!(npat,cd)
+    nnpat = patsubst!(npat,cd) # do replacement
     nnpat
 end
 patrule(ex,pat1,pat2::String) = patrule(ex,pat1,parse(pat2))
@@ -182,13 +212,5 @@ function patsubst!(pat,cd)
     end
     return pat
 end
-
-####################
-
-PRULES = Dict{Any,Any}()
-
-PRULES[:sq1] = prule("x_ * x_", "x_^2")
-PRULES[:sq2] = prule("x_^2 * x_", "x_^3")
-
 
 true
