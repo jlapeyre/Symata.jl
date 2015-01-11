@@ -1,10 +1,12 @@
 # Pattern matching and rules
 
+# pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
+# pattern capture variable
 type pat
-    name::Symbol
-    cond::ExSym
+    name::Symbol  # name
+    cond::ExSym   # condition for matching. Data
 end
 
 type PRule
@@ -22,6 +24,7 @@ prule(x,y) = PRule(x,y)
 isexpr(x) = (typeof(x) == Expr)
 ispat(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pat
 patsym(pat) = pat.args[2]
+patcond(pat) = pat.args[3]
 
 function cmppat1(ex,pat::ExSym)
     pat = ustopat(pat)
@@ -32,7 +35,7 @@ end
 
 
 ispatsym(x) = string(x)[end] == '_'
-ustopat(sym::Symbol) = ispatsym(sym) ? :(pat($sym,())) : sym
+ustopat(sym::Symbol) = ispatsym(sym) ? :(pat($sym,None)) : sym
 
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
@@ -51,7 +54,6 @@ function cmppat(ex,pat)
     (res,capt) = cmppat1(ex,pat)
     res == false && return (res,capt)
     cd = Dict{Any,Any}()
-    println("Got capt $capt")
     for (p,c) in capt
         v = get(cd,p,nothing)
         if v == nothing
@@ -64,7 +66,6 @@ function cmppat(ex,pat)
 end
 
 function capturepat(capt,pat,ex)
-#    push!(capt,(patsym(pat),ex))
     push!(capt,(pat,ex))
 end
 
@@ -72,9 +73,39 @@ function storecapt(pat,cap,cd)
     cd[patsym(pat)] = cap
 end
 
+function retrivecapt(pat,cd)
+    cd[patsym(pat)]
+end
+
+function evalcond(c)
+    res = try
+        eval(c)
+    catch
+        false
+    end
+    return res
+end
+
+function matchpat(pat,ex)
+    c = patcond(pat)
+    c == :None && return true
+    if typeof(c) == DataType
+        if typeof(ex) <: c
+            return true
+        else
+            return false
+        end
+    end
+    ce = evalcond(c)
+    ce == false && return false # maybe true here ?!
+    if typeof(ce) == DataType && !(typeof(ex) <: ce)
+        return false
+    end
+    true
+end
 
 function _cmppat(ex,pat,capt)
-    if ispat(pat)
+    if ispat(pat) && matchpat(pat,ex)
         capturepat(capt,pat,ex)
         return true
     end
@@ -136,15 +167,12 @@ function replaceall(ex,rules::Array{PRule,1})
 end
 
 function patsubst!(pat,cd)
-    println("cd is $cd")
     if isexpr(pat) && ! ispat(pat)
         pa = pat.args
         for i in 1:length(pa)
             if ispat(pa[i])
                 ith = pa[i]
-                println("Got pa $ith")
-                pa[i] = cd[patsym(pa[i])]
-#                pa[i] = cd[pa[i]]
+                pa[i] = retrivecapt(pa[i],cd)
             elseif isexpr(pa[i])
                 patsubst!(pa[i],cd)
             end

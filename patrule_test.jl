@@ -42,6 +42,20 @@ sq_rule = :(_ * _)  =>  :(_^2)
 mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
 
 @test replace(:(a^2 * a^3 ), mulpow_rule) == :(a ^ (2 + 3))
+@test replace(:(a^1.2 * a^2.3 ), mulpow_rule) == :(a ^ (1.2 + 2.3))
+
+# you can put a condition on the pattern
+@test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
+    :(a ^ 1.2 * a ^ 2.3)
+@test replace(:(a^5 * a^6 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
+    :(a ^ (5 + 6))        
+
+# This is much faster because the Int is evaluated when the pattern is constructed
+@test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
+    :(a ^ (3 + 5))
+
+@test string(cmppat( :( "dog" ) , :( x_::$(String) )))  ==
+     "(true,Any[(:(pat(x_,AbstractString)),\"dog\")])"
 
 @test replaceall(:( (a^2 * a^3)*a^4 ), mulpow_rule) == :(a ^ ((2 + 3)+4))
 
@@ -55,3 +69,5 @@ mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
 # Tests are tried one at a time until one matches
 @test replaceall( :( a * a ), [plusmul_rule, mulpow1_rule]) == :(a^2)
 @test replaceall( :( a + a ), [plusmul_rule, mulpow1_rule]) == :(2a)
+
+#@test replace( :( sin(a+b)/cos(a+b) ) , :( sin(_) / cos(_) ) => :( tan(_) ) ) == :(tan(a + b))
