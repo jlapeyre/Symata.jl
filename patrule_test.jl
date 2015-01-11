@@ -1,5 +1,5 @@
 #include("./patrule.jl")
-include("./patrule2.jl")
+#include("./patrule2.jl")
 
 using Base.Test
 
@@ -46,7 +46,7 @@ mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
 @test replace(:(a^1.2 * a^2.3 ), mulpow_rule) == :(a ^ (1.2 + 2.3))
 
 # you can put a condition on the pattern
-@test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
+@test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::($Int) * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
     :(a ^ 1.2 * a ^ 2.3)
 @test replace(:(a^5 * a^6 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
     :(a ^ (5 + 6))        

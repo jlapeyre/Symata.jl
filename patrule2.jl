@@ -3,6 +3,11 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
+# Pattern variable. name is the name, ending in underscore cond is a
+# condition that must be satisfied to match But, cond may be :All,
+# which matches anything.  The most imporant feature is that the Pvar
+# matches based on its context in an AST.
+#
 # Julia manual says the grab-bag data type is a sign
 # of bad design!
 type Pvar
@@ -10,8 +15,17 @@ type Pvar
     cond::Union(ExSym,DataType,Function)   # condition for matching. DataType, function...
 end
 
+# ast is the pattern including Pvars for capture.
+# cond is condition to apply to any Pvars in the pattern
+type Pattern
+    ast::ExSym
+    cond::Union(ExSym,DataType,Function)
+end
+
+pattern(ast::ExSym) = Pattern(ast,:All)
+
 # replacement rule
-# lhs is a pattern for matching
+# lhs is a pattern for matching.
 # rhs is a template pattern for replacing.
 type PRule
     lhs::ExSym
@@ -46,8 +60,8 @@ end
 # pattern vars are exactly those ending with '_'
 ispvarsym(x) = string(x)[end] == '_'
 
-# convert var_ to pat(var,None), else pass through
-ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:None) : sym
+# convert var_ to pat(var,All), else pass through
+ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
 
 # conditions are signaled by expression pat_::cond
 # Construct pvar() if we have this kind of expression.
@@ -69,7 +83,7 @@ end
 ustopat(x) = x
 
 # Perform match and capture.
-# and check consistency of assigne capture variables
+# Then check consistency of assigned capture variables
 function cmppat(ex,pat)
     (res,capt) = cmppat1(ex,pat)
     res == false && return (res,capt) # match failed
@@ -86,7 +100,7 @@ function cmppat(ex,pat)
 end
 
 # push onto array as we capture expressions
-function capturepat(capt,pat,ex)
+function capturepvar(capt,pat,ex)
     push!(capt,(pat,ex))
 end
 
@@ -113,11 +127,11 @@ function evalcond(c)
 end
 
 # check if conditions on capture var cvar are satisfied by ex
-# No condition is signaled by None
+# No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
 function matchpat(cvar,ex)
     c = pvarcond(cvar)
-    c == :None && return true # no condition
+    c == :All && return true # no condition
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
@@ -147,10 +161,10 @@ end
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(ex,pat,capt)
     if ispvar(pat) && matchpat(pat,ex)
-        capturepat(capt,pat,ex)
+        capturepvar(capt,pat,ex)
         return true
     end
-    !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly
+    !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly.
     if !isexpr(pat) || pat.head != ex.head ||
         length(pat.args) != length(ex.args)
         return false
