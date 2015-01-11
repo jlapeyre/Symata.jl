@@ -3,14 +3,6 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
-# This is not used at all. We only construct expressions
-# with pvars, but never evaluate them
-# pattern capture variable
-# type pvar
-#     name::Symbol  # name
-#     cond::ExSym   # condition for matching. DataType, function...
-# end
-
 # replacement rule
 # lhs is a pattern for matching
 # rhs is a template pattern for replacing.
