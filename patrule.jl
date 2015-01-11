@@ -29,25 +29,9 @@ function cmppat1(ex,pat::ExSym)
     return (res,capt)
 end
 
-#cmppat1(ex::String, pat::String) = cmppat(parse(ex),parse(pat))
-#cmppat1(ex::Expr, pat::String) = cmppat(ex,parse(pat))
-#cmppat1(ex::String, pat::Expr) = cmppat(parse(ex),pat)
-
-ispatsym(x::Symbol) = string(x)[end] == '_'
-
-# fix: return type depends on value
-function ustopat(sym::Symbol)
-    s= string(sym)
-    if s[end] == '_'
-        return Expr(:call, :pat, (symbol(s[1:end-1])))
-    end
-    return sym
-end
-
-function ustopat(ex::Expr)
-    Expr(ex.head, map(ustopat,ex.args)...)
-end    
-
+#ispatsym(x::Symbol) = string(x)[end] == '_'
+ustopat(sym::Symbol) = string(sym)[end] == '_' ? :(pat($sym)) : sym
+ustopat(ex::Expr) = Expr(ex.head, map(ustopat,ex.args)...)
 ustopat(x) = x
 
 # check if one pattern var captured different things.
