@@ -4,7 +4,7 @@
 typealias ExSym Union(Expr,Symbol)
 
 # pattern capture variable
-type pat
+type pvar
     name::Symbol  # name
     cond::ExSym   # condition for matching. DataType, function...
 end
