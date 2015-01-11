@@ -70,4 +70,8 @@ mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
 @test replaceall( :( a * a ), [plusmul_rule, mulpow1_rule]) == :(a^2)
 @test replaceall( :( a + a ), [plusmul_rule, mulpow1_rule]) == :(2a)
 
-#@test replace( :( sin(a+b)/cos(a+b) ) , :( sin(_) / cos(_) ) => :( tan(_) ) ) == :(tan(a + b))
+@test replace( :( sin(a+b)/cos(a+b) ) , :( sin(_) / cos(_) ) => :( tan(_) ) ) == :(tan(a + b))
+
+# Test anonymous functions as conditions
+@test (cmppat1( :( 3 ) , :( x_::((x)->(x>4)) )))[1] == false
+@test (cmppat1( :( 3 ) , :( x_::((x)->(x>2)) )))[1] == true

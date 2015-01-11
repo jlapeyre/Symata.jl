@@ -112,8 +112,14 @@ end
 function matchpat(cvar,ex)
     c = patcond(cvar)
     c == :None && return true # no condition
-    typeof(c) == DataType && return typeof(ex) <: c
-    ce = evalcond(c)
+    typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
+    if isexpr(c)
+        if c.head == :->  # anon function
+            f = eval(c)
+            return f(ex)
+        end
+    end
+    ce = evalcond(c) # punt and try eval
     ce == false && return false # maybe true here ?!
     if typeof(ce) == DataType && !(typeof(ex) <: ce)
         return false
