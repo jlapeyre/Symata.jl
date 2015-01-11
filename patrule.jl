@@ -217,7 +217,7 @@ function patsubst!(pat,cd)
             end
         end
     elseif ispat(pat)
-        pat = cd[patsym(pat)]
+        pat = retrivecapt(pat,cd)
     end
     return pat
 end
