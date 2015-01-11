@@ -162,7 +162,6 @@ function patrule(ex,pat1,pat2)
     nnpat = patsubst!(npat,cd) # do replacement
     nnpat
 end
-patrule(ex,pat1,pat2::String) = patrule(ex,pat1,parse(pat2))
 
 function tpatrule(ex,pat1,pat2)
     res = patrule(ex,pat1,pat2)
