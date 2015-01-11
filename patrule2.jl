@@ -17,8 +17,7 @@ type Pvar
 end
 typealias ExSymPvar Union(Expr,Symbol,Pvar)
 
-Pvar(name::Symbol) = Pvar(name,:All)
-
+#Pvar(name::Symbol) = Pvar(name,:All)
 
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
@@ -28,14 +27,18 @@ type Pattern
 end
 
 Pattern(ast::ExSymPvar) = Pattern(ast,:All)
-
-#convert(Pattern, pvar::Pvar)
 pattern(ast::ExSym) = pattern(ast,:All)
-pattern(ast::Symbol) = pattern(ast,:All)
-pattern(ast::Pvar) = pattern(ast,:All)
-
 function pattern(ast::ExSym,cond::CondT)
     Pattern(ustopat(ast),cond)
+end
+
+macro pattern(ex)
+    Pattern(ustopat(ex),:All)
+end
+
+# We don't know yet how to apply conditions
+macro pattcond(ex,cond)
+    Pattern(ustopat(ex),cond)
 end
 
 # replacement rule
@@ -47,20 +50,12 @@ type PRule
 end
 
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
-
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
-
 ==(a::Pattern, b::Pattern) = (a.ast == b.ast)
-
 prule(x,y) = PRule(x,y)
-
 # syntax for creating a rule. collides with Dict syntax sometimes.
 =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
-
 =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
-
-#  =>(lhs::ExSym,rhs::ExSym) = prule(lhs,rhs)
-
 isexpr(x) = (typeof(x) == Expr)
 
 # These operate on the expression for a pattern capture variable.
@@ -89,15 +84,11 @@ ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
 # conditions are signaled by expression pat_::cond
 # Construct pvar() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
+# We eval the condition. It will be a DataType or a Function
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
-        ea1 = ex.args[1]
-        ea2 = ex.args[2]
-        if isexpr(ea2) && ea2.head == :-> # insert compiled anonymous function
-            ea2 = eval(ea2)
-        end
-        return Pvar(ea1,ea2)
+        return Pvar(ex.args[1],eval(ex.args[2]))
     end
     Expr(ex.head, map(ustopat,ex.args)...)
 end
