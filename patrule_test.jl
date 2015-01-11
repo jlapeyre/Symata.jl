@@ -1,4 +1,5 @@
-include("./patrule.jl")
+#include("./patrule.jl")
+include("./patrule2.jl")
 
 using Base.Test
 
@@ -54,8 +55,8 @@ mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
 @test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
     :(a ^ (3 + 5))
 
-@test string(cmppat( :( "dog" ) , :( x_::$(String) )))  ==
-     "(true,Any[(:(pvar(x_,AbstractString)),\"dog\")])"
+@test string(cmppat( :( "dog" ) , :( x_::String ))) ==
+    string((true,Any[(Pvar(:x_,:String),"dog")]))
 
 @test replaceall(:( (a^2 * a^3)*a^4 ), mulpow_rule) == :(a ^ ((2 + 3)+4))
 

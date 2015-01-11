@@ -3,6 +3,13 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
+# Julia manual says the grab-bag data type is a sign
+# of bad design!
+type Pvar
+    name::Symbol  # name
+    cond::Union(ExSym,DataType,Function)   # condition for matching. DataType, function...
+end
+
 # replacement rule
 # lhs is a pattern for matching
 # rhs is a template pattern for replacing.
@@ -23,10 +30,10 @@ isexpr(x) = (typeof(x) == Expr)
 # These operate on the expression for a pattern capture variable.
 # ie.  :( pat(sym,cond) )
 # the head is :call, but we don't check for that here.
-ispvar(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pvar
-pvarsym(pat) = pat.args[2]
-pvarcond(pat) = pat.args[3]
-setpvarcond(pat,cond) = pat.args[3] = cond
+ispvar(x) = typeof(x) == Pvar
+pvarsym(pvar::Pvar) = pvar.name
+pvarcond(pvar::Pvar) = pvar.cond
+setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # high-level pattern match and capture
 function cmppat1(ex,pat::ExSym)
@@ -40,7 +47,7 @@ end
 ispvarsym(x) = string(x)[end] == '_'
 
 # convert var_ to pat(var,None), else pass through
-ustopat(sym::Symbol) = ispvarsym(sym) ? :(pvar($sym,None)) : sym
+ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:None) : sym
 
 # conditions are signaled by expression pat_::cond
 # Construct pvar() if we have this kind of expression.
@@ -50,7 +57,7 @@ function ustopat(ex::Expr)
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         ea1 = ex.args[1]
         ea2 = ex.args[2]
-        return :(pvar($ea1,$ea2))
+        return Pvar(ea1,ea2)
     end
     Expr(ex.head, map(ustopat,ex.args)...)
 end
