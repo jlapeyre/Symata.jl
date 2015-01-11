@@ -111,14 +111,8 @@ end
 # Only matching DataType is implemented
 function matchpat(cvar,ex)
     c = patcond(cvar)
-    c == :None && return true
-    if typeof(c) == DataType
-        if typeof(ex) <: c
-            return true
-        else
-            return false
-        end
-    end
+    c == :None && return true # no condition
+    typeof(c) == DataType && return typeof(ex) <: c
     ce = evalcond(c)
     ce == false && return false # maybe true here ?!
     if typeof(ce) == DataType && !(typeof(ex) <: ce)
