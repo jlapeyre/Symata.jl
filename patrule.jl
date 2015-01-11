@@ -163,25 +163,32 @@ function patrule(ex,pat1,pat2)
     nnpat
 end
 
+# Same as patrule, except if match fails, return original expression
 function tpatrule(ex,pat1,pat2)
     res = patrule(ex,pat1,pat2)
     res == false ? ex : res
 end
 
+# apply replacement rule r to expression ex
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
+# Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1,pat2)
     if isexpr(ex)
         ex = Expr(ex.head, ex.args[1],
                   map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
     end
+    # we have applied replacement at all lower levels. Now do current level.
     res = patrule(ex,pat1,pat2)
-    res == false && return ex
+    res == false && return ex # match failed; return unaltered expression
     res
 end
 
+# same as above, but patterns are wrapped in a rule
 replaceall(ex::ExSym, r::PRule) = replaceall(ex,r.lhs,r.rhs)
 
+# Apply an array of rules. each subexpression is tested.
+# Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
         ex = Expr(ex.head, ex.args[1],
@@ -195,12 +202,15 @@ function replaceall(ex,rules::Array{PRule,1})
     ex
 end
 
+# Do the substitution.
+# pat is the template pattern: an expression with some pattern vars.
+# cd is a Dict with pattern var names as keys and expressions as vals.
+# Subsitute the pattern vars in pat with the vals from cd.
 function patsubst!(pat,cd)
     if isexpr(pat) && ! ispat(pat)
         pa = pat.args
         for i in 1:length(pa)
             if ispat(pa[i])
-                ith = pa[i]
                 pa[i] = retrivecapt(pa[i],cd)
             elseif isexpr(pa[i])
                 patsubst!(pa[i],cd)
