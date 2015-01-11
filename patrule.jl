@@ -103,17 +103,30 @@ end
 
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
-function rpatrule(ex,pat1,pat2)
+function replaceall(ex,pat1,pat2)
     if isexpr(ex)
         ex = Expr(ex.head, ex.args[1],
-                  map((x)->rpatrule(x,pat1,pat2),ex.args[2:end])...)
+                  map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
     end
     res = patrule(ex,pat1,pat2)
     res == false && return ex
     res
 end
 
-replaceall(ex::ExSym, r::PRule) = rpatrule(ex,r.lhs,r.rhs)
+replaceall(ex::ExSym, r::PRule) = replaceall(ex,r.lhs,r.rhs)
+
+function replaceall(ex,rules::Array{PRule,1})
+    if isexpr(ex)
+        ex = Expr(ex.head, ex.args[1],
+                  map((x)->replaceall(x,rules),ex.args[2:end])...)
+    end
+    local res
+    for r in rules
+        res = patrule(ex,r.lhs,r.rhs)
+        res != false && return res
+    end
+    ex
+end
 
 function patsubst!(pat,cd)
     if isexpr(pat) && ! ispat(pat)

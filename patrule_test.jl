@@ -1,3 +1,5 @@
+include("./patrule.jl")
+
 using Base.Test
 
 # syntax for constructing a rule
@@ -20,10 +22,10 @@ using Base.Test
 
 sq_rule = :(x_*x_)  =>  :(x_^2)
 
-# The entire expression is tested, not subexpressions
+# replace tests the entire expression, not subexpressions
 @test replace( :(a*a+1) , sq_rule) == :(a*a+1)
 
-# Subexpressions are tested. Depth first.
+# replaceall tests subexpressions; depth first.
 # This differs from Mma, which applies rule top-down and
 # stops if there is a success.
 @test replaceall(:(a*a+1) , sq_rule) == :(a^2+1)
@@ -45,3 +47,10 @@ mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
 inv_rule = :(1/(1/x_)) => :(x_)
 
 @test replace( :( 1/(1/(a+b)) ), inv_rule) == :(a+b)
+
+plusmul_rule = :( x_ + x_ )  =>  :(2 * x_)
+mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
+
+# Tests are tried one at a time until one matches
+@test replaceall( :( a * a ), [plusmul_rule, mulpow1_rule]) == :(a^2)
+@test replaceall( :( a + a ), [plusmul_rule, mulpow1_rule]) == :(2a)
