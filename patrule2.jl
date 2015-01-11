@@ -2,6 +2,7 @@
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
+typealias CondT Union(Expr,Symbol,DataType,Function)
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -12,32 +13,53 @@ typealias ExSym Union(Expr,Symbol)
 # of bad design!
 type Pvar
     name::Symbol  # name
-    cond::Union(ExSym,DataType,Function)   # condition for matching. DataType, function...
+    cond::CondT   # condition for matching. DataType, function...
 end
+typealias ExSymPvar Union(Expr,Symbol,Pvar)
+
+Pvar(name::Symbol) = Pvar(name,:All)
+
 
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
 type Pattern
-    ast::ExSym
-    cond::Union(ExSym,DataType,Function)
+    ast::ExSymPvar
+    cond::CondT
 end
 
-pattern(ast::ExSym) = Pattern(ast,:All)
+Pattern(ast::ExSymPvar) = Pattern(ast,:All)
+
+#convert(Pattern, pvar::Pvar)
+pattern(ast::ExSym) = pattern(ast,:All)
+pattern(ast::Symbol) = pattern(ast,:All)
+pattern(ast::Pvar) = pattern(ast,:All)
+
+function pattern(ast::ExSym,cond::CondT)
+    Pattern(ustopat(ast),cond)
+end
 
 # replacement rule
 # lhs is a pattern for matching.
 # rhs is a template pattern for replacing.
 type PRule
-    lhs::ExSym
-    rhs::ExSym
+    lhs::Pattern
+    rhs::Pattern
 end
 
+PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
+
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
+
+==(a::Pattern, b::Pattern) = (a.ast == b.ast)
 
 prule(x,y) = PRule(x,y)
 
 # syntax for creating a rule. collides with Dict syntax sometimes.
-=>(lhs::ExSym,rhs::ExSym) = prule(lhs,rhs)
+=>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
+
+=>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
+
+#  =>(lhs::ExSym,rhs::ExSym) = prule(lhs,rhs)
 
 isexpr(x) = (typeof(x) == Expr)
 
@@ -50,12 +72,13 @@ pvarcond(pvar::Pvar) = pvar.cond
 setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # high-level pattern match and capture
-function cmppat1(ex,pat::ExSym)
+function cmppat1(ex,pat::Pattern)
     pat = ustopat(pat)   # convert underscore vars to pat()'s
     capt = Array(Any,0)  # allocate capture array
-    success_flag = _cmppat(ex,pat,capt) # do the matching
+    success_flag = _cmppat(ex,pat.ast,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
+cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 
 # pattern vars are exactly those ending with '_'
 ispvarsym(x) = string(x)[end] == '_'
@@ -84,7 +107,7 @@ ustopat(x) = x
 
 # Perform match and capture.
 # Then check consistency of assigned capture variables
-function cmppat(ex,pat)
+function cmppat(ex,pat::Pattern)
     (res,capt) = cmppat1(ex,pat)
     res == false && return (res,capt) # match failed
     cd = Dict{Any,Any}()
@@ -98,6 +121,8 @@ function cmppat(ex,pat)
     end
     return (true,capt)
 end
+
+cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 # push onto array as we capture expressions
 function capturepvar(capt,pat,ex)
@@ -178,17 +203,19 @@ end
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
-function patrule(ex,pat1,pat2)
+function patrule(ex,pat1::Pattern,pat2::Pattern)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
-    npat = ustopat(pat2) # deep copy and x_ -> pat(x)
+#    npat = ustopat(pat2) # deep copy and x_ -> pat(x)
+    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
     for (p,c) in capt
         storecapt(p,c,cd) # throw away condition information
     end
-    nnpat = patsubst!(npat,cd) # do replacement
+    nnpat = patsubst!(npat.ast,cd) # do replacement
     nnpat
 end
+patrule(ex,pat1::ExSym,pat2::ExSym) = patrule(ex,pattern(pat1),pattern(pat2))
 
 # Same as patrule, except if match fails, return original expression
 function tpatrule(ex,pat1,pat2)
@@ -200,7 +227,7 @@ end
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
 # Do depth-first replacement applying the same rule to each subexpression
-function replaceall(ex,pat1,pat2)
+function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
         ex = Expr(ex.head, ex.args[1],
                   map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
