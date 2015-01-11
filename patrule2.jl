@@ -57,6 +57,9 @@ function ustopat(ex::Expr)
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         ea1 = ex.args[1]
         ea2 = ex.args[2]
+        if isexpr(ea2) && ea2.head == :-> # insert compiled anonymous function
+            ea2 = eval(ea2)
+        end
         return Pvar(ea1,ea2)
     end
     Expr(ex.head, map(ustopat,ex.args)...)
@@ -100,6 +103,7 @@ end
 # if we don't know what the condition is, try to evalute it.
 # slow.
 function evalcond(c)
+    println("evaling condintion $c")
     res = try
         eval(c)
     catch
@@ -117,6 +121,7 @@ function matchpat(cvar,ex)
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
+            println("Got a function expressoin")            
             f = eval(c)
 # Replacing expression with compiled anonymous function does not work.            .
             setpvarcond(cvar,f)  
@@ -124,6 +129,7 @@ function matchpat(cvar,ex)
         end
     end
     if typeof(c) == Function
+        println("Got a real function")
         return c(ex)
     end
     ce = evalcond(c) # punt and try eval
