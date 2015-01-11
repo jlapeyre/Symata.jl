@@ -29,9 +29,10 @@ isexpr(x) = (typeof(x) == Expr)
 # These operate on the expression for a pattern capture variable.
 # ie.  :( pat(sym,cond) )
 # the head is :call, but we don't check for that here.
-ispat(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pat
+ispvar(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pat
 patsym(pat) = pat.args[2]
 patcond(pat) = pat.args[3]
+setpatcond(pat,cond) = pat.args[3] = cond
 
 # high-level pattern match and capture
 function cmppat1(ex,pat::ExSym)
@@ -42,17 +43,17 @@ function cmppat1(ex,pat::ExSym)
 end
 
 # pattern vars are exactly those ending with '_'
-ispatsym(x) = string(x)[end] == '_'
+ispvarsym(x) = string(x)[end] == '_'
 
 # convert var_ to pat(var,None), else pass through
-ustopat(sym::Symbol) = ispatsym(sym) ? :(pat($sym,None)) : sym
+ustopat(sym::Symbol) = ispvarsym(sym) ? :(pat($sym,None)) : sym
 
 # conditions are signaled by expression pat_::cond
 # Construct pat() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
-        typeof(ex.args[1]) == Symbol && ispatsym(ex.args[1])
+        typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         ea1 = ex.args[1]
         ea2 = ex.args[2]
         return :(pat($ea1,$ea2))
@@ -108,7 +109,7 @@ end
 
 # check if conditions on capture var cvar are satisfied by ex
 # No condition is signaled by None
-# Only matching DataType is implemented
+# Only matching DataType and anonymous functions are implemented
 function matchpat(cvar,ex)
     c = patcond(cvar)
     c == :None && return true # no condition
@@ -116,8 +117,12 @@ function matchpat(cvar,ex)
     if isexpr(c)
         if c.head == :->  # anon function
             f = eval(c)
+            setpatcond(cvar,f)  # Does not work. Why ?
             return f(ex)
         end
+    end
+    if typeof(c) == Function
+        return c(ex)
     end
     ce = evalcond(c) # punt and try eval
     ce == false && return false # maybe true here ?!
@@ -133,7 +138,7 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(ex,pat,capt)
-    if ispat(pat) && matchpat(pat,ex)
+    if ispvar(pat) && matchpat(pat,ex)
         capturepat(capt,pat,ex)
         return true
     end
@@ -207,16 +212,16 @@ end
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
 function patsubst!(pat,cd)
-    if isexpr(pat) && ! ispat(pat)
+    if isexpr(pat) && ! ispvar(pat)
         pa = pat.args
         for i in 1:length(pa)
-            if ispat(pa[i])
+            if ispvar(pa[i])
                 pa[i] = retrivecapt(pa[i],cd)
             elseif isexpr(pa[i])
                 patsubst!(pa[i],cd)
             end
         end
-    elseif ispat(pat)
+    elseif ispvar(pat)
         pat = retrivecapt(pat,cd)
     end
     return pat
