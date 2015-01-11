@@ -3,11 +3,12 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(Expr,Symbol)
 
+# Ha this is not used at all!
 # pattern capture variable
-type pvar
-    name::Symbol  # name
-    cond::ExSym   # condition for matching. DataType, function...
-end
+# type pvar
+#     name::Symbol  # name
+#     cond::ExSym   # condition for matching. DataType, function...
+# end
 
 # replacement rule
 # lhs is a pattern for matching
@@ -29,7 +30,7 @@ isexpr(x) = (typeof(x) == Expr)
 # These operate on the expression for a pattern capture variable.
 # ie.  :( pat(sym,cond) )
 # the head is :call, but we don't check for that here.
-ispvar(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pat
+ispvar(x) = isexpr(x) && length(x.args) > 1 && x.args[1] == :pvar
 patsym(pat) = pat.args[2]
 patcond(pat) = pat.args[3]
 setpatcond(pat,cond) = pat.args[3] = cond
@@ -46,17 +47,17 @@ end
 ispvarsym(x) = string(x)[end] == '_'
 
 # convert var_ to pat(var,None), else pass through
-ustopat(sym::Symbol) = ispvarsym(sym) ? :(pat($sym,None)) : sym
+ustopat(sym::Symbol) = ispvarsym(sym) ? :(pvar($sym,None)) : sym
 
 # conditions are signaled by expression pat_::cond
-# Construct pat() if we have this kind of expression.
+# Construct pvar() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         ea1 = ex.args[1]
         ea2 = ex.args[2]
-        return :(pat($ea1,$ea2))
+        return :(pvar($ea1,$ea2))
     end
     Expr(ex.head, map(ustopat,ex.args)...)
 end
