@@ -77,3 +77,6 @@ mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
 # Test anonymous functions as conditions
 @test (cmppat1( :( 3 ) , :( x_::((x)->(x>4)) )))[1] == false
 @test (cmppat1( :( 3 ) , :( x_::((x)->(x>2)) )))[1] == true
+## More tests !
+
+@test Pvar( :x_ ) == Pvar(:x_,:All)

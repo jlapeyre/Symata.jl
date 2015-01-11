@@ -17,7 +17,20 @@ type Pvar
 end
 typealias ExSymPvar Union(Expr,Symbol,Pvar)
 
-#Pvar(name::Symbol) = Pvar(name,:All)
+# we could allow non-underscored names
+function Pvar(name::Symbol)
+    ispvarsym(name) || error("Pvar: name '$name' does not end with '_'")
+    Pvar(name,:All)
+end
+
+function pvar(name::Symbol, cond::CondT)
+    ispvarsym(name) || error("pvar: name '$name' does not end with '_'")
+    Pvar(name,cond)
+end
+
+pvar(name::Symbol) = pvar(name,:All)
+
+==(a::Pvar, b::Pvar) = (a.name == b.name && a.cond == b.cond)
 
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
@@ -78,17 +91,17 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 # pattern vars are exactly those ending with '_'
 ispvarsym(x) = string(x)[end] == '_'
 
-# convert var_ to pat(var,All), else pass through
+# convert var_ to Pvar(var,:All), else pass through
 ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
 
-# conditions are signaled by expression pat_::cond
+# Syntx for specifying condition is pat_::cond
 # Construct pvar() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
 # We eval the condition. It will be a DataType or a Function
 function ustopat(ex::Expr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
-        return Pvar(ex.args[1],eval(ex.args[2]))
+        return pvar(ex.args[1],eval(ex.args[2]))
     end
     Expr(ex.head, map(ustopat,ex.args)...)
 end
