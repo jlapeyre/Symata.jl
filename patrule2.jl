@@ -45,32 +45,6 @@ function pattern(ast::ExSym,cond::CondT)
     Pattern(ustopat(ast),cond)
 end
 
-macro pattern(ex)
-    Pattern(ustopat(ex),:All)
-end
-
-# We don't know yet how to apply conditions
-macro pattcond(ex,cond)
-    Pattern(ustopat(ex),cond)
-end
-
-macro rule(ex)
-    ex.head != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(ex.args[1]),pattern(ex.args[2]))
-end
-
-function mkrule(ex::Expr)
-    ex.head != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(ex.args[1]),pattern(ex.args[2]))
-end
-
-macro replaceall(ex,therule)
-    r = mkrule(therule)
-    ex1 = Expr(:quote, ex)
-    Expr(:call, :replaceall, ex1, mkrule(therule))
-end
-
-
 # replacement rule
 # lhs is a pattern for matching.
 # rhs is a template pattern for replacing.
@@ -189,7 +163,7 @@ function matchpat(cvar,ex)
         end
     end
     if typeof(c) == Function
-        println("Got a real function")
+#        println("Got a real function")
         return c(ex)
     end
     ce = evalcond(c) # punt and try eval
@@ -297,6 +271,37 @@ function patsubst!(pat,cd)
         pat = retrivecapt(pat,cd)
     end
     return pat
+end
+
+## macros
+
+macro pattern(ex)
+    Pattern(ustopat(ex),:All)
+end
+
+# We don't know yet how to apply conditions
+macro pattcond(ex,cond)
+    Pattern(ustopat(ex),cond)
+end
+
+macro rule(ex)
+    ex.head != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(ex.args[1]),pattern(ex.args[2]))
+end
+
+function mkrule(ex::Expr)
+    ex.head != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(ex.args[1]),pattern(ex.args[2]))
+end
+
+macro replaceall(ex,therule)
+    if typeof(therule) == Symbol ||
+        therule.head == :vcat
+        therule = eval(therule)
+    else
+        therule = mkrule(therule)
+    end
+    Expr(:call, :replaceall, Expr(:quote, ex), therule)
 end
 
 true

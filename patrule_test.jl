@@ -80,3 +80,18 @@ mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
 ## More tests !
 
 @test Pvar( :x_ ) == Pvar(:x_,:All)
+
+## test some macros
+let r1, r2, ex, ex1
+    r1 = @rule   _ + _ => 2 * _
+    r1a =  :(_ + _) => :(2 * _)
+    @test r1 == r1a
+    ex = @replaceall (a+a) + (a+a)  _ + _ => 2 * _
+#    ex1 = @replaceall (a+a) + (a+a) r1
+    @test ex == :(2 * (2a))
+#    @test ex1 == :(2 * (2a))
+    ex = @replaceall  z * z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
+    @test ex == :(z^2)
+    ex = @replaceall  z + z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
+    @test ex == :(2 * z)    
+end
