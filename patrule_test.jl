@@ -20,7 +20,8 @@ using Base.Test
 # same as tpatrule, but second arguement is a PRule
 @test replace( :(a*a) , :(x_*x_)  =>  :(x_^2) ) == :(a^2)
 
-sq_rule = :(x_*x_)  =>  :(x_^2)
+# Can use underscore for capture var.
+sq_rule = :(_ * _)  =>  :(_^2)
 
 # replace tests the entire expression, not subexpressions
 @test replace( :(a*a+1) , sq_rule) == :(a*a+1)

@@ -1,10 +1,11 @@
 # Pattern matching and rules
 
+typealias ExSym Union(Expr,Symbol)
+
 type pat
     name::Symbol
+    cond::ExSym
 end
-
-typealias ExSym Union(Expr,Symbol)
 
 type PRule
     lhs::ExSym
@@ -29,9 +30,20 @@ function cmppat1(ex,pat::ExSym)
     return (res,capt)
 end
 
-#ispatsym(x::Symbol) = string(x)[end] == '_'
-ustopat(sym::Symbol) = string(sym)[end] == '_' ? :(pat($sym)) : sym
-ustopat(ex::Expr) = Expr(ex.head, map(ustopat,ex.args)...)
+
+ispatsym(x) = string(x)[end] == '_'
+ustopat(sym::Symbol) = ispatsym(sym) ? :(pat($sym,())) : sym
+
+function ustopat(ex::Expr)
+    if ex.head == :(::) && length(ex.args) > 0 &&
+        typeof(ex.args[1]) == Symbol && ispatsym(ex.args[1])
+        ea1 = ex.args[1]
+        ea2 = ex.args[2]
+        return :(pat($ea1,$ea2))
+    end
+    Expr(ex.head, map(ustopat,ex.args)...)
+end
+
 ustopat(x) = x
 
 # check if one pattern var captured different things.
@@ -39,6 +51,7 @@ function cmppat(ex,pat)
     (res,capt) = cmppat1(ex,pat)
     res == false && return (res,capt)
     cd = Dict{Any,Any}()
+    println("Got capt $capt")
     for (p,c) in capt
         v = get(cd,p,nothing)
         if v == nothing
@@ -50,10 +63,19 @@ function cmppat(ex,pat)
     return (true,capt)
 end
 
-# TODO: fix type instability
+function capturepat(capt,pat,ex)
+#    push!(capt,(patsym(pat),ex))
+    push!(capt,(pat,ex))
+end
+
+function storecapt(pat,cap,cd)
+    cd[patsym(pat)] = cap
+end
+
+
 function _cmppat(ex,pat,capt)
     if ispat(pat)
-        push!(capt,(patsym(pat),ex))
+        capturepat(capt,pat,ex)
         return true
     end
     !isexpr(ex)  && return ex == pat
@@ -73,7 +95,8 @@ function patrule(ex,pat1,pat2)
     npat = ustopat(pat2) # deep copy and x_ -> pat(x)
     cd = Dict{Any,Any}()    
     for (p,c) in capt
-        cd[p] = c
+        storecapt(p,c,cd)
+#        cd[p] = c
     end
     nnpat = patsubst!(npat,cd)
     nnpat
@@ -113,11 +136,15 @@ function replaceall(ex,rules::Array{PRule,1})
 end
 
 function patsubst!(pat,cd)
+    println("cd is $cd")
     if isexpr(pat) && ! ispat(pat)
         pa = pat.args
         for i in 1:length(pa)
             if ispat(pa[i])
+                ith = pa[i]
+                println("Got pa $ith")
                 pa[i] = cd[patsym(pa[i])]
+#                pa[i] = cd[pa[i]]
             elseif isexpr(pa[i])
                 patsubst!(pa[i],cd)
             end
