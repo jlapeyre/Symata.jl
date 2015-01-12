@@ -126,3 +126,6 @@ let r, res,r1,r2
 #    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]    
 #    @test res == :((log(a) * (2 * log(x))) * ((1 / k + 1) * log(z)))
 end
+
+# bug fix: Pvars are not hashable
+@test cmppat( :(a + b) , :( x_ + x_ ))[1] == false

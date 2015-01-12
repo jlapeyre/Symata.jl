@@ -108,18 +108,19 @@ ustopat(x) = x
 # Perform match and capture.
 # Then check consistency of assigned capture variables
 function cmppat(ex,pat::Pattern)
-    (res,capt) = cmppat1(ex,pat)
-    res == false && return (res,capt) # match failed
-    cd = Dict{Any,Any}()
-    for (p,c) in capt
-        v = get(cd,p,nothing)
+    (res,captures) = cmppat1(ex,pat)
+    res == false && return (res,captures) # match failed
+    cd = Dict{Symbol,Any}()
+    for (pvar,capt) in captures
+        pn = pvar.name
+        v = get(cd,pn,nothing)
         if v == nothing
-            cd[p] = c
+            cd[pn] = capt
         else
-            v != c && return (false,capt) # one named var captured two different things
+            v != capt && return (false,captures) # one named var captured two different things
         end
     end
-    return (true,capt)
+    return (true,captures)
 end
 
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
@@ -278,11 +279,13 @@ function patsubst!(pat,cd)
     return pat
 end
 
+#replacerepeated(ex, rules::Array{PRule,1}) = replacerepeated(ex,
+
 function replacerepeated(ex, rules::Array{PRule,1})
     local ex1
     if isexpr(ex)
         ex1 = Expr(ex.head, ex.args[1],
-                  map((x)->replaceall(x,rules),ex.args[2:end])...)
+             map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
     for r in rules
