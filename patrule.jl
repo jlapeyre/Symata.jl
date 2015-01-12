@@ -78,7 +78,7 @@ setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 # high-level pattern match and capture
 function cmppat1(ex,pat::Pattern)
     pat = ustopat(pat)   # convert underscore vars to pat()'s
-    capt = Array(Any,0)  # allocate capture array
+    capt = capturealloc() # Array(Any,0)  # allocate capture array
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
@@ -124,6 +124,10 @@ function cmppat(ex,pat::Pattern)
 end
 
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
+
+function capturealloc()
+    return Array(Any,0)
+end
 
 # push onto array as we capture expressions
 function capturepvar(capt,pat,ex)
