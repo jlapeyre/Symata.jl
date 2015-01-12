@@ -1,2 +1,2 @@
 include("symexpr.jl")
-include("patrule2.jl")
+include("patrule.jl")
