@@ -109,7 +109,7 @@ ustopat(x) = x
 # Then check consistency of assigned capture variables
 function cmppat(ex,pat::Pattern)
     (res,captures) = cmppat1(ex,pat)
-    res == false && return (res,captures) # match failed
+    res === false && return (res,captures) # match failed
     cd = Dict{Symbol,Any}()
     for (pvar,capt) in captures
         pn = pvar.name
@@ -246,7 +246,7 @@ function replaceall(ex,pat1::Pattern,pat2::Pattern)
     end
     # we have applied replacement at all lower levels. Now do current level.
     res = patrule(ex,pat1,pat2)
-    res == false && return ex # match failed; return unaltered expression
+    res === false && return ex # match failed; return unaltered expression
     res
 end
 
@@ -296,7 +296,7 @@ replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 
 function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
-    local ex1
+    ex1 = ex
     if isexpr(ex)
         ex1 = Expr(ex.head, ex.args[1],
              map((x)->replaceall(x,rules),ex.args[2:end])...)
@@ -304,7 +304,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     local res
     for r in rules
         res = patrule(ex1,r.lhs,r.rhs)
-        if (res != false)
+        if (res !== false)
             ex1 = res
             break
         end

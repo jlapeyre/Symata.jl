@@ -128,3 +128,6 @@ end
 
 # bug fix: Pvars are not hashable
 @test cmppat( :(a + b) , :( x_ + x_ ))[1] == false
+
+# bug fix:  0 == false ->  0 === false
+@test @replaceall  a-a   x_-x_ => 0   == 0
