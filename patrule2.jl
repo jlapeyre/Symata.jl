@@ -35,15 +35,20 @@ pvar(name::Symbol) = pvar(name,:All)
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
 type Pattern
-    ast::ExSymPvar
+    ast::Any
     cond::CondT
 end
 
 Pattern(ast::ExSymPvar) = Pattern(ast,:All)
 pattern(ast::ExSym) = pattern(ast,:All)
-function pattern(ast::ExSym,cond::CondT)
-    Pattern(ustopat(ast),cond)
-end
+
+# function pattern(ast::ExSym,cond::CondT)
+#     Pattern(ustopat(ast),cond)
+# end
+
+pattern(x,cond::Symbol) = Pattern(ustopat(x),cond)
+
+pattern(x) = pattern(x,:All)
 
 # replacement rule
 # lhs is a pattern for matching.
@@ -60,7 +65,7 @@ prule(x,y) = PRule(x,y)
 # syntax for creating a rule. collides with Dict syntax sometimes.
 =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
 =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
-isexpr(x) = (typeof(x) == Expr)
+
 
 # These operate on the expression for a pattern capture variable.
 # ie.  :( pat(sym,cond) )
@@ -273,6 +278,27 @@ function patsubst!(pat,cd)
     return pat
 end
 
+function replacerepeated(ex, rules::Array{PRule,1})
+    local ex1
+    if isexpr(ex)
+        ex1 = Expr(ex.head, ex.args[1],
+                  map((x)->replaceall(x,rules),ex.args[2:end])...)
+    end
+    local res
+    for r in rules
+        res = patrule(ex1,r.lhs,r.rhs)
+        if (res != false)
+            ex1 = res
+            break
+        end
+    end
+    if ( ex != ex1 )
+        ex1 = replacerepeated(ex1,rules)
+    end
+    ex1
+end
+
+
 ## macros
 
 macro pattern(ex)
@@ -302,6 +328,16 @@ macro replaceall(ex,therule)
         therule = mkrule(therule)
     end
     Expr(:call, :replaceall, Expr(:quote, ex), therule)
+end
+
+macro replacerepeated(ex,therule)
+    if typeof(therule) == Symbol ||
+        therule.head == :vcat
+        therule = eval(therule)
+    else
+        therule = mkrule(therule)
+    end
+    Expr(:call, :replacerepeated, Expr(:quote, ex), therule)
 end
 
 true

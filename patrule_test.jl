@@ -87,11 +87,39 @@ let r1, r2, ex, ex1
     r1a =  :(_ + _) => :(2 * _)
     @test r1 == r1a
     ex = @replaceall (a+a) + (a+a)  _ + _ => 2 * _
-#    ex1 = @replaceall (a+a) + (a+a) r1
-    @test ex == :(2 * (2a))
+    @test ex == :(2 * (2a))    
+#    ex1 = @replaceall (a+a) + (a+a) r1  # broken somehow
 #    @test ex1 == :(2 * (2a))
     ex = @replaceall  z * z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
     @test ex == :(z^2)
     ex = @replaceall  z + z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
     @test ex == :(2 * z)    
+end
+
+replaceall( :((a + a)/(z+z)  ),  @rule  _ + _ => 2 * _) == :((2a) / (2z))
+
+let r
+    r =  @rule _ / _::((x)-> x != 0)  => 1
+    @test replaceall( :( 0 / 0) , r) == :( 0 / 0 )
+    @test replaceall( :( (a+b) / (a+b) ) , r) == 1
+end
+
+# use a helper function, iscomplex
+let r
+    r = @rule  exp(log(x_::iscomplex)) => x_
+    @test replaceall( :(exp(log(1))) , r) == :(exp(log(1)))
+    @test replaceall( :(exp(log(complex(1,1)))) , r) == :(complex(1,1))
+end
+
+# replaceall vs. replacerepeated
+let r, res,r1,r2
+    r1 = @rule  log(x_^n_) => n_ * log(x_)
+    r2 = @rule  log(x_*y_) => log(x_) * log(y_)
+    replaceall( :(log(a*x^2)) , [r1,r2]) == :(log(a) * log(x ^ 2))
+    replacerepeated( :(log(a*x^2)) , [r1,r2]) == :(log(a) * (2 * log(x)))
+    replacerepeated( :(log( (a*x^2)*z^(1/k) ))  , [r1,r2]) ==
+        :((log(a) * (2 * log(x))) * ((1 / k) * log(z)))
+#    These do not work in this let block, but do work on cli
+#    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]    
+#    @test res == :((log(a) * (2 * log(x))) * ((1 / k + 1) * log(z)))
 end
