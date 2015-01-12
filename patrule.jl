@@ -184,7 +184,7 @@ function matchpat(cvar,ex)
         return c(ex)
     end
     ce = evalcond(c) # punt and try eval
-    ce == false && return false # maybe true here ?!
+    ce === false && return false # maybe true here ?!
     if typeof(ce) == DataType && !(typeof(ex) <: ce)
         return false
     end

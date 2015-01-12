@@ -121,8 +121,8 @@ let r, res,r1,r2
 
     replacerepeated( :( log( a*(b*c^d)^e ) ) , [r1,r2]) ==
         :(log(a) * (e * (log(b) * (d * log(c)))))
-#    These do not work in this let block, but do work on cli
-#    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]    
+#    These do not work in this let block, but do work on cli. Don't know why
+#    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]
 #    @test res == :((log(a) * (2 * log(x))) * ((1 / k + 1) * log(z)))
 end
 
