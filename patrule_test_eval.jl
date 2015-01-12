@@ -137,5 +137,6 @@ end
 # bug fix: another instance of 0 != false -> 0 !== false
 @test (@replaceall  b^(a-a)  _ - _  =>  0) == :(b ^ 0)
 
-# broken
-# @replaceall  [a,b,c,d]    a =>  b
+# bug fix: check for :vcat insteadof :call.
+# this is a bandaid
+@test (@replaceall  [a,b,c,d]    a =>  b)   ==  :([b,b,c,d])

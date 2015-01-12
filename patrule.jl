@@ -76,7 +76,9 @@ setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 function cmppat1(ex,pat::Pattern)
     pat = ustopat(pat)   # convert underscore vars to pat()'s
     capt = capturealloc() # Array(Any,0)  # allocate capture array
+#    println("enter _cmppat $ex ")
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
+#    println("cmmpat1 $success_flag $capt")
     return (success_flag,capt)  # report whether matched, and return captures
 end
 cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
@@ -105,6 +107,7 @@ ustopat(x) = x
 # Perform match and capture.
 # Then check consistency of assigned capture variables
 function cmppat(ex,pat::Pattern)
+#    println("enter cmppat with $ex")
     (res,captures) = cmppat1(ex,pat)
     res === false && return (res,captures) # match failed
     cd = Dict{Symbol,Any}()
@@ -202,6 +205,7 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(ex,pat,captures)
+#   println("_cmppat checking $ex, $pat")
     if ispvar(pat) && matchpat(pat,ex)
         capturepvar(captures,pat,ex)
         return true
@@ -221,7 +225,9 @@ end
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
 function patrule(ex,pat1::Pattern,pat2::Pattern)
+#    println("enter patrule with $ex")
     (res,capt) = cmppat(ex,pat1)
+#    println("patrule $res $capt")
     res == false && return false # match failed
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
@@ -245,8 +251,13 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
-        ex = Expr(ex.head, ex.args[1],
-                  map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
+        if ex.head == :vcat
+            ex = Expr(ex.head,
+                      map((x)->replaceall(x,pat1,pat2),ex.args[1:end])...)
+        else
+            ex = Expr(ex.head, ex.args[1],
+                      map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
+        end
     end
     # we have applied replacement at all lower levels. Now do current level.
     res = patrule(ex,pat1,pat2)
