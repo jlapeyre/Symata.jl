@@ -1,6 +1,7 @@
 using Base.Test
 
-# These tests should be used when patsubst! evals everything.
+# If we eval expressions in patsubst!, then these
+# tests must be used. eg.  :(2 + 3) -->  5
 
 # syntax for constructing a rule
 @test  (:a => :b)  == PRule(:a,:b)
@@ -131,3 +132,7 @@ end
 
 # bug fix:  0 == false ->  0 === false
 @test @replaceall  a-a   x_-x_ => 0   == 0
+@test @replaceall  1/a-1/a   x_-x_ => 0   == 0
+@test (@replaceall  1/a - a   x_-x_ => 0)  == :(1/a -a)
+# bug fix: another instance of 0 != false -> 0 !== false
+@test (@replaceall  b^(a-a)  _ - _  =>  0) == :(b ^ 0)

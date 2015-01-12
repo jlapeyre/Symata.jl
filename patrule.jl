@@ -218,7 +218,6 @@ end
 function patrule(ex,pat1::Pattern,pat2::Pattern)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
-#    npat = ustopat(pat2) # deep copy and x_ -> pat(x)
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
     for (p,c) in capt
@@ -232,7 +231,7 @@ patrule(ex,pat1::ExSym,pat2::ExSym) = patrule(ex,pattern(pat1),pattern(pat2))
 # Same as patrule, except if match fails, return original expression
 function tpatrule(ex,pat1,pat2)
     res = patrule(ex,pat1,pat2)
-    res == false ? ex : res
+    res === false ? ex : res
 end
 
 # apply replacement rule r to expression ex
@@ -265,16 +264,17 @@ function replaceall(ex,rules::Array{PRule,1})
     local res
     for r in rules
         res = patrule(ex,r.lhs,r.rhs)
-        res != false && return res
+        res !== false && return res
     end
     ex
 end
 
 
-# Do the substitution.
-# pat is the template pattern: an expression with some pattern vars.
+# Do the substitution recursively.
+# pat is the template pattern: an expression with 0 or more pattern vars.
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
+# We do a Julia eval if possible after every substitution.
 function patsubst!(pat,cd)
     if isexpr(pat) && ! ispvar(pat)
         pa = pat.args
