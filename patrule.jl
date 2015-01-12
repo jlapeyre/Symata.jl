@@ -143,11 +143,22 @@ end
 # if we don't know what the condition is, try to evalute it.
 # slow.
 function evalcond(c)
-    println("evaling condintion $c")
+    println("evaling expression $c")
     res = try
         eval(c)
     catch
         false
+    end
+    return res
+end
+
+#evalorex(ex) = ex
+
+function evalorex(ex)
+    res = try
+        eval(ex)
+    catch
+        ex
     end
     return res
 end
@@ -259,6 +270,7 @@ function replaceall(ex,rules::Array{PRule,1})
     ex
 end
 
+
 # Do the substitution.
 # pat is the template pattern: an expression with some pattern vars.
 # cd is a Dict with pattern var names as keys and expressions as vals.
@@ -268,20 +280,21 @@ function patsubst!(pat,cd)
         pa = pat.args
         for i in 1:length(pa)
             if ispvar(pa[i])
-                pa[i] = retrivecapt(pa[i],cd)
+                pa[i] =  evalorex(retrivecapt(pa[i],cd))
             elseif isexpr(pa[i])
-                patsubst!(pa[i],cd)
+                pa[i] = patsubst!(pa[i],cd)
             end
         end
     elseif ispvar(pat)
-        pat = retrivecapt(pat,cd)
+        pat = evalorex(retrivecapt(pat,cd))
     end
-    return pat
+    return evalorex(pat)
 end
 
-#replacerepeated(ex, rules::Array{PRule,1}) = replacerepeated(ex,
+replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
 
-function replacerepeated(ex, rules::Array{PRule,1})
+function _replacerepeated(ex, rules::Array{PRule,1},n)
+    n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     local ex1
     if isexpr(ex)
         ex1 = Expr(ex.head, ex.args[1],
@@ -296,7 +309,7 @@ function replacerepeated(ex, rules::Array{PRule,1})
         end
     end
     if ( ex != ex1 )
-        ex1 = replacerepeated(ex1,rules)
+        ex1 = _replacerepeated(ex1,rules,n+1)
     end
     ex1
 end
