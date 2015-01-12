@@ -26,6 +26,7 @@ arithrules =
    @rule(  Log(1) => 0)
  ]
 
+
 for f in (:exp, :log, :cos, :sin, :tan, :lambertw)
     s = string(f)
     f2 = symbol(string(uppercase(s[1])) * s[2:end])
@@ -56,6 +57,7 @@ end
 # from evaluating it.
 macro js(ex)
     ex = jseval(ex)
+    
     ex = replacerepeated(ex, arithrules)
     ex = jseval(ex)  # probably need a loop
     Expr(:quote, ex)
@@ -74,4 +76,68 @@ end
 function *(a::Int, b::Rational)
     res = (a * b.num) // b.den
     return res.den == 1 ? res.num : res
+end
+
+const _jslexorder = Dict{DataType,Int}()
+
+function mklexorder()
+    i = 1
+    for typ in (Float64,Int,Rational,Symbol,Expr)
+        _jslexorder[typ] = i
+        i += 1
+    end
+end
+
+mklexorder()
+
+_jslexless(x,y) = lexless(x,y)
+
+function _jslexless(x::Expr,y::Expr)
+    x.head !=  y.head && return x.head < y.head
+    lx = length(x.args)
+    ly = length(y.args)
+    for i in 1:min(lx,ly)
+        _jslexless(x.args[i],y.args[i]) && return true
+    end
+    lx < ly && return true
+    return false
+end
+
+function jslexless(x,y)
+    tx = typeof(x)
+    ty = typeof(y)
+    if tx != ty
+        return _jslexorder[tx] < _jslexorder[ty]
+    end
+    return _jslexless(x,y)
+end
+
+function orderexpr!(x::Expr)
+    op = shift!(x.args)
+    sort!(x.args,lt=jslexless)
+    unshift!(x.args,op)
+    x
+end
+
+# sum numbers at beginning of + or * call
+for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
+    @eval begin
+        function ($name)(x::Expr)
+            a = x.args
+            op = a[1]
+            shift!(a)
+            length(a) < 2 && return x
+            typeof(a[2]) <: Number || return x
+            sum0 = a[1]
+            while length(a) > 1
+                shift!(a)
+                typeof(a[1]) <: Number || break
+                sum0 = ($fop)(sum0,a[1])
+            end
+            length(a) == 0 && return sum0
+            unshift!(a,sum0)
+            unshift!(a,op)            
+            return x
+        end
+    end
 end
