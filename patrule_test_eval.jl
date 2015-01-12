@@ -136,3 +136,6 @@ end
 @test (@replaceall  1/a - a   x_-x_ => 0)  == :(1/a -a)
 # bug fix: another instance of 0 != false -> 0 !== false
 @test (@replaceall  b^(a-a)  _ - _  =>  0) == :(b ^ 0)
+
+# broken
+# @replaceall  [a,b,c,d]    a =>  b

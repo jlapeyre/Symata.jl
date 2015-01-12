@@ -67,9 +67,6 @@ prule(x,y) = PRule(x,y)
 =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
 
 
-# These operate on the expression for a pattern capture variable.
-# ie.  :( pat(sym,cond) )
-# the head is :call, but we don't check for that here.
 ispvar(x) = typeof(x) == Pvar
 pvarsym(pvar::Pvar) = pvar.name
 pvarcond(pvar::Pvar) = pvar.cond
