@@ -292,6 +292,7 @@ function patsubst!(pat,cd)
 end
 
 replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
+replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 
 function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
