@@ -129,6 +129,10 @@ function capturealloc()
     return Array(Any,0)
 end
 
+# TODO. We push to array and later make a dict.
+# We should just build the Dict directly and not use an
+# array. This may be more efficient because we check as
+# we capture.
 # push onto array as we capture expressions
 function capturepvar(capt,pat,ex)
     push!(capt,(pat,ex))
@@ -200,9 +204,9 @@ end
 # ex and pat must match exactly.
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
-function _cmppat(ex,pat,capt)
+function _cmppat(ex,pat,captures)
     if ispvar(pat) && matchpat(pat,ex)
-        capturepvar(capt,pat,ex)
+        capturepvar(captures,pat,ex)
         return true
     end
     !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly.
@@ -211,7 +215,7 @@ function _cmppat(ex,pat,capt)
         return false
     end
     for i in 1:length(ex.args) # match and capture subexpressions.
-         _cmppat(ex.args[i],pat.args[i],capt) == false && return false
+         _cmppat(ex.args[i],pat.args[i],captures) == false && return false
     end
     return true
 end
