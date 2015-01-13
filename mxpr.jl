@@ -41,6 +41,7 @@ function exprtomxpr!(ex::Expr)
     end
     mx = mxpr(hd,a,ex.head,true)
 end
+
 # everything other than Expr falls through
 exprtomxpr!(x) = x
 
@@ -103,18 +104,31 @@ mdiv(x,y) = x/y
 ##  Macros for constructing Mxpr easily    #
 ############################################
 
+# Convert an expression to Mxpr (or number, or symbol...) Call this from
+# within the two macros below, so that we don't need to quote input.
+function transex(ex)
+    local mx
+    T = typeof(ex)
+    if  T == Expr
+        mx = exprtomxpr!(ex)
+    elseif T == Symbol
+        mx = Expr(:quote,ex)
+    else
+        mx = ex
+    end
+    return mx
+end
+
 # construct a Mxpr at the cli,
 # and do some evaluation
 macro jm(ex)
-    mx = exprtomxpr!(ex)
-    tryjeval(mx)
+    tryjeval(transex(mx))
 end
 
 # Construct Mxpr, but don't evaluate
 macro jn(ex)
-    mx = exprtomxpr!(ex)
+    transex(ex)
 end
-
 
 ############################################
 ## Evaluate Mxpr                           #
@@ -124,9 +138,10 @@ end
 # Do julia evaluation on Mxpr. This will often fail, for
 # instance when there are unbound symbols.
 jeval(mx::Mxpr) = eval(mxprtoexpr(mx))
+jeval(x) = eval(x)
 
 # Try Julia eval, else quietly return unevaluated input.
-function tryjeval(mx::Mxpr)
+function tryjeval(mx)
     res = try
         jeval(mx)
     catch
@@ -139,9 +154,10 @@ end
 ## Display Mxpr                            #
 ############################################
 
-# Display a Mxpr by displaying equivalent Expr.  Temporarily replace
-# alternate functions with usual functions and let Julia display them.
-# Alters input temporarily!  Eg. an interrupt may leave mx altered.
+# Display a Mxpr by displaying equivalent Expr. Don't show quotes on
+# expression.  We temporarily replace alternate functions with usual
+# functions and let Julia display them.  Alters input temporarily!
+# Eg. an interrupt may leave mx altered.
 #
 # We do this because Julia code for display currently uses
 # conditionals in a big function, finds bin ops based on precedence.
@@ -159,6 +175,9 @@ function Base.show(io::IO, mx::Mxpr)
         ex.args[1] = func
     end
 end
+
+# Don't show quote on symbol
+Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
