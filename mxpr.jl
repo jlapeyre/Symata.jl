@@ -27,6 +27,8 @@ jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
 mhead(mx::Mxpr) = mx.head
+margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
+mhead(ex::Expr) = ex.head
 
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
@@ -89,11 +91,8 @@ const MATTRIBUTES = Dict{Symbol,Dict{Symbol,Bool}}()
 
 function get_attribute(sym::Symbol,attr::Symbol)
     if haskey(MATTRIBUTES,sym)
-#        println("attrs Key is there")        
         attrs = MATTRIBUTES[sym]
-#        println("Got the dict $attrs")
         if haskey(attrs,attr)
-#            println("atribute is there $attrs")            
             return attrs[attr]
         else
             return false
@@ -180,12 +179,12 @@ function transex(ex)
     return mx
 end
 
-
 # construct a Mxpr at the cli,
 # and do some evaluation
 macro jm(ex)
+    mx = transex(ex)
     mx = tryjeval(transex(ex))
-    ordermaybe!(mx)
+    order_if_orderless!(mx)
 end
 
 # Construct Mxpr, but don't evaluate
@@ -200,11 +199,14 @@ end
 # eval is "not a generic function". So we can't touch it.
 # Do julia evaluation on Mxpr. This will often fail, for
 # instance when there are unbound symbols.
-jeval(mx::Mxpr) = eval(mxprtoexpr(mx))
+# Ugh. we are doing a deep copy here. Need more sophisticated
+# evaluation
+jeval(mx::Mxpr) = eval(mxprtoexpr(deepcopy(mx)))
 jeval(x) = eval(x)
 
 # Try Julia eval, else quietly return unevaluated input.
 function tryjeval(mx)
+    goodflag = true
     res = try
         jeval(mx)
     catch
@@ -246,10 +248,10 @@ mklexorder()
 
 _jslexless(x,y) = lexless(x,y)
 
-function _jslexless(x::Mxpr,y::Mxpr)
-    jhead(x) !=  jhead(y) && return jhead(x) < jhead(y)
-    ax = jargs(x)
-    ay = jargs(y)
+function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
+    mhead(x) !=  mhead(y) && return mhead(x) < mhead(y)
+    ax = margs(x)
+    ay = margs(y)
     lx = length(ax)
     ly = length(ay)
     for i in 1:min(lx,ly)
@@ -259,7 +261,10 @@ function _jslexless(x::Mxpr,y::Mxpr)
     return false
 end
 
+# This should never be called, we hope
 function jslexless(x,y)
+    println("($(typeof(x)),$(typeof(y)))")
+    println("($x,$y)")
     tx = typeof(x)
     ty = typeof(y)
     if tx != ty
@@ -278,11 +283,11 @@ function orderexpr!(mx::Mxpr)
     mx
 end
 
-function ordermaybe!(mx::Mxpr)
+function order_if_orderless!(mx::Mxpr)
     get_attribute(mx,:orderless) && orderexpr!(mx)
     mx
 end
-
+order_if_orderless!(x) = x
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
