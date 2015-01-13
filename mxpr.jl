@@ -1,12 +1,22 @@
-###########################################
-##  Mxpr math expression type             #
-###########################################
+include("./mxpr_util.jl")
+
+##############################################
+##  Mxpr type for symbolic math expression   #
+##############################################
+
+# Using Julia Expr would be convenient, but seems not possible.
+# Eg. we need a dirty bit to know eg if expression is canonicalized.
+# It's not clear how to organize the data. So:
+# Do not access fields the directly!
+# Mxpr.args is exactly the equivalent Julia args, if possible.
+# This allows lightweight construction of Julia Expr for evaluation.
+# Fortunately, Expr is mutable.
 
 type Mxpr
-    head::Symbol
+    head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
-    jhead::Symbol    # Julia head
-    dirty::Bool
+    jhead::Symbol    # Julia head. Redundant now.
+    dirty::Bool      # In canonical order ?
 end
 mxpr(h,a,j,d) = Mxpr(h,a,j,d)
 # make an empty Mxpr
@@ -129,13 +139,16 @@ end
 ## Display Mxpr                            #
 ############################################
 
-# Display a Mxpr by displaying equivalent Expr.
-# Temporarily replace alternate functions with
-# usual functions and let Julia display them.
-# Alters input temporarily!
-# Eg. an interrupt may leave mex altered.
-function Base.show(io::IO, mex::Mxpr)
-    ex = mxprtoexpr(mex)
+# Display a Mxpr by displaying equivalent Expr.  Temporarily replace
+# alternate functions with usual functions and let Julia display them.
+# Alters input temporarily!  Eg. an interrupt may leave mx altered.
+#
+# We do this because Julia code for display currently uses
+# conditionals in a big function, finds bin ops based on precedence.
+# Does not seem to be a good way to hook into this.
+
+function Base.show(io::IO, mx::Mxpr)
+    ex = mxprtoexpr(mx)
     func = :nothing
     if ex.head == :call
         func = ex.args[1]
@@ -146,3 +159,25 @@ function Base.show(io::IO, mex::Mxpr)
         ex.args[1] = func
     end
 end
+
+############################################
+## Alternate math (trig, etc.) functions   #
+############################################
+
+# We do not want cos(1) to return floating point approximation, but
+# rather to represent the exact value of the cosine of 1.
+# We use Cos, for the name of the function that behaves as we like
+
+# Define functions like, eg. Cos(x::Float64) = cos(x).
+# You get the idea. If this idea works, then we complete the list
+function mkmathfuncs() # Man, I hate looking for missing commas.
+    func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh lambertw"
+    for s  in split(func_list_string)
+        func = symbol(s)
+        Func = symbol(string(uppercase(s[1])) * s[2:end])
+        @eval begin
+            ($Func){T<:FloatingPoint}(x::T) = ($func)(x)
+        end
+    end
+end
+mkmathfuncs()
