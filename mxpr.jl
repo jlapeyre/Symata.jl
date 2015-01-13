@@ -25,6 +25,8 @@ mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
+margs(mx::Mxpr) = mx.args
+mhead(mx::Mxpr) = mx.head
 
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
@@ -33,7 +35,7 @@ function exprtomxpr!(ex::Expr)
     hd = ex.head == :call ? ex.args[1] : ex.head
     a = ex.args
     for i in 1:length(a)
-        a[i] = exprtomxpr!(a[i]) # convert to Mxpr at lower levels
+        ex.args[i] = exprtomxpr!(ex.args[i]) # convert to Mxpr at lower levels
     end
     if ex.head == :call
         new_julia_call = jtomhead(hd)
@@ -47,6 +49,7 @@ exprtomxpr!(x) = x
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
+# This is used for evaluation.
 function mxprtoexpr(mx::Mxpr)
     ex = Expr(jhead(mx))
     a = jargs(mx)
@@ -58,6 +61,64 @@ function mxprtoexpr(mx::Mxpr)
 end
 # Other things fall through
 mxprtoexpr(x) = x
+
+#  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
+# This is used for display
+function mxprtoexpr_revert(mx::Mxpr)
+    ex = Expr(jhead(mx))
+    a = jargs(mx)
+    for i in 1:length(a)
+        a[i] = mxprtoexpr_revert(a[i]) # convert to Mxpr at lower levels
+    end    
+    ex.args = a
+    if ex.head == :call
+        ex.args[1] = mtojhead(ex.args[1])
+    end    
+    return ex
+end
+# Other things fall through
+mxprtoexpr_revert(x) = x
+
+
+
+###########################################
+##  Function attributes                   #
+###########################################
+
+const MATTRIBUTES = Dict{Symbol,Dict{Symbol,Bool}}()
+
+function get_attribute(sym::Symbol,attr::Symbol)
+    if haskey(MATTRIBUTES,sym)
+#        println("attrs Key is there")        
+        attrs = MATTRIBUTES[sym]
+#        println("Got the dict $attrs")
+        if haskey(attrs,attr)
+#            println("atribute is there $attrs")            
+            return attrs[attr]
+        else
+            return false
+        end
+    else
+        return false
+    end
+end
+
+get_attribute(mx::Mxpr,a) = get_attribute(mhead(mx),a)
+
+function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
+    local attrs
+    if haskey(MATTRIBUTES,sym)
+        attrs = get(MATTRIBUTES,sym)
+    else
+        attrs = Dict{Symbol,Bool}()
+        MATTRIBUTES[sym] = attrs
+    end
+    attrs[attr] = val
+end
+
+for func in ( :+, :* )
+    set_attribute(func,:orderless,true)
+end
 
 ###########################################
 ##  Alternates to Julia math functions    #
@@ -119,10 +180,12 @@ function transex(ex)
     return mx
 end
 
+
 # construct a Mxpr at the cli,
 # and do some evaluation
 macro jm(ex)
-    tryjeval(transex(mx))
+    mx = tryjeval(transex(ex))
+    ordermaybe!(mx)
 end
 
 # Construct Mxpr, but don't evaluate
@@ -155,29 +218,71 @@ end
 ############################################
 
 # Display a Mxpr by displaying equivalent Expr. Don't show quotes on
-# expression.  We temporarily replace alternate functions with usual
-# functions and let Julia display them.  Alters input temporarily!
-# Eg. an interrupt may leave mx altered.
-#
-# We do this because Julia code for display currently uses
-# conditionals in a big function, finds bin ops based on precedence.
-# Does not seem to be a good way to hook into this.
-
-function Base.show(io::IO, mx::Mxpr)
-    ex = mxprtoexpr(mx)
-    func = :nothing
-    if ex.head == :call
-        func = ex.args[1]
-        ex.args[1] = mtojhead(ex.args[1])
-    end
-    Base.show_unquoted(io,ex)
-    if func != :nothing
-        ex.args[1] = func
-    end
+# expression.
+function Base.show(io::IO, mxin::Mxpr)
+    mx = deepcopy(mxin)
+    ex = mxprtoexpr_revert(mx)  # use original Julia function names
+    Base.show_unquoted(io,ex)    
 end
 
 # Don't show quote on symbol
 Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
+
+##############################################
+## Lexicographical ordering of elements in Mxpr
+##############################################
+
+const _jslexorder = Dict{DataType,Int}()
+
+function mklexorder()
+    i = 1
+    for typ in (Float64,Int,Rational,Symbol,Expr)
+        _jslexorder[typ] = i
+        i += 1
+    end
+end
+
+mklexorder()
+
+_jslexless(x,y) = lexless(x,y)
+
+function _jslexless(x::Mxpr,y::Mxpr)
+    jhead(x) !=  jhead(y) && return jhead(x) < jhead(y)
+    ax = jargs(x)
+    ay = jargs(y)
+    lx = length(ax)
+    ly = length(ay)
+    for i in 1:min(lx,ly)
+        _jslexless(ax[i],ay[i]) && return true
+    end
+    lx < ly && return true
+    return false
+end
+
+function jslexless(x,y)
+    tx = typeof(x)
+    ty = typeof(y)
+    if tx != ty
+        return _jslexorder[tx] < _jslexorder[ty]
+    end
+    return _jslexless(x,y)
+end
+
+# Now it is a disadvantage that the op is in the args array.
+# We have to remove op to avoid sorting it.
+function orderexpr!(mx::Mxpr)
+    ar = jargs(mx)
+    op = shift!(ar)
+    sort!(ar,lt=jslexless)
+    unshift!(ar,op)
+    mx
+end
+
+function ordermaybe!(mx::Mxpr)
+    get_attribute(mx,:orderless) && orderexpr!(mx)
+    mx
+end
+
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
