@@ -54,6 +54,10 @@ mxprtoexpr(x) = x
 
 # Use alternates to some Julia functions for MJulia.
 # eg. integer division gives Rational or Integer.
+# First we make dictionaries to look up alternate function.
+# Then we define the alternate functions.
+
+# Dicts to convert from Julia to MJulia symbol
 const MTOJHEAD = Dict{Symbol,Symbol}()
 const JTOMHEAD = Dict{Symbol,Symbol}()
 
@@ -62,6 +66,7 @@ for (j,m) in ( (:/,:mdiv), (:*,:mmul))
     JTOMHEAD[j] = m
 end
 
+# Following two are the interface
 function jtomhead(jhead::Symbol)
     mhead = get(JTOMHEAD,jhead,0)
     return mhead == 0 ? jhead : mhead
@@ -85,11 +90,11 @@ mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 
 ############################################
-##  END Alternates to Julia math functions #
+##  Macros for constructing Mxpr easily    #
 ############################################
 
-# construct a Mxpr at the cli
-# And evaluate
+# construct a Mxpr at the cli,
+# and do some evaluation
 macro jm(ex)
     mx = exprtomxpr!(ex)
     tryjeval(mx)
@@ -100,8 +105,35 @@ macro jn(ex)
     mx = exprtomxpr!(ex)
 end
 
-# hmm not a better way ?
-# display a Mxpr by displaying equivalent Expr
+
+############################################
+## Evaluate Mxpr                           #
+############################################
+
+# eval is "not a generic function". So we can't touch it.
+# Do julia evaluation on Mxpr. This will often fail, for
+# instance when there are unbound symbols.
+jeval(mx::Mxpr) = eval(mxprtoexpr(mx))
+
+# Try Julia eval, else quietly return unevaluated input.
+function tryjeval(mx::Mxpr)
+    res = try
+        jeval(mx)
+    catch
+        mx
+    end
+    res
+end
+
+############################################
+## Display Mxpr                            #
+############################################
+
+# Display a Mxpr by displaying equivalent Expr.
+# Temporarily replace alternate functions with
+# usual functions and let Julia display them.
+# Alters input temporarily!
+# Eg. an interrupt may leave mex altered.
 function Base.show(io::IO, mex::Mxpr)
     ex = mxprtoexpr(mex)
     func = :nothing
@@ -113,20 +145,4 @@ function Base.show(io::IO, mex::Mxpr)
     if func != :nothing
         ex.args[1] = func
     end
-end
-
-## Evaluate of Mxpr
-
-# eval is "not a generic function".
-# Do julia evaluation on Mxpr
-jeval(mx::Mxpr) = eval(mxprtoexpr(mx))
-
-# Try Julia eval, else return unevaluated input
-function tryjeval(mx::Mxpr)
-    res = try
-        jeval(mx)
-    catch
-        mx
-    end
-    res
 end
