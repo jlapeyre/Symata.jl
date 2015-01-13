@@ -16,7 +16,7 @@ type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
     jhead::Symbol    # Julia head. Redundant now.
-    dirty::Bool      # In canonical order ?
+    clean::Bool      # In canonical order ?
 end
 mxpr(h,a,j,d) = Mxpr(h,a,j,d)
 # make an empty Mxpr
@@ -29,11 +29,30 @@ margs(mx::Mxpr) = mx.args
 mhead(mx::Mxpr) = mx.head
 margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(ex::Expr) = ex.head
+setmhead(mx::Expr, val::Symbol) = mx.head = val
+
+function getindex(mx::Mxpr, k::Int)
+    k == 0 && return mhead(mx)
+    return margs(mx)[k+1]
+end
+
+function setindex!(mx::Mxpr, val, k::Int)
+    k == 0 && return setmhead(mx,val)
+    margs(mx)[k+1] = val
+end
+
+# Currently the op is in position 1
+nummxargs(a::Array{Any,1}) = length(a) - 1
+nummxargs(mx::Mxpr) = nummxargs(margs(mx))
+
+getorderedflag(mx::Mxpr) = mx.clean
+setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
 # and construct an Mxpr.
 function exprtomxpr!(ex::Expr)
+#    println("exprtomxpr! Got expr $ex")    
     hd = ex.head == :call ? ex.args[1] : ex.head
     a = ex.args
     for i in 1:length(a)
@@ -43,11 +62,19 @@ function exprtomxpr!(ex::Expr)
         new_julia_call = jtomhead(hd)
         a[1] = new_julia_call
     end
-    mx = mxpr(hd,a,ex.head,true)
+    mx = mxpr(hd,a,ex.head,false)  # expression not clean
+end
+
+function exprtomxpr!(s::Symbol)
+#    println("exprtomxpr! Got symbol $s")
+    s
 end
 
 # everything other than Expr falls through
-exprtomxpr!(x) = x
+function exprtomxpr!(x)
+#    println("exprtomxpr! Got unknown $x: type, " , typeof(x))
+    x
+end
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
@@ -87,8 +114,14 @@ mxprtoexpr_revert(x) = x
 ##  Function attributes                   #
 ###########################################
 
+# The attribute 'orderless' means the function is commutative.
+# Binary ops are promoted to nary ops as in Julia. So orderless
+# means we can put the args in a canonical order.
+
+# a key is a function name. the val is Dict holding attributes for that function
 const MATTRIBUTES = Dict{Symbol,Dict{Symbol,Bool}}()
 
+# eg get_attribute(:+, :orderless) --> true
 function get_attribute(sym::Symbol,attr::Symbol)
     if haskey(MATTRIBUTES,sym)
         attrs = MATTRIBUTES[sym]
@@ -102,6 +135,7 @@ function get_attribute(sym::Symbol,attr::Symbol)
     end
 end
 
+# get attribute function name from a particular instance of a call
 get_attribute(mx::Mxpr,a) = get_attribute(mhead(mx),a)
 
 function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
@@ -172,19 +206,25 @@ function transex(ex)
     if  T == Expr
         mx = exprtomxpr!(ex)
     elseif T == Symbol
-        mx = Expr(:quote,ex)
-    else
+#        mx = Expr(:quote,ex)
         mx = ex
+    else
+        mx = ex  # Numbers, DataTypes, etc.
     end
     return mx
 end
 
 # construct a Mxpr at the cli,
-# and do some evaluation
+# and do some evaluation.
 macro jm(ex)
     mx = transex(ex)
-    mx = tryjeval(transex(ex))
+    mx = meval(mx)
+#    mx = tryjeval(transex(ex))
     order_if_orderless!(mx)
+    if  typeof(mx) == Symbol
+        return Base.QuoteNode(mx)
+    end
+    mx
 end
 
 # Construct Mxpr, but don't evaluate
@@ -200,10 +240,12 @@ end
 # Do julia evaluation on Mxpr. This will often fail, for
 # instance when there are unbound symbols.
 # Ugh. we are doing a deep copy here. Need more sophisticated
-# evaluation
+# evaluation. Converting back to Mxpr would be faster, but
+# still maybe not efficient. I wonder how to get inside eval ?
 jeval(mx::Mxpr) = eval(mxprtoexpr(deepcopy(mx)))
 jeval(x) = eval(x)
 
+# Not using this now!
 # Try Julia eval, else quietly return unevaluated input.
 function tryjeval(mx)
     goodflag = true
@@ -215,6 +257,36 @@ function tryjeval(mx)
     res
 end
 
+# need to make an iterator over the args
+function meval(mx::Mxpr)
+    nummxargs(mx) == 0 && return mx
+    a = margs(mx)
+    for i in 1:nummxargs(mx)
+        mx[i] = meval(mx[i])
+    end
+    return mx
+end
+
+function meval(s::Symbol)
+#    println(" meval evaling symbol $s")
+    res =
+        try
+            eval(s)
+        catch
+            s
+        end
+    if typeof(res) == Function
+#        println("Got Funciton ! $res")
+    end
+#    println("meval: symbol evaled to $res")    
+    res
+end
+
+function meval(x)
+#    println(" evaling unknown $x, type: ", typeof(x))
+    x
+end
+
 ############################################
 ## Display Mxpr                            #
 ############################################
@@ -222,12 +294,13 @@ end
 # Display a Mxpr by displaying equivalent Expr. Don't show quotes on
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
-    mx = deepcopy(mxin)
+    mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
     ex = mxprtoexpr_revert(mx)  # use original Julia function names
     Base.show_unquoted(io,ex)    
 end
 
-# Don't show quote on symbol
+# Don't show quote on symbol. This changes basic Julia behavior.
+# Or, we could make our own symbol type: MSymbol.
 Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 
 ##############################################
@@ -236,9 +309,11 @@ Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 
 const _jslexorder = Dict{DataType,Int}()
 
+# orderless (commutative) functions will have terms ordered from first
+# to last according to this order of types. Then lex within types.
 function mklexorder()
     i = 1
-    for typ in (Float64,Int,Rational,Symbol,Expr)
+    for typ in (Symbol,Expr,Rational,Int,Float64)
         _jslexorder[typ] = i
         i += 1
     end
@@ -261,10 +336,7 @@ function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
     return false
 end
 
-# This should never be called, we hope
 function jslexless(x,y)
-    println("($(typeof(x)),$(typeof(y)))")
-    println("($x,$y)")
     tx = typeof(x)
     ty = typeof(y)
     if tx != ty
@@ -280,14 +352,42 @@ function orderexpr!(mx::Mxpr)
     op = shift!(ar)
     sort!(ar,lt=jslexless)
     unshift!(ar,op)
+    setorderedflag(mx,true)
     mx
 end
 
 function order_if_orderless!(mx::Mxpr)
-    get_attribute(mx,:orderless) && orderexpr!(mx)
+    if get_attribute(mx,:orderless) && ! getorderedflag(mx)
+        orderexpr!(mx)
+        mhead(mx) == :* ? mx = compactmul!(mx) : nothing
+        mhead(mx) == :+ ? mx = compactplus!(mx) : nothing        
+    end
     mx
 end
 order_if_orderless!(x) = x
+
+###################################################
+## Perform op on numerical args to  :* and :+     #
+###################################################
+# sum numbers at end of + or * call
+for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
+    @eval begin
+        function ($name)(mx::Mxpr)
+            nummxargs(mx) < 2 && return mx
+            a = margs(mx)
+            typeof(a[end]) <: Number || return mx
+            sum0 = a[end]
+            while length(a) > 1
+                pop!(a)
+                typeof(a[end]) <: Number || break
+                sum0 = ($fop)(sum0,a[end])
+            end
+            length(a) == 1 && return sum0
+            push!(a,sum0)
+            return mx
+        end
+    end
+end
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
@@ -304,9 +404,14 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
     for s  in split(func_list_string)
         func = symbol(s)
         Func = symbol(string(uppercase(s[1])) * s[2:end])
+        set_attribute(Func,:numeric,true)        
         @eval begin
-            ($Func){T<:FloatingPoint}(x::T) = ($func)(x)
+            function ($Func){T<:FloatingPoint}(x::T)
+                return ($func)(x)
+            end
+
         end
     end
 end
 mkmathfuncs()
+
