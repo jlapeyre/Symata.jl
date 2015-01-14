@@ -1,10 +1,14 @@
 # Pattern matching and rules
 
-# pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union(Expr,Symbol)
-typealias CondT Union(Expr,Symbol,DataType,Function)
+typealias CExpr Expr    # annotation to constructed expressions
+typealias InExpr Expr   # annotation to input arguments
+typealias UExpr  Expr  # annotation for expressions in Unions
 
-typealias CExpr Expr
+# pieces of expressions that we operate on are Symbols and expressions
+typealias ExSym Union(UExpr,Symbol)
+typealias CondT Union(UExpr,Symbol,DataType,Function)
+
+
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -17,7 +21,7 @@ type Pvar
     name::Symbol  # name
     cond::CondT   # condition for matching. DataType, function...
 end
-typealias ExSymPvar Union(Expr,Symbol,Pvar)
+typealias ExSymPvar Union(UExpr,Symbol,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
@@ -95,7 +99,7 @@ ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
 # Construct pvar() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
 # We eval the condition. It will be a DataType or a Function
-function ustopat(ex::Expr)
+function ustopat(ex::InExpr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         return pvar(ex.args[1],eval(ex.args[2]))
@@ -350,7 +354,7 @@ macro rule(ex)
     prule(pattern(ex.args[1]),pattern(ex.args[2]))
 end
 
-function mkrule(ex::Expr)
+function mkrule(ex::InExpr)
     ex.head != :(=>) && error("rule: expecting lhs => rhs")
     prule(pattern(ex.args[1]),pattern(ex.args[2]))
 end
