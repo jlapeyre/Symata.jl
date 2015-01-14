@@ -36,9 +36,12 @@ mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
-mhead(mx::Mxpr) = mx.head
 margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
+mhead(mx::Mxpr) = mx.head
 mhead(ex::Expr) = ex.head
+#mhead(r::Rational) = Rational
+#mhead(r::Float64) = Float64
+mhead(x) = error("Can't take mhead of $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
@@ -315,7 +318,6 @@ function register_meval_func(op::Symbol, func::Function)
     MEVALOPFUNCS[symbol(op)] = func
 end
 
-
 ## meval for :+ and :*
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
@@ -323,6 +325,7 @@ end
 for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
     @eval begin
         function ($name)(mx::Mxpr)
+            println($name, ": mx = $mx")
             mx_term_flag = false
             for i in 1:nummxargs(mx)  # check if there is at least one Mxpr of type op
                 if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
@@ -330,6 +333,7 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
                     break
                 end
             end
+            println($name, ": Nothing to do, returning")            
             mx_term_flag == false && return mx
             nargs = Any[symbol($op)]  # new args for the output
             for i in 1:nummxargs(mx)
@@ -349,9 +353,7 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
 end
 
 ## meval for powers
-function meval_pow(mx::Mxpr)
-    meval_pow(mx[1],mx[2],mx)
-end
+meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
 meval_pow(base::Number, expt::Number, mx::Mxpr) = base^expt  # treat numbers
 register_meval_func(:^,meval_pow)
@@ -364,6 +366,13 @@ function meval_assign(mx::Mxpr)
 end
 register_meval_func(:(=),meval_assign)
 
+meval_div(num::Number, den::Number, mx::Mxpr) = mdiv(num,den)
+meval_div(num, den, mx::Mxpr) = mx
+function meval_div(mx::Mxpr)
+    println("meval_div: mx = $mx")
+    meval_div(mx[1],mx[2],mx)
+end
+register_meval_func(:/,meval_div)
 
 ## meval top level 
 function meval(mx::Mxpr)
@@ -383,6 +392,7 @@ function meval(mx::Mxpr)
     if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
         mx = MEVALOPFUNCS[mx[0]](mx)
     end
+    println("Done with meval: returning $mx")
     return mx
 end
 
@@ -568,4 +578,3 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
     end
 end
 mkmathfuncs()
-
