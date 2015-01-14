@@ -27,3 +27,7 @@ __bbbb = 1  # can't get local scope somehow
 ## Test that Julia assignment and Mjulia assignement give the same thing
 r1 = (@jm r = 3/4)
 @test r1 == r == 3//4
+
+@test typeof(Cos(1)) == Mxpr
+@test typeof(Cos(:c)) == Mxpr
+@test typeof(Cos(1.0)) == Float64

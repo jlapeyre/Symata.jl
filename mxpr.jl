@@ -27,12 +27,34 @@ include("./mxpr_util.jl")
 type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
-    jhead::Symbol    # Julia head. Redundant now.
+    jhead::Symbol    # Julia head. Mostly for printing now.
     clean::Bool      # In canonical order ?
 end
 mxpr(h,a,j,d) = Mxpr(h,a,j,d)
 # make an empty Mxpr
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
+
+
+const MOPTOJHEAD = Dict{Symbol,Symbol}()
+let mop,jhead 
+    for (mop,jhead) in ((:<, :comparision),)
+        MOPTOJHEAD[mop] = jhead
+    end
+end
+
+function moptojhead(op::Symbol)
+    return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
+end
+
+function mxpr(op::Symbol,args...)
+    theargs = Array(Any,0)
+    push!(theargs,op)    
+    for x in args
+        push!(theargs,x)
+    end
+    mx = Mxpr(op,theargs,moptojhead(op),false)
+end
+
 ismxpr(x) = typeof(x) == Mxpr
 
 # get Mxpr head and args
@@ -42,15 +64,29 @@ margs(mx::Mxpr) = mx.args
 margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(mx::Mxpr) = mx.head
 mhead(ex::Expr) = ex.head
-#mhead(r::Rational) = Rational
-#mhead(r::Float64) = Float64
-mhead(x) = error("mhead: Can't take mhead of $x, of type $(typeof(x))")
+mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
 
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
+
+# Have to find a better way for this.
+const JEXPRTYPE = Dict{Symbol,Symbol}()
+let jhead, exprtype
+    for (jhead, exprtype) in ((:vcat,:mxlike), (:call,:calllike), (:comparison,:cmplike))
+        JEXPRTYPE[jhead] = exprtype
+    end
+end
+function jheadtype(t::Symbol)
+    if haskey(JEXPRTYPE,t)
+        return JEXPRTYPE[t]
+    end
+    error("No exprtype registered for ",t)
+end
+
+
 function getindex(mx::Mxpr, k::Int)
     k == 0 && return mhead(mx)    
     if mhead(mx) == :(=)
@@ -59,6 +95,7 @@ function getindex(mx::Mxpr, k::Int)
         return margs(mx)[k+1]
     end
 end
+
 function setindex!(mx::Mxpr, val, k::Int)
     if  mhead(mx) == :(=)
         return margs(mx)[k] = val
@@ -72,8 +109,14 @@ function Base.endof(mx::Mxpr)
     length(margs(mx)) - 1
 end
 
+# function  Base.length(mx::Mxpr)
+#     mhead(mx) == :(=)  && return length(margs(mx))
+#     length(margs(mx)) - 1
+# end
+
 function  Base.length(mx::Mxpr)
-    mhead(mx) == :(=)  && return length(margs(mx))
+    jheadtype(jhead(mx)) == :mxlike && return length(margs(mx))
+    jheadtype(jhead(mx)) == :cmplike && return 2
     length(margs(mx)) - 1
 end
 
@@ -111,7 +154,7 @@ function exprtomxpr!(ex::Expr)
         new_julia_call = jtomhead(hd)
         a[1] = new_julia_call
     end
-    mx = mxpr(hd,a,ex.head,false)  # expression not clean
+    mx = Mxpr(hd,a,ex.head,false)  # expression not clean
 end
 
 function exprtomxpr!(s::Symbol)
@@ -213,9 +256,9 @@ for func in ( :+, :* )
     set_attribute(func,:orderless,true)
 end
 
-###########################################
-##  Alternates to Julia math functions    #
-###########################################
+#################################################
+##  Alternates to Julia arithmetic functions    #
+#################################################
 
 # Use alternates to some Julia functions for MJulia.
 # eg. integer division gives Rational or Integer.
@@ -262,6 +305,16 @@ is_rat_and_int(x::Rational) = x.den == 1
 is_rat_and_int(x) = false
 
 ############################################
+## Julia-level functions for Mxpr's        #
+############################################
+
+mxmkeval(args...) = meval(mxpr(args...))
+
++(a::Union(Mxpr,Symbol), args...) = deep_order_if_orderless!(meval(mxpr(:+,a,args...)))
+/(a::Union(Mxpr,Symbol), b) = mxmkeval(:/,a,b)
+
+
+############################################
 ##  Macros for constructing Mxpr easily    #
 ############################################
 
@@ -294,6 +347,23 @@ macro jm(ex)
     end
     mx = tryjeval(mx)
     mx
+end
+
+function runmx(ex::String)
+    runmx(parse(ex))
+end 
+    
+function runmx(ex::Expr)
+    mx = transex(ex)
+    mx = meval(mx)
+#    println("@jm after eval $mx")
+    mx = deep_order_if_orderless!(mx)
+#    println("done deep order @jm $mx")
+    if  typeof(mx) == Symbol
+        return Base.QuoteNode(mx)
+    end
+    mx = tryjeval(mx)
+    mx    
 end
 
 # Construct Mxpr, but don't evaluate
@@ -608,14 +678,30 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
     func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh lambertw"
     for s  in split(func_list_string)
         func = symbol(s)
+        Funcstr = string(uppercase(s[1])) * s[2:end]
         Func = symbol(string(uppercase(s[1])) * s[2:end])
         set_attribute(Func,:numeric,true)        
         @eval begin
             function ($Func){T<:FloatingPoint}(x::T)
                 return ($func)(x)
             end
-
+            ($Func)(x) = mxmkeval(symbol($Funcstr),x)
+            Base.@vectorize_1arg Number $Func  # only vectorizes over some numbers. Need our own macro
         end
     end
 end
 mkmathfuncs()
+
+############################################
+## Apply, Map, etc.
+############################################
+
+# function meval_vcat(mx::Mxpr)
+#     @mdebug(1,"meval_vcat: enter ",mx)
+#     println("length ", length(mx))
+#     if length(mx) == 0 return Any[]
+#     end
+#     mx
+# end
+# register_meval_func(:vcat,meval_vcat)
+
