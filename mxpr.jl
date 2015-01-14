@@ -383,7 +383,7 @@ macro jm(ex)
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
     end
-#    mx = tryjeval(mx)
+    mx = tryjeval(mx)
     mx
 end
 
@@ -520,7 +520,7 @@ function meval(mx::Mxpr)
     end
     for i in 1:endof(mx)
         mx[i] = meval(mx[i])
-#        meval(mx[i])        
+        meval(mx[i])    # second eval ?
     end
     return meval_handle_or_fall_through(mx)
 end

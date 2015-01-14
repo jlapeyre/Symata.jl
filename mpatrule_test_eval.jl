@@ -42,8 +42,8 @@ sq_rule = :_ * :_  =>  :_^2
 
 mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
 
-@test replace(:a^2 * :a^3 , mulpow_rule) == :(a ^ 5)
-@test replace(:(a^1.2 * a^2.3 ), mulpow_rule) == :(a ^ 3.5)
+@test replace(:a^2 * :a^3 , mulpow_rule) == :a^5
+@test replace( :a^1.2 * :a^2.3, mulpow_rule) == :a^ 3.5
 
 # you can put a condition on the pattern
 @test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::($Int) * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==

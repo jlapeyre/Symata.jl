@@ -334,15 +334,15 @@ function patsubst!(pat,cd)
         pa = pat.args
         for i in 1:length(pa)
             if ispvar(pa[i])
-                pa[i] =  evalorex(retrivecapt(pa[i],cd))
+                pa[i] =  meval(retrivecapt(pa[i],cd))
             elseif isexpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
     elseif ispvar(pat)
-        pat = evalorex(retrivecapt(pat,cd))
+        pat = meval(retrivecapt(pat,cd))
     end
-    return evalorex(pat)
+    return meval(pat)
 end
 
 replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
