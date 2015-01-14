@@ -1,5 +1,4 @@
 # Pattern matching and rules
-#const MXDEBUGLEVEL = 5 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 # These work fine
@@ -239,26 +238,26 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
-    @mdebug(2, "_cmppat enter '", mx, "'  '", pat, "'  '", captures, "'")
+    @mdebug(1, "_cmppat enter '", mx, "'  '", pat, "'  '", captures, "'")
     if ispvar(pat) && matchpat(pat,mx)
         capturepvar(captures,pat,mx)
-        @mdebug(3, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")                
+        @mdebug(1, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")                
         return true
     end
     if !isexpr(mx)
-        @mdebug(3, "_cmppat checking leaf mx: '", mx, "', pat '", pat, "'")
-        @mdebug(3, "  type of mx = ", typeof(mx))
-        @mdebug(3, "  type of pat = ", typeof(pat))        
+        @mdebug(1, "_cmppat checking leaf mx: '", mx, "', pat '", pat, "'")
+        @mdebug(1, "  type of mx = ", typeof(mx))
+        @mdebug(1, "  type of pat = ", typeof(pat))        
         res = mx == pat # 'leaf' on the tree. Must match exactly.
-        @mdebug(3, "_cmppat leaf match is *", res, "*,  mx: '", mx, "', pat '", pat, "'")
+        @mdebug(1, "_cmppat leaf match is *", res, "*,  mx: '", mx, "', pat '", pat, "'")
         return res
     end
-    @mdebug(3, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
-    @mdebug(3, "  type of mx = ", typeof(mx))
-    @mdebug(3, "  type of pat = ", typeof(pat))        
-    if !isexpr(pat) || pat.head != mhead(mx) ||
-        length(pat.args) != length(mx)
-        @mdebug(3, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
+    @mdebug(1, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
+    @mdebug(1, "  type of mx = ", typeof(mx))
+    @mdebug(1, "  type of pat = ", typeof(pat))        
+    if !isexpr(pat) || mhead(pat) != mhead(mx) ||
+        length(pat) != length(mx)
+        @mdebug(1, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
         return false
     end
     for i in 1:length(mx) # match and capture subexpressions.
@@ -273,7 +272,6 @@ end
 function patrule(ex,pat1::Pattern,pat2::Pattern)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
-#    println("patrule $res $capt")
     res == false && return false # match failed
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
@@ -297,13 +295,8 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
-        if ex.head == :vcat
-            ex = mkexpr(ex.head,
-                      map((x)->replaceall(x,pat1,pat2),ex.args[1:end])...)
-        else
-            ex = mkexpr(ex.head, ex.args[1],
-                      map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
-        end
+        ex = mkexpr(mhead(ex),
+                    map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
     # we have applied replacement at all lower levels. Now do current level.
     res = patrule(ex,pat1,pat2)
@@ -320,8 +313,8 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = mkexpr(ex.head, ex.args[1],
-                  map((x)->replaceall(x,rules),ex.args[2:end])...)
+        ex = mkexpr(mhead(ex),
+                  map((x)->replaceall(x,rules),margs(ex)...))
     end
     local res
     for r in rules
@@ -330,7 +323,6 @@ function replaceall(ex,rules::Array{PRule,1})
     end
     ex
 end
-
 
 # Do the substitution recursively.
 # pat is the template pattern: an expression with 0 or more pattern vars.

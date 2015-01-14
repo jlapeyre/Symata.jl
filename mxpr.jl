@@ -153,12 +153,13 @@ end
 # one ref to an object is in mx, it will be changed each time it is encountered,
 # giving erroneous results
 function mx_to_ex!(mx::Mxpr)
+    error("mx_to_ex! should not be called!")
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
         a[i] = mx_to_ex!(a[i]) # convert to Mxpr at lower levels
     end
-    @mdebug(5,"mx_to_ex!: returning recursivley converted args: $a")
+    @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
     elseif jhead(mx) == :comparison
@@ -173,14 +174,17 @@ end
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex!(x) = x
 
-function mx_to_ex(mx::Mxpr)
+function mx_to_ex(inmx::Mxpr)
+#    error("Not supposed to call mx_to_ex")
+    mx = deepcopy(inmx)
+    @mdebug(5,"mx_to_ex: entering with won't print")    
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
         a[i] = mx_to_ex(a[i]) # convert to Mxpr at lower levels
     end
     a = copy(a)
-    @mdebug(5,"mx_to_ex: returning recursivley converted args: $a")
+    @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
     elseif jhead(mx) == :comparison
@@ -195,9 +199,6 @@ end
 
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex(x) = x
-
-
-
 
 # No need for revert now!
 #  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
@@ -217,11 +218,20 @@ mx_to_ex(x) = x
 # # Other things fall through
 # mx_to_ex!_revert(x) = x
 
-function fast_mxpr_to_expr(mx::Mxpr)
-    mx = deepcopy(mx)
+function fast_mxpr_to_expr(inmx::Mxpr)
+    @mdebug(5,"fast_mxpr_to_expr: ")
+    mx = deepcopy(inmx)
     ex = Expr(jhead(mx))
-    ex.args = jargs(mx)
-    unshift!(ex.args,mtojhead(mhead(mx))) # op symbol is first el in args
+    a = jargs(mx)
+    if jhead(mx) == :call
+        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+    elseif jhead(mx) == :comparison
+        unshift!(a,mtojhead(mhead(mx)))  # identity now
+        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+    else   # :hcat, etc
+        nothing
+    end        
+    ex.args = a
     return ex
 end
 
@@ -333,6 +343,8 @@ mxmkeval(args...) = meval(mxpr(args...))
 mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
 +(a::Symbolic, args...) = mxmkorderless(:+,a,args...)
 *(a::Symbolic, args...) = mxmkorderless(:*,a,args...)
+#+(a::Symbolic, args...) = mxmkeval(:+,a,args...)
+#*(a::Symbolic, args...) = mxmkeval(:*,a,args...)
 /(a::Symbolic, b) = mxmkeval(:/,a,b)
 -(a::Symbolic, b) = mxmkeval(:-,a,b)
 ^(a::Symbolic, b::Integer) = mxmkeval(:^,a,b)  # avoid collision in intfuncs.jl

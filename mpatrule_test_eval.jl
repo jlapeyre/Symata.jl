@@ -36,13 +36,13 @@ sq_rule = :_ * :_  =>  :_^2
 @test replaceall(:(a*a+1 / ((z+y)*(z+y))) , sq_rule) == :(a^2+1/(z + y)^2)
 
 # Note depth first, rather than top level first and then stopping
-@test replaceall(:( (a*a) * (a*a) ) , sq_rule) == :((a^2)^2)
+@test replaceall( (:a*:a) * (:a*:a) ) , sq_rule) == :((a^2)^2)
 
 ## Examples
 
-mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
+mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
 
-@test replace(:(a^2 * a^3 ), mulpow_rule) == :(a ^ 5)
+@test replace(:a^2 * :a^3 , mulpow_rule) == :(a ^ 5)
 @test replace(:(a^1.2 * a^2.3 ), mulpow_rule) == :(a ^ 3.5)
 
 # you can put a condition on the pattern
