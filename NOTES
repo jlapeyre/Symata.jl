@@ -1,0 +1,11 @@
+Wed Jan 14 21:10:32 CET 2015
+
+This code and tests work:
+include("PatRule.jl")
+include("patrule_test_eval.jl")
+
+But, I don't want to touch it any more
+
+I just wrote mxpr.jl, which uses a different
+approach. I want to port the patterns and rules
+to this newer code.
