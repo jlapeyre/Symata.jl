@@ -1,4 +1,11 @@
-include("./mxpr_util.jl")
+macro mdebug(level, a...)
+    mxdebuglevel = -1  # larger means more verbose
+    if level <= mxdebuglevel
+        :(println($(a...)))
+    else
+        nothing
+    end
+end
 
 ##############################################
 ##  Mxpr type for symbolic math expression   #
@@ -31,6 +38,7 @@ end
 mxpr(h,a,j,d) = Mxpr(h,a,j,d)
 # make an empty Mxpr
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
+ismxpr(x) = typeof(x) == Mxpr
 
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
@@ -41,7 +49,7 @@ mhead(mx::Mxpr) = mx.head
 mhead(ex::Expr) = ex.head
 #mhead(r::Rational) = Rational
 #mhead(r::Float64) = Float64
-mhead(x) = error("Can't take mhead of $x, of type $(typeof(x))")
+mhead(x) = error("mhead: Can't take mhead of $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
@@ -155,6 +163,14 @@ end
 # Other things fall through
 mxprtoexpr_revert(x) = x
 
+function fast_mxpr_to_expr(mx::Mxpr)
+    ex = Expr(jhead(mx))
+    ex.args = jargs(mx)
+    return ex
+end
+
+fast_jeval(mx::Mxpr) = eval(fast_mxpr_to_expr(mx))
+
 ###########################################
 ##  Function attributes                   #
 ###########################################
@@ -247,6 +263,9 @@ mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 
+is_rat_and_int(x::Rational) = x.den == 1
+is_rat_and_int(x) = false
+
 ############################################
 ##  Macros for constructing Mxpr easily    #
 ############################################
@@ -274,7 +293,7 @@ macro jm(ex)
     mx = meval(mx)
 #    println("@jm after eval $mx")
     mx = deep_order_if_orderless!(mx)
-#    println("don @jm $mx")
+#    println("done deep order @jm $mx")
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
     end
@@ -283,6 +302,7 @@ macro jm(ex)
 end
 
 # Construct Mxpr, but don't evaluate
+# This is useful for debugging, or seeing Mxpr before any reordering or evaluation
 macro jn(ex)
     transex(ex)
 end
@@ -312,11 +332,13 @@ function tryjeval(mx)
     res
 end
 
+## Register handlers for ops to be dispatched by meval
 const MEVALOPFUNCS = Dict{Symbol,Function}()
+register_meval_func(op::Symbol, func::Function) = MEVALOPFUNCS[symbol(op)] = func
 
-function register_meval_func(op::Symbol, func::Function)
-    MEVALOPFUNCS[symbol(op)] = func
-end
+# Note we are doing something different than other CAS's. We are using
+# dynamical multiple dispatch instead if Dicts and branching.
+
 
 ## meval for :+ and :*
 # If no operands are Mxpr, do nothing.
@@ -325,16 +347,24 @@ end
 for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
     @eval begin
         function ($name)(mx::Mxpr)
-            println($name, ": mx = $mx")
-            mx_term_flag = false
+            @mdebug(1,$name, " entry: mx = ",mx)
+            found_mxpr_term = false
+            all_numerical_terms = true
             for i in 1:nummxargs(mx)  # check if there is at least one Mxpr of type op
                 if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
-                    mx_term_flag = true
+                    found_mxpr_term = true
+                    all_numerical_terms = false
                     break
                 end
+                if !( typeof(mx[i]) <: Number )
+                    all_numerical_terms = false
+                end
             end
-            println($name, ": Nothing to do, returning")            
-            mx_term_flag == false && return mx
+            if all_numerical_terms
+                @mdebug(2, $name, ": all numerical terms mx = ", mx)                
+                return fast_jeval(mx)
+            end
+            found_mxpr_term == false && return mx
             nargs = Any[symbol($op)]  # new args for the output
             for i in 1:nummxargs(mx)
                 mxel = mx[i]
@@ -346,7 +376,8 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
                     push!(nargs,mx[i]) # something else, just it in
                 end
             end
-            return mxpr($op,nargs,:call,false) # construct new Mxpr
+            newmx = mxpr($op,nargs,:call,false) # construct new Mxpr
+            return newmx
         end
         MEVALOPFUNCS[symbol($op)] = $name  # register this function
     end
@@ -360,16 +391,21 @@ register_meval_func(:^,meval_pow)
 
 ## meval for assignment
 function meval_assign(mx::Mxpr)
+    @mdebug(3,"meval_assign entering: ",mx)
     ex = Expr(:(=))
-    ex.args = margs(mx)
-    eval(ex)
+    a = ex.args
+    push!(a,mx[1])  # don't evaluate lhs of assignment
+    push!(a,meval(mx[2]))  # meval the rhs
+    @mdebug(3,"meval_assign made Expr: ",ex)
+    eval(ex) # now do Julia eval to make the binding or assigment
 end
 register_meval_func(:(=),meval_assign)
 
+## meval for division
 meval_div(num::Number, den::Number, mx::Mxpr) = mdiv(num,den)
 meval_div(num, den, mx::Mxpr) = mx
 function meval_div(mx::Mxpr)
-    println("meval_div: mx = $mx")
+    @mdebug(3, "meval_div enter: mx ", mx)
     meval_div(mx[1],mx[2],mx)
 end
 register_meval_func(:/,meval_div)
@@ -377,7 +413,6 @@ register_meval_func(:/,meval_div)
 ## meval top level 
 function meval(mx::Mxpr)
     nummxargs(mx) == 0 && return mx
-    start = 1
     if mx[0] == :(=)
         return meval_assign(mx)
     end
@@ -392,7 +427,7 @@ function meval(mx::Mxpr)
     if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
         mx = MEVALOPFUNCS[mx[0]](mx)
     end
-    println("Done with meval: returning $mx")
+#    println("Done with meval: returning $mx, of type $(typeof(mx))")
     return mx
 end
 
@@ -502,6 +537,7 @@ function orderexpr!(mx::Mxpr)
 end
 
 function needs_ordering(mx::Mxpr)
+#    println("needs_ordering: $mx")    
     get_attribute(mx,:orderless) && ! getorderedflag(mx)
 end
 
@@ -511,9 +547,11 @@ function order_if_orderless!(mx::Mxpr)
         orderexpr!(mx)
 #        println(" done ordering $mx")
         mhead(mx) == :* ? mx = compactmul!(mx) : nothing
-        mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
-#        println("dodo $mx")
+#        println("maybe did compactmul! $mx")        
+        ismxpr(mx) && mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
+#        println("maybe compactplus! $mx")
     end
+#    println("order_if_orderless! returning $mx")    
     mx
 end
 order_if_orderless!(x) = x
@@ -521,9 +559,14 @@ order_if_orderless!(x) = x
 # Check the dirty bits of all all orderless subexpressions
 function deep_order_if_orderless!(mx::Mxpr)
     for i = 1:length(mx)
+#        println("deep_order, entering level with $(mx[i])")        
         mx[i] = deep_order_if_orderless!(mx[i])
     end
+#    println("deep_order, done with levels $mx")
     mx = order_if_orderless!(mx)
+#    println("deep_order, done with top level $mx")
+    is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
+    return mx
 end
 deep_order_if_orderless!(x) = x
 
@@ -534,6 +577,7 @@ deep_order_if_orderless!(x) = x
 for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
     @eval begin
         function ($name)(mx::Mxpr)
+#            println($name, ": $mx")
             nummxargs(mx) < 2 && return mx
             a = margs(mx)
             typeof(a[end]) <: Number || return mx
@@ -543,9 +587,11 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
                 typeof(a[end]) <: Number || break
                 sum0 = ($fop)(sum0,a[end])
             end
-#            println("finishing $sum0, length ", length(a))
+#            println($name, ": finishing $sum0, length ", length(a))
             length(a) == 1 && return sum0
+#            println($name, ": pushing op $a back to front")            
             push!(a,sum0)
+#            println($name, ": returing whole thing")
             return mx
         end
     end
