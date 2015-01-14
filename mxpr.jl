@@ -34,16 +34,30 @@ setmhead(mx::Expr, val::Symbol) = mx.head = val
 ####  index functions
 
 function getindex(mx::Mxpr, k::Int)
-    k == 0 && return mhead(mx)
-    return margs(mx)[k+1]
+    k == 0 && return mhead(mx)    
+    if mhead(mx) == :(=)
+        return margs(mx)[k]
+    else
+        return margs(mx)[k+1]
+    end
 end
-
 function setindex!(mx::Mxpr, val, k::Int)
+    if  mhead(mx) == :(=)
+        return margs(mx)[k] = val
+    end 
     k == 0 && return setmhead(mx,val)
     margs(mx)[k+1] = val
 end
 
-endof(mx::Mxpr) = margs(mx)[end]
+function Base.endof(mx::Mxpr)
+    mhead(mx) == :(=)  && return length(margs(mx))    
+    length(margs(mx)) - 1
+end
+
+function  Base.length(mx::Mxpr)
+    mhead(mx) == :(=)  && return length(margs(mx))
+    length(margs(mx)) - 1
+end
 
 # Currently the op is in position 1
 nummxargs(a::Array{Any,1}) = length(a) - 1
@@ -223,8 +237,9 @@ end
 macro jm(ex)
     mx = transex(ex)
     mx = meval(mx)
-#    mx = tryjeval(transex(ex))
-    order_if_orderless!(mx)
+#    println("@jm after eval $mx")
+    mx = order_if_orderless!(mx)
+#    println("don @jm $mx")
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
     end
@@ -263,6 +278,11 @@ end
 
 const MEVALOPFUNCS = Dict{Symbol,Function}()
 
+function register_meval_func(op::Symbol, func::Function)
+    MEVALOPFUNCS[symbol(op)] = func
+end
+
+
 # meval for :+ and :*
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
@@ -295,11 +315,36 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
     end
 end
 
+
+function meval_pow(mx::Mxpr)
+    meval_pow(mx[1],mx[2],mx)
+end
+meval_pow(base,expt,mx::Mxpr) = mx
+meval_pow(base::Number, expt::Number, mx::Mxpr) = base^expt
+register_meval_func(:^,meval_pow)
+
+function meval_assign(mx::Mxpr)
+    ex = Expr(:(=))
+    ex.args = margs(mx)
+    eval(ex)
+end
+register_meval_func(:(=),meval_assign)
+
+
 # need to make an iterator over the args
 function meval(mx::Mxpr)
     nummxargs(mx) == 0 && return mx
-    for i in 1:nummxargs(mx)
-        mx[i] = meval(mx[i])
+    start = 1
+    if mx[0] == :(=)
+        return meval_assign(mx)
+    end
+    for i in 1:endof(mx)
+        println("pre eval: $i:  $mx, :: $(mx[i])")
+        res = meval(mx[i])
+        println("resutl of reval *$i* is $res")
+        mx[i] = res
+        meval(mx[i])        
+        println("pose eval: $i,  $mx, :: $(mx[i])")        
     end
     if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
         mx = MEVALOPFUNCS[mx[0]](mx)
@@ -369,7 +414,7 @@ mklexorder()
 _jslexless(x,y) = lexless(x,y)
 
 function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
-    mhead(x) !=  mhead(y) && return mhead(x) < mhead(y)
+    mhead(x) != mhead(y) && return mhead(x) < mhead(y)
     ax = margs(x)
     ay = margs(y)
     lx = length(ax)
@@ -413,7 +458,8 @@ function order_if_orderless!(mx::Mxpr)
         orderexpr!(mx)
 #        println(" done ordering $mx")
         mhead(mx) == :* ? mx = compactmul!(mx) : nothing
-        mhead(mx) == :+ ? mx = compactplus!(mx) : nothing        
+        mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
+#        println("dodo $mx")
     end
     mx
 end
@@ -435,6 +481,7 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
                 typeof(a[end]) <: Number || break
                 sum0 = ($fop)(sum0,a[end])
             end
+#            println("finishing $sum0, length ", length(a))
             length(a) == 1 && return sum0
             push!(a,sum0)
             return mx
