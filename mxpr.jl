@@ -1,11 +1,6 @@
-macro mdebug(level, a...)
-    mxdebuglevel = -1  # larger means more verbose
-    if level <= mxdebuglevel
-        :(println($(a...)))
-    else
-        nothing
-    end
-end
+# debug level, larger means more verbose
+const MXDEBUGLEVEL = -1
+include("./mxpr_util.jl")
 
 ##############################################
 ##  Mxpr type for symbolic math expression   #
@@ -332,9 +327,20 @@ function tryjeval(mx)
     res
 end
 
-## Register handlers for ops to be dispatched by meval
+## Handlers for ops to be dispatched by meval
 const MEVALOPFUNCS = Dict{Symbol,Function}()
+_meval_has_handler(op::Symbol) = haskey(MEVALOPFUNCS,op)
+_meval_get_handler(op::Symbol) = MEVALOPFUNCS[op]
+_meval_call_handler(op::Symbol,mx::Mxpr) = (_meval_get_handler(op))(mx)
+
 register_meval_func(op::Symbol, func::Function) = MEVALOPFUNCS[symbol(op)] = func
+function meval_handle_or_fall_through(mx::Mxpr)
+    if _meval_has_handler(mx[0])
+        return _meval_call_handler(mx[0],mx)
+    else
+        return mx
+    end
+end
 
 # In implementing the handlers, we are doing something different than
 # other CAS's: We often use dynamical multiple dispatch instead if
@@ -420,18 +426,10 @@ function meval(mx::Mxpr)
         return meval_assign(mx)
     end
     for i in 1:endof(mx)
-#        println("pre eval: $i:  $mx, :: $(mx[i])")
-        res = meval(mx[i])
-#        println("resutl of reval *$i* is $res")
-        mx[i] = res
-        meval(mx[i])        
-#        println("pose eval: $i,  $mx, :: $(mx[i])")        
+        mx[i] = meval(mx[i])
+#        meval(mx[i])        
     end
-    if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
-        mx = MEVALOPFUNCS[mx[0]](mx)
-    end
-#    println("Done with meval: returning $mx, of type $(typeof(mx))")
-    return mx
+    return meval_handle_or_fall_through(mx)
 end
 
 function meval(s::Symbol)
@@ -546,15 +544,12 @@ end
 
 function order_if_orderless!(mx::Mxpr)
     if needs_ordering(mx)
-#        println(" starting ordering $mx")        
+        @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
-#        println(" done ordering $mx")
         mhead(mx) == :* ? mx = compactmul!(mx) : nothing
-#        println("maybe did compactmul! $mx")        
         ismxpr(mx) && mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
-#        println("maybe compactplus! $mx")
+        @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
-#    println("order_if_orderless! returning $mx")    
     mx
 end
 order_if_orderless!(x) = x
@@ -578,9 +573,9 @@ deep_order_if_orderless!(x) = x
 ##########################################################
 # sum numbers at end of + or * call
 for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
+    altop = jtomhead(fop)
     @eval begin
         function ($name)(mx::Mxpr)
-#            println($name, ": $mx")
             nummxargs(mx) < 2 && return mx
             a = margs(mx)
             typeof(a[end]) <: Number || return mx
@@ -588,13 +583,10 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
             while length(a) > 1
                 pop!(a)
                 typeof(a[end]) <: Number || break
-                sum0 = ($fop)(sum0,a[end])
+                sum0 = ($altop)(sum0,a[end]) # call alternate Julia func
             end
-#            println($name, ": finishing $sum0, length ", length(a))
             length(a) == 1 && return sum0
-#            println($name, ": pushing op $a back to front")            
             push!(a,sum0)
-#            println($name, ": returing whole thing")
             return mx
         end
     end
