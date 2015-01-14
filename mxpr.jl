@@ -82,6 +82,15 @@ getorderedflag(mx::Mxpr) = mx.clean
 setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 isclean(mx::Mxpr) = mx.clean
 
+function ==(a::Mxpr, b::Mxpr)
+    (na,nb) = (length(a),length(b))
+    na != nb && return false
+    for i in 0:na
+        a[i] != b[i] && return false
+    end
+    true
+end
+
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
 # and construct an Mxpr.
@@ -266,6 +275,7 @@ macro jm(ex)
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
     end
+    mx = tryjeval(mx)
     mx
 end
 
@@ -431,13 +441,11 @@ end
 
 _mklexorder()
 
-# Interface function 
-function mxlexorder(x::DataType)
-    ! haskey(_jslexorder,x)  && return 5  # Any
-    return _jslexorder[x]
+# interface: returns ordering precedence of Type, typ
+function mxlexorder(typ::DataType)
+    ! haskey(_jslexorder,typ)  && return 5  # Any
+    return _jslexorder[typ]
 end
-
-
 
 _jslexless(x,y) = lexless(x,y)
 
@@ -454,6 +462,7 @@ function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
     return false
 end
 
+# comparision function for sort routine
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
@@ -464,6 +473,8 @@ function jslexless(x,y)
     return _jslexless(x,y)
 end
 
+
+# Order the args in orderless Mxpr.
 # Now it is a disadvantage that the op is in the args array.
 # We have to remove op to avoid sorting it.
 function orderexpr!(mx::Mxpr)
@@ -497,6 +508,7 @@ function order_if_orderless!(mx::Mxpr)
 end
 order_if_orderless!(x) = x
 
+# Check the dirty bits of all all orderless subexpressions
 function deep_order_if_orderless!(mx::Mxpr)
     for i = 1:length(mx)
         mx[i] = deep_order_if_orderless!(mx[i])
@@ -505,9 +517,9 @@ function deep_order_if_orderless!(mx::Mxpr)
 end
 deep_order_if_orderless!(x) = x
 
-###################################################
-## Perform op on numerical args to  :* and :+     #
-###################################################
+##########################################################
+## Sum collected numerical args in :+, (or same for :*)  #
+##########################################################
 # sum numbers at end of + or * call
 for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
     @eval begin
@@ -535,7 +547,9 @@ end
 
 # We do not want cos(1) to return floating point approximation, but
 # rather to represent the exact value of the cosine of 1.
-# We use Cos, for the name of the function that behaves as we like
+# We use Cos, for the name of the function that behaves as we like. Eg.
+# Cos(1) --> Cos(1)
+# Cos(1.0) --> 0.54...
 
 # Define functions like, eg. Cos(x::Float64) = cos(x).
 # You get the idea. If this idea works, then we complete the list
