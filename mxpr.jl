@@ -336,9 +336,12 @@ end
 const MEVALOPFUNCS = Dict{Symbol,Function}()
 register_meval_func(op::Symbol, func::Function) = MEVALOPFUNCS[symbol(op)] = func
 
-# Note we are doing something different than other CAS's. We are using
-# dynamical multiple dispatch instead if Dicts and branching.
-
+# In implementing the handlers, we are doing something different than
+# other CAS's: We often use dynamical multiple dispatch instead if
+# Dicts and branching. Eg., if an op takes two arguments, we call a
+# helper function that passes the whole expression and the two
+# expression arguments as arguments.  We have different methods for
+# the different types of expression args.
 
 ## meval for :+ and :*
 # If no operands are Mxpr, do nothing.
@@ -361,8 +364,8 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
                 end
             end
             if all_numerical_terms
-                @mdebug(2, $name, ": all numerical terms mx = ", mx)                
-                return fast_jeval(mx)
+                @mdebug(3, $name, ": all numerical terms mx = ", mx)                
+                return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
             nargs = Any[symbol($op)]  # new args for the output
@@ -379,9 +382,9 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
             newmx = mxpr($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
-        MEVALOPFUNCS[symbol($op)] = $name  # register this function
+        register_meval_func(symbol($op),$name)  # register this function as handler
     end
-end
+end 
 
 ## meval for powers
 meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
