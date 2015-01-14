@@ -1,19 +1,41 @@
 # Pattern matching and rules
+const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
+include("./mxpr_util.jl")
+
 
 # These work fine
 #typealias CExpr Expr    # annotation to constructed expressions
 #typealias InExpr Expr   # annotation to input arguments
 #typealias UExpr  Expr  # annotation for expressions in Unions
 
+
 # Try Mxpr
 typealias CExpr Mxpr    # annotation to constructed expressions
-typealias InExpr Mxpr   # annotation to input arguments
-typealias UExpr  Mxpr  # annotation for expressions in Unions
+typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
+typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
+
+function mkexpr(head,args...)
+#    CExpr(head,args...)
+    mxpr(head,args...)    
+end
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol)
 typealias CondT Union(UExpr,Symbol,DataType,Function)
 
+# Julia Expr versions
+#isexpr(x) = (typeof(x) == Expr)
+#iscall(x) = isexpr(x) && x.head == :call
+
+# Mxpr versions
+isexpr(x) = (typeof(x) == Mxpr)
+
+# not needed
+#iscall(x) = isexpr(x) && jhead(x) == :call
+# function iscomplex(ex)
+#     typeof(ex) <: Complex ||
+#     (iscall(ex) && ex.args[1] == :complex)
+# end
 
 
 # Pattern variable. name is the name, ending in underscore cond is a
@@ -110,7 +132,7 @@ function ustopat(ex::InExpr)
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         return pvar(ex.args[1],eval(ex.args[2]))
     end
-    CExpr(ex.head, map(ustopat,ex.args)...)
+    mkexpr(ex.head, map(ustopat,ex.args)...)
 end
 
 # everything else falls through
@@ -217,9 +239,10 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(ex,pat,captures)
-#   println("_cmppat checking $ex, $pat")
+    @mdebug(2, "_cmppat enter '", ex, "'  '", pat, "'  '", captures, "'")
     if ispvar(pat) && matchpat(pat,ex)
         capturepvar(captures,pat,ex)
+        @mdebug(3, "_cmppat matched '", ex, "'  '", pat, "'  '", captures, "'")                
         return true
     end
     !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly.
@@ -237,7 +260,7 @@ end
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
 function patrule(ex,pat1::Pattern,pat2::Pattern)
-#    println("enter patrule with $ex")
+    @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
 #    println("patrule $res $capt")
     res == false && return false # match failed
@@ -264,10 +287,10 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
         if ex.head == :vcat
-            ex = CExpr(ex.head,
+            ex = mkexpr(ex.head,
                       map((x)->replaceall(x,pat1,pat2),ex.args[1:end])...)
         else
-            ex = CExpr(ex.head, ex.args[1],
+            ex = mkexpr(ex.head, ex.args[1],
                       map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
         end
     end
@@ -286,7 +309,7 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = CExpr(ex.head, ex.args[1],
+        ex = mkexpr(ex.head, ex.args[1],
                   map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
@@ -326,7 +349,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
     if isexpr(ex)
-        ex1 = CExpr(ex.head, ex.args[1],
+        ex1 = mkexpr(ex.head, ex.args[1],
              map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
@@ -372,7 +395,7 @@ macro replaceall(ex,therule)
     else
         therule = mkrule(therule)
     end
-    CExpr(:call, :replaceall, CExpr(:quote, ex), therule)
+    mkexpr(:call, :replaceall, mkexpr(:quote, ex), therule)
 end
 
 macro replacerepeated(ex,therule)
@@ -382,7 +405,7 @@ macro replacerepeated(ex,therule)
     else
         therule = mkrule(therule)
     end
-    CExpr(:call, :replacerepeated, CExpr(:quote, ex), therule)
+    mkexpr(:call, :replacerepeated, mkexpr(:quote, ex), therule)
 end
 
 true

@@ -17,12 +17,15 @@ include("./mxpr_util.jl")
 # the function name symbol from the front of the equivalent Julia
 # args. We probably will not do direct Julia eval.
 
-# Using a (singly) linked list vs. packed array of pointers (ie
+# Using a (singly) linked list (LL) vs. packed array of pointers (ie
 # Array{Any}) for args are complementary. Retrieving an element is
-# O(n) for linked lists, and O(1) for arrays.  Splicing arguments is
-# O(1) for linked lists and O(n) for arrays. Supporting linked lists
+# O(n) for LLs, and O(1) for arrays.  Splicing arguments is
+# O(1) for LLs and O(n) for arrays. Supporting LLs
 # in some way may be useful, eg, when lots of swapping parts happens
-# in an internal routine.
+# in an internal routine. Maxima uses singly linked lists
+
+# We use share the Julia symbol space, rather thant managing our own
+# symbol table.
 
 type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
@@ -30,6 +33,10 @@ type Mxpr
     jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
     clean::Bool      # In canonical order ?
 end
+
+typealias Symbolic Union(Mxpr,Symbol)
+typealias SymNum Union(Symbolic,Number)
+
 mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
 # make an empty Mxpr
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
@@ -107,10 +114,10 @@ end
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
 # and construct an Mxpr.
-function exprtomxpr!(ex::Expr)
-    @mdebug(1,"exprtomxpr! start ", ex)
+function ex_to_mx!(ex::Expr)
+    @mdebug(1,"ex_to_mx! start ", ex)
     for i in 1:length(ex.args)
-        ex.args[i] = exprtomxpr!(ex.args[i]) # convert to Mxpr at lower levels
+        ex.args[i] = ex_to_mx!(ex.args[i]) # convert to Mxpr at lower levels
     end
     local mxop, mxargs
     if ex.head == :call
@@ -127,14 +134,14 @@ function exprtomxpr!(ex::Expr)
     mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
 end
 
-function exprtomxpr!(s::Symbol)
-#    println("exprtomxpr! Got symbol $s")
+function ex_to_mx!(s::Symbol)
+#    println("ex_to_mx! Got symbol $s")
     s
 end
 
 # everything other than Expr falls through
-function exprtomxpr!(x)
-#    println("exprtomxpr! Got unknown $x: type, " , typeof(x))
+function ex_to_mx!(x)
+#    println("ex_to_mx! Got unknown $x: type, " , typeof(x))
     x
 end
 
@@ -142,36 +149,73 @@ end
 # Note this does not revert changes that were made when constructing the mx.
 # This is used for evaluation. Except, we will probably rarely evaluate directly
 # with Julia eval.
-function mxprtoexpr(mx::Mxpr)
+# DANGER! Even if called on a copy. This works recursively, so if more than
+# one ref to an object is in mx, it will be changed each time it is encountered,
+# giving erroneous results
+function mx_to_ex!(mx::Mxpr)
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
-        a[i] = mxprtoexpr(a[i]) # convert to Mxpr at lower levels
+        a[i] = mx_to_ex!(a[i]) # convert to Mxpr at lower levels
     end
-    unshift!(a,mtojhead(mhead(mx)))  # identity now
+    @mdebug(5,"mx_to_ex!: returning recursivley converted args: $a")
+    if jhead(mx) == :call
+        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+    elseif jhead(mx) == :comparison
+        unshift!(a,mtojhead(mhead(mx)))  # identity now
+        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+    else   # :hcat, etc
+        nothing
+    end    
     ex.args = a
     return ex
 end
-# Other things fall through
-mxprtoexpr(x) = x
+# Other things fall through. Though, there may be an expression lurking down there
+mx_to_ex!(x) = x
+
+function mx_to_ex(mx::Mxpr)
+    ex = Expr(jhead(mx))
+    a = jargs(mx)
+    for i in 1:length(a)
+        a[i] = mx_to_ex(a[i]) # convert to Mxpr at lower levels
+    end
+    a = copy(a)
+    @mdebug(5,"mx_to_ex: returning recursivley converted args: $a")
+    if jhead(mx) == :call
+        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+    elseif jhead(mx) == :comparison
+        unshift!(a,mtojhead(mhead(mx)))  # identity now
+        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+    else   # :hcat, etc
+        nothing
+    end    
+    ex.args = a
+    return ex
+end
+
+# Other things fall through. Though, there may be an expression lurking down there
+mx_to_ex(x) = x
+
+
+
 
 # No need for revert now!
 #  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
 #  This is used for display.
-function mxprtoexpr_revert(mx::Mxpr)
-    ex = Expr(jhead(mx))
-    a = jargs(mx)
-    for i in 1:length(a)
-        a[i] = mxprtoexpr_revert(a[i]) # convert to Mxpr at lower levels
-    end    
-    ex.args = a
-    if ex.head == :call
-        ex.args[1] = mtojhead(ex.args[1])
-    end    
-    return ex
-end
-# Other things fall through
-mxprtoexpr_revert(x) = x
+# function mx_to_ex!_revert(mx::Mxpr)
+#     ex = Expr(jhead(mx))
+#     a = jargs(mx)
+#     for i in 1:length(a)
+#         a[i] = mx_to_ex!_revert(a[i]) # convert to Mxpr at lower levels
+#     end    
+#     ex.args = a
+#     if ex.head == :call
+#         ex.args[1] = mtojhead(ex.args[1])
+#     end    
+#     return ex
+# end
+# # Other things fall through
+# mx_to_ex!_revert(x) = x
 
 function fast_mxpr_to_expr(mx::Mxpr)
     ex = Expr(jhead(mx))
@@ -285,10 +329,13 @@ is_rat_and_int(x) = false
 ############################################
 
 mxmkeval(args...) = meval(mxpr(args...))
-
-+(a::Union(Mxpr,Symbol), args...) = deep_order_if_orderless!(meval(mxpr(:+,a,args...)))
-#+(a::Union(Mxpr,Symbol), args...) = meval(mxpr(:+,a,args...))
-/(a::Union(Mxpr,Symbol), b) = mxmkeval(:/,a,b)
+mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
++(a::Symbolic, args...) = mxmkorderless(:+,a,args...)
+*(a::Symbolic, args...) = mxmkorderless(:*,a,args...)
+/(a::Symbolic, b) = mxmkeval(:/,a,b)
+-(a::Symbolic, b) = mxmkeval(:-,a,b)
+^(a::Symbolic, b::Integer) = mxmkeval(:^,a,b)  # avoid collision in intfuncs.jl
+^(a::Symbolic, b::SymNum) = mxmkeval(:^,a,b)
 
 
 ############################################
@@ -301,7 +348,7 @@ function transex(ex)
     local mx
     T = typeof(ex)
     if  T == Expr
-        mx = exprtomxpr!(ex)
+        mx = ex_to_mx!(ex)
     elseif T == Symbol
 #        mx = Expr(:quote,ex)
         mx = ex
@@ -343,7 +390,8 @@ end
 # Ugh. we are doing a deep copy here. Need more sophisticated
 # evaluation. Converting back to Mxpr would be faster, but
 # still maybe not efficient. I wonder how to get inside eval ?
-jeval(mx::Mxpr) = eval(mxprtoexpr(deepcopy(mx)))
+#jeval(mx::Mxpr) = eval(mx_to_ex!(deepcopy(mx)))
+jeval(mx::Mxpr) = eval(mx_to_ex(mx))
 jeval(x) = eval(x)
 
 # Not using this now!
@@ -492,9 +540,9 @@ end
 # Display a Mxpr by displaying equivalent Expr. Don't show quotes on
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
-    mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
-#    ex = mxprtoexpr_revert(mx)  ******************  # use original Julia function names
-    ex = mxprtoexpr(mx)
+#    mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
+#    ex = mx_to_ex!_revert(mx)  ******************  # use original Julia function names
+    ex = mx_to_ex(mxin)
     Base.show_unquoted(io,ex)    
 end
 
