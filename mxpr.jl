@@ -66,6 +66,8 @@ nummxargs(mx::Mxpr) = nummxargs(margs(mx))
 getorderedflag(mx::Mxpr) = mx.clean
 setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 
+isclean(mx::Mxpr) = mx.clean
+
 # Convert Expr to Mxpr
 # Take a Expr, eg constructed from quoted input on cli,
 # and construct an Mxpr.
@@ -238,7 +240,7 @@ macro jm(ex)
     mx = transex(ex)
     mx = meval(mx)
 #    println("@jm after eval $mx")
-    mx = order_if_orderless!(mx)
+    mx = deep_order_if_orderless!(mx)
 #    println("don @jm $mx")
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
@@ -452,8 +454,12 @@ function orderexpr!(mx::Mxpr)
     mx
 end
 
+function needs_ordering(mx::Mxpr)
+    get_attribute(mx,:orderless) && ! getorderedflag(mx)
+end
+
 function order_if_orderless!(mx::Mxpr)
-    if get_attribute(mx,:orderless) && ! getorderedflag(mx)
+    if needs_ordering(mx)
 #        println(" starting ordering $mx")        
         orderexpr!(mx)
 #        println(" done ordering $mx")
@@ -464,6 +470,15 @@ function order_if_orderless!(mx::Mxpr)
     mx
 end
 order_if_orderless!(x) = x
+
+function deep_order_if_orderless!(mx::Mxpr)
+    for i = 1:length(mx)
+        mx[i] = deep_order_if_orderless!(mx[i])
+    end
+    mx = order_if_orderless!(mx)
+end
+
+deep_order_if_orderless!(x) = x
 
 ###################################################
 ## Perform op on numerical args to  :* and :+     #
