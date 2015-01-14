@@ -4,6 +4,8 @@
 typealias ExSym Union(Expr,Symbol)
 typealias CondT Union(Expr,Symbol,DataType,Function)
 
+typealias CExpr Expr
+
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
 # which matches anything.  The most imporant feature is that the Pvar
@@ -98,7 +100,7 @@ function ustopat(ex::Expr)
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         return pvar(ex.args[1],eval(ex.args[2]))
     end
-    Expr(ex.head, map(ustopat,ex.args)...)
+    CExpr(ex.head, map(ustopat,ex.args)...)
 end
 
 # everything else falls through
@@ -252,10 +254,10 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
         if ex.head == :vcat
-            ex = Expr(ex.head,
+            ex = CExpr(ex.head,
                       map((x)->replaceall(x,pat1,pat2),ex.args[1:end])...)
         else
-            ex = Expr(ex.head, ex.args[1],
+            ex = CExpr(ex.head, ex.args[1],
                       map((x)->replaceall(x,pat1,pat2),ex.args[2:end])...)
         end
     end
@@ -274,7 +276,7 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = Expr(ex.head, ex.args[1],
+        ex = CExpr(ex.head, ex.args[1],
                   map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
@@ -314,7 +316,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
     if isexpr(ex)
-        ex1 = Expr(ex.head, ex.args[1],
+        ex1 = CExpr(ex.head, ex.args[1],
              map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
@@ -360,7 +362,7 @@ macro replaceall(ex,therule)
     else
         therule = mkrule(therule)
     end
-    Expr(:call, :replaceall, Expr(:quote, ex), therule)
+    CExpr(:call, :replaceall, CExpr(:quote, ex), therule)
 end
 
 macro replacerepeated(ex,therule)
@@ -370,7 +372,7 @@ macro replacerepeated(ex,therule)
     else
         therule = mkrule(therule)
     end
-    Expr(:call, :replacerepeated, Expr(:quote, ex), therule)
+    CExpr(:call, :replacerepeated, CExpr(:quote, ex), therule)
 end
 
 true

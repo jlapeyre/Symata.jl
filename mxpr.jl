@@ -1,4 +1,4 @@
-const MXDEBUGLEVEL = -1 # debug level, larger means more verbose
+const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 ##############################################
@@ -27,13 +27,12 @@ include("./mxpr_util.jl")
 type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
-    jhead::Symbol    # Julia head. Mostly for printing now.
+    jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
     clean::Bool      # In canonical order ?
 end
-mxpr(h,a,j,d) = Mxpr(h,a,j,d)
+mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
 # make an empty Mxpr
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
-
 
 const MOPTOJHEAD = Dict{Symbol,Symbol}()
 let mop,jhead 
@@ -48,7 +47,7 @@ end
 
 function mxpr(op::Symbol,args...)
     theargs = Array(Any,0)
-    push!(theargs,op)    
+#    push!(theargs,op)    **********
     for x in args
         push!(theargs,x)
     end
@@ -71,58 +70,22 @@ setmhead(mx::Expr, val::Symbol) = mx.head = val
 
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
-
-# Have to find a better way for this.
-const JEXPRTYPE = Dict{Symbol,Symbol}()
-let jhead, exprtype
-    for (jhead, exprtype) in ((:vcat,:mxlike), (:call,:calllike), (:comparison,:cmplike))
-        JEXPRTYPE[jhead] = exprtype
-    end
-end
-function jheadtype(t::Symbol)
-    if haskey(JEXPRTYPE,t)
-        return JEXPRTYPE[t]
-    end
-    error("No exprtype registered for ",t)
-end
-
-
-function getindex(mx::Mxpr, k::Int)
-    k == 0 && return mhead(mx)    
-    if mhead(mx) == :(=)
-        return margs(mx)[k]
-    else
-        return margs(mx)[k+1]
-    end
-end
-
+getindex(mx::Mxpr, k::Int) = return k == 0 ? mhead(mx) : margs(mx)[k]
 function setindex!(mx::Mxpr, val, k::Int)
-    if  mhead(mx) == :(=)
-        return margs(mx)[k] = val
-    end 
-    k == 0 && return setmhead(mx,val)
-    margs(mx)[k+1] = val
+    if  k == 0
+        return setmhead(mx,val)
+    else
+        return (margs(mx)[k] = val)
+    end
 end
 
-function Base.endof(mx::Mxpr)
-    mhead(mx) == :(=)  && return length(margs(mx))    
-    length(margs(mx)) - 1
-end
+Base.endof(mx::Mxpr) = length(margs(mx))
+Base.length(mx::Mxpr) = length(margs(mx))
 
-# function  Base.length(mx::Mxpr)
-#     mhead(mx) == :(=)  && return length(margs(mx))
-#     length(margs(mx)) - 1
-# end
-
-function  Base.length(mx::Mxpr)
-    jheadtype(jhead(mx)) == :mxlike && return length(margs(mx))
-    jheadtype(jhead(mx)) == :cmplike && return 2
-    length(margs(mx)) - 1
-end
-
+# Remove these after finding where they are used
 # Currently the op is in position 1
-# These look redundant how.
-nummxargs(a::Array{Any,1}) = length(a) - 1
+# These look redundant now.
+nummxargs(a::Array{Any,1}) = length(a)
 nummxargs(mx::Mxpr) = nummxargs(margs(mx))
 
 # Do we want 'ordered' or 'clean' ? There is likely more than
@@ -131,6 +94,7 @@ getorderedflag(mx::Mxpr) = mx.clean
 setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 isclean(mx::Mxpr) = mx.clean
 
+# Deep ==, I think
 function ==(a::Mxpr, b::Mxpr)
     (na,nb) = (length(a),length(b))
     na != nb && return false
@@ -144,17 +108,23 @@ end
 # Take a Expr, eg constructed from quoted input on cli,
 # and construct an Mxpr.
 function exprtomxpr!(ex::Expr)
-#    println("exprtomxpr! Got expr $ex")    
-    hd = ex.head == :call ? ex.args[1] : ex.head
-    a = ex.args
-    for i in 1:length(a)
+    @mdebug(1,"exprtomxpr! start ", ex)
+    for i in 1:length(ex.args)
         ex.args[i] = exprtomxpr!(ex.args[i]) # convert to Mxpr at lower levels
     end
+    local mxop, mxargs
     if ex.head == :call
-        new_julia_call = jtomhead(hd)
-        a[1] = new_julia_call
+        mxop = shift!(ex.args) # first arg is func, actually 'head' for Mxpr
+        mxargs = ex.args
+    elseif ex.head == :comparison
+        mxop = ex.args[2]  # comparison symbol in middle of args
+        mxargs = Any[ex.args[1],ex.args[3]]        
+    else   # :hcat, etc
+        mxop = ex.head
+        mxargs = ex.args
     end
-    mx = Mxpr(hd,a,ex.head,false)  # expression not clean
+#    mxop = jtomhead(mxop)  # we use a different operation,
+    mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
 end
 
 function exprtomxpr!(s::Symbol)
@@ -177,13 +147,15 @@ function mxprtoexpr(mx::Mxpr)
     a = jargs(mx)
     for i in 1:length(a)
         a[i] = mxprtoexpr(a[i]) # convert to Mxpr at lower levels
-    end    
+    end
+    unshift!(a,mtojhead(mhead(mx)))  # identity now
     ex.args = a
     return ex
 end
 # Other things fall through
 mxprtoexpr(x) = x
 
+# No need for revert now!
 #  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
 #  This is used for display.
 function mxprtoexpr_revert(mx::Mxpr)
@@ -203,7 +175,8 @@ mxprtoexpr_revert(x) = x
 
 function fast_mxpr_to_expr(mx::Mxpr)
     ex = Expr(jhead(mx))
-    ex.args = jargs(mx)
+    ex.args = deepcopy(jargs(mx))
+    unshift!(ex.args,mtojhead(mhead(mx))) # op symbol is first el in args
     return ex
 end
 
@@ -276,16 +249,19 @@ end
 
 # Following two are the interface
 # Eg.  jtomhead(:+) --> :mplus
-function jtomhead(jhead::Symbol)
+function jtomop(jhead::Symbol)
     mhead = get(JTOMHEAD,jhead,0)
     return mhead == 0 ? jhead : mhead
 end
 
-# Eg.  mtojhead(:mplus) --> :+
-function mtojhead(mhead::Symbol)
-    jhead = get(MTOJHEAD,mhead,0)
-    return jhead == 0 ? mhead : jhead
-end    
+# # Eg.  mtojhead(:mplus) --> :+
+# function mtojhead(mhead::Symbol)
+#     jhead = get(MTOJHEAD,mhead,0)
+#     return jhead == 0 ? mhead : jhead
+# end    
+
+jtomhead(x) = x
+mtojhead(x) = x
 
 # Divide and multiply integers and rationals
 # like a CAS does. Always return exact result (no floats).
@@ -311,6 +287,7 @@ is_rat_and_int(x) = false
 mxmkeval(args...) = meval(mxpr(args...))
 
 +(a::Union(Mxpr,Symbol), args...) = deep_order_if_orderless!(meval(mxpr(:+,a,args...)))
+#+(a::Union(Mxpr,Symbol), args...) = meval(mxpr(:+,a,args...))
 /(a::Union(Mxpr,Symbol), b) = mxmkeval(:/,a,b)
 
 
@@ -331,6 +308,7 @@ function transex(ex)
     else
         mx = ex  # Numbers, DataTypes, etc.
     end
+    @mdebug(3,"transex: returning ",mx)
     return mx
 end
 
@@ -347,23 +325,6 @@ macro jm(ex)
     end
     mx = tryjeval(mx)
     mx
-end
-
-function runmx(ex::String)
-    runmx(parse(ex))
-end 
-    
-function runmx(ex::Expr)
-    mx = transex(ex)
-    mx = meval(mx)
-#    println("@jm after eval $mx")
-    mx = deep_order_if_orderless!(mx)
-#    println("done deep order @jm $mx")
-    if  typeof(mx) == Symbol
-        return Base.QuoteNode(mx)
-    end
-    mx = tryjeval(mx)
-    mx    
 end
 
 # Construct Mxpr, but don't evaluate
@@ -444,8 +405,9 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
                 return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
-            nargs = Any[symbol($op)]  # new args for the output
-            for i in 1:nummxargs(mx)
+#            nargs = Any[symbol($op)]  # new args for the output     ***************
+            nargs = Any[]  # new args for the output            
+            for i in 1:nummxargs(mx) # walk through all args again
                 mxel = mx[i]
                 if typeof(mxel) == Mxpr && mxel[0] == symbol($op)
                     for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
@@ -455,7 +417,7 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
                     push!(nargs,mx[i]) # something else, just it in
                 end
             end
-            newmx = mxpr($op,nargs,:call,false) # construct new Mxpr
+            newmx = Mxpr($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
         register_meval_func(symbol($op),$name)  # register this function as handler
@@ -531,7 +493,8 @@ end
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
     mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
-    ex = mxprtoexpr_revert(mx)  # use original Julia function names
+#    ex = mxprtoexpr_revert(mx)  ******************  # use original Julia function names
+    ex = mxprtoexpr(mx)
     Base.show_unquoted(io,ex)    
 end
 
@@ -597,12 +560,12 @@ function orderexpr!(mx::Mxpr)
 #    println(" getting args $mx")        
     ar = jargs(mx)
 #    println("args are $ar")            
-    op = shift!(ar)
+#    op = shift!(ar)  ***********
 #    println("done shift op is $op")                
 #    println("starting sort sort or $ar")    
     sort!(ar,lt=jslexless)
 #    println(" done sort")        
-    unshift!(ar,op)
+#    unshift!(ar,op) ************
     setorderedflag(mx,true)
     mx
 end
@@ -643,10 +606,10 @@ deep_order_if_orderless!(x) = x
 ##########################################################
 # sum numbers at end of + or * call
 for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
-    altop = jtomhead(fop)
+    altop = jtomop(fop)
     @eval begin
         function ($name)(mx::Mxpr)
-            nummxargs(mx) < 2 && return mx
+            length(mx) < 2 && return mx
             a = margs(mx)
             typeof(a[end]) <: Number || return mx
             sum0 = a[end]
@@ -655,7 +618,7 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
                 typeof(a[end]) <: Number || break
                 sum0 = ($altop)(sum0,a[end]) # call alternate Julia func
             end
-            length(a) == 1 && return sum0
+            length(a) == 0 && return sum0
             push!(a,sum0)
             return mx
         end
