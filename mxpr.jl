@@ -4,13 +4,23 @@ include("./mxpr_util.jl")
 ##  Mxpr type for symbolic math expression   #
 ##############################################
 
-# Using Julia Expr would be convenient, but seems not possible.
-# Eg. we need a dirty bit to know eg if expression is canonicalized.
-# It's not clear how to organize the data. So:
-# Do not access fields the directly!
-# Mxpr.args is exactly the equivalent Julia args, if possible.
-# This allows lightweight construction of Julia Expr for evaluation.
-# Fortunately, Expr is mutable.
+# This package is for creating and manipulating expressions. Using
+# Julia Expr would be convenient, but seems not possible. Eg. we need
+# a dirty bit to know eg if an expression is in canonical form. It's not
+# clear how to organize the data. So: Do not access fields the
+# directly!
+
+# Mxpr.args is exactly the equivalent Julia args, if possible. This
+# allows lightweight construction of Julia Expr for evaluation.
+# Fortunately, Expr is mutable.  But, a better choice may be to pop
+# the function name symbol from the front of the equivalent Julia
+# args. We probably will not do direct Julia eval.
+
+# Using a (singly) linked list vs. packed array of pointers (ie Array{Any}) for args
+# are complementary. Retrieving an element is O(n) for linked lists, and O(1) for arrays.
+# Splicing arguments is O(1) for linked lists and O(n) for arrays. Supporting in some
+# way linked lists may be useful, eg, when lots of swapping parts happens in an internal
+# routine.
 
 type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
@@ -33,6 +43,8 @@ setmhead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
 
+# Get and set parts of expressions. mx[0] is the head
+# mx[1] is the first argument, etc.
 function getindex(mx::Mxpr, k::Int)
     k == 0 && return mhead(mx)    
     if mhead(mx) == :(=)
@@ -60,12 +72,14 @@ function  Base.length(mx::Mxpr)
 end
 
 # Currently the op is in position 1
+# These look redundant how.
 nummxargs(a::Array{Any,1}) = length(a) - 1
 nummxargs(mx::Mxpr) = nummxargs(margs(mx))
 
+# Do we want 'ordered' or 'clean' ? There is likely more than
+# one way to be dirty, not just unordered.
 getorderedflag(mx::Mxpr) = mx.clean
 setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
-
 isclean(mx::Mxpr) = mx.clean
 
 # Convert Expr to Mxpr
@@ -98,7 +112,8 @@ end
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
-# This is used for evaluation.
+# This is used for evaluation. Except, we will probably rarely evaluate directly
+# with Julia eval.
 function mxprtoexpr(mx::Mxpr)
     ex = Expr(jhead(mx))
     a = jargs(mx)
@@ -112,7 +127,7 @@ end
 mxprtoexpr(x) = x
 
 #  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
-# This is used for display
+#  This is used for display.
 function mxprtoexpr_revert(mx::Mxpr)
     ex = Expr(jhead(mx))
     a = jargs(mx)
@@ -128,15 +143,16 @@ end
 # Other things fall through
 mxprtoexpr_revert(x) = x
 
-
-
 ###########################################
 ##  Function attributes                   #
 ###########################################
 
-# The attribute 'orderless' means the function is commutative.
-# Binary ops are promoted to nary ops as in Julia. So orderless
-# means we can put the args in a canonical order.
+# The attribute 'orderless' means the function is commutative.  Binary
+# ops are promoted to nary ops as in Julia. So orderless means we can
+# put the args in a canonical order. We could use 'commutative'
+# maybe. Using more accessible, or shorter, english terms perhaps
+# better. We may want to restrict the attributes that a function may
+# have.
 
 # a key is a function name. the val is Dict holding attributes for that function
 const MATTRIBUTES = Dict{Symbol,Dict{Symbol,Bool}}()
@@ -155,9 +171,10 @@ function get_attribute(sym::Symbol,attr::Symbol)
     end
 end
 
-# get attribute function name from a particular instance of a call
+# get attribute function name from head of a particular expression
 get_attribute(mx::Mxpr,a) = get_attribute(mhead(mx),a)
 
+# eg. set_attribute(:+, :orderless, true)
 function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
     local attrs
     if haskey(MATTRIBUTES,sym)
@@ -192,24 +209,28 @@ for (j,m) in ( (:/,:mdiv), (:*,:mmul))
 end
 
 # Following two are the interface
+# Eg.  jtomhead(:+) --> :mplus
 function jtomhead(jhead::Symbol)
     mhead = get(JTOMHEAD,jhead,0)
     return mhead == 0 ? jhead : mhead
 end
 
+# Eg.  mtojhead(:mplus) --> :+
 function mtojhead(mhead::Symbol)
     jhead = get(MTOJHEAD,mhead,0)
     return jhead == 0 ? mhead : jhead
 end    
 
 # Divide and multiply integers and rationals
-# like a CAS. Always return exact result (no floats).
+# like a CAS does. Always return exact result (no floats).
 # Return Int if possible. We want to avoid infection Rationals
-# and putting explicit conversions everywhere.
+# and putting explicit conversions everywhere. Examples:
+#  12/6 --> 2, not 2.0
+#  13/6 --> 13//6
+#  (13//6) * 6 --> 13
 mmul(x::Int, y::Rational) =  (res = x * y; return res.den == 1 ? res.num : res )
 mmul(x::Rational, y::Int) =  (res = x * y; return res.den == 1 ? res.num : res )
 mmul(x,y) = x * y
-
 mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
@@ -285,7 +306,7 @@ function register_meval_func(op::Symbol, func::Function)
 end
 
 
-# meval for :+ and :*
+## meval for :+ and :*
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
 # Then flatten the operands, copying them out of the inner Mxpr
@@ -317,14 +338,15 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
     end
 end
 
-
+## meval for powers
 function meval_pow(mx::Mxpr)
     meval_pow(mx[1],mx[2],mx)
 end
-meval_pow(base,expt,mx::Mxpr) = mx
-meval_pow(base::Number, expt::Number, mx::Mxpr) = base^expt
+meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
+meval_pow(base::Number, expt::Number, mx::Mxpr) = base^expt  # treat numbers
 register_meval_func(:^,meval_pow)
 
+## meval for assignment
 function meval_assign(mx::Mxpr)
     ex = Expr(:(=))
     ex.args = margs(mx)
@@ -333,7 +355,7 @@ end
 register_meval_func(:(=),meval_assign)
 
 
-# need to make an iterator over the args
+## meval top level 
 function meval(mx::Mxpr)
     nummxargs(mx) == 0 && return mx
     start = 1
@@ -369,6 +391,7 @@ function meval(s::Symbol)
     res
 end
 
+## generic meval does nothing
 function meval(x)
 #    println(" evaling unknown $x, type: ", typeof(x))
     x
@@ -390,15 +413,15 @@ end
 # Or, we could make our own symbol type: MSymbol.
 Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 
-##############################################
-## Lexicographical ordering of elements in Mxpr
-##############################################
+###########################################################
+## Lexicographical ordering of elements in orderless Mxpr #
+###########################################################
 
 const _jslexorder = Dict{DataType,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
-function mklexorder()
+function _mklexorder()
     i = 1
     for typ in (Symbol,Expr,Mxpr,Rational,Any,Int,Float64)
         _jslexorder[typ] = i
@@ -406,12 +429,15 @@ function mklexorder()
     end
 end
 
-function mxlexorder(x)
+_mklexorder()
+
+# Interface function 
+function mxlexorder(x::DataType)
     ! haskey(_jslexorder,x)  && return 5  # Any
     return _jslexorder[x]
 end
 
-mklexorder()
+
 
 _jslexless(x,y) = lexless(x,y)
 
@@ -477,7 +503,6 @@ function deep_order_if_orderless!(mx::Mxpr)
     end
     mx = order_if_orderless!(mx)
 end
-
 deep_order_if_orderless!(x) = x
 
 ###################################################
