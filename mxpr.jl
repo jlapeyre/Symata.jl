@@ -1,5 +1,4 @@
-# debug level, larger means more verbose
-const MXDEBUGLEVEL = -1
+const MXDEBUGLEVEL = -1 # debug level, larger means more verbose
 include("./mxpr_util.jl")
 
 ##############################################
@@ -8,8 +7,8 @@ include("./mxpr_util.jl")
 
 # This package is for creating and manipulating expressions. Using
 # Julia Expr would be convenient, but seems not possible. Eg. we need
-# a dirty bit to know eg if an expression is in canonical form. It's not
-# clear how to organize the data. So: Do not access fields the
+# a dirty bit to know eg if an expression is in canonical form. It's
+# not clear how to organize the data. So: Do not access fields the
 # directly!
 
 # Mxpr.args is exactly the equivalent Julia args, if possible. This
@@ -18,11 +17,12 @@ include("./mxpr_util.jl")
 # the function name symbol from the front of the equivalent Julia
 # args. We probably will not do direct Julia eval.
 
-# Using a (singly) linked list vs. packed array of pointers (ie Array{Any}) for args
-# are complementary. Retrieving an element is O(n) for linked lists, and O(1) for arrays.
-# Splicing arguments is O(1) for linked lists and O(n) for arrays. Supporting in some
-# way linked lists may be useful, eg, when lots of swapping parts happens in an internal
-# routine.
+# Using a (singly) linked list vs. packed array of pointers (ie
+# Array{Any}) for args are complementary. Retrieving an element is
+# O(n) for linked lists, and O(1) for arrays.  Splicing arguments is
+# O(1) for linked lists and O(n) for arrays. Supporting linked lists
+# in some way may be useful, eg, when lots of swapping parts happens
+# in an internal routine.
 
 type Mxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
