@@ -31,6 +31,8 @@ margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(ex::Expr) = ex.head
 setmhead(mx::Expr, val::Symbol) = mx.head = val
 
+####  index functions
+
 function getindex(mx::Mxpr, k::Int)
     k == 0 && return mhead(mx)
     return margs(mx)[k+1]
@@ -40,6 +42,8 @@ function setindex!(mx::Mxpr, val, k::Int)
     k == 0 && return setmhead(mx,val)
     margs(mx)[k+1] = val
 end
+
+endof(mx::Mxpr) = margs(mx)[end]
 
 # Currently the op is in position 1
 nummxargs(a::Array{Any,1}) = length(a) - 1
@@ -257,12 +261,48 @@ function tryjeval(mx)
     res
 end
 
+const MEVALOPFUNCS = Dict{Symbol,Function}()
+
+# meval for :+ and :*
+# If no operands are Mxpr, do nothing.
+# If one or more operands are Mxpr and also of op :+
+# Then flatten the operands, copying them out of the inner Mxpr
+for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
+    @eval begin
+        function ($name)(mx::Mxpr)
+            mx_term_flag = false
+            for i in 1:nummxargs(mx)  # check if there is at least one Mxpr of type op
+                if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
+                    mx_term_flag = true
+                    break
+                end
+            end
+            mx_term_flag == false && return mx
+            nargs = Any[symbol($op)]  # new args for the output
+            for i in 1:nummxargs(mx)
+                mxel = mx[i]
+                if typeof(mxel) == Mxpr && mxel[0] == symbol($op)
+                    for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
+                        push!(nargs,mxel[j])
+                    end
+                else
+                    push!(nargs,mx[i]) # something else, just it in
+                end
+            end
+            return mxpr($op,nargs,:call,false) # construct new Mxpr
+        end
+        MEVALOPFUNCS[symbol($op)] = $name  # register this function
+    end
+end
+
 # need to make an iterator over the args
 function meval(mx::Mxpr)
     nummxargs(mx) == 0 && return mx
-    a = margs(mx)
     for i in 1:nummxargs(mx)
         mx[i] = meval(mx[i])
+    end
+    if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
+        mx = MEVALOPFUNCS[mx[0]](mx)
     end
     return mx
 end
@@ -313,10 +353,15 @@ const _jslexorder = Dict{DataType,Int}()
 # to last according to this order of types. Then lex within types.
 function mklexorder()
     i = 1
-    for typ in (Symbol,Expr,Rational,Int,Float64)
+    for typ in (Symbol,Expr,Mxpr,Rational,Any,Int,Float64)
         _jslexorder[typ] = i
         i += 1
     end
+end
+
+function mxlexorder(x)
+    ! haskey(_jslexorder,x)  && return 5  # Any
+    return _jslexorder[x]
 end
 
 mklexorder()
@@ -339,8 +384,9 @@ end
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
+#    println("cmp '$x' '$y'")
     if tx != ty
-        return _jslexorder[tx] < _jslexorder[ty]
+        return mxlexorder(tx) < mxlexorder(ty)
     end
     return _jslexless(x,y)
 end
@@ -348,9 +394,14 @@ end
 # Now it is a disadvantage that the op is in the args array.
 # We have to remove op to avoid sorting it.
 function orderexpr!(mx::Mxpr)
+#    println(" getting args $mx")        
     ar = jargs(mx)
+#    println("args are $ar")            
     op = shift!(ar)
+#    println("done shift op is $op")                
+#    println("starting sort sort or $ar")    
     sort!(ar,lt=jslexless)
+#    println(" done sort")        
     unshift!(ar,op)
     setorderedflag(mx,true)
     mx
@@ -358,7 +409,9 @@ end
 
 function order_if_orderless!(mx::Mxpr)
     if get_attribute(mx,:orderless) && ! getorderedflag(mx)
+#        println(" starting ordering $mx")        
         orderexpr!(mx)
+#        println(" done ordering $mx")
         mhead(mx) == :* ? mx = compactmul!(mx) : nothing
         mhead(mx) == :+ ? mx = compactplus!(mx) : nothing        
     end
