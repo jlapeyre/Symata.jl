@@ -339,12 +339,12 @@ function meval(mx::Mxpr)
         return meval_assign(mx)
     end
     for i in 1:endof(mx)
-        println("pre eval: $i:  $mx, :: $(mx[i])")
+#        println("pre eval: $i:  $mx, :: $(mx[i])")
         res = meval(mx[i])
-        println("resutl of reval *$i* is $res")
+#        println("resutl of reval *$i* is $res")
         mx[i] = res
         meval(mx[i])        
-        println("pose eval: $i,  $mx, :: $(mx[i])")        
+#        println("pose eval: $i,  $mx, :: $(mx[i])")        
     end
     if  haskey(MEVALOPFUNCS,mx[0])  # meval specialized on the operator
         mx = MEVALOPFUNCS[mx[0]](mx)
