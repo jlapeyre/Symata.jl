@@ -24,7 +24,7 @@ include("./mxpr_util.jl")
 # in some way may be useful, eg, when lots of swapping parts happens
 # in an internal routine. Maxima uses singly linked lists
 
-# We use share the Julia symbol space, rather thant managing our own
+# We use the Julia symbol space, rather than managing our own
 # symbol table.
 
 type Mxpr
@@ -218,8 +218,9 @@ mx_to_ex(x) = x
 # mx_to_ex!_revert(x) = x
 
 function fast_mxpr_to_expr(mx::Mxpr)
+    mx = deepcopy(mx)
     ex = Expr(jhead(mx))
-    ex.args = deepcopy(jargs(mx))
+    ex.args = jargs(mx)
     unshift!(ex.args,mtojhead(mhead(mx))) # op symbol is first el in args
     return ex
 end
@@ -370,7 +371,7 @@ macro jm(ex)
     if  typeof(mx) == Symbol
         return Base.QuoteNode(mx)
     end
-    mx = tryjeval(mx)
+#    mx = tryjeval(mx)
     mx
 end
 
@@ -540,9 +541,9 @@ end
 # Display a Mxpr by displaying equivalent Expr. Don't show quotes on
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
-#    mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
+    mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
 #    ex = mx_to_ex!_revert(mx)  ******************  # use original Julia function names
-    ex = mx_to_ex(mxin)
+    ex = mx_to_ex(mx)
     Base.show_unquoted(io,ex)    
 end
 

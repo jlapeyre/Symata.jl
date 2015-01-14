@@ -1,7 +1,6 @@
 # Pattern matching and rules
-const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
+#const MXDEBUGLEVEL = 5 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
-
 
 # These work fine
 #typealias CExpr Expr    # annotation to constructed expressions
@@ -29,6 +28,7 @@ typealias CondT Union(UExpr,Symbol,DataType,Function)
 
 # Mxpr versions
 isexpr(x) = (typeof(x) == Mxpr)
+#isexpr(x) = (typeof(x) == Mxpr || typeof(x) == Expr)
 
 # not needed
 #iscall(x) = isexpr(x) && jhead(x) == :call
@@ -238,20 +238,31 @@ end
 # ex and pat must match exactly.
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
-function _cmppat(ex,pat,captures)
-    @mdebug(2, "_cmppat enter '", ex, "'  '", pat, "'  '", captures, "'")
-    if ispvar(pat) && matchpat(pat,ex)
-        capturepvar(captures,pat,ex)
-        @mdebug(3, "_cmppat matched '", ex, "'  '", pat, "'  '", captures, "'")                
+function _cmppat(mx,pat,captures)
+    @mdebug(2, "_cmppat enter '", mx, "'  '", pat, "'  '", captures, "'")
+    if ispvar(pat) && matchpat(pat,mx)
+        capturepvar(captures,pat,mx)
+        @mdebug(3, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")                
         return true
     end
-    !isexpr(ex)  && return ex == pat # 'leaf' on the tree. Must match exactly.
-    if !isexpr(pat) || pat.head != ex.head ||
-        length(pat.args) != length(ex.args)
+    if !isexpr(mx)
+        @mdebug(3, "_cmppat checking leaf mx: '", mx, "', pat '", pat, "'")
+        @mdebug(3, "  type of mx = ", typeof(mx))
+        @mdebug(3, "  type of pat = ", typeof(pat))        
+        res = mx == pat # 'leaf' on the tree. Must match exactly.
+        @mdebug(3, "_cmppat leaf match is *", res, "*,  mx: '", mx, "', pat '", pat, "'")
+        return res
+    end
+    @mdebug(3, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
+    @mdebug(3, "  type of mx = ", typeof(mx))
+    @mdebug(3, "  type of pat = ", typeof(pat))        
+    if !isexpr(pat) || pat.head != mhead(mx) ||
+        length(pat.args) != length(mx)
+        @mdebug(3, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
         return false
     end
-    for i in 1:length(ex.args) # match and capture subexpressions.
-         _cmppat(ex.args[i],pat.args[i],captures) == false && return false
+    for i in 1:length(mx) # match and capture subexpressions.
+         _cmppat(mx[i],pat[i],captures) == false && return false
     end
     return true
 end

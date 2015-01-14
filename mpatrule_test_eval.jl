@@ -22,15 +22,15 @@ using Base.Test
 @test replace( :a * :a , :x_ * :x_ =>  :x_^2 ) == :a^2
 
 # Can use underscore for capture var.
-sq_rule = :(_ * _)  =>  :(_^2)
+sq_rule = :_ * :_  =>  :_^2
 
 # replace tests the entire expression, not subexpressions
-@test replace( :(a*a+1) , sq_rule) == :(a*a+1)
+@test replace(:a * :a + 1 , sq_rule) == :a * :a + 1
 
 # replaceall tests subexpressions; depth first.
 # This differs from Mma, which applies rule top-down and
 # stops if there is a success.
-@test replaceall(:(a*a+1) , sq_rule) == :(a^2+1)
+@test replaceall(:a * :a + 1, sq_rule) == :a^2+1
 
 # applies everywhere
 @test replaceall(:(a*a+1 / ((z+y)*(z+y))) , sq_rule) == :(a^2+1/(z + y)^2)
