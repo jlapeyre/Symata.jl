@@ -1,8 +1,14 @@
 # Pattern matching and rules
 
-typealias CExpr Expr    # annotation to constructed expressions
-typealias InExpr Expr   # annotation to input arguments
-typealias UExpr  Expr  # annotation for expressions in Unions
+# These work fine
+#typealias CExpr Expr    # annotation to constructed expressions
+#typealias InExpr Expr   # annotation to input arguments
+#typealias UExpr  Expr  # annotation for expressions in Unions
+
+# Try Mxpr
+typealias CExpr Mxpr    # annotation to constructed expressions
+typealias InExpr Mxpr   # annotation to input arguments
+typealias UExpr  Mxpr  # annotation for expressions in Unions
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol)
