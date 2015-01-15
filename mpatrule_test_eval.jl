@@ -108,17 +108,26 @@ end
 
 # bug fix: Pvars are not hashable
 @test cmppat( :(a + b) , :( x_ + x_ ))[1] == false
-# bug fixs:  0 == false ->  0 === false
+# bug fixes:  0 == false ->  0 === false
 @test replaceall(  :a - :a,   :x_ - :x_ => 0 )  == 0
 @test replaceall(  1/:a - :a , :x_- :x_ => 0)  == 1/:a - :a
 @test replaceall( 1/:a-1/:a  , :x_- :x_ => 0 )  == 0
 # Following fix old bugs. Some code is completely rewritten now
 @test replaceall( @jn( b^(a-a) ),  :_ + -:_  =>  0) == :b ^ 0
 @test replaceall( @jn([a,b,c,d]) ,   :a =>  :b)   ==  @jn([b,b,c,d])
-# bug in mx_to_ex! and mx_to_ex. Deep copy was not enough. There are two refs to 'a'
+# Fix bug in mx_to_ex! and mx_to_ex. Deep copy was not enough. There are two refs to 'a'
 let a = :c + 1
     @test a * a == (:c + 1) * (:c + 1)
 end
+
+# Problem with symbol scope
+#module TestMod1
+
+@test 1 * :zebra == :zebra * 1 == :zebra
+@test 0 + :a == :a + 0 == :a
+
+#end
+    
 
 # Fix these when we fix the macros
 # replaceall vs. replacerepeated
