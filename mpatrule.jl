@@ -29,12 +29,11 @@ typealias CondT Union(UExpr,Symbol,DataType,Function)
 isexpr(x) = (typeof(x) == Mxpr)
 #isexpr(x) = (typeof(x) == Mxpr || typeof(x) == Expr)
 
-# not needed
-#iscall(x) = isexpr(x) && jhead(x) == :call
-# function iscomplex(ex)
-#     typeof(ex) <: Complex ||
-#     (iscall(ex) && ex.args[1] == :complex)
-# end
+iscall(x) = isexpr(x) && jhead(x) == :call
+function iscomplex(ex)
+    typeof(ex) <: Complex ||
+    (iscall(ex) && ex.args[1] == :complex)
+end
 
 
 # Pattern variable. name is the name, ending in underscore cond is a
@@ -98,6 +97,9 @@ prule(x,y) = PRule(x,y)
 # syntax for creating a rule. collides with Dict syntax sometimes.
 =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
 =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
+=>(lhs::ExSym,rhs::Number) = prule(pattern(lhs),pattern(rhs))
+prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
+prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
 
 ispvar(x) = typeof(x) == Pvar
@@ -370,9 +372,9 @@ macro pattcond(ex,cond)
     Pattern(ustopat(ex),cond)
 end
 
-macro rule(ex)
-    ex.head != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(ex.args[1]),pattern(ex.args[2]))
+macro rule(mx::Mxpr)
+    mhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(mx[1]),pattern(mx[2]))
 end
 
 function mkrule(ex::InExpr)
