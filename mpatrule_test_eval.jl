@@ -46,10 +46,9 @@ mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
 @test replace( :a^1.2 * :a^2.3, mulpow_rule) == :a^ 3.5
 
 # you can put a condition on the pattern
-@test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::($Int) * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
-    :(a ^ 1.2 * a ^ 2.3)
-@test replace(:(a^5 * a^6 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
-    :(a ^ 11)        
+@test replace( :a^1.2 * :a^2.3 , @jn(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) ==
+    :a ^ 1.2 * :a ^ 2.3
+@test replace( :a^5 * :a^6 , :x_^:n1_::Int * :x_^:n2_::Int => :x_^(:n1_+:n2_)) == :a ^11
 
 # This is much faster because the Int is evaluated when the pattern is constructed
 @test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==

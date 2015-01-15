@@ -587,18 +587,47 @@ function mxlexorder(typ::DataType)
     return _jslexorder[typ]
 end
 
+#mxlexorder(x) = false
+
 _jslexless(x,y) = lexless(x,y)
+_jslexless(x::DataType,y::DataType) = x <: y
+
+# we need these because type annotations are compared
+# isless{T}(::Type{T}, ::Type{T}) = false
+# function isless(::Int64, ::Int64)
+#     println("In is less int64")
+#     return false
+# end
+
+# function isless(::Int64, a::Symbol)
+#     println("In is less int64 and dymbol")
+#     return false
+# end
+
+# function isless(a::Symbol, ::Int64)
+#     println("In is less int64 and dymbol")
+#     return false
+# end
 
 function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
+    println("_jslexless: entering")
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
     ax = margs(x)
     ay = margs(y)
     lx = length(ax)
     ly = length(ay)
+    println("_jslexless: $ax, $ay, $lx, $ly")
     for i in 1:min(lx,ly)
+        println("_jslexless: trying $i th parts")
+        println(" ", ax[i],"  ", ay[i])
         _jslexless(ax[i],ay[i]) && return true
     end
-    lx < ly && return true
+    println("checking less $lx < $ly")
+#    if typeof(lx) == DataType && typeof(ly) == DataType
+#        lx <: ly && return true
+#    else
+        lx < ly && return true
+#    end
     return false
 end
 
@@ -606,10 +635,15 @@ end
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
-#    println("cmp '$x' '$y'")
+    println("cmp '$x' '$y'")
     if tx != ty
+        println("checking types $tx $ty")
         return mxlexorder(tx) < mxlexorder(ty)
     end
+    println("now checking vals")
+#    if tx == DataType && ty == DataType
+#        return x <: y
+#    end
     return _jslexless(x,y)
 end
 
@@ -651,12 +685,9 @@ order_if_orderless!(x) = x
 # Check the dirty bits of all all orderless subexpressions
 function deep_order_if_orderless!(mx::Mxpr)
     for i = 1:length(mx)
-#        println("deep_order, entering level with $(mx[i])")        
         mx[i] = deep_order_if_orderless!(mx[i])
     end
-#    println("deep_order, done with levels $mx")
     mx = order_if_orderless!(mx)
-#    println("deep_order, done with top level $mx")
     is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
     return mx
 end
