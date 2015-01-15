@@ -50,11 +50,6 @@ mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
     :a ^ 1.2 * :a ^ 2.3
 @test replace( :a^5 * :a^6 , @jm(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) == :a ^11
 
-# This is much faster because the Int is evaluated when the pattern is constructed
-# Everything is different now. expressions above are compiled
-#@test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
-#    :(a ^ 8)
-
 # This works, but keeps changing
 #@test string(cmppat( :( "dog" ) , :( x_::String ))) ==
 #    "(true,Any[(Pvar(:x_,AbstractString),\"dog\")])"
@@ -78,7 +73,6 @@ mulpow1_rule = :x_ * :x_   =>  :x_^2
 # Test anonymous functions as conditions
 @test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>4)) )))[1] == false
 @test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>2)) )))[1] == true
-## More tests !
 
 @test Pvar( :x_ ) == Pvar(:x_,:All)
 
@@ -106,12 +100,6 @@ let r
 end
 
 # use a helper function, iscomplex
-# let r
-#     r = @rule  exp(log(x_::iscomplex)) => x_
-#     @test replaceall( :(exp(log(1))) , r) == :(exp(log(1)))
-#     @test replaceall( :(exp(log(complex(1,1)))) , r) == complex(1,1)
-# end
-
 let r
     r = @jm(Exp(Log(x_::iscomplex))) => :x_
     @test replaceall( @jm(Exp(Log(1))) , r) == @jm(Exp(Log(1)))
@@ -120,23 +108,17 @@ end
 
 # bug fix: Pvars are not hashable
 @test cmppat( :(a + b) , :( x_ + x_ ))[1] == false
-
-# bug fix:  0 == false ->  0 === false
-@test @replaceall  a-a   x_-x_ => 0   == 0
-@test @replaceall  1/a-1/a   x_-x_ => 0   == 0
-@test (@replaceall  1/a - a   x_-x_ => 0)  == :(1/a -a)
-# bug fix: another instance of 0 != false -> 0 !== false
-@test (@replaceall  b^(a-a)  _ - _  =>  0) == :(b ^ 0)
-
-# bug fix: check for :vcat insteadof :call.
-# this is a bandaid
+# bug fixs:  0 == false ->  0 === false
+@test replaceall(  :a - :a,   :x_ - :x_ => 0 )  == 0
+@test replaceall(  1/:a - :a , :x_- :x_ => 0)  == 1/:a - :a
+@test replaceall( 1/:a-1/:a  , :x_- :x_ => 0 )  == 0
+# Following fix old bugs. Some code is completely rewritten now
+@test replaceall( @jn( b^(a-a) ),  :_ + -:_  =>  0) == :b ^ 0
 @test replaceall( @jn([a,b,c,d]) ,   :a =>  :b)   ==  @jn([b,b,c,d])
-
 # bug in mx_to_ex! and mx_to_ex. Deep copy was not enough. There are two refs to 'a'
 let a = :c + 1
     @test a * a == (:c + 1) * (:c + 1)
 end
-
 
 # Fix these when we fix the macros
 # replaceall vs. replacerepeated
@@ -153,6 +135,6 @@ end
 #    These do not work in this let block, but do work on cli. Don't know why
 #    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]
 #    @test res == :((log(a) * (2 * log(x))) * ((1 / k + 1) * log(z)))
-end
+#end
 
 

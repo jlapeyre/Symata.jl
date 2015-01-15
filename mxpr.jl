@@ -38,30 +38,63 @@ typealias Symbolic Union(Mxpr,Symbol)
 typealias SymNum Union(Symbolic,Number)
 
 mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
-# make an empty Mxpr
+# make an empty Mxpr, unused ?
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 
+## convert Mxpr.head to Expr.head
 const MOPTOJHEAD = Dict{Symbol,Symbol}()
 let mop,jhead 
     for (mop,jhead) in ((:<, :comparision),)
         MOPTOJHEAD[mop] = jhead
     end
 end
-
 function moptojhead(op::Symbol)
     return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
 end
 
+## Construct Mxpr, similar to construction Expr(head,args...)
+#  Set dirty bit. Guess corresponding Julia Expr field 'head'
 function mxpr(op::Symbol,args...)
     theargs = Array(Any,0)
-#    push!(theargs,op)    **********
     for x in args
         push!(theargs,x)
     end
     mx = Mxpr(op,theargs,moptojhead(op),false)
 end
 
-ismxpr(x) = typeof(x) == Mxpr
+## predicates
+
+## predicate function names
+#  'isthing' or 'thingq' ?
+#  'thingq' would signify difference from standard Julia
+#  eg: thingq takes Mxpr as argument ?
+mk_predicate_sym(sym::Symbol) = symbol(string(sym) * "q")
+
+## generic predicate
+macro mk_predicate(name0,code)
+    name = mk_predicate_sym(name0)
+    @eval begin
+        ($name)(x) = $code
+    end
+end
+
+## Is expr a call to symbol op (this is expression, typ may not be bound)
+macro mk_call_predicate(name0,op)
+    name = mk_predicate_sym(name0)
+    @eval begin
+        ($name)(x::Expr) = (x.head == :call && x.args[1] == $op)
+    end
+end
+
+macro mk_type_predicate(name0,typ)
+    name = mk_predicate_sym(name0)
+    @eval begin
+        ($name)(x::Expr) = typeof(x) == $typ
+    end
+end
+
+
+mxprq(x) = typeof(x) == Mxpr
 
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
@@ -111,14 +144,15 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
-# Convert Expr to Mxpr
-# Take a Expr, eg constructed from quoted input on cli,
-# and construct an Mxpr.
+# Convert Expr to Mxpr Take a Expr, eg constructed from quoted input
+# on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
     if ex.head == :(->) # try to compile anonymous functions now
         f = tryjeval(ex)
         typeof(f) == Function && return f
+    elseif ex.head == :call && ex.args[1] == :(-) && length(ex.args) == 3
+        ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
     end
     for i in 1:length(ex.args)
         ex.args[i] = ex_to_mx!(ex.args[i]) # convert to Mxpr at lower levels
@@ -364,6 +398,7 @@ let sym,str
         end
     end
 end
+-(a::Symbol) = mxmkeval(:-,a)
 
 ############################################
 ##  Macros for constructing Mxpr easily    #
@@ -682,7 +717,7 @@ function order_if_orderless!(mx::Mxpr)
         @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
         mhead(mx) == :* ? mx = compactmul!(mx) : nothing
-        ismxpr(mx) && mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
+        mxprq(mx) && mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
         @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
     mx
