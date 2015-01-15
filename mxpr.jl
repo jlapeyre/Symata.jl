@@ -47,16 +47,19 @@ mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
 # make an empty Mxpr, unused ?
 mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 
+## Following is OK in principle, but nothing in it yet
 ## convert Mxpr.head to Expr.head
-const MOPTOJHEAD = Dict{Symbol,Symbol}()
-let mop,jhead 
-    for (mop,jhead) in ((:<, :comparision),)
-#        MOPTOJHEAD[mop] = jhead
-    end
-end
-function moptojhead(op::Symbol)
-    return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
-end
+# const MOPTOJHEAD = Dict{Symbol,Symbol}()
+# let mop,jhead 
+#     for (mop,jhead) in ((:<, :comparision),)
+# #        MOPTOJHEAD[mop] = jhead
+#     end
+# end
+# function moptojhead(op::Symbol)
+#     return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
+# end
+# For constructing Mxpr from scratch, we make up a Julia head
+moptojhead(x) = :call   
 
 ## Construct Mxpr, similar to construction Expr(head,args...)
 #  Set dirty bit. Guess corresponding Julia Expr field 'head'
@@ -191,9 +194,6 @@ function ex_to_mx!(ex::Expr)
     if ex.head == :call
         mxop = shift!(ex.args) # first arg is func, actually 'head' for Mxpr
         mxargs = ex.args
-#    elseif ex.head == :comparison
-#        mxop = ex.args[2]  # comparison symbol in middle of args
-#        mxargs = Any[ex.args[1],ex.args[3]]        
     else   # :hcat, etc
         mxop = ex.head
         mxargs = ex.args
@@ -229,9 +229,6 @@ function mx_to_ex!(mx::Mxpr)
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-#    elseif jhead(mx) == :comparison
-#        unshift!(a,mtojhead(mhead(mx)))  # identity now
-#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end    
@@ -254,9 +251,6 @@ function mx_to_ex(inmx::Mxpr)
     @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-#    elseif jhead(mx) == :comparison
-#        unshift!(a,mtojhead(mhead(mx)))  # identity now
-#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end    
@@ -292,9 +286,6 @@ function fast_mxpr_to_expr(inmx::Mxpr)
     a = jargs(mx)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-#    elseif jhead(mx) == :comparison
-#        unshift!(a,mtojhead(mhead(mx)))  # identity now
-#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end        
@@ -565,7 +556,8 @@ end
 
 ## meval for powers
 meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
-meval_pow(base::FloatingPoint, expt::Union(FloatingPoint,Integer), mx::Mxpr) = base ^ expt
+meval_pow(base::FloatingPoint, expt::FloatingPoint, mx::Mxpr) = base ^ expt
+meval_pow(base::FloatingPoint, expt::Integer, mx::Mxpr) = base ^ expt
 meval_pow(base::Union(FloatingPoint,Integer), expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::Integer,expt::Integer,mx::Mxpr) = mpow(base,expt)
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
