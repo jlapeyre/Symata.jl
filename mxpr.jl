@@ -193,7 +193,6 @@ function ex_to_mx!(ex::Expr)
     end
     mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
 end
-
 ex_to_mx!(x) = x
 
 ##  Convert a Mxpr to Expr.
@@ -223,7 +222,6 @@ end
 mx_to_ex!(x) = x
 
 function mx_to_ex(inmx::Mxpr)
-#    error("Not supposed to call mx_to_ex")
     mx = deepcopy(inmx)
     @mdebug(5,"mx_to_ex: entering with won't print")    
     ex = Expr(jhead(mx))
@@ -244,24 +242,6 @@ end
 
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex(x) = x
-
-# No need for revert now!
-#  Convert a Mxpr to Expr reverting alternate functions to normal Julia functions
-#  This is used for display.
-# function mx_to_ex!_revert(mx::Mxpr)
-#     ex = Expr(jhead(mx))
-#     a = jargs(mx)
-#     for i in 1:length(a)
-#         a[i] = mx_to_ex!_revert(a[i]) # convert to Mxpr at lower levels
-#     end    
-#     ex.args = a
-#     if ex.head == :call
-#         ex.args[1] = mtojhead(ex.args[1])
-#     end    
-#     return ex
-# end
-# # Other things fall through
-# mx_to_ex!_revert(x) = x
 
 function fast_mxpr_to_expr(inmx::Mxpr)
     @mdebug(5,"fast_mxpr_to_expr: ")
