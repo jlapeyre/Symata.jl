@@ -1,6 +1,11 @@
 const MXDEBUGLEVEL = 0 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
+#type MParseError <: Exception  Not really a parse error
+#    msg::String
+#end
+#Base.showerror(io::IO,e::MParseError) = print(io,e.msg)
+
 ##############################################
 ##  Mxpr type for symbolic math expression   #
 ##############################################
@@ -24,7 +29,7 @@ include("./mxpr_util.jl")
 # in some way may be useful, eg, when lots of swapping parts happens
 # in an internal routine. Maxima uses singly linked lists
 
-# We use the Julia symbol space, rather than managing our own
+# We share the Julia symbol table, rather than managing our own
 # symbol table.
 
 type Mxpr
@@ -35,7 +40,8 @@ type Mxpr
 end
 
 typealias Symbolic Union(Mxpr,Symbol)
-typealias SymNum Union(Symbolic,Number)
+#typealias SymNum Union(Symbolic,Number)
+
 
 mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
 # make an empty Mxpr, unused ?
@@ -147,10 +153,10 @@ end
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
 is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
 
-
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
-is_division(ex::Expr) = is_call(ex, :/)
+# number of args != 3 will pass through. But probably can't be used
+is_division(ex::Expr) = is_call(ex, :/,3)  
 is_power(ex::Expr) = is_call(ex, :^)
 
 # rewrite_expr : Expr -> Expr
@@ -780,25 +786,48 @@ for (fop,name,id) in  ((:+,:compactplus!,0),(:*,:compactmul!,1))
     end
 end
 
+
+
 # Replace n repeated terms x by n*x, and factors x by x^n
-for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
-    altop = jtomop(fop)
-    @eval begin
-        function ($name)(mx::Mxpr)
-            length(mx) < 2 && return mx
-            a = margs(mx)
-            while length(a) > 1
-                pop!(a)
-                typeof(a[end]) <: Number || break
-                sum0 = ($altop)(sum0,a[end]) # call alternate Julia func
-            end
-            length(a) == 0 && return sum0            
-            sum0 != $id && push!(a,sum0)            
-            length(a) == 1 && return a[1]
-            return mx
-        end
-    end
-end
+# for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
+#     altop = jtomop(fop)
+#     @eval begin
+#         function ($name)(mx::Mxpr)
+#             length(mx) < 2 && return mx
+#             a = margs(mx)
+#             n = 1
+#             while length(a) > 2
+#                 dupflag = false
+#                 firstdupflag = false
+#                 count = 0
+#                 if n < length(a)
+#                     if a[n] == a[n+1]
+#                 for i in n:(length(a)-1)
+#                     if dupflag
+#                         if a[i] == a[i+1]
+#                             count += 1
+#                         else
+#                             break
+#                         end
+#                     else
+#                         if a[i] == a[i+1]
+#                             firstdupflag = true
+#                             dupflag = true
+#                             count = 1
+#                         end
+
+#                     end
+#                     else
+#                     end
+#             end
+#             length(a) == 0 && return sum0            
+#             sum0 != $id && push!(a,sum0)            
+#             length(a) == 1 && return a[1]
+#             return mx
+#         end
+#     end
+# end
+
 
 
 ############################################
