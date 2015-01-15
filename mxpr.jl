@@ -279,12 +279,9 @@ function get_attribute(sym::Symbol,attr::Symbol)
         attrs = MATTRIBUTES[sym]
         if haskey(attrs,attr)
             return attrs[attr]
-        else
-            return false
         end
-    else
-        return false
     end
+    return false
 end
 
 # get attribute function name from head of a particular expression
