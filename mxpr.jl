@@ -51,7 +51,7 @@ mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 const MOPTOJHEAD = Dict{Symbol,Symbol}()
 let mop,jhead 
     for (mop,jhead) in ((:<, :comparision),)
-        MOPTOJHEAD[mop] = jhead
+#        MOPTOJHEAD[mop] = jhead
     end
 end
 function moptojhead(op::Symbol)
@@ -191,9 +191,9 @@ function ex_to_mx!(ex::Expr)
     if ex.head == :call
         mxop = shift!(ex.args) # first arg is func, actually 'head' for Mxpr
         mxargs = ex.args
-    elseif ex.head == :comparison
-        mxop = ex.args[2]  # comparison symbol in middle of args
-        mxargs = Any[ex.args[1],ex.args[3]]        
+#    elseif ex.head == :comparison
+#        mxop = ex.args[2]  # comparison symbol in middle of args
+#        mxargs = Any[ex.args[1],ex.args[3]]        
     else   # :hcat, etc
         mxop = ex.head
         mxargs = ex.args
@@ -229,9 +229,9 @@ function mx_to_ex!(mx::Mxpr)
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-    elseif jhead(mx) == :comparison
-        unshift!(a,mtojhead(mhead(mx)))  # identity now
-        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+#    elseif jhead(mx) == :comparison
+#        unshift!(a,mtojhead(mhead(mx)))  # identity now
+#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end    
@@ -254,9 +254,9 @@ function mx_to_ex(inmx::Mxpr)
     @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-    elseif jhead(mx) == :comparison
-        unshift!(a,mtojhead(mhead(mx)))  # identity now
-        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+#    elseif jhead(mx) == :comparison
+#        unshift!(a,mtojhead(mhead(mx)))  # identity now
+#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end    
@@ -292,9 +292,9 @@ function fast_mxpr_to_expr(inmx::Mxpr)
     a = jargs(mx)
     if jhead(mx) == :call
         unshift!(a,mtojhead(mhead(mx)))  # identity now        
-    elseif jhead(mx) == :comparison
-        unshift!(a,mtojhead(mhead(mx)))  # identity now
-        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
+#    elseif jhead(mx) == :comparison
+#        unshift!(a,mtojhead(mhead(mx)))  # identity now
+#        (a[1],a[2]) = (a[2],a[1]) # Julia has args like Any[a, :<, b]
     else   # :hcat, etc
         nothing
     end        
