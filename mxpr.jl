@@ -133,7 +133,7 @@ getorderedflag(mx::Mxpr) = mx.clean
 setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 isclean(mx::Mxpr) = mx.clean
 
-# Deep ==, I think
+# This is deep ==, I think
 function ==(a::Mxpr, b::Mxpr)
     (na,nb) = (length(a),length(b))
     na != nb && return false
@@ -143,19 +143,28 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
+# Same thing is somewhere in base
+is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
+is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+
+
 # We check for :call repeatedly. We can optimize this later.
-is_binary_minus(ex::Expr) = ex.head == :call && ex.args[1] == :(-) && length(ex.args) == 3
-is_division(ex::Expr) = ex.head == :call && ex.args[1] == :(/) && length(ex.args) == 3
+is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
+is_division(ex::Expr) = is_call(ex, :/)
+is_power(ex::Expr) = is_call(ex, :^)
 
 # rewrite_expr : Expr -> Expr
 # Input could be expresion from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
 # Concrete example: a - b --> a + -b.
+# This may get big, and we can dispatch on a hash query
 function rewrite_expr(ex::Expr)
     if is_binary_minus(ex)  #  a - b --> a + -b.
         ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
     elseif is_division(ex) # a / b --> a + b^(-1)
         ex = Expr(:call, :*, ex.args[2], Expr(:call,:(^),ex.args[3],-1))
+    elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
+        ex = Expr(:call, :^, :E, ex.args[2])
     end
     return ex
 end
