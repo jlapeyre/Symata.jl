@@ -155,6 +155,10 @@ end
 # Same thing is somewhere in base
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
 is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+is_op(mx::Mxpr, op::Symbol) = mhead(mx) == op
+is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
+is_op(x...) = false
+is_type(x,t::DataType) = typeof(x) == t
 
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
@@ -166,7 +170,7 @@ is_power(ex::Expr) = is_call(ex, :^)
 # Input could be expresion from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
 # Concrete example: a - b --> a + -b.
-# This may get big, and we can dispatch on a hash query
+# We definitely need to dispatch on a hash query, or types somehow
 function rewrite_expr(ex::Expr)
     if is_binary_minus(ex)  #  a - b --> a + -b.
         ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
@@ -174,6 +178,8 @@ function rewrite_expr(ex::Expr)
         ex = Expr(:call, :*, ex.args[2], Expr(:call,:(^),ex.args[3],-1))
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :^, :E, ex.args[2])
+    elseif is_call(ex,:Sqrt,2)
+        ex = Expr(:call, :^, ex.args[2], 1//2)
     end
     return ex
 end
@@ -560,6 +566,7 @@ meval_pow(base::FloatingPoint, expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::FloatingPoint, expt::Integer, mx::Mxpr) = base ^ expt
 meval_pow(base::Union(FloatingPoint,Integer), expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::Integer,expt::Integer,mx::Mxpr) = mpow(base,expt)
+meval_pow(base::Integer,expt::Rational,mx::Mxpr) = mx  # Need to do more.
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
 register_meval_func(:^,meval_pow)
 
@@ -842,15 +849,43 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
         Func = symbol(string(uppercase(s[1])) * s[2:end])
         set_attribute(Func,:numeric,true)        
         @eval begin
-            function ($Func){T<:FloatingPoint}(x::T)
-                return ($func)(x)
-            end
+            ($Func){T<:FloatingPoint}(x::T) = return ($func)(x)
+            ($Func){T<:FloatingPoint}(x::Complex{T}) = return ($func)(x)
             ($Func)(x) = mxmkeval(symbol($Funcstr),x)
             Base.@vectorize_1arg Number $Func  # only vectorizes over some numbers. Need our own macro
         end
     end
 end
 mkmathfuncs()
+
+# TODO Generalize this. Probably don't use Julia macros.
+Cos(::MathConst{:π}) = -1
+Sin(::MathConst{:π}) = 0
+Tan(::MathConst{:π}) = 0
+
+# We need to factor this code with a macro
+
+# call from Julia
+function Cos(mx::Mxpr)
+    length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
+    typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+    return mxpr(:Cos,mx)
+end
+Cos(x::Symbol) = mxpr(:Cos,x)
+
+# call via meval
+
+function meval_Cos(cmx::Mxpr)
+    if length(cmx) == 1
+        mx = cmx[1]
+        length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
+        typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+    end
+    return cmx
+end
+
+register_meval_func(:Cos,meval_Cos)
+
 
 ############################################
 ## Apply, Map, etc.
