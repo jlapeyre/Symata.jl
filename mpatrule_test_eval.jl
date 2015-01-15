@@ -36,7 +36,7 @@ sq_rule = :_ * :_  =>  :_^2
 @test replaceall(@jn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @jn(a^2+1/(z + y)^2)
 
 # Note depth first, rather than top level first and then stopping
-@test replaceall((:a*:a) * (:a*:a) , sq_rule) == @jn((a^2)^2)
+@test replaceall( @jn((a*a) * (a*a)) , sq_rule) == @jn((a^2)^2)
 
 ## Examples
 

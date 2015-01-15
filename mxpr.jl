@@ -116,7 +116,7 @@ end
 # and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
-    if ex.head == :(->)
+    if ex.head == :(->) # try to compile anonymous functions now
         f = tryjeval(ex)
         typeof(f) == Function && return f
     end

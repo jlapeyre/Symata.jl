@@ -304,9 +304,8 @@ end
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
         ex = mkexpr(mhead(ex),
-                  map((x)->replaceall(x,rules),margs(ex)...))
+                    map((x)->replaceall(x,rules),margs(ex))...)
     end
-    local res
     for r in rules
         res = patrule(ex,r.lhs,r.rhs)
         res !== false && return res
