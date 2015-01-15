@@ -93,7 +93,6 @@ macro mk_type_predicate(name0,typ)
     end
 end
 
-
 mxprq(x) = typeof(x) == Mxpr
 
 # get Mxpr head and args
@@ -144,16 +143,31 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
+# We check for :call repeatedly. We can optimize this later.
+is_binary_minus(ex::Expr) = ex.head == :call && ex.args[1] == :(-) && length(ex.args) == 3
+is_division(ex::Expr) = ex.head == :call && ex.args[1] == :(/) && length(ex.args) == 3
+
+# rewrite_expr : Expr -> Expr
+# Input could be expresion from cli. Output is closer to Mxpr form.
+# Relative to Expr, Mxpr needs to encode more canonical semantics.
+# Concrete example: a - b --> a + -b.
+function rewrite_expr(ex::Expr)
+    if ex.head == :(->)  # Try to compile anonymous functions now.
+        f = tryjeval(ex) # If it succeeds, we are done with this expr.
+        typeof(f) == Function && return f
+    elseif is_binary_minus(ex)  #  a - b --> a + -b.
+        ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
+    elseif is_division(ex) # a / b --> a + b^(-1)
+        ex = Expr(:call, :*, ex.args[2], Expr(:call,:(^),ex.args[3],-1))
+    end
+    return ex
+end
+
 # Convert Expr to Mxpr Take a Expr, eg constructed from quoted input
 # on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
-    if ex.head == :(->) # try to compile anonymous functions now
-        f = tryjeval(ex)
-        typeof(f) == Function && return f
-    elseif ex.head == :call && ex.args[1] == :(-) && length(ex.args) == 3
-        ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
-    end
+    ex = rewrite_expr(ex)
     for i in 1:length(ex.args)
         ex.args[i] = ex_to_mx!(ex.args[i]) # convert to Mxpr at lower levels
     end
@@ -168,7 +182,6 @@ function ex_to_mx!(ex::Expr)
         mxop = ex.head
         mxargs = ex.args
     end
-#    mxop = jtomhead(mxop)  # we use a different operation,
     mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
 end
 
@@ -534,8 +547,8 @@ end
 
 ## meval for powers
 meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
+meval_pow(base::FloatingPoint, expt::Union(FloatingPoint,Integer), mx::Mxpr) = base ^ expt
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
-meval_pow(base::Number, expt::Number, mx::Mxpr) = base^expt  # treat numbers
 register_meval_func(:^,meval_pow)
 
 ## meval for assignment
