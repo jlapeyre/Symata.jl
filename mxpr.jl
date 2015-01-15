@@ -515,7 +515,7 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
             @mdebug(1,$name, " entry: mx = ",mx)
             found_mxpr_term = false
             all_numerical_terms = true
-            for i in 1:nummxargs(mx)  # check if there is at least one Mxpr of type op
+            for i in 1:length(mx)  # check if there is at least one Mxpr of type op
                 if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
                     found_mxpr_term = true
                     all_numerical_terms = false
@@ -532,7 +532,7 @@ for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
             found_mxpr_term == false && return mx
 #            nargs = Any[symbol($op)]  # new args for the output     ***************
             nargs = Any[]  # new args for the output            
-            for i in 1:nummxargs(mx) # walk through all args again
+            for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
                 if typeof(mxel) == Mxpr && mxel[0] == symbol($op)
                     for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
@@ -582,7 +582,7 @@ register_meval_func(:/,meval_div)
 
 ## meval top level 
 function meval(mx::Mxpr)
-    nummxargs(mx) == 0 && return mx
+    length(mx) == 0 && return mx
     if mx[0] == :(=)
         return meval_assign(mx)
     end
