@@ -193,17 +193,6 @@ function evalcond(c)
     return res
 end
 
-#evalorex(ex) = ex
-
-function evalorex(ex)
-    res = try
-        eval(ex)
-    catch
-        ex
-    end
-    return res
-end
-
 # check if conditions on capture var cvar are satisfied by ex
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
@@ -213,8 +202,9 @@ function matchpat(cvar,ex)
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
-            println("Got a function expressoin")            
-            f = eval(c)
+            println("Got a function expression")
+            f = meval(c)
+            println("Type of f is now ", typeof(f))
 # Replacing expression with compiled anonymous function does not work.            .
             setpvarcond(cvar,f)  
             return f(ex)

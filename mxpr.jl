@@ -1,4 +1,4 @@
-const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
+const MXDEBUGLEVEL = 0 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 ##############################################
@@ -116,6 +116,10 @@ end
 # and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
+    if ex.head == :(->)
+        f = tryjeval(ex)
+        typeof(f) == Function && return f
+    end
     for i in 1:length(ex.args)
         ex.args[i] = ex_to_mx!(ex.args[i]) # convert to Mxpr at lower levels
     end
@@ -341,15 +345,25 @@ is_rat_and_int(x) = false
 
 mxmkeval(args...) = meval(mxpr(args...))
 mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
-+(a::Symbolic, args...) = mxmkorderless(:+,a,args...)
-*(a::Symbolic, args...) = mxmkorderless(:*,a,args...)
-#+(a::Symbolic, args...) = mxmkeval(:+,a,args...)
-#*(a::Symbolic, args...) = mxmkeval(:*,a,args...)
-/(a::Symbolic, b) = mxmkeval(:/,a,b)
--(a::Symbolic, b) = mxmkeval(:-,a,b)
-^(a::Symbolic, b::Integer) = mxmkeval(:^,a,b)  # avoid collision in intfuncs.jl
-^(a::Symbolic, b::SymNum) = mxmkeval(:^,a,b)
-
+let sym,str
+    for str in ("*", "+")
+        sym = symbol(str)
+        @eval begin
+            ($sym)(a::Symbolic, b::Symbolic, args...) = mxmkorderless(symbol($str),a,b,args...)
+            ($sym)(a,b::Symbolic, args...) = mxmkorderless(symbol($str),a,b,args...)
+            ($sym)(a::Symbolic, args...) = mxmkorderless(symbol($str),a,args...)
+        end
+    end
+    for str in ("/", "-", "^")
+        sym = symbol(str)
+        @eval begin
+            ($sym)(a::Symbolic, b::Symbolic) = mxmkeval(symbol($str),a,b)
+            ($sym)(a::Symbolic, b::Integer) = mxmkeval(symbol($str),a,b)            
+            ($sym)(a::Symbolic, b) = mxmkeval(symbol($str),a,b)
+            ($sym)(a, b::Symbolic) = mxmkeval(symbol($str),a,b)  
+        end
+    end
+end
 
 ############################################
 ##  Macros for constructing Mxpr easily    #
@@ -363,7 +377,6 @@ function transex(ex)
     if  T == Expr
         mx = ex_to_mx!(ex)
     elseif T == Symbol
-#        mx = Expr(:quote,ex)
         mx = ex
     else
         mx = ex  # Numbers, DataTypes, etc.
@@ -410,7 +423,6 @@ jeval(x) = eval(x)
 # Not using this now!
 # Try Julia eval, else quietly return unevaluated input.
 function tryjeval(mx)
-    goodflag = true
     res = try
         jeval(mx)
     catch
