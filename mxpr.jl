@@ -194,16 +194,7 @@ function ex_to_mx!(ex::Expr)
     mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
 end
 
-function ex_to_mx!(s::Symbol)
-#    println("ex_to_mx! Got symbol $s")
-    s
-end
-
-# everything other than Expr falls through
-function ex_to_mx!(x)
-#    println("ex_to_mx! Got unknown $x: type, " , typeof(x))
-    x
-end
+ex_to_mx!(x) = x
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
