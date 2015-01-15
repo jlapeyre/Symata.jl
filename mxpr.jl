@@ -129,6 +129,7 @@ end
 
 Base.endof(mx::Mxpr) = length(margs(mx))
 Base.length(mx::Mxpr) = length(margs(mx))
+Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
 
 # Remove these after finding where they are used
 # Currently the op is in position 1
@@ -859,22 +860,19 @@ end
 mkmathfuncs()
 
 # TODO Generalize this. Probably don't use Julia macros.
-Cos(::MathConst{:π}) = -1
-Sin(::MathConst{:π}) = 0
-Tan(::MathConst{:π}) = 0
+# Cos(::MathConst{:π}) = -1
+# Sin(::MathConst{:π}) = 0
+# Tan(::MathConst{:π}) = 0
 
-# We need to factor this code with a macro
-
-# call from Julia
-function Cos(mx::Mxpr)
-    length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
-    typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-    return mxpr(:Cos,mx)
-end
-Cos(x::Symbol) = mxpr(:Cos,x)
+# # call from Julia
+# function Cos(mx::Mxpr)
+#     length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
+#     typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+#     return mxpr(:Cos,mx)
+# end
+# Cos(x::Symbol) = mxpr(:Cos,x)
 
 # call via meval
-
 function meval_Cos(cmx::Mxpr)
     if length(cmx) == 1
         mx = cmx[1]
