@@ -126,8 +126,9 @@ Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mx
 # Remove these after finding where they are used
 # Currently the op is in position 1
 # These look redundant now.
-nummxargs(a::Array{Any,1}) = length(a)
-nummxargs(mx::Mxpr) = nummxargs(margs(mx))
+#nummxargs(a::Array{Any,1}) = length(a)
+#nummxargs(mx::Mxpr) = nummxargs(margs(mx))
+nummxargs(mx::Mxpr) = length(mx)
 
 # Do we want 'ordered' or 'clean' ? There is likely more than
 # one way to be dirty, not just unordered.
