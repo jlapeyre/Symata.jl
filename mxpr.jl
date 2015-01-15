@@ -160,8 +160,8 @@ function rewrite_expr(ex::Expr)
     return ex
 end
 
-# Convert Expr to Mxpr Take a Expr, eg constructed from quoted input
-# on cli, and construct an Mxpr.
+# Expr -> Mxpr
+# Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
     if ex.head == :(->)  # Try to compile anonymous functions now.
@@ -414,6 +414,7 @@ let sym,str
     end
 end
 -(a::Symbol) = mxmkeval(:-,a)
+-(a::Mxpr) = -1 * a
 
 ############################################
 ##  Macros for constructing Mxpr easily    #
@@ -711,15 +712,8 @@ end
 # Now it is a disadvantage that the op is in the args array.
 # We have to remove op to avoid sorting it.
 function orderexpr!(mx::Mxpr)
-#    println(" getting args $mx")        
     ar = jargs(mx)
-#    println("args are $ar")            
-#    op = shift!(ar)  ***********
-#    println("done shift op is $op")                
-#    println("starting sort sort or $ar")    
     sort!(ar,lt=jslexless)
-#    println(" done sort")        
-#    unshift!(ar,op) ************
     setorderedflag(mx,true)
     mx
 end
@@ -755,7 +749,7 @@ deep_order_if_orderless!(x) = x
 ##########################################################
 ## Sum collected numerical args in :+, (or same for :*)  #
 ##########################################################
-# sum numbers at end of + or * call
+# + and * are nary. Replace all numbers in the list of args, by one sum or product
 for (fop,name,id) in  ((:+,:compactplus!,0),(:*,:compactmul!,1))
     altop = jtomop(fop)
     @eval begin
@@ -777,6 +771,27 @@ for (fop,name,id) in  ((:+,:compactplus!,0),(:*,:compactmul!,1))
     end
 end
 
+# Replace n repeated terms x by n*x, and factors x by x^n
+for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
+    altop = jtomop(fop)
+    @eval begin
+        function ($name)(mx::Mxpr)
+            length(mx) < 2 && return mx
+            a = margs(mx)
+            while length(a) > 1
+                pop!(a)
+                typeof(a[end]) <: Number || break
+                sum0 = ($altop)(sum0,a[end]) # call alternate Julia func
+            end
+            length(a) == 0 && return sum0            
+            sum0 != $id && push!(a,sum0)            
+            length(a) == 1 && return a[1]
+            return mx
+        end
+    end
+end
+
+
 ############################################
 ## Alternate math (trig, etc.) functions   #
 ############################################
@@ -790,7 +805,7 @@ end
 # Define functions like, eg. Cos(x::Float64) = cos(x).
 # You get the idea. If this idea works, then we complete the list
 function mkmathfuncs() # Man, I hate looking for missing commas.
-    func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh lambertw"
+    func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh"
     for s  in split(func_list_string)
         func = symbol(s)
         Funcstr = string(uppercase(s[1])) * s[2:end]
@@ -819,4 +834,3 @@ mkmathfuncs()
 #     mx
 # end
 # register_meval_func(:vcat,meval_vcat)
-
