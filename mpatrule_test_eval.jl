@@ -33,7 +33,7 @@ sq_rule = :_ * :_  =>  :_^2
 @test replaceall(:a * :a + 1, sq_rule) == :a^2+1
 
 # applies everywhere
-@test replaceall(:(a*a+1 / ((z+y)*(z+y))) , sq_rule) == :(a^2+1/(z + y)^2)
+@test replaceall(@jn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @jn(a^2+1/(z + y)^2)
 
 # Note depth first, rather than top level first and then stopping
 @test replaceall( (:a*:a) * (:a*:a) ) , sq_rule) == :((a^2)^2)
@@ -46,36 +46,38 @@ mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
 @test replace( :a^1.2 * :a^2.3, mulpow_rule) == :a^ 3.5
 
 # you can put a condition on the pattern
-@test replace( :a^1.2 * :a^2.3 , @jn(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) ==
+@test replace( :a^1.2 * :a^2.3 , @jm(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) ==
     :a ^ 1.2 * :a ^ 2.3
-@test replace( :a^5 * :a^6 , :x_^:n1_::Int * :x_^:n2_::Int => :x_^(:n1_+:n2_)) == :a ^11
+@test replace( :a^5 * :a^6 , @jm(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) == :a ^11
 
 # This is much faster because the Int is evaluated when the pattern is constructed
-@test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
-    :(a ^ 8)
+# Everything is different now. expressions above are compiled
+#@test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
+#    :(a ^ 8)
 
 # This works, but keeps changing
 #@test string(cmppat( :( "dog" ) , :( x_::String ))) ==
 #    "(true,Any[(Pvar(:x_,AbstractString),\"dog\")])"
 
-@test replaceall(:( (a^2 * a^3)*a^4 ), mulpow_rule) == :(a ^ 9)
+# Need to use @jn here to prevent flattening of product
+@test replaceall( @jn((a^2 * a^3)*a^4), mulpow_rule) == :a ^ 9
 
-inv_rule = :(1/(1/x_)) => :(x_)
+inv_rule = @jn(1/(1/x_)) => :x_
 
-@test replace( :( 1/(1/(a+b)) ), inv_rule) == :(a+b)
+@test replace( @jn( 1/(1/(a+b)) ), inv_rule) == :a+:b
 
-plusmul_rule = :( x_ + x_ )  =>  :(2 * x_)
-mulpow1_rule = :( x_ * x_ )  =>  :(x_^2)
+plusmul_rule =  :x_ + :x_  =>  @jn(2 * x_)
+mulpow1_rule = :x_ * :x_   =>  :x_^2
 
 # Tests are tried one at a time until one matches
-@test replaceall( :( a * a ), [plusmul_rule, mulpow1_rule]) == :(a^2)
-@test replaceall( :( a + a ), [plusmul_rule, mulpow1_rule]) == :(2a)
+@test replaceall( :a * :a , [plusmul_rule, mulpow1_rule]) == :a^2
+@test replaceall( :a + :a , [plusmul_rule, mulpow1_rule]) == @jn(2*a)
 
-@test replace( :( sin(a+b)/cos(a+b) ) , :( sin(_) / cos(_) ) => :( tan(_) ) ) == :(tan(a + b))
+@test replace( @jn( sin(a+b)/cos(a+b) ) , @jn( sin(_) / cos(_) ) => :@jn(tan(_) ) ) == @jn(tan(a + b))
 
 # Test anonymous functions as conditions
-@test (cmppat1( :( 3 ) , :( x_::((x)->(x>4)) )))[1] == false
-@test (cmppat1( :( 3 ) , :( x_::((x)->(x>2)) )))[1] == true
+@test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>4)) )))[1] == false
+@test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>2)) )))[1] == true
 ## More tests !
 
 @test Pvar( :x_ ) == Pvar(:x_,:All)

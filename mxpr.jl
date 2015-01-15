@@ -610,19 +610,16 @@ _jslexless(x::DataType,y::DataType) = x <: y
 # end
 
 function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
-    println("_jslexless: entering")
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
     ax = margs(x)
     ay = margs(y)
     lx = length(ax)
     ly = length(ay)
-    println("_jslexless: $ax, $ay, $lx, $ly")
     for i in 1:min(lx,ly)
-        println("_jslexless: trying $i th parts")
-        println(" ", ax[i],"  ", ay[i])
+#        println("_jslexless: trying $i th parts")
+#        println(" ", ax[i],"  ", ay[i])
         _jslexless(ax[i],ay[i]) && return true
     end
-    println("checking less $lx < $ly")
 #    if typeof(lx) == DataType && typeof(ly) == DataType
 #        lx <: ly && return true
 #    else
@@ -635,12 +632,10 @@ end
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
-    println("cmp '$x' '$y'")
+#    println("cmp '$x' '$y'")
     if tx != ty
-        println("checking types $tx $ty")
         return mxlexorder(tx) < mxlexorder(ty)
     end
-    println("now checking vals")
 #    if tx == DataType && ty == DataType
 #        return x <: y
 #    end
