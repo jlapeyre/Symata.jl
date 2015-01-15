@@ -40,8 +40,6 @@ type Mxpr
 end
 
 typealias Symbolic Union(Mxpr,Symbol)
-#typealias SymNum Union(Symbolic,Number)
-
 
 mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
 # make an empty Mxpr, unused ?
@@ -73,7 +71,7 @@ end
 
 ## predicates
 
-## predicate function names
+## What to choose for predicate function names
 #  'isthing' or 'thingq' ?
 #  'thingq' would signify difference from standard Julia
 #  eg: thingq takes Mxpr as argument ?
@@ -108,9 +106,9 @@ mxprq(x) = typeof(x) == Mxpr
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
-margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
+#margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(mx::Mxpr) = mx.head
-mhead(ex::Expr) = ex.head
+#mhead(ex::Expr) = ex.head
 mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
 
@@ -119,13 +117,7 @@ setmhead(mx::Expr, val::Symbol) = mx.head = val
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
 getindex(mx::Mxpr, k::Int) = return k == 0 ? mhead(mx) : margs(mx)[k]
-function setindex!(mx::Mxpr, val, k::Int)
-    if  k == 0
-        return setmhead(mx,val)
-    else
-        return (margs(mx)[k] = val)
-    end
-end
+setindex!(mx::Mxpr, val, k::Int) = k == 0 ? setmhead(mx,val) : (margs(mx)[k] = val)
 
 Base.endof(mx::Mxpr) = length(margs(mx))
 Base.length(mx::Mxpr) = length(margs(mx))
@@ -450,18 +442,13 @@ function transex(ex)
 end
 
 # construct a Mxpr at the cli,
-# and do some evaluation.
+# Try to evaluate once.
 macro jm(ex)
     mx = transex(ex)
     mx = meval(mx)
-#    println("@jm after eval $mx")
     mx = deep_order_if_orderless!(mx)
-#    println("done deep order @jm $mx")
-    if  typeof(mx) == Symbol
-        return Base.QuoteNode(mx)
-    end
-    mx = tryjeval(mx)
-    mx
+    typeof(mx) == Symbol && return Base.QuoteNode(mx)
+    mx = tryjeval(mx)  # need this. but maybe not here
 end
 
 # Construct Mxpr, but don't evaluate
@@ -484,9 +471,8 @@ end
 jeval(mx::Mxpr) = eval(mx_to_ex(mx))
 jeval(x) = eval(x)
 
-# Not using this now!
 # Try Julia eval, else quietly return unevaluated input.
-function tryjeval(mx)
+function tryjeval(mx::Union(Mxpr,Expr))
     res = try
         jeval(mx)
     catch
@@ -494,6 +480,7 @@ function tryjeval(mx)
     end
     res
 end
+tryjeval(x) = x  # Don't seem to save time by letting these fall through
 
 ## Handlers for ops to be dispatched by meval
 const MEVALOPFUNCS = Dict{Symbol,Function}()
@@ -859,29 +846,16 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
-# TODO Generalize this. Probably don't use Julia macros.
-# Cos(::MathConst{:π}) = -1
-# Sin(::MathConst{:π}) = 0
-# Tan(::MathConst{:π}) = 0
-
-# # call from Julia
-# function Cos(mx::Mxpr)
-#     length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
-#     typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-#     return mxpr(:Cos,mx)
-# end
-# Cos(x::Symbol) = mxpr(:Cos,x)
-
-# call via meval
 function meval_Cos(cmx::Mxpr)
     if length(cmx) == 1
         mx = cmx[1]
-        length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi &&
-        typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+        if length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi
+            typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+            typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
+        end
     end
     return cmx
 end
-
 register_meval_func(:Cos,meval_Cos)
 
 
