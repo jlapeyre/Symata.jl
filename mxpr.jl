@@ -704,7 +704,7 @@ deep_order_if_orderless!(x) = x
 ## Sum collected numerical args in :+, (or same for :*)  #
 ##########################################################
 # sum numbers at end of + or * call
-for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
+for (fop,name,id) in  ((:+,:compactplus!,0),(:*,:compactmul!,1))
     altop = jtomop(fop)
     @eval begin
         function ($name)(mx::Mxpr)
@@ -717,8 +717,9 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
                 typeof(a[end]) <: Number || break
                 sum0 = ($altop)(sum0,a[end]) # call alternate Julia func
             end
-            length(a) == 0 && return sum0
-            push!(a,sum0)
+            length(a) == 0 && return sum0            
+            sum0 != $id && push!(a,sum0)            
+            length(a) == 1 && return a[1]
             return mx
         end
     end
