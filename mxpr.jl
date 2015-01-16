@@ -43,9 +43,12 @@ end
 
 typealias Symbolic Union(Mxpr,Symbol)
 
+mxmkargs() = Array(Any,0)
+
 mxpr(h,a,jh,d) = Mxpr{h}(h,a,jh,d)
 # make an empty Mxpr, unused ?
-mxpr(s::Symbol) = Mxpr{s}(s,Array(Any,0),:nothing,false)
+mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:nothing,false)
+
 
 ## Following is OK in principle, but nothing in it yet
 ## convert Mxpr.head to Expr.head
@@ -64,7 +67,7 @@ moptojhead(x) = :call
 ## Construct Mxpr, similar to construction Expr(head,args...)
 #  Set dirty bit. Guess corresponding Julia Expr field 'head'
 function mxpr(op::Symbol,args...)
-    theargs = Array(Any,0)
+    theargs = mxmkargs()
     for x in args
         push!(theargs,x)
     end
@@ -142,6 +145,13 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
+## Particular Mxpr types
+
+Base.base(p::Mxpr{:mpow}) = p[1]
+expt(p::Mxpr{:mpow}) = p[2]
+
+##################################################
+
 # Same thing is somewhere in base
 is_call(ex::Expr) = ex.head == :call
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
@@ -150,6 +160,7 @@ is_op(mx::Mxpr, op::Symbol) = mhead(mx) == op
 is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
+is_type_less(x,t::DataType) = typeof(x) <: t
 is_number(x) = typeof(x) <: Number
 
 # We check for :call repeatedly. We can optimize this later.
@@ -550,7 +561,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                 return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
-            nargs = Any[]  # new args for the output            
+            nargs = mxmkargs()  # new args for the output            
             for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
                 if is_type(mxel,Mxpr{symbol($op)})
@@ -658,6 +669,7 @@ Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 #_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
 
 const _jstypeorder = Dict{DataType,Int}()
+const _jsoporder = Dict{Symbol,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
@@ -667,6 +679,11 @@ function _mklexorder()
         _jstypeorder[typ] = i
         i += 1
     end
+    i = 1
+    for op in (:mplus,:mmul,:mpow)
+        _jsoporder[op] = i
+        i += 1
+    end    
 end
 
 _mklexorder()
@@ -677,44 +694,91 @@ function mxtypeorder(typ::DataType)
     return _jstypeorder[typ]
 end
 
-function _jslexless(x::Mxpr,y::Mxpr)
-    x === y && return false
-    mhead(x) != mhead(y) && return mhead(x) < mhead(y)
-    ax = margs(x)
-    ay = margs(y)
-    lx = length(ax)
-    ly = length(ay)
-    for i in 1:min(lx,ly)
-        _jslexless(ax[i],ay[i]) && return true
-    end
-    lx < ly && return true
-    return false
+function mxoporder(op::Symbol)
+    ! haskey(_jsoporder,op)  && return 4 # higher
+    return _jsoporder[op]
 end
-_jslexless(x,y) = lexless(x,y)  # use Julia definitions
-_jslexless(x::DataType,y::DataType) = x <: y
+
+_jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
+#_jslexless(x::DataType,y::DataType) = x <: y
 
 # _jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
 # _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
-_jslexless(x::Mxpr{:mpow}, y::Mxpr) = true
-function _jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
-    _jslexless(x[1],y[1])  ||  _jslexless(x[2],y[2])
+
+function jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
+    jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
 end
+
+function jslexless(x::Symbolic, y::Mxpr{:mpow})
+    println(1)
+    if x == y[1]
+        if is_type_less(y[2],Real)
+            return y[2] > 0
+        else
+            return true
+        end
+    end
+    return jslexless(x,y[1])
+end
+
+function jslexless(x::Mxpr{:mpow}, y::Mxpr)
+    println(2)
+    if  x[1] == y
+    println("2a")        
+        return is_type_less(x[2],Real) && x[2] < 0
+    else
+        println("2b ", x[1], " " , y)
+        return jslexless(x[1],y)        
+    end
+end
+
+function jslexless(x, y::Mxpr{:mpow})
+    println(3)        
+    if x == y[1]
+        return is_type_less(y[2],Real) && y[2] > 0
+    else
+        return jslexless(x,y[1])
+    end
+end
+
+function jslexless(x::Symbol, y::Mxpr{:mpow})
+    if x == y[1]
+        return is_type_less(y[2],Real) && y[2] > 1
+    end
+    jslexless(x,y[1])
+end
+
+jslexless(x::Symbol, y::Mxpr) = true
 
 # function _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul})
 #     _jslexless(x[end],y[end])
 # end    
 
+# function _jslexless(x::Mxpr,y::Mxpr)
+#     x === y && return false
+#     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
+#     ax = margs(x)
+#     ay = margs(y)
+#     lx = length(ax)
+#     ly = length(ay)
+#     for i in 1:min(lx,ly)
+#         _jslexless(ax[i],ay[i]) && return true
+#     end
+#     lx < ly && return true
+#     return false
+# end
+
 # comparision function for sort routine
-# First compare types, then structure
-function jslexless(x,y)
+# First compare types, then values
+function jslexless(x,y)  # only types other than: Symbol, Mxpr
     tx = typeof(x)
     ty = typeof(y)
-    tx <: AbstractMxpr ? tx = AbstractMxpr : nothing
-    ty <: AbstractMxpr ? ty = AbstractMxpr : nothing
     if tx != ty
         return mxtypeorder(tx) < mxtypeorder(ty)
     end
-    return _jslexless(x,y)
+    # This is only called for types other than Symbol, Mxpr
+    # and they have the same type.
+    return _jslexless(x,y)  
 end
 
 
