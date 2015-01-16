@@ -661,7 +661,7 @@ const _jslexorder = Dict{DataType,Int}()
 # to last according to this order of types. Then lex within types.
 function _mklexorder()
     i = 1
-    for typ in (Symbol,Expr,Mxpr,Rational,Any,Int,Float64)
+    for typ in (Symbol,Expr,AbstractMxpr,Rational,Any,Int,Float64)
         _jslexorder[typ] = i
         i += 1
     end
@@ -715,6 +715,8 @@ _jslexless(x::DataType,y::DataType) = x <: y
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
+    tx <: AbstractMxpr ? tx = AbstractMxpr : nothing
+    ty <: AbstractMxpr ? ty = AbstractMxpr : nothing
     if tx != ty
         return mxlexorder(tx) < mxlexorder(ty)
     end
