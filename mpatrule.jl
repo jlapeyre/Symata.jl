@@ -1,13 +1,6 @@
 # Pattern matching and rules
 include("./mxpr_util.jl")
 
-# These work fine
-#typealias CExpr Expr    # annotation to constructed expressions
-#typealias InExpr Expr   # annotation to input arguments
-#typealias UExpr  Expr  # annotation for expressions in Unions
-
-
-# Try Mxpr
 typealias CExpr Mxpr    # annotation to constructed expressions
 typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
 typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
@@ -21,19 +14,14 @@ end
 typealias ExSym Union(UExpr,Symbol)
 typealias CondT Union(UExpr,Symbol,DataType,Function)
 
-# Julia Expr versions
-#isexpr(x) = (typeof(x) == Expr)
-#iscall(x) = isexpr(x) && x.head == :call
-
 # Mxpr versions
-isexpr(x) = (typeof(x) <: AbstactMxpr)
+isexpr(x) = (typeof(x) <: AbstractMxpr)
 
 iscall(x) = isexpr(x) && jhead(x) == :call
 function iscomplex(ex)
     typeof(ex) <: Complex ||
     (iscall(ex) && ex.args[1] == :complex)
 end
-
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,

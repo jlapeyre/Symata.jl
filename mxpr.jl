@@ -32,9 +32,9 @@ include("./mxpr_util.jl")
 # We share the Julia symbol table, rather than managing our own
 # symbol table.
 
-abstract AbstactMxpr
+abstract AbstractMxpr
 
-type Mxpr{T} <: AbstactMxpr
+type Mxpr{T} <: AbstractMxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
     jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
@@ -102,7 +102,7 @@ macro mk_type_predicate(name0,typ)
     end
 end
 
-mxprq(x) = typeof(x) <: AbstactMxpr
+mxprq(x) = typeof(x) <: AbstractMxpr
 
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
@@ -527,9 +527,10 @@ end
 # If one or more operands are Mxpr and also of op :+
 # Then flatten the operands, copying them out of the inner Mxpr
 for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
+    namestr = string(name)
     @eval begin
         function meval(mx::Mxpr{symbol($op)})
-            @mdebug(1,$name, " entry: mx = ",mx)
+            @mdebug(1, $namestr, " entry: mx = ",mx)
             found_mxpr_term = false
             all_numerical_terms = true
             for i in 1:length(mx)  # check if there is at least one Mxpr of type op
@@ -543,15 +544,13 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                 end
             end
             if all_numerical_terms
-                @mdebug(3, $name, ": all numerical terms mx = ", mx)                
+                @mdebug(3, $namestr, ": all numerical terms mx = ", mx)                
                 return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
-#            nargs = Any[symbol($op)]  # new args for the output     ***************
             nargs = Any[]  # new args for the output            
             for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
-                #    if mxprq(mxel) && mxel[0] == symbol($op)
                 if is_type(mxel,Mxpr{symbol($op)})
                     for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
                         push!(nargs,mxel[j])
