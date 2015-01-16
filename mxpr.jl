@@ -384,6 +384,21 @@ mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y > 0 ? x^y : 1//(x^(-y))
 mpow(x,y) = x^y
+
+## copied from base/operators
+for op = (:mplus, :mmul)
+    @eval begin
+        # note: these definitions must not cause a dispatch loop when +(a,b) is
+        # not defined, and must only try to call 2-argument definitions, so
+        # that defining +(a,b) is sufficient for full functionality.
+        ($op)(a, b, c)        = ($op)(($op)(a,b),c)
+        ($op)(a, b, c, xs...) = ($op)(($op)(($op)(a,b),c), xs...)
+        # a further concern is that it's easy for a type like (Int,Int...)
+        # to match many definitions, so we need to keep the number of
+        # definitions down to avoid losing type information.
+    end
+end
+
 is_rat_and_int(x::Rational) = x.den == 1
 is_rat_and_int(x) = false
 
