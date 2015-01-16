@@ -655,6 +655,8 @@ Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 ## Lexicographical ordering of elements in orderless Mxpr #
 ###########################################################
 
+#_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
+
 const _jstypeorder = Dict{DataType,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
@@ -674,25 +676,6 @@ function mxtypeorder(typ::DataType)
     ! haskey(_jstypeorder,typ)  && return 3  # Any
     return _jstypeorder[typ]
 end
-
-# we need these because type annotations are compared
-# isless{T}(::Type{T}, ::Type{T}) = false
-# function isless(::Int64, ::Int64)
-#     println("In is less int64")
-#     return false
-# end
-
-# function isless(::Int64, a::Symbol)
-#     println("In is less int64 and dymbol")
-#     return false
-# end
-
-# function isless(a::Symbol, ::Int64)
-#     println("In is less int64 and dymbol")
-#     return false
-# end
-
-#_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
 
 function _jslexless(x::Mxpr,y::Mxpr)
     x === y && return false
