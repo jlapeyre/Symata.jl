@@ -30,3 +30,4 @@ using Base.Test
 # Mxpr are never constructed, Expr is evaluated directly
 @test @jm 1 + 2 + 3 + 4 === 10
 @test @jm 1 * 2 * 3 * 4 === 24
+@test @jm 1//3 + 1//3 + 1//3 === 1
