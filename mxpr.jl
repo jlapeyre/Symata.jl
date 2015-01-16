@@ -605,7 +605,7 @@ function meval(mx::Mxpr)
     end
     for i in 1:endof(mx)
         mx[i] = meval(mx[i])
-        meval(mx[i])    # second eval ?
+        meval(mx[i])    # second eval ? Don't want this
     end
     return meval_handle_or_fall_through(mx)
 end
@@ -863,6 +863,8 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
+
+
 function meval_Cos(cmx::Mxpr)
     if length(cmx) == 1
         mx = cmx[1]
@@ -874,3 +876,14 @@ function meval_Cos(cmx::Mxpr)
     return cmx
 end
 register_meval_func(:Cos,meval_Cos)
+
+function meval(cmx::Mxpr{:Cos})
+    if length(cmx) == 1
+        mx = cmx[1]
+        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
+            typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+            typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
+        end
+    end
+    return cmx
+end
