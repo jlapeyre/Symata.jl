@@ -658,9 +658,6 @@ end
 
 #mxlexorder(x) = false
 
-_jslexless(x,y) = lexless(x,y)
-_jslexless(x::DataType,y::DataType) = x <: y
-
 # we need these because type annotations are compared
 # isless{T}(::Type{T}, ::Type{T}) = false
 # function isless(::Int64, ::Int64)
@@ -678,7 +675,9 @@ _jslexless(x::DataType,y::DataType) = x <: y
 #     return false
 # end
 
-function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
+#function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
+function _jslexless(x::Union(Mxpr),y::Union(Mxpr))
+    x === y && return false
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
     ax = margs(x)
     ay = margs(y)
@@ -696,8 +695,11 @@ function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
 #    end
     return false
 end
+_jslexless(x,y) = lexless(x,y)  # use Julia definitions
+_jslexless(x::DataType,y::DataType) = x <: y
 
 # comparision function for sort routine
+# First compare types, then structure
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
@@ -705,9 +707,6 @@ function jslexless(x,y)
     if tx != ty
         return mxlexorder(tx) < mxlexorder(ty)
     end
-#    if tx == DataType && ty == DataType
-#        return x <: y
-#    end
     return _jslexless(x,y)
 end
 
