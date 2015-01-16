@@ -26,8 +26,7 @@ typealias CondT Union(UExpr,Symbol,DataType,Function)
 #iscall(x) = isexpr(x) && x.head == :call
 
 # Mxpr versions
-isexpr(x) = (typeof(x) == Mxpr)
-#isexpr(x) = (typeof(x) == Mxpr || typeof(x) == Expr)
+isexpr(x) = (typeof(x) <: AbstactMxpr)
 
 iscall(x) = isexpr(x) && jhead(x) == :call
 function iscomplex(ex)
@@ -199,6 +198,7 @@ end
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
 function matchpat(cvar,ex)
+    @mdebug(1, "matchpat entering ex = ", ex)
     c = pvarcond(cvar)
     c == :All && return true # no condition
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
@@ -207,7 +207,8 @@ function matchpat(cvar,ex)
             println("Got a function expression")
             f = meval(c)
             println("Type of f is now ", typeof(f))
-# Replacing expression with compiled anonymous function does not work.            .
+            # Replacing expression with compiled anonymous function does not work.
+            # clean this up, anyway. it is usually compiled long before we get here.
             setpvarcond(cvar,f)  
             return f(ex)
         end
@@ -255,6 +256,7 @@ function _cmppat(mx,pat,captures)
     for i in 1:length(mx) # match and capture subexpressions.
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
+    @mdebug(1, "_cmppat returning true")
     return true
 end
 

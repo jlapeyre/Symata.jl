@@ -28,6 +28,6 @@ __bbbb = 1  # can't get local scope somehow
 r1 = (@jm r = 3/4)
 @test r1 == r == 3//4
 
-@test typeof(Cos(1)) == Mxpr
-@test typeof(Cos(:c)) == Mxpr
+@test typeof(Cos(1)) == Mxpr{:Cos}
+@test typeof(Cos(:c)) == Mxpr{:Cos}
 @test typeof(Cos(1.0)) == Float64

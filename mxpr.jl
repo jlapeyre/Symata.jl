@@ -32,7 +32,9 @@ include("./mxpr_util.jl")
 # We share the Julia symbol table, rather than managing our own
 # symbol table.
 
-type Mxpr{T}
+abstract AbstactMxpr
+
+type Mxpr{T} <: AbstactMxpr
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
     jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
@@ -100,7 +102,7 @@ macro mk_type_predicate(name0,typ)
     end
 end
 
-mxprq(x) = typeof(x) == Mxpr
+mxprq(x) = typeof(x) <: AbstactMxpr
 
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
@@ -248,14 +250,14 @@ end
 
 function mx_to_ex(inmx::Mxpr)
     mx = deepcopy(inmx)
-    @mdebug(5,"mx_to_ex: entering with won't print")    
+    @mdebug(50,"mx_to_ex: entering with won't print")    
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
         a[i] = mx_to_ex(a[i]) # convert to Mxpr at lower levels
     end
     a = copy(a)
-    @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
+    @mdebug(50,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
         unshift!(a,mtojop(mhead(mx)))  # We want Julia to *print* + instead of mplus
     else   # :hcat, etc
@@ -770,6 +772,7 @@ deep_order_if_orderless!(x) = x
 for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
+            @mdebug(1,"In ", $name)
             length(mx) < 2 && return mx
             a = margs(mx)
             typeof(a[end]) <: Number || return mx
