@@ -110,6 +110,7 @@ jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
 #margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(mx::Mxpr) = mx.head
+head(mx::Mxpr) = mhead(mx)
 #mhead(ex::Expr) = ex.head
 mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
@@ -121,9 +122,9 @@ setmhead(mx::Expr, val::Symbol) = mx.head = val
 getindex(mx::Mxpr, k::Int) = return k == 0 ? mhead(mx) : margs(mx)[k]
 setindex!(mx::Mxpr, val, k::Int) = k == 0 ? setmhead(mx,val) : (margs(mx)[k] = val)
 
-Base.endof(mx::Mxpr) = length(margs(mx))
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
+Base.endof(mx::Mxpr) = length(mx)
 
 # Do we want 'ordered' or 'clean' ? There is likely more than
 # one way to be dirty, not just unordered.
@@ -643,15 +644,13 @@ end
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
     mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
-#    ex = mx_to_ex!_revert(mx)  ******************  # use original Julia function names
     ex = mx_to_ex(mx)
     Base.show_unquoted(io,ex)    
 end
 
 # Don't show quote on symbol. This changes basic Julia behavior.
-# Or, we could make our own symbol type: MSymbol.
 Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
-
+    
 ###########################################################
 ## Lexicographical ordering of elements in orderless Mxpr #
 ###########################################################
@@ -676,8 +675,6 @@ function mxlexorder(typ::DataType)
     return _jslexorder[typ]
 end
 
-#mxlexorder(x) = false
-
 # we need these because type annotations are compared
 # isless{T}(::Type{T}, ::Type{T}) = false
 # function isless(::Int64, ::Int64)
@@ -695,7 +692,8 @@ end
 #     return false
 # end
 
-#function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
+#_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
+
 function _jslexless(x::Mxpr,y::Mxpr)
     x === y && return false
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
@@ -704,15 +702,9 @@ function _jslexless(x::Mxpr,y::Mxpr)
     lx = length(ax)
     ly = length(ay)
     for i in 1:min(lx,ly)
-#        println("_jslexless: trying $i th parts")
-#        println(" ", ax[i],"  ", ay[i])
         _jslexless(ax[i],ay[i]) && return true
     end
-#    if typeof(lx) == DataType && typeof(ly) == DataType
-#        lx <: ly && return true
-#    else
-        lx < ly && return true
-#    end
+    lx < ly && return true
     return false
 end
 _jslexless(x,y) = lexless(x,y)  # use Julia definitions
@@ -723,7 +715,6 @@ _jslexless(x::DataType,y::DataType) = x <: y
 function jslexless(x,y)
     tx = typeof(x)
     ty = typeof(y)
-#    println("cmp '$x' '$y'")
     if tx != ty
         return mxlexorder(tx) < mxlexorder(ty)
     end
