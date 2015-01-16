@@ -528,7 +528,7 @@ end
 # Then flatten the operands, copying them out of the inner Mxpr
 for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     @eval begin
-        function ($name)(mx::Mxpr) # {symbol($op)})
+        function meval(mx::Mxpr{symbol($op)})
             @mdebug(1,$name, " entry: mx = ",mx)
             found_mxpr_term = false
             all_numerical_terms = true
@@ -563,7 +563,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
             newmx = Mxpr{symbol($op)}($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
-        register_meval_func(symbol($op),$name)  # register this function as handler
+#        register_meval_func(symbol($op),$name)  # register this function as handler
     end
 end 
 
@@ -867,19 +867,17 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
-
-
-function meval_Cos(cmx::Mxpr)
-    if length(cmx) == 1
-        mx = cmx[1]
-        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
-            typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-            typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
-        end
-    end
-    return cmx
-end
-register_meval_func(:Cos,meval_Cos)
+# function meval_Cos(cmx::Mxpr)
+#     if length(cmx) == 1
+#         mx = cmx[1]
+#         if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
+#             typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
+#             typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
+#         end
+#     end
+#     return cmx
+# end
+# register_meval_func(:Cos,meval_Cos)
 
 function meval(cmx::Mxpr{:Cos})
     if length(cmx) == 1
