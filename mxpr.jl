@@ -152,8 +152,8 @@ is_number(x) = typeof(x) <: Number
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 # number of args != 3 will pass through. But probably can't be used
-is_division(ex::Expr) = is_call(ex, :/,3)  
-is_power(ex::Expr) = is_call(ex, :^)
+is_division(ex::Expr) = is_call(ex, :mdiv,3)  
+is_power(ex::Expr) = is_call(ex, :mpow)
 
 # rewrite_expr : Expr -> Expr
 # Input could be expresion from cli. Output is closer to Mxpr form.
@@ -162,13 +162,13 @@ is_power(ex::Expr) = is_call(ex, :^)
 # We definitely need to dispatch on a hash query, or types somehow
 function rewrite_expr(ex::Expr)
     if is_binary_minus(ex)  #  a - b --> a + -b.
-        ex = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
+        ex = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
     elseif is_division(ex) # a / b --> a + b^(-1)
-        ex = Expr(:call, :*, ex.args[2], Expr(:call,:(^),ex.args[3],-1))
+        ex = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
-        ex = Expr(:call, :^, :E, ex.args[2])
+        ex = Expr(:call, :mpow, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2)
-        ex = Expr(:call, :^, ex.args[2], 1//2)
+        ex = Expr(:call, :mpow, ex.args[2], 1//2)
     end
     return ex
 end
@@ -338,7 +338,7 @@ end
 const MTOJOP = Dict{Symbol,Symbol}()
 const JTOMOP = Dict{Symbol,Symbol}()
 
-for (j,m) in ( (:/,:mdiv), (:*,:mmul), (:+,:mplus))
+for (j,m) in ((:/,:mdiv), (:*,:mmul), (:+,:mplus), (:^, :mpow))
     MTOJOP[m] = j
     JTOMOP[j] = m
 end
@@ -835,7 +835,7 @@ mkmathfuncs()
 function meval_Cos(cmx::Mxpr)
     if length(cmx) == 1
         mx = cmx[1]
-        if length(mx) == 2 && is_op(mx,:*,2) && mx[1] == :Pi
+        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
             typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
             typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
         end
