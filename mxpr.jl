@@ -655,14 +655,14 @@ Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
 ## Lexicographical ordering of elements in orderless Mxpr #
 ###########################################################
 
-const _jslexorder = Dict{DataType,Int}()
+const _jstypeorder = Dict{DataType,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
 function _mklexorder()
     i = 1
     for typ in (Float64,Int,Any,Rational,Symbol,Expr,AbstractMxpr)
-        _jslexorder[typ] = i
+        _jstypeorder[typ] = i
         i += 1
     end
 end
@@ -670,9 +670,9 @@ end
 _mklexorder()
 
 # interface: returns ordering precedence of Type, typ
-function mxlexorder(typ::DataType)
-    ! haskey(_jslexorder,typ)  && return 3  # Any
-    return _jslexorder[typ]
+function mxtypeorder(typ::DataType)
+    ! haskey(_jstypeorder,typ)  && return 3  # Any
+    return _jstypeorder[typ]
 end
 
 # we need these because type annotations are compared
@@ -729,7 +729,7 @@ function jslexless(x,y)
     tx <: AbstractMxpr ? tx = AbstractMxpr : nothing
     ty <: AbstractMxpr ? ty = AbstractMxpr : nothing
     if tx != ty
-        return mxlexorder(tx) < mxlexorder(ty)
+        return mxtypeorder(tx) < mxtypeorder(ty)
     end
     return _jslexless(x,y)
 end
@@ -777,26 +777,26 @@ deep_order_if_orderless!(x) = x
 ## Sum collected numerical args in :+, (or same for :*)  #
 ##########################################################
 # + and * are nary. Replace all numbers in the list of args, by one sum or product
-for (fop,name,id) in  ((:mplus,:oldcompactplus!,0),(:mmul,:oldcompactmul!,1))
-    @eval begin
-        function ($name)(mx::Mxpr)
-            @mdebug(1,"In ", $name)
-            length(mx) < 2 && return mx
-            a = margs(mx)
-            typeof(a[end]) <: Number || return mx
-            sum0 = a[end]
-            while length(a) > 1
-                pop!(a)
-                typeof(a[end]) <: Number || break
-                sum0 = ($fop)(sum0,a[end])
-            end
-            length(a) == 0 && return sum0            
-            sum0 != $id && push!(a,sum0)            
-            length(a) == 1 && return a[1]
-            return mx
-        end
-    end
-end
+# for (fop,name,id) in  ((:mplus,:oldcompactplus!,0),(:mmul,:oldcompactmul!,1))
+#     @eval begin
+#         function ($name)(mx::Mxpr)
+#             @mdebug(1,"In ", $name)
+#             length(mx) < 2 && return mx
+#             a = margs(mx)
+#             typeof(a[end]) <: Number || return mx
+#             sum0 = a[end]
+#             while length(a) > 1
+#                 pop!(a)
+#                 typeof(a[end]) <: Number || break
+#                 sum0 = ($fop)(sum0,a[end])
+#             end
+#             length(a) == 0 && return sum0            
+#             sum0 != $id && push!(a,sum0)            
+#             length(a) == 1 && return a[1]
+#             return mx
+#         end
+#     end
+# end
 
 for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
