@@ -462,10 +462,11 @@ end
 # construct a Mxpr at the cli,
 # Try to evaluate once.
 macro jm(ex)
-    mx = transex(ex)
-    mx = meval(mx)  # backwards ??
+    mx = transex(ex)  # Translate Expr to Mxpr
+    mx = meval(mx)    # order first or eval first ?
     mx = deep_order_if_orderless!(mx)
-    typeof(mx) == Symbol && return Base.QuoteNode(mx)
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)
+#    typeof(mx) == Symbol && 
     mx = tryjeval(mx)  # need this. but maybe not here
 end
 
