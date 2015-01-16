@@ -777,7 +777,7 @@ deep_order_if_orderless!(x) = x
 ## Sum collected numerical args in :+, (or same for :*)  #
 ##########################################################
 # + and * are nary. Replace all numbers in the list of args, by one sum or product
-for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
+for (fop,name,id) in  ((:mplus,:oldcompactplus!,0),(:mmul,:oldcompactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
             @mdebug(1,"In ", $name)
@@ -788,10 +788,31 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
             while length(a) > 1
                 pop!(a)
                 typeof(a[end]) <: Number || break
-                sum0 = ($fop)(sum0,a[end]) # call alternate Julia func
+                sum0 = ($fop)(sum0,a[end])
             end
             length(a) == 0 && return sum0            
             sum0 != $id && push!(a,sum0)            
+            length(a) == 1 && return a[1]
+            return mx
+        end
+    end
+end
+
+for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
+    @eval begin
+        function ($name)(mx::Mxpr)
+            @mdebug(1,"In ", $name)
+            length(mx) < 2 && return mx
+            a = margs(mx)
+            typeof(a[1]) <: Number || return mx
+            sum0 = a[1]
+            while length(a) > 1
+                shift!(a)
+                typeof(a[1]) <: Number || break
+                sum0 = ($fop)(sum0,a[1])
+            end
+            length(a) == 0 && return sum0            
+            sum0 != $id && unshift!(a,sum0)            
             length(a) == 1 && return a[1]
             return mx
         end
