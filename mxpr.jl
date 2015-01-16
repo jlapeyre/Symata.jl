@@ -174,6 +174,7 @@ function rewrite_expr(ex::Expr)
 end
 
 # replace + with mplus, etc.
+# We do this any expression parsed by Julia.
 function replace_arithmetic_ops!(ex::Expr)
     for arg in ex.args
         replace_arithmetic_ops!(arg)
@@ -333,6 +334,9 @@ end
 # eg. integer division gives Rational or Integer.
 # First we make dictionaries to look up alternate function.
 # Then we define the alternate functions.
+# These are used twice:
+# 1) rewrite input expressions parsed by Julia
+# 2) rewrite expression on output so we can use Julia show()
 
 # Dicts to convert from Julia to MJulia symbol
 const MTOJOP = Dict{Symbol,Symbol}()
