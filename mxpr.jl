@@ -313,20 +313,20 @@ end
 # Then we define the alternate functions.
 
 # Dicts to convert from Julia to MJulia symbol
-const MTOJHEAD = Dict{Symbol,Symbol}()
-const JTOMHEAD = Dict{Symbol,Symbol}()
+# const MTOJHEAD = Dict{Symbol,Symbol}()
+# const JTOMHEAD = Dict{Symbol,Symbol}()
 
-for (j,m) in ( (:/,:mdiv), (:*,:mmul))
-    MTOJHEAD[m] = j
-    JTOMHEAD[j] = m
-end
+# for (j,m) in ( (:/,:mdiv), (:*,:mmul))
+#     MTOJHEAD[m] = j
+#     JTOMHEAD[j] = m
+# end
 
-# Following two are the interface
-# Eg.  jtomhead(:+) --> :mplus
-function jtomop(jhead::Symbol)
-    mhead = get(JTOMHEAD,jhead,0)
-    return mhead == 0 ? jhead : mhead
-end
+# # Following two are the interface
+# # Eg.  jtomhead(:+) --> :mplus
+# function jtomop(jhead::Symbol)
+#     mhead = get(JTOMHEAD,jhead,0)
+#     return mhead == 0 ? jhead : mhead
+# end
 
 # # Eg.  mtojhead(:mplus) --> :+
 # function mtojhead(mhead::Symbol)
@@ -344,9 +344,12 @@ mtojhead(x) = x
 #  12/6 --> 2, not 2.0
 #  13/6 --> 13//6
 #  (13//6) * 6 --> 13
+rat_to_int(r::Rational) = r.den == 1 ? r.num : r
 mmul(x::Int, y::Rational) =  (res = x * y; return res.den == 1 ? res.num : res )
 mmul(x::Rational, y::Int) =  (res = x * y; return res.den == 1 ? res.num : res )
 mmul(x,y) = x * y
+mplus(x::Rational, y::Rational) = rat_to_int(x+y)
+mplus(x,y) = x + y
 mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
@@ -714,8 +717,7 @@ deep_order_if_orderless!(x) = x
 ## Sum collected numerical args in :+, (or same for :*)  #
 ##########################################################
 # + and * are nary. Replace all numbers in the list of args, by one sum or product
-for (fop,name,id) in  ((:+,:compactplus!,0),(:mmul,:compactmul!,1))
-#    altop = jtomop(fop)
+for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
             length(mx) < 2 && return mx
