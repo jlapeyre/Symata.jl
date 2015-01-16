@@ -155,6 +155,7 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :mdiv,3)  
 is_power(ex::Expr) = is_call(ex, :mpow)
 
+# There is no binary minus and no division in Mxpr's.
 rewrite_binary_minus(ex::Expr) = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
 rewrite_division(ex::Expr) = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
 rewrite_binary_minus(mx::Mxpr) = mxpr(:mplus, mx[1], mxpr(:(-),mx[2]))
@@ -390,8 +391,10 @@ is_rat_and_int(x) = false
 ## Julia-level functions for Mxpr's        #
 ############################################
 
-mxmkevalminus(args...) = meval(rewrite_binary_minus(mxpr(args...)))
-mxmkevaldivision(args...) = meval(rewrite_division(mxpr(args...)))
+
+ordereval(x) = meval(deep_order_if_orderless!(x))
+mxmkevalminus(args...) = ordereval(rewrite_binary_minus(mxpr(args...)))
+mxmkevaldivision(args...) = ordereval(rewrite_division(mxpr(args...)))
 
 mxmkeval(args...) = meval(mxpr(args...))
 mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
@@ -444,7 +447,7 @@ end
 # Try to evaluate once.
 macro jm(ex)
     mx = transex(ex)
-    mx = meval(mx)
+    mx = meval(mx)  # backwards ??
     mx = deep_order_if_orderless!(mx)
     typeof(mx) == Symbol && return Base.QuoteNode(mx)
     mx = tryjeval(mx)  # need this. but maybe not here

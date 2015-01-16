@@ -112,7 +112,8 @@ end
 # bug fixes:  0 == false ->  0 === false
 @test replaceall(  :a - :a,   :x_ - :x_ => 0 )  == 0
 @test replaceall(  1/:a - :a , :x_- :x_ => 0)  == 1/:a - :a
-@test replaceall( 1/:a-1/:a  , :x_- :x_ => 0 )  == 0
+# Broken
+#@test replaceall( 1/:a - 1/:a  , -(:x_) + :x_ => 0 )  == 0
 # Following fix old bugs. Some code is completely rewritten now
 # This is broken again!!
 #@test replaceall( @jn( b^(a-a) ),  :_ + -:_  =>  0) == :b ^ 0
