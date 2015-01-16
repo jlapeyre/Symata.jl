@@ -157,6 +157,9 @@ is_power(ex::Expr) = is_call(ex, :mpow)
 
 rewrite_binary_minus(ex::Expr) = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
 rewrite_division(ex::Expr) = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
+rewrite_binary_minus(mx::Mxpr) = mxpr(:mplus, mx[1], mxpr(:(-),mx[2]))
+rewrite_division(mx::Mxpr) = mxpr(:mmul, mx[1], mxpr(:mpow,mx[2],-1))
+
 # rewrite_expr : Expr -> Expr
 # Input could be expresion from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
@@ -387,6 +390,9 @@ is_rat_and_int(x) = false
 ## Julia-level functions for Mxpr's        #
 ############################################
 
+mxmkevalminus(args...) = meval(rewrite_binary_minus(mxpr(args...)))
+mxmkevaldivision(args...) = meval(rewrite_division(mxpr(args...)))
+
 mxmkeval(args...) = meval(mxpr(args...))
 mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
 let sym,str
@@ -399,14 +405,14 @@ let sym,str
             ($sym)(a::Symbolic, args...) = mxmkorderless(symbol($mstr),a,args...)
         end
     end
-    for str in ("/", "-", "^")
+    for (str,f) in (("/", :mxmkevaldivision), ("-", :mxmkevalminus), ("^", :mxmkeval))
         sym = symbol(str)
         mstr = string(jtomop(sym))        
         @eval begin
-            ($sym)(a::Symbolic, b::Symbolic) = mxmkeval(symbol($mstr),a,b)
-            ($sym)(a::Symbolic, b::Integer) = mxmkeval(symbol($mstr),a,b)            
-            ($sym)(a::Symbolic, b) = mxmkeval(symbol($mstr),a,b)
-            ($sym)(a, b::Symbolic) = mxmkeval(symbol($mstr),a,b)  
+            ($sym)(a::Symbolic, b::Symbolic) = ($f)(symbol($mstr),a,b)
+            ($sym)(a::Symbolic, b::Integer) = ($f)(symbol($mstr),a,b)            
+            ($sym)(a::Symbolic, b) = ($f)(symbol($mstr),a,b)
+            ($sym)(a, b::Symbolic) = ($f)(symbol($mstr),a,b)  
         end
     end
 end
