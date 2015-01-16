@@ -1,4 +1,4 @@
-const MXDEBUGLEVEL = 0 # debug level, larger means more verbose. -1 is off
+const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 #type MParseError <: Exception  Not really a parse error
@@ -140,12 +140,14 @@ function ==(a::Mxpr, b::Mxpr)
 end
 
 # Same thing is somewhere in base
+is_call(ex::Expr) = ex.head == :call
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
 is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
 is_op(mx::Mxpr, op::Symbol) = mhead(mx) == op
 is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
+is_number(x) = typeof(x) <: Number
 
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
@@ -171,14 +173,29 @@ function rewrite_expr(ex::Expr)
     return ex
 end
 
+# replace + with mplus, etc.
+function replace_arithmetic_ops!(ex::Expr)
+    for arg in ex.args
+        replace_arithmetic_ops!(arg)
+    end
+    is_call(ex) ? ex.args[1] = jtomop(ex.args[1]) : nothing
+    ex
+end
+replace_arithmetic_ops!(x) = x
+    
+
 # Expr -> Mxpr
 # Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
-    if ex.head == :(->)  # Try to compile anonymous functions now.
-        f = tryjeval(ex) # If it succeeds, we are done with this expr.
-        typeof(f) == Function && return f
-    end
+#    is_call(ex) ? ex.head = jtomop(ex.head) : nothing # replace arithmetic ops
+    ex = tryjeval(ex)  # compile it if we can
+    is_type(ex,Expr) || return ex
+    # if ex.head == :(->)  # Try to compile anonymous functions now.
+    #     f = tryjeval(ex) # If it succeeds, we are done with this expr.
+    #     typeof(f) == Function && return f
+    # end
+    is_call(ex,://,3)  && is_number(ex.args[2]) && is_number(ex.args[3]) && return eval(ex)
     ex = rewrite_expr(ex)
     for i in 1:length(ex.args)
         ex.args[i] = ex_to_mx!(ex.args[i]) # convert to Mxpr at lower levels
@@ -191,7 +208,9 @@ function ex_to_mx!(ex::Expr)
         mxop = ex.head
         mxargs = ex.args
     end
+    @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
     mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
+#    mx = Mxpr(jtomop(mxop),mxargs,ex.head,false)  # expression not clean    
 end
 ex_to_mx!(x) = x
 
@@ -211,7 +230,7 @@ function mx_to_ex!(mx::Mxpr)
     end
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+        unshift!(a,mtojop(mhead(mx)))  # identity now        
     else   # :hcat, etc
         nothing
     end    
@@ -219,7 +238,7 @@ function mx_to_ex!(mx::Mxpr)
     return ex
 end
 # Other things fall through. Though, there may be an expression lurking down there
-mx_to_ex!(x) = x
+#mx_to_ex!(x) = x
 
 function mx_to_ex(inmx::Mxpr)
     mx = deepcopy(inmx)
@@ -232,7 +251,7 @@ function mx_to_ex(inmx::Mxpr)
     a = copy(a)
     @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+        unshift!(a,mtojop(mhead(mx)))  # We want Julia to *print* + instead of mplus
     else   # :hcat, etc
         nothing
     end    
@@ -243,13 +262,16 @@ end
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex(x) = x
 
+# This is for exectuion.
 function fast_mxpr_to_expr(inmx::Mxpr)
     @mdebug(5,"fast_mxpr_to_expr: ")
     mx = deepcopy(inmx)
     ex = Expr(jhead(mx))
     a = jargs(mx)
     if jhead(mx) == :call
-        unshift!(a,mtojhead(mhead(mx)))  # identity now        
+        #        unshift!(a,mtojop(mhead(mx)))  # identity now
+        #        println("using op ", mhead(mx))
+        unshift!(a,mhead(mx))  #  We want Julia to call our subsitute functions
     else   # :hcat, etc
         nothing
     end        
@@ -299,7 +321,7 @@ function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
     attrs[attr] = val
 end
 
-for func in ( :+, :* )
+for func in (:mplus, :mmul)
     set_attribute(func,:orderless,true)
 end
 
@@ -313,29 +335,26 @@ end
 # Then we define the alternate functions.
 
 # Dicts to convert from Julia to MJulia symbol
-# const MTOJHEAD = Dict{Symbol,Symbol}()
-# const JTOMHEAD = Dict{Symbol,Symbol}()
+const MTOJOP = Dict{Symbol,Symbol}()
+const JTOMOP = Dict{Symbol,Symbol}()
 
-# for (j,m) in ( (:/,:mdiv), (:*,:mmul))
-#     MTOJHEAD[m] = j
-#     JTOMHEAD[j] = m
-# end
+for (j,m) in ( (:/,:mdiv), (:*,:mmul), (:+,:mplus))
+    MTOJOP[m] = j
+    JTOMOP[j] = m
+end
 
-# # Following two are the interface
-# # Eg.  jtomhead(:+) --> :mplus
-# function jtomop(jhead::Symbol)
-#     mhead = get(JTOMHEAD,jhead,0)
-#     return mhead == 0 ? jhead : mhead
-# end
+# Following two are the interface
+# Eg.  jtomop(:+) --> :mplus
+function jtomop(jhead::Symbol)
+    mhead = get(JTOMOP,jhead,0)
+    return mhead == 0 ? jhead : mhead
+end
 
-# # Eg.  mtojhead(:mplus) --> :+
-# function mtojhead(mhead::Symbol)
-#     jhead = get(MTOJHEAD,mhead,0)
-#     return jhead == 0 ? mhead : jhead
-# end    
-
-jtomhead(x) = x
-mtojhead(x) = x
+# Eg.  mtojop(:mplus) --> :+
+function mtojop(mhead::Symbol)
+    jhead = get(MTOJOP,mhead,0)
+    return jhead == 0 ? mhead : jhead
+end    
 
 # Divide and multiply integers and rationals
 # like a CAS does. Always return exact result (no floats).
@@ -354,7 +373,7 @@ mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y > 0 ? x^y : 1//(x^(-y))
-
+mpow(x,y) = x^y
 is_rat_and_int(x::Rational) = x.den == 1
 is_rat_and_int(x) = false
 
@@ -367,19 +386,21 @@ mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
 let sym,str
     for str in ("*", "+")
         sym = symbol(str)
+        mstr = string(jtomop(sym))
         @eval begin
-            ($sym)(a::Symbolic, b::Symbolic, args...) = mxmkorderless(symbol($str),a,b,args...)
-            ($sym)(a,b::Symbolic, args...) = mxmkorderless(symbol($str),a,b,args...)
-            ($sym)(a::Symbolic, args...) = mxmkorderless(symbol($str),a,args...)
+            ($sym)(a::Symbolic, b::Symbolic, args...) = mxmkorderless(symbol($mstr),a,b,args...)
+            ($sym)(a,b::Symbolic, args...) = mxmkorderless(symbol($mstr),a,b,args...)
+            ($sym)(a::Symbolic, args...) = mxmkorderless(symbol($mstr),a,args...)
         end
     end
     for str in ("/", "-", "^")
         sym = symbol(str)
+        mstr = string(jtomop(sym))        
         @eval begin
-            ($sym)(a::Symbolic, b::Symbolic) = mxmkeval(symbol($str),a,b)
-            ($sym)(a::Symbolic, b::Integer) = mxmkeval(symbol($str),a,b)            
-            ($sym)(a::Symbolic, b) = mxmkeval(symbol($str),a,b)
-            ($sym)(a, b::Symbolic) = mxmkeval(symbol($str),a,b)  
+            ($sym)(a::Symbolic, b::Symbolic) = mxmkeval(symbol($mstr),a,b)
+            ($sym)(a::Symbolic, b::Integer) = mxmkeval(symbol($mstr),a,b)            
+            ($sym)(a::Symbolic, b) = mxmkeval(symbol($mstr),a,b)
+            ($sym)(a, b::Symbolic) = mxmkeval(symbol($mstr),a,b)  
         end
     end
 end
@@ -396,6 +417,7 @@ function transex(ex)
     local mx
     T = typeof(ex)
     if  T == Expr
+        replace_arithmetic_ops!(ex)
         mx = ex_to_mx!(ex)
     elseif T == Symbol
         mx = ex
@@ -473,7 +495,7 @@ end
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
 # Then flatten the operands, copying them out of the inner Mxpr
-for (name,op) in ((:meval_plus,"+"),(:meval_mul,"*"))
+for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     @eval begin
         function ($name)(mx::Mxpr)
             @mdebug(1,$name, " entry: mx = ",mx)
@@ -694,8 +716,8 @@ function order_if_orderless!(mx::Mxpr)
     if needs_ordering(mx)
         @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
-        mhead(mx) == :* ? mx = compactmul!(mx) : nothing
-        mxprq(mx) && mhead(mx) == :+ ? mx = compactplus!(mx) : nothing
+        mhead(mx) == :mmul ? mx = compactmul!(mx) : nothing
+        mxprq(mx) && mhead(mx) == :mplus ? mx = compactplus!(mx) : nothing
         @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
     mx
