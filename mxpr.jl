@@ -676,7 +676,7 @@ end
 # end
 
 #function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
-function _jslexless(x::Union(Mxpr),y::Union(Mxpr))
+function _jslexless(x::Mxpr,y::Mxpr)
     x === y && return false
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
     ax = margs(x)
