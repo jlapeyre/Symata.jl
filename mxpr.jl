@@ -528,7 +528,7 @@ end
 # Then flatten the operands, copying them out of the inner Mxpr
 for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     @eval begin
-        function ($name)(mx::Mxpr)
+        function ($name)(mx::Mxpr) # {symbol($op)})
             @mdebug(1,$name, " entry: mx = ",mx)
             found_mxpr_term = false
             all_numerical_terms = true
@@ -567,14 +567,17 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
 end 
 
 ## meval for powers
-meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
+#meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
+meval(mx::Mxpr{:mpow}) =  meval_pow(mx[1],mx[2],mx)
 meval_pow(base::FloatingPoint, expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::FloatingPoint, expt::Integer, mx::Mxpr) = base ^ expt
 meval_pow(base::Union(FloatingPoint,Integer), expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::Integer,expt::Integer,mx::Mxpr) = mpow(base,expt)
 meval_pow(base::Integer,expt::Rational,mx::Mxpr) = mx  # Need to do more.
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
-register_meval_func(:^,meval_pow)
+#register_meval_func(:^,meval_pow)
+
+
 
 ## meval for assignment
 function meval_assign(mx::Mxpr)
@@ -878,6 +881,7 @@ end
 register_meval_func(:Cos,meval_Cos)
 
 function meval(cmx::Mxpr{:Cos})
+    println("type dispatch")
     if length(cmx) == 1
         mx = cmx[1]
         if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
