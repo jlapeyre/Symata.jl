@@ -857,17 +857,3 @@ function meval_Cos(cmx::Mxpr)
     return cmx
 end
 register_meval_func(:Cos,meval_Cos)
-
-
-############################################
-## Apply, Map, etc.
-############################################
-
-# function meval_vcat(mx::Mxpr)
-#     @mdebug(1,"meval_vcat: enter ",mx)
-#     println("length ", length(mx))
-#     if length(mx) == 0 return Any[]
-#     end
-#     mx
-# end
-# register_meval_func(:vcat,meval_vcat)
