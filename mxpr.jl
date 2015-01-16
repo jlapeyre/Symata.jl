@@ -155,6 +155,8 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :mdiv,3)  
 is_power(ex::Expr) = is_call(ex, :mpow)
 
+rewrite_binary_minus(ex::Expr) = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
+rewrite_division(ex::Expr) = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
 # rewrite_expr : Expr -> Expr
 # Input could be expresion from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
@@ -162,9 +164,9 @@ is_power(ex::Expr) = is_call(ex, :mpow)
 # We definitely need to dispatch on a hash query, or types somehow
 function rewrite_expr(ex::Expr)
     if is_binary_minus(ex)  #  a - b --> a + -b.
-        ex = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
+        ex = rewrite_binary_minus(ex)
     elseif is_division(ex) # a / b --> a + b^(-1)
-        ex = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
+        ex = rewrite_division(ex)
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :mpow, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2)
