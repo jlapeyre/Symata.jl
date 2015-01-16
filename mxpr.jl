@@ -533,7 +533,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
             found_mxpr_term = false
             all_numerical_terms = true
             for i in 1:length(mx)  # check if there is at least one Mxpr of type op
-                if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
+                if mxprq(mx[i]) && mx[i][0] == symbol($op)
                     found_mxpr_term = true
                     all_numerical_terms = false
                     break
@@ -551,7 +551,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
             nargs = Any[]  # new args for the output            
             for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
-                if typeof(mxel) == Mxpr && mxel[0] == symbol($op)
+                if mxprq(mxel) && mxel[0] == symbol($op)
                     for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
                         push!(nargs,mxel[j])
                     end
