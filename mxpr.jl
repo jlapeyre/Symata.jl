@@ -32,7 +32,7 @@ include("./mxpr_util.jl")
 # We share the Julia symbol table, rather than managing our own
 # symbol table.
 
-type Mxpr
+type Mxpr{T}
     head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
     args::Array{Any,1}
     jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
@@ -41,9 +41,9 @@ end
 
 typealias Symbolic Union(Mxpr,Symbol)
 
-mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
+mxpr(h,a,jh,d) = Mxpr{h}(h,a,jh,d)
 # make an empty Mxpr, unused ?
-mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
+mxpr(s::Symbol) = Mxpr{s}(s,Array(Any,0),:nothing,false)
 
 ## Following is OK in principle, but nothing in it yet
 ## convert Mxpr.head to Expr.head
@@ -66,7 +66,7 @@ function mxpr(op::Symbol,args...)
     for x in args
         push!(theargs,x)
     end
-    mx = Mxpr(op,theargs,moptojhead(op),false)
+    mx = Mxpr{op}(op,theargs,moptojhead(op),false)
 end
 
 ## predicates
@@ -216,8 +216,7 @@ function ex_to_mx!(ex::Expr)
         mxargs = ex.args
     end
     @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
-    mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
-#    mx = Mxpr(jtomop(mxop),mxargs,ex.head,false)  # expression not clean    
+    mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
 end
 ex_to_mx!(x) = x
 
@@ -558,7 +557,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                     push!(nargs,mx[i]) # something else, just it in
                 end
             end
-            newmx = Mxpr($op,nargs,:call,false) # construct new Mxpr
+            newmx = Mxpr{symbol($op)}($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
         register_meval_func(symbol($op),$name)  # register this function as handler
