@@ -661,7 +661,7 @@ const _jslexorder = Dict{DataType,Int}()
 # to last according to this order of types. Then lex within types.
 function _mklexorder()
     i = 1
-    for typ in (Symbol,Expr,AbstractMxpr,Rational,Any,Int,Float64)
+    for typ in (Float64,Int,Any,Rational,Symbol,Expr,AbstractMxpr)
         _jslexorder[typ] = i
         i += 1
     end
@@ -671,7 +671,7 @@ _mklexorder()
 
 # interface: returns ordering precedence of Type, typ
 function mxlexorder(typ::DataType)
-    ! haskey(_jslexorder,typ)  && return 5  # Any
+    ! haskey(_jslexorder,typ)  && return 3  # Any
     return _jslexorder[typ]
 end
 
@@ -709,6 +709,17 @@ function _jslexless(x::Mxpr,y::Mxpr)
 end
 _jslexless(x,y) = lexless(x,y)  # use Julia definitions
 _jslexless(x::DataType,y::DataType) = x <: y
+
+# _jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
+# _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
+_jslexless(x::Mxpr{:mpow}, y::Mxpr) = true
+function _jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
+    _jslexless(x[1],y[1])  ||  _jslexless(x[2],y[2])
+end
+
+# function _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul})
+#     _jslexless(x[end],y[end])
+# end    
 
 # comparision function for sort routine
 # First compare types, then structure
@@ -786,8 +797,6 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
         end
     end
 end
-
-
 
 # Replace n repeated terms x by n*x, and factors x by x^n
 # for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
