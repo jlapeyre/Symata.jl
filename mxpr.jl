@@ -158,9 +158,9 @@ expt(p::Mxpr{:mpow}) = p[2]
 # Same thing is somewhere in base
 is_call(ex::Expr) = exhead(ex) == :call
 is_call(ex::Expr, op::Symbol) = exhead(ex) == :call && ex.args[1] == op
-is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+is_call(ex::Expr, op::Symbol, len::Int) = exhead(ex) == :call && ex.args[1] == op && length(ex.args) == len
 is_op(mx::Mxpr, op::Symbol) = head(mx) == op
-is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
+is_op(mx::Mxpr, op::Symbol, len::Int) = head(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
@@ -254,7 +254,7 @@ function mx_to_ex!(mx::Mxpr)
     end
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojop(mhead(mx)))  # identity now        
+        unshift!(a,mtojop(head(mx)))  # identity now        
     else   # :hcat, etc
         nothing
     end    
@@ -275,7 +275,7 @@ function mx_to_ex(inmx::Mxpr)
     a = copy(a)
     @mdebug(50,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojop(mhead(mx)))  # We want Julia to *print* + instead of mplus
+        unshift!(a,mtojop(head(mx)))  # We want Julia to *print* + instead of mplus
     else   # :hcat, etc
         nothing
     end    
@@ -771,6 +771,7 @@ function jslexless(x,y)  # only types other than: Symbol, Mxpr
     return _jslexless(x,y)  
 end
 
+# Needed for tests to pass now somehow !
 function _jslexless(x::Mxpr,y::Mxpr)
     x === y && return false
     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
