@@ -758,18 +758,23 @@ jslexless(x::Symbol, y::Mxpr) = true
 #     _jslexless(x[end],y[end])
 # end    
 
-# comparision function for sort routine
-# First compare types, then values
-function jslexless(x,y)  # only types other than: Symbol, Mxpr
-    tx = typeof(x)
-    ty = typeof(y)
-    if tx != ty
-        return mxtypeorder(tx) < mxtypeorder(ty)
-    end
-    # This is only called for types other than Symbol, Mxpr
-    # and they have the same type.
-    return _jslexless(x,y)  
-end
+# comparision function for sorting of orderless Mxpr args
+# First compare types, then values.
+# This method should only act on non-Symbolic types
+
+jslexless{T}(x::T,y::T) = _jslexless(x,y)
+jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
+
+# function jslexless(x,y)  # only types other than Symbolic
+#     tx = typeof(x)
+#     ty = typeof(y)
+#     if tx != ty
+#         return mxtypeorder(tx) < mxtypeorder(ty)
+#     end
+#     # This is only called for types other than Symbol, Mxpr
+#     # and they have the same type.
+#     return _jslexless(x,y)  
+# end
 
 # Needed for tests to pass now somehow !
 function _jslexless(x::Mxpr,y::Mxpr)
