@@ -94,16 +94,16 @@ end
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
-args(mx::Mxpr) = mx.args
+#args(mx::Mxpr) = mx.args
 #margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
-mhead(mx::Mxpr) = mx.head
-head(mx::Mxpr) = mhead(mx)
+#mhead(mx::Mxpr) = mx.head
+head(mx::Mxpr) = mx.head
 exhead(ex::Expr) = ex.head
 exargs(ex::Expr) = ex.args
 exhead(x) = error("exhead: exhead not defined for $x, of type $(typeof(x))")
-head(x) = error("head: mhead not defined for $x, of type $(typeof(x))")
-mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
-setmhead(mx::Expr, val::Symbol) = mx.head = val
+head(x) = error("head: head not defined for $x, of type $(typeof(x))")
+#mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
+#setmhead(mx::Expr, val::Symbol) = mx.head = val
 sethead(mx::Expr, val::Symbol) = mx.head = val
 
 ## Is expr a call to symbol op (this is expression, typ may not be bound)
@@ -125,10 +125,10 @@ sethead(mx::Expr, val::Symbol) = mx.head = val
 
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
-getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : args(mx)[k]
-setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (args(mx)[k] = val)
+getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : margs(mx)[k]
+setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 
-Base.length(mx::Mxpr) = length(args(mx))
+Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
 Base.endof(mx::Mxpr) = length(mx)
 

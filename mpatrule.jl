@@ -15,8 +15,10 @@ typealias ExSym Union(UExpr,Symbol)
 typealias CondT Union(UExpr,Symbol,DataType,Function)
 
 # Mxpr versions
+# Ugh. what is this ? Need to fix it.
 isexpr(x) = (typeof(x) <: AbstractMxpr)
 
+# iscall only used here
 iscall(x) = isexpr(x) && jhead(x) == :call
 function iscomplex(ex)
     typeof(ex) <: Complex ||
@@ -236,7 +238,7 @@ function _cmppat(mx,pat,captures)
     @mdebug(1, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
     @mdebug(1, "  type of mx = ", typeof(mx))
     @mdebug(1, "  type of pat = ", typeof(pat))        
-    if !isexpr(pat) || mhead(pat) != mhead(mx) ||
+    if !isexpr(pat) || head(pat) != head(mx) ||
         length(pat) != length(mx)
         @mdebug(1, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
         return false
@@ -277,7 +279,7 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
-        ex = mkexpr(mhead(ex),
+        ex = mkexpr(head(ex),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
     # we have applied replacement at all lower levels. Now do current level.
@@ -295,7 +297,7 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = mkexpr(mhead(ex),
+        ex = mkexpr(head(ex),
                     map((x)->replaceall(x,rules),margs(ex))...)
     end
     for r in rules
@@ -363,7 +365,7 @@ macro pattcond(ex,cond)
 end
 
 macro rule(mx::Mxpr)
-    mhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
+    head(mx) != :(=>) && error("rule: expecting lhs => rhs")
     prule(pattern(mx[1]),pattern(mx[2]))
 end
 
