@@ -723,6 +723,8 @@ function jslexless(x::Symbolic, y::Mxpr{:mpow})
     end
     jslexless(x,base(y))
 end
+jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul}) = jslexless(x[end],y[end])
+jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y)
 jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
 jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
