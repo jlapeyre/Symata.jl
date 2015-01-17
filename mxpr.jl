@@ -90,42 +90,45 @@ macro mk_predicate(name0,code)
     end
 end
 
-## Is expr a call to symbol op (this is expression, typ may not be bound)
-macro mk_call_predicate(name0,op)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x::Expr) = (x.head == :call && x.args[1] == $op)
-    end
-end
-
-macro mk_type_predicate(name0,typ)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x::Expr) = typeof(x) == $typ
-    end
-end
-
-mxprq(x) = typeof(x) <: AbstractMxpr
-
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
+args(mx::Mxpr) = mx.args
 #margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
 mhead(mx::Mxpr) = mx.head
 head(mx::Mxpr) = mhead(mx)
-#mhead(ex::Expr) = ex.head
+exhead(ex::Expr) = ex.head
+exargs(ex::Expr) = ex.args
+exhead(x) = error("exhead: exhead not defined for $x, of type $(typeof(x))")
+head(x) = error("head: mhead not defined for $x, of type $(typeof(x))")
 mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
 setmhead(mx::Expr, val::Symbol) = mx.head = val
+sethead(mx::Expr, val::Symbol) = mx.head = val
+
+## Is expr a call to symbol op (this is expression, typ may not be bound)
+# macro mk_call_predicate(name0,op)
+#     name = mk_predicate_sym(name0)
+#     @eval begin
+#         ($name)(x::Expr) = (x.head == :call && x.args[1] == $op)
+#     end
+# end
+
+# macro mk_type_predicate(name0,typ)
+#     name = mk_predicate_sym(name0)
+#     @eval begin
+#         ($name)(x::Expr) = typeof(x) == $typ
+#     end
+# end
 
 ####  index functions
 
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
-getindex(mx::Mxpr, k::Int) = return k == 0 ? mhead(mx) : margs(mx)[k]
-setindex!(mx::Mxpr, val, k::Int) = k == 0 ? setmhead(mx,val) : (margs(mx)[k] = val)
+getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : args(mx)[k]
+setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (args(mx)[k] = val)
 
-Base.length(mx::Mxpr) = length(margs(mx))
+Base.length(mx::Mxpr) = length(args(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
 Base.endof(mx::Mxpr) = length(mx)
 
@@ -153,14 +156,15 @@ expt(p::Mxpr{:mpow}) = p[2]
 ##################################################
 
 # Same thing is somewhere in base
-is_call(ex::Expr) = ex.head == :call
-is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
+is_call(ex::Expr) = exhead(ex) == :call
+is_call(ex::Expr, op::Symbol) = exhead(ex) == :call && ex.args[1] == op
 is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
-is_op(mx::Mxpr, op::Symbol) = mhead(mx) == op
+is_op(mx::Mxpr, op::Symbol) = head(mx) == op
 is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
+mxprq(x) = is_type_less(x,AbstractMxpr)
 is_number(x) = typeof(x) <: Number
 
 # We check for :call repeatedly. We can optimize this later.
@@ -754,20 +758,6 @@ jslexless(x::Symbol, y::Mxpr) = true
 #     _jslexless(x[end],y[end])
 # end    
 
-# function _jslexless(x::Mxpr,y::Mxpr)
-#     x === y && return false
-#     mhead(x) != mhead(y) && return mhead(x) < mhead(y)
-#     ax = margs(x)
-#     ay = margs(y)
-#     lx = length(ax)
-#     ly = length(ay)
-#     for i in 1:min(lx,ly)
-#         _jslexless(ax[i],ay[i]) && return true
-#     end
-#     lx < ly && return true
-#     return false
-# end
-
 # comparision function for sort routine
 # First compare types, then values
 function jslexless(x,y)  # only types other than: Symbol, Mxpr
@@ -781,6 +771,19 @@ function jslexless(x,y)  # only types other than: Symbol, Mxpr
     return _jslexless(x,y)  
 end
 
+function _jslexless(x::Mxpr,y::Mxpr)
+    x === y && return false
+    mhead(x) != mhead(y) && return mhead(x) < mhead(y)
+    ax = margs(x)
+    ay = margs(y)
+    lx = length(ax)
+    ly = length(ay)
+    for i in 1:min(lx,ly)
+        _jslexless(ax[i],ay[i]) && return true
+    end
+    lx < ly && return true
+    return false
+end
 
 # Order the args in orderless Mxpr.
 # Now it is a disadvantage that the op is in the args array.
@@ -936,18 +939,6 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
     end
 end
 mkmathfuncs()
-
-# function meval_Cos(cmx::Mxpr)
-#     if length(cmx) == 1
-#         mx = cmx[1]
-#         if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
-#             typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-#             typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
-#         end
-#     end
-#     return cmx
-# end
-# register_meval_func(:Cos,meval_Cos)
 
 function meval(cmx::Mxpr{:Cos})
     if length(cmx) == 1
