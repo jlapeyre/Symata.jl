@@ -295,7 +295,7 @@ function fast_mxpr_to_expr(inmx::Mxpr)
     if jhead(mx) == :call
         #        unshift!(a,mtojop(mhead(mx)))  # identity now
         #        println("using op ", mhead(mx))
-        unshift!(a,mhead(mx))  #  We want Julia to call our subsitute functions
+        unshift!(a,head(mx))  #  We want Julia to call our subsitute functions
     else   # :hcat, etc
         nothing
     end        
@@ -331,7 +331,7 @@ function get_attribute(sym::Symbol,attr::Symbol)
 end
 
 # get attribute function name from head of a particular expression
-get_attribute(mx::Mxpr,a) = get_attribute(mhead(mx),a)
+get_attribute(mx::Mxpr,a) = get_attribute(head(mx),a)
 
 # eg. set_attribute(:+, :orderless, true)
 function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
@@ -774,7 +774,7 @@ end
 # Needed for tests to pass now somehow !
 function _jslexless(x::Mxpr,y::Mxpr)
     x === y && return false
-    mhead(x) != mhead(y) && return mhead(x) < mhead(y)
+    head(x) != head(y) && return head(x) < head(y)
     ax = margs(x)
     ay = margs(y)
     lx = length(ax)
@@ -805,8 +805,8 @@ function order_if_orderless!(mx::Mxpr)
     if needs_ordering(mx)
         @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
-        mhead(mx) == :mmul ? mx = compactmul!(mx) : nothing
-        mxprq(mx) && mhead(mx) == :mplus ? mx = compactplus!(mx) : nothing
+        head(mx) == :mmul ? mx = compactmul!(mx) : nothing
+        mxprq(mx) && head(mx) == :mplus ? mx = compactplus!(mx) : nothing
         @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
     mx
