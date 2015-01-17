@@ -738,12 +738,12 @@ function jslexless(x::Symbol, y::Mxpr{:mpow})
     end
     jslexless(x,base(y))
 end
-jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y) ####### 2 , 3
-jslexless(x::Symbol, y::Mxpr{:mmul}) = jslexless(x,y[end])  ########  1, 4
-jslexless(x::Mxpr{:mmul}, y::Mxpr) = jslexless(x[end],y) ####### 2 , 3
-jslexless(x::Mxpr, y::Mxpr{:mmul}) = jslexless(x,y[end])  ########  1, 4
-jslexless(x::Symbol, y::Mxpr) = jslexless(x,head(y))    ####### 1 
-jslexless(x::Mxpr, y::Symbol) = jslexless(head(x),y)  ####### 2
+jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y)
+jslexless(x::Symbol, y::Mxpr{:mmul}) = jslexless(x,y[end])
+jslexless(x::Mxpr{:mmul}, y::Mxpr) = jslexless(x[end],y)
+jslexless(x::Mxpr, y::Mxpr{:mmul}) = jslexless(x,y[end])
+jslexless(x::Symbol, y::Mxpr) = jslexless(x,head(y))
+jslexless(x::Mxpr, y::Symbol) = jslexless(head(x),y)
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -756,7 +756,7 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     lx < ly && return true
     return false    
 end
-jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)    ####### 3, 4
+jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)
 jslexless(x::Symbol, y::Mxpr) = true
 # Following methods will only be called on non-Symbolic types.
 _jslexless(x::DataType,y::DataType) = x <: y
@@ -765,19 +765,19 @@ jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y)
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
 # Needed for tests to pass now somehow !
-function _jslexless(x::Mxpr,y::Mxpr)
-    x === y && return false
-    head(x) != head(y) && return head(x) < head(y)
-    ax = margs(x)
-    ay = margs(y)
-    lx = length(ax)
-    ly = length(ay)
-    for i in 1:min(lx,ly)
-        _jslexless(ax[i],ay[i]) && return true
-    end
-    lx < ly && return true
-    return false
-end
+# function _jslexless(x::Mxpr,y::Mxpr)
+#     x === y && return false
+#     head(x) != head(y) && return head(x) < head(y)
+#     ax = margs(x)
+#     ay = margs(y)
+#     lx = length(ax)
+#     ly = length(ay)
+#     for i in 1:min(lx,ly)
+#         _jslexless(ax[i],ay[i]) && return true
+#     end
+#     lx < ly && return true
+#     return false
+# end
 
 # Order the args in orderless Mxpr.
 # Now it is a disadvantage that the op is in the args array.
