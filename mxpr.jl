@@ -703,8 +703,7 @@ function mxoporder(op::Symbol)
     return _jsoporder[op]
 end
 
-_jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
-#_jslexless(x::DataType,y::DataType) = x <: y
+#
 
 # _jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
 # _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
@@ -712,69 +711,44 @@ _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
 function jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
     jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
 end
-
+function jslexless(x::Mxpr{:mpow}, y::Symbolic)
+    if y == base(x)
+        return is_type_less(expt(x),Real) && expt(x) < 0
+    end
+    jslexless(base(x),y)
+end
 function jslexless(x::Symbolic, y::Mxpr{:mpow})
-    println(1)
-    if x == y[1]
-        if is_type_less(y[2],Real)
-            return y[2] > 0
-        else
-            return true
-        end
+    if x == base(y)
+        return is_type_less(expt(y),Real) && expt(y) > 1
     end
-    return jslexless(x,y[1])
+    jslexless(x,base(y))
 end
-
-function jslexless(x::Mxpr{:mpow}, y::Mxpr)
-    println(2)
-    if  x[1] == y
-    println("2a")        
-        return is_type_less(x[2],Real) && x[2] < 0
-    else
-        println("2b ", x[1], " " , y)
-        return jslexless(x[1],y)        
+jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
+jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
+function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
+    x === y && return false
+    ax = margs(x)
+    ay = margs(y)
+    lx = length(ax)
+    ly = length(ay)
+    for i in 1:min(lx,ly)
+        jslexless(ax[i],ay[i]) && return true
     end
+    lx < ly && return true
+    return false    
 end
-
-function jslexless(x, y::Mxpr{:mpow})
-    println(3)        
-    if x == y[1]
-        return is_type_less(y[2],Real) && y[2] > 0
-    else
-        return jslexless(x,y[1])
-    end
-end
-
-function jslexless(x::Symbol, y::Mxpr{:mpow})
-    if x == y[1]
-        return is_type_less(y[2],Real) && y[2] > 1
-    end
-    jslexless(x,y[1])
-end
-
+jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)
 jslexless(x::Symbol, y::Mxpr) = true
+# Following methods will only be called on non-Symbolic types.
+_jslexless(x::DataType,y::DataType) = x <: y
+_jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
+jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y) 
+jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
 # function _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul})
 #     _jslexless(x[end],y[end])
 # end    
 
-# comparision function for sorting of orderless Mxpr args
-# First compare types, then values.
-# This method should only act on non-Symbolic types
-
-jslexless{T}(x::T,y::T) = _jslexless(x,y)
-jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
-
-# function jslexless(x,y)  # only types other than Symbolic
-#     tx = typeof(x)
-#     ty = typeof(y)
-#     if tx != ty
-#         return mxtypeorder(tx) < mxtypeorder(ty)
-#     end
-#     # This is only called for types other than Symbol, Mxpr
-#     # and they have the same type.
-#     return _jslexless(x,y)  
-# end
 
 # Needed for tests to pass now somehow !
 function _jslexless(x::Mxpr,y::Mxpr)
