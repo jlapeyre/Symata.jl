@@ -1,4 +1,4 @@
-const MXDEBUGLEVEL = 1 # debug level, larger means more verbose. -1 is off
+const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 #type MParseError <: Exception  Not really a parse error
@@ -213,19 +213,18 @@ function replace_arithmetic_ops!(ex::Expr)
     ex
 end
 replace_arithmetic_ops!(x) = x
-    
+
+function set_symbol_self_eval(sym::Symbol)
+    symquote = QuoteNode(sym)
+    eval(:($sym = $symquote))
+end
 
 # Expr -> Mxpr
 # Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
-#    is_call(ex) ? ex.head = jtomop(ex.head) : nothing # replace arithmetic ops
     ex = tryjeval(ex)  # compile it if we can
     is_type(ex,Expr) || return ex
-    # if ex.head == :(->)  # Try to compile anonymous functions now.
-    #     f = tryjeval(ex) # If it succeeds, we are done with this expr.
-    #     typeof(f) == Function && return f
-    # end
     is_call(ex,://,3)  && is_number(ex.args[2]) && is_number(ex.args[3]) && return eval(ex)
     ex = rewrite_expr(ex)
     for i in 1:length(ex.args)
@@ -242,15 +241,14 @@ function ex_to_mx!(ex::Expr)
     @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
     mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
 end
-ex_to_mx!(x) = x
-function ex_to_mx!(sym::Symbol)
-    if !isdefined(sym) # if unbound, make symbol evaluate to itself
-        symquote = QuoteNode(sym)
-        eval(:($sym = $symquote))
+function ex_to_mx!(sym::Symbol) # if unbound, make symbol evaluate to itself
+    if !isdefined(sym) 
+        set_symbol_self_eval(sym)
     end
     sym
 end
 
+ex_to_mx!(x) = x
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
@@ -644,18 +642,15 @@ function meval(mx::Mxpr)
     return meval_handle_or_fall_through(mx)
 end
 
-function meval(s::Symbol)
-#    println(" meval evaling symbol $s")
+# Not getting called for some reason
+function meval(sym::Symbol)
+    ! isdefined(sym) && return set_symbol_self_eval(sym)
     res =
         try
             eval(s)
         catch
             s
         end
-    if typeof(res) == Function
-#        println("Got Funciton ! $res")
-    end
-#    println("meval: symbol evaled to $res")    
     res
 end
 
