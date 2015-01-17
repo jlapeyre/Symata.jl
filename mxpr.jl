@@ -1,6 +1,24 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
+# Test is we have altered interpreter.c, i.e. SJulia
+const HAVE_SJULIA = try
+    ccall((:jl_is_meval_hook, "libjulia.so"), Bool, ())
+    true
+catch
+    false
+end
+
+# A macro to insert code in case we do not have SJulia
+if HAVE_SJULIA
+    macro if_no_sjulia(e)
+    end
+else        
+    macro if_no_sjulia(e)
+        :($(esc(e)))
+    end
+end
+
 #type MParseError <: Exception  Not really a parse error
 #    msg::String
 #end
@@ -133,16 +151,14 @@ Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
 Base.endof(mx::Mxpr) = length(mx)
 
-# Do we want 'ordered' or 'clean' ? There is likely more than
+# Do we want 'ordered' or 'clean' ? There will be more than
 # one way to be dirty, not just unordered.
-#getorderedflag(mx::Mxpr) = mx.clean
-#setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
 
 is_order_clean(mx::Mxpr) = return mx.clean
 set_order_dirty(mx::Mxpr) = (mx.clean = false)
 set_order_clean(mx::Mxpr) = (mx.clean = true)
-
-isclean(mx::Mxpr) = mx.clean
+sortiforderless!(mx::Orderless) = orderexpr!(mx)  # regardless of dirty bit
+sortiforderless!(mx) = mx
 
 # This is deep ==, I think
 function ==(a::Mxpr, b::Mxpr)
@@ -647,18 +663,27 @@ function meval(sym::Symbol)
     ! isdefined(sym) && return set_symbol_self_eval(sym)
     res =
         try
-            eval(s)
+            eval(sym)
         catch
-            s
+            sym
         end
     res
 end
 
 ## generic meval does nothing
-function meval(x)
-#    println(" evaling unknown $x, type: ", typeof(x))
-    x
+meval(x) = x 
+
+## SJulia's entry point
+# This must be defined after the generic method for meval,
+# because SJulia calls it on everything
+sjulia_meval(x) = x
+
+function sjulia_meval(mx::Mxpr)
+    println("sjulia meval") # don't know where this output goes!!! But, I think this is called
+    meval(mx)
 end
+
+
 
 ############################################
 ## Display Mxpr                            #
@@ -676,7 +701,7 @@ end
 Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
     
 ###########################################################
-## Lexicographical ordering of elements in orderless Mxpr #
+## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
 #_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
@@ -711,11 +736,6 @@ function mxoporder(op::Symbol)
     ! haskey(_jsoporder,op)  && return 4 # higher
     return _jsoporder[op]
 end
-
-#
-
-# _jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
-# _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
 
 function jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
     jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
@@ -778,7 +798,6 @@ function orderexpr!(mx::Mxpr)
     ar = jargs(mx)
     sort!(ar,lt=jslexless)
     set_order_clean(mx)
-#    setorderedflag(mx,true)
     mx
 end
 
@@ -935,3 +954,4 @@ function meval(cmx::Mxpr{:Cos})
 end
 
 include("expression_functions.jl")
+include("sjulia.jl")
