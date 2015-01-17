@@ -742,8 +742,8 @@ jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y)
 jslexless(x::Symbol, y::Mxpr{:mmul}) = jslexless(x,y[end])
 jslexless(x::Mxpr{:mmul}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:mmul}) = jslexless(x,y[end])
-jslexless(x::Symbol, y::Mxpr) = jslexless(x,head(y))
-jslexless(x::Mxpr, y::Symbol) = jslexless(head(x),y)
+jslexless{T}(x::Symbol, y::Mxpr{T}) = true
+jslexless{T}(x::Mxpr{T}, y::Symbol) = false
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -756,7 +756,7 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     lx < ly && return true
     return false    
 end
-jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)
+jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 jslexless(x::Symbol, y::Mxpr) = true
 # Following methods will only be called on non-Symbolic types.
 _jslexless(x::DataType,y::DataType) = x <: y
