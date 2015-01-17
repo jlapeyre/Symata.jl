@@ -11,6 +11,8 @@ end
 
 # A macro to insert code in case we do not have SJulia
 if HAVE_SJULIA
+    include("sjulia.jl")
+    sjulia_on()
     macro if_no_sjulia(e)
     end
 else        
@@ -230,7 +232,7 @@ function replace_arithmetic_ops!(ex::Expr)
 end
 replace_arithmetic_ops!(x) = x
 
-function set_symbol_self_eval(sym::Symbol)
+@if_no_sjulia function set_symbol_self_eval(sym::Symbol)
     symquote = QuoteNode(sym)
     eval(:($sym = $symquote))
 end
@@ -257,7 +259,8 @@ function ex_to_mx!(ex::Expr)
     @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
     mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
 end
-function ex_to_mx!(sym::Symbol) # if unbound, make symbol evaluate to itself
+
+@if_no_sjulia function ex_to_mx!(sym::Symbol) # if unbound, make symbol evaluate to itself
     if !isdefined(sym) 
         set_symbol_self_eval(sym)
     end
@@ -660,7 +663,7 @@ end
 
 # Not getting called for some reason
 function meval(sym::Symbol)
-    ! isdefined(sym) && return set_symbol_self_eval(sym)
+    @if_no_sjulia ! isdefined(sym) && return set_symbol_self_eval(sym)
     res =
         try
             eval(sym)
@@ -697,8 +700,14 @@ function Base.show(io::IO, mxin::Mxpr)
     Base.show_unquoted(io,ex)    
 end
 
-# Don't show quote on symbol. This changes basic Julia behavior.
-Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
+@if_no_sjulia begin 
+    const SHOW_QUOTED_SYMBOLS = [false]
+    function show_quotes_on_symbols(val::Bool)
+        SHOW_QUOTED_SYMBOLS[1] = val
+    end
+    # Don't show quote on symbol. This changes basic Julia behavior.
+    Base.show(io::IO, s::Symbol) = Base.show_unquoted(io, SHOW_QUOTED_SYMBOLS[1] ?  QuoteNode(s) : s)
+end    
     
 ###########################################################
 ## Canonical ordering of elements in orderless Mxpr       #
@@ -954,4 +963,3 @@ function meval(cmx::Mxpr{:Cos})
 end
 
 include("expression_functions.jl")
-include("sjulia.jl")
