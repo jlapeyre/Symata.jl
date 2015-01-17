@@ -1,4 +1,4 @@
-const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
+const MXDEBUGLEVEL = 1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
 #type MParseError <: Exception  Not really a parse error
@@ -42,6 +42,7 @@ type Mxpr{T} <: AbstractMxpr
 end
 
 typealias Symbolic Union(Mxpr,Symbol)
+typealias Orderless Union(Mxpr{:mmul},Mxpr{:mplus})
 
 mxmkargs() = Array(Any,0)
 
@@ -134,8 +135,13 @@ Base.endof(mx::Mxpr) = length(mx)
 
 # Do we want 'ordered' or 'clean' ? There is likely more than
 # one way to be dirty, not just unordered.
-getorderedflag(mx::Mxpr) = mx.clean
-setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
+#getorderedflag(mx::Mxpr) = mx.clean
+#setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
+
+is_order_clean(mx::Mxpr) = return mx.clean
+set_order_dirty(mx::Mxpr) = (mx.clean = false)
+set_order_clean(mx::Mxpr) = (mx.clean = true)
+
 isclean(mx::Mxpr) = mx.clean
 
 # This is deep ==, I think
@@ -180,7 +186,7 @@ rewrite_binary_minus(mx::Mxpr) = mxpr(:mplus, mx[1], mxpr(:(-),mx[2]))
 rewrite_division(mx::Mxpr) = mxpr(:mmul, mx[1], mxpr(:mpow,mx[2],-1))
 
 # rewrite_expr : Expr -> Expr
-# Input could be expresion from cli. Output is closer to Mxpr form.
+# Input could be expression from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
@@ -237,6 +243,14 @@ function ex_to_mx!(ex::Expr)
     mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
 end
 ex_to_mx!(x) = x
+function ex_to_mx!(sym::Symbol)
+    if !isdefined(sym) # if unbound, make symbol evaluate to itself
+        symquote = QuoteNode(sym)
+        eval(:($sym = $symquote))
+    end
+    sym
+end
+
 
 ##  Convert a Mxpr to Expr.
 # Note this does not revert changes that were made when constructing the mx.
@@ -742,8 +756,8 @@ jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y)
 jslexless(x::Symbol, y::Mxpr{:mmul}) = jslexless(x,y[end])
 jslexless(x::Mxpr{:mmul}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:mmul}) = jslexless(x,y[end])
-jslexless{T}(x::Symbol, y::Mxpr{T}) = true
-jslexless{T}(x::Mxpr{T}, y::Symbol) = false
+jslexless(x::Symbol, y::Mxpr) = true
+jslexless(x::Mxpr, y::Symbol) = false
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -764,35 +778,16 @@ _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
 jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y) 
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
-# Needed for tests to pass now somehow !
-# function _jslexless(x::Mxpr,y::Mxpr)
-#     x === y && return false
-#     head(x) != head(y) && return head(x) < head(y)
-#     ax = margs(x)
-#     ay = margs(y)
-#     lx = length(ax)
-#     ly = length(ay)
-#     for i in 1:min(lx,ly)
-#         _jslexless(ax[i],ay[i]) && return true
-#     end
-#     lx < ly && return true
-#     return false
-# end
-
 # Order the args in orderless Mxpr.
-# Now it is a disadvantage that the op is in the args array.
-# We have to remove op to avoid sorting it.
 function orderexpr!(mx::Mxpr)
     ar = jargs(mx)
     sort!(ar,lt=jslexless)
-    setorderedflag(mx,true)
+    set_order_clean(mx)
+#    setorderedflag(mx,true)
     mx
 end
 
-function needs_ordering(mx::Mxpr)
-#    println("needs_ordering: $mx")    
-    get_attribute(mx,:orderless) && ! getorderedflag(mx)
-end
+needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 
 function order_if_orderless!(mx::Mxpr)
     if needs_ordering(mx)
@@ -904,7 +899,6 @@ end
 # end
 
 
-
 ############################################
 ## Alternate math (trig, etc.) functions   #
 ############################################
@@ -944,3 +938,5 @@ function meval(cmx::Mxpr{:Cos})
     end
     return cmx
 end
+
+include("expression_functions.jl")
