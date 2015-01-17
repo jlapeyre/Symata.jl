@@ -711,22 +711,39 @@ end
 function jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
     jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
 end
-function jslexless(x::Mxpr{:mpow}, y::Symbolic)
+jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul}) = jslexless(x[end],y[end])
+jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = jslexless(x[end],base(y))
+jslexless(x::Mxpr{:mpow}, y::Mxpr{:mmul}) = jslexless(base(x),y[end])
+function jslexless(x::Mxpr{:mpow}, y::Mxpr)
     if y == base(x)
         return is_type_less(expt(x),Real) && expt(x) < 0
     end
     jslexless(base(x),y)
 end
-function jslexless(x::Symbolic, y::Mxpr{:mpow})
+function jslexless(x::Mxpr, y::Mxpr{:mpow})
     if x == base(y)
         return is_type_less(expt(y),Real) && expt(y) > 1
     end
     jslexless(x,base(y))
 end
-jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul}) = jslexless(x[end],y[end])
-jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y)
-jslexless(x::Mxpr{:mmul}, y::Mxpr) = true
-jslexless(x::Mxpr{:mmul}, y::Mxpr{:mpow}) = true
+function jslexless(x::Mxpr{:mpow}, y::Symbol)
+    if y == base(x)
+        return is_type_less(expt(x),Real) && expt(x) < 0
+    end
+    jslexless(base(x),y)
+end
+function jslexless(x::Symbol, y::Mxpr{:mpow})
+    if x == base(y)
+        return is_type_less(expt(y),Real) && expt(y) > 1
+    end
+    jslexless(x,base(y))
+end
+jslexless(x::Mxpr{:mmul}, y::Symbol) = jslexless(x[end],y) ####### 2 , 3
+jslexless(x::Symbol, y::Mxpr{:mmul}) = jslexless(x,y[end])  ########  1, 4
+jslexless(x::Mxpr{:mmul}, y::Mxpr) = jslexless(x[end],y) ####### 2 , 3
+jslexless(x::Mxpr, y::Mxpr{:mmul}) = jslexless(x,y[end])  ########  1, 4
+jslexless(x::Symbol, y::Mxpr) = jslexless(x,head(y))    ####### 1 
+jslexless(x::Mxpr, y::Symbol) = jslexless(head(x),y)  ####### 2
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -739,18 +756,13 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     lx < ly && return true
     return false    
 end
-jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)
+jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = head(x) < head(y)    ####### 3, 4
 jslexless(x::Symbol, y::Mxpr) = true
 # Following methods will only be called on non-Symbolic types.
 _jslexless(x::DataType,y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
 jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y) 
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
-
-# function _jslexless(x::Mxpr{:mmul}, y::Mxpr{:mmul})
-#     _jslexless(x[end],y[end])
-# end    
-
 
 # Needed for tests to pass now somehow !
 function _jslexless(x::Mxpr,y::Mxpr)
