@@ -1,7 +1,10 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 include("./mxpr_util.jl")
 
-# Test is we have altered interpreter.c, i.e. SJulia
+## FIX!!
+#  @jm :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
+
+# Test if we have the altered interpreter.c, i.e. SJulia
 const HAVE_SJULIA = try
     ccall((:jl_is_meval_hook, "libjulia.so"), Bool, ())
     true
@@ -9,22 +12,20 @@ catch
     false
 end
 
-# A macro to insert code in case we do not have SJulia
 if HAVE_SJULIA
-    include("sjulia.jl")
-    sjulia_on()
+    include("sjulia.jl")  # Code that only works with SJulia
     macro if_no_sjulia(e)
     end
+    macro if_sjulia(e)
+        :($(esc(e)))
+    end    
 else        
     macro if_no_sjulia(e)
         :($(esc(e)))
     end
+    macro if_sjulia(e)
+    end
 end
-
-#type MParseError <: Exception  Not really a parse error
-#    msg::String
-#end
-#Base.showerror(io::IO,e::MParseError) = print(io,e.msg)
 
 ##############################################
 ##  Mxpr type for symbolic math expression   #
@@ -36,32 +37,27 @@ end
 # not clear how to organize the data. So: Do not access fields the
 # directly!
 
-# Mxpr.args is exactly the equivalent Julia args, if possible. This
-# allows lightweight construction of Julia Expr for evaluation.
-# Fortunately, Expr is mutable.  But, a better choice may be to pop
-# the function name symbol from the front of the equivalent Julia
-# args. We probably will not do direct Julia eval.
+# Mxpr.args is not the same as the equivalent Julia args.  If it were,
+# it would allow faster construction of Julia Expr for evaluation.
+# Instead, for Expr with head field :call, we use the function name,
+# i.e. args[1] as the head of Mxpr.
 
-# Using a (singly) linked list (LL) vs. packed array of pointers (ie
-# Array{Any}) for args are complementary. Retrieving an element is
-# O(n) for LLs, and O(1) for arrays.  Splicing arguments is
-# O(1) for LLs and O(n) for arrays. Supporting LLs
-# in some way may be useful, eg, when lots of swapping parts happens
-# in an internal routine. Maxima uses singly linked lists
-
-# We share the Julia symbol table, rather than managing our own
-# symbol table.
+# We share the Julia symbol table, rather than managing our own symbol
+# table.
 
 abstract AbstractMxpr
 
 type Mxpr{T} <: AbstractMxpr
-    head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
+    head::Symbol
     args::Array{Any,1}
-    jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
-    clean::Bool      # In canonical order ?
+    jhead::Symbol    # Actual exact Julia head: :call, etc.
+    clean::Bool      # Is the expression canonicalized ?
 end
 
+# get ambiguous method warnings when I use Symbolic
 typealias Symbolic Union(Mxpr,Symbol)
+# For fast method dispatch. Users can define Orderless Mxpr, too.
+# But, we don't handle that yet.
 typealias Orderless Union(Mxpr{:mmul},Mxpr{:mplus})
 
 mxmkargs() = Array(Any,0)
@@ -71,7 +67,7 @@ mxpr(h,a,jh,d) = Mxpr{h}(h,a,jh,d)
 mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:nothing,false)
 
 
-## Following is OK in principle, but nothing in it yet
+## Following is OK in principle, but we stopped using the only instance.
 ## convert Mxpr.head to Expr.head
 # const MOPTOJHEAD = Dict{Symbol,Symbol}()
 # let mop,jhead 
@@ -82,7 +78,8 @@ mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:nothing,false)
 # function moptojhead(op::Symbol)
 #     return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
 # end
-# For constructing Mxpr from scratch, we make up a Julia head
+
+# Assumed head field of Expr corresponding to Mxpr if we don't know.
 moptojhead(x) = :call   
 
 ## Construct Mxpr, similar to construction Expr(head,args...)
@@ -292,9 +289,10 @@ function mx_to_ex!(mx::Mxpr)
     ex.args = a
     return ex
 end
-# Other things fall through. Though, there may be an expression lurking down there
 #mx_to_ex!(x) = x
 
+# Hijack Julia display code until we can write our own.
+# Conver Mxpr to Expr for printing.
 function mx_to_ex(inmx::Mxpr)
     mx = deepcopy(inmx)
     @mdebug(50,"mx_to_ex: entering with won't print")    
@@ -317,7 +315,7 @@ end
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex(x) = x
 
-# This is for exectuion.
+# Convert Mxpr to Expr for evaluation via eval()
 function fast_mxpr_to_expr(inmx::Mxpr)
     @mdebug(5,"fast_mxpr_to_expr: ")
     mx = deepcopy(inmx)
@@ -362,6 +360,7 @@ function get_attribute(sym::Symbol,attr::Symbol)
 end
 
 # get attribute function name from head of a particular expression
+# But, we will try to use multiple dispatch instead, where possible.
 get_attribute(mx::Mxpr,a) = get_attribute(head(mx),a)
 
 # eg. set_attribute(:+, :orderless, true)
@@ -376,6 +375,7 @@ function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
     attrs[attr] = val
 end
 
+# These also make up union type Orderless
 for func in (:mplus, :mmul)
     set_attribute(func,:orderless,true)
 end
@@ -433,7 +433,7 @@ mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y > 0 ? x^y : 1//(x^(-y))
 mpow(x,y) = x^y
 
-## copied from base/operators
+## copied from base/operators, a great trick
 for op = (:mplus, :mmul)
     @eval begin
         # note: these definitions must not cause a dispatch loop when +(a,b) is
@@ -450,10 +450,9 @@ end
 is_rat_and_int(x::Rational) = x.den == 1
 is_rat_and_int(x) = false
 
-############################################
-## Julia-level functions for Mxpr's        #
-############################################
-
+#######################################################
+## Methods for Mxpr's for Julia arithemtic functions  #
+#######################################################
 
 ordereval(x) = meval(deep_order_if_orderless!(x))
 mxmkevalminus(args...) = ordereval(rewrite_binary_minus(mxpr(args...)))
@@ -512,9 +511,9 @@ macro jm(ex)
     mx = transex(ex)  # Translate Expr to Mxpr
     mx = meval(mx)    # order first or eval first ?
     mx = deep_order_if_orderless!(mx)
-    is_type(mx,Symbol) && return Base.QuoteNode(mx)
-#    typeof(mx) == Symbol && 
-    mx = tryjeval(mx)  # need this. but maybe not here
+@if_no_sjulia  is_type(mx,Symbol) && return Base.QuoteNode(mx)
+    mx = tryjeval(mx)  # We need this!
+    mx
 end
 
 # Construct Mxpr, but don't evaluate
@@ -662,8 +661,11 @@ function meval(mx::Mxpr)
 end
 
 # Not getting called for some reason
+# Only called on symbols, ie. quoted on cli.
+# Remove this after we are able to run tests again
 function meval(sym::Symbol)
     @if_no_sjulia ! isdefined(sym) && return set_symbol_self_eval(sym)
+    println("meval sym $sym")
     res =
         try
             eval(sym)
@@ -676,16 +678,20 @@ end
 ## generic meval does nothing
 meval(x) = x 
 
-## SJulia's entry point
+## Called from src/interpreter.c
 # This must be defined after the generic method for meval,
 # because SJulia calls it on everything
 sjulia_meval(x) = x
 
+# FIXME , none of these are being called!
 function sjulia_meval(mx::Mxpr)
-    println("sjulia meval") # don't know where this output goes!!! But, I think this is called
     meval(mx)
 end
 
+function sjulia_meval(ex::Expr)
+    mx = transex(ex)
+    meval(mx)
+end
 
 
 ############################################
@@ -963,3 +969,5 @@ function meval(cmx::Mxpr{:Cos})
 end
 
 include("expression_functions.jl")
+
+@if_sjulia  sjulia_on()   # Turn on features defined in sjulia.jl
