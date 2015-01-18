@@ -184,7 +184,18 @@ function getindex(mx::Mxpr, r::StepRange)
         return margs(mx)[r]
     end
 end
-    
+
+function setindex!(mx::Orderless,val,k::Int)
+    if k == 0
+        sethead(mx,val)
+        return val  # but maybe it is no longer Orderless! Problem.
+    else
+        margs(mx)[k] = val
+        orderexpr!(mx)
+        return val
+    end
+end
+        
 setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
@@ -1035,6 +1046,7 @@ end
 # Cos(1) --> Cos(1)
 # Cos(1.0) --> 0.54...
 
+# FIXME: We are calling meval here. This is not the right way.
 # Define functions like, eg. Cos(x::Float64) = cos(x).
 # You get the idea. If this idea works, then we complete the list
 function mkmathfuncs() # Man, I hate looking for missing commas.
