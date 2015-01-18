@@ -1,8 +1,7 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
-include("./mxpr_util.jl")
 
 ## FIX!!
-#  @jm :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
+#  @sj :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
 
 ## FIX!!
 ## SJulia does not process expressions in files. So we need
@@ -48,15 +47,6 @@ end
 
 # We share the Julia symbol table, rather than managing our own symbol
 # table.
-
-abstract AbstractMxpr
-
-type Mxpr{T} <: AbstractMxpr
-    head::Symbol
-    args::Array{Any,1}
-    jhead::Symbol    # Actual exact Julia head: :call, etc.
-    clean::Bool      # Is the expression canonicalized ?
-end
 
 # get ambiguous method warnings when I use Symbolic
 typealias Symbolic Union(Mxpr,Symbol)
@@ -844,10 +834,6 @@ function deep_order_if_orderless!(mx::Mxpr)
 end
 deep_order_if_orderless!(x) = x
 
-##########################################################
-## Sum collected numerical args in :+, (or same for :*)  #
-##########################################################
-# + and * are nary. Replace all numbers in the list of args, by one sum or product
 # for (fop,name,id) in  ((:mplus,:oldcompactplus!,0),(:mmul,:oldcompactmul!,1))
 #     @eval begin
 #         function ($name)(mx::Mxpr)
@@ -869,6 +855,10 @@ deep_order_if_orderless!(x) = x
 #     end
 # end
 
+##########################################################
+## Sum collected numerical args in :+, (or same for :*)  #
+##########################################################
+# + and * are nary. Replace all numbers in the list of args, by one sum or product
 for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
@@ -883,7 +873,8 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
                 sum0 = ($fop)(sum0,a[1])
             end
             length(a) == 0 && return sum0            
-            sum0 != $id && unshift!(a,sum0)            
+            sum0 != $id && unshift!(a,sum0)
+            $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
             length(a) == 1 && return a[1]
             return mx
         end
@@ -970,7 +961,5 @@ function meval(cmx::Mxpr{:Cos})
     end
     return cmx
 end
-
-include("expression_functions.jl")
 
 @if_sjulia  sjulia_on()   # Turn on features defined in sjulia.jl
