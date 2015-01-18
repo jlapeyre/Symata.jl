@@ -1,11 +1,23 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-## FIX!!
+## FIX
 #  @sj :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
 
-## FIX!!
+## FIX
 ## SJulia does not process expressions in files. So we need
 # the auto evaluation of symbols here anyway!
+
+## FIX
+# SJulia segfaults when it encounters an unbound symbol representing
+# a macro call.
+
+## FIX
+# @sj Sqrt(a) , and @sj Sqrt(3), etc. are broken
+# in both sjulia and julia and in different ways.
+
+## Less urgent
+## FIX
+# Printing of BigFloats
 
 # Test if we have the altered interpreter.c, i.e. SJulia
 const HAVE_SJULIA = try
@@ -30,10 +42,19 @@ else
     end
 end
 
-const SJOne = 1
-const SJZero = 0
-SJInt(x::Number) = convert(Int,x)
-SJFloat(x::Number) = convert(Float64,x)
+# This is not yet applied in code.
+const SJFloat = Float64
+const SJInt = Int
+const SJRational = Rational{SJInt}
+const _SJOne = 1
+const _SJZero = 0
+SJOne(x) = _SJOne
+SJOne() = _SJOne
+SJZero(x) = _SJZero
+SJZero() = _SJZero
+SJInt(x::Number) = convert(SJInt,x)
+SJFloat(x::Number) = convert(SJFloat,x)
+SJRational(x::Number) = convert(SJRational,x)
 
 ##############################################
 ##  Mxpr type for symbolic math expression   #
@@ -231,7 +252,7 @@ function rewrite_expr(ex::Expr)
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :mpow, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2)
-        ex = Expr(:call, :mpow, ex.args[2], 1//2)
+        ex = Expr(:call, :mpow, ex.args[2], SJRational(1//2))
     end
     return ex
 end
@@ -1027,9 +1048,9 @@ mkmathfuncs()
 function meval(cmx::Mxpr{:Cos})
     if length(cmx) == 1
         mx = cmx[1]
-        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
-            typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-            typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
+        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[2] == :Pi
+            is_type_less(mx[1],Integer)  && return iseven(mx[1]) ? 1 : -1
+            is_type_less(mx[1],FloatingPoint) && return cospi(mx[1])
         end
     end
     return cmx
