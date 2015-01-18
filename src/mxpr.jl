@@ -884,7 +884,9 @@ function canonexpr!(mx::Mxpr)
     orderexpr!(mx)
 end    
 
-needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
+#needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
+needs_ordering(mx::Mxpr) = false
+needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 
 function order_if_orderless!(mx::Orderless)
     if needs_ordering(mx)
