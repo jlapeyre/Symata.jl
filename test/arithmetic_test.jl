@@ -24,18 +24,18 @@ using Base.Test
 @test mplus(1,1,1,1) === 4
 @test mmul(1,2,3,4) === 24
 
-@test @jm 8 * 1//8 === 1
-@test @jm 4 * 1//3 === 4//3
+@test @sj 8 * 1//8 === 1
+@test @sj 4 * 1//3 === 4//3
 
 # Mxpr are never constructed, Expr is evaluated directly
-@test @jm 1 + 2 + 3 + 4 === 10
-@test @jm 1 * 2 * 3 * 4 === 24
-@test @jm 1//3 + 1//3 + 1//3 === 1
+@test @sj 1 + 2 + 3 + 4 === 10
+@test @sj 1 * 2 * 3 * 4 === 24
+@test @sj 1//3 + 1//3 + 1//3 === 1
 
 @test (:a + :b ) + (:c + :d) == :a + :b + :c + :d
 
 # FIXME
 #  ERROR: DivideError: integer division error
-# @test @jm(0/0) == Something
+# @test @sj(0/0) == Something
 
-@test @jm(a * 0) == @jm(0*a) == 0
+@test @sj(a * 0) == @sj(0*a) == 0

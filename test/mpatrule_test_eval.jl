@@ -35,13 +35,13 @@ sq_rule = :_ * :_  =>  :_^2
 # applies everywhere
 # Fails first time. passes second time.
 # probably because symbols are read twice
-replaceall(@jn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @jm(a^2+1/(z + y)^2)
-@test replaceall(@jn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @jm(a^2+1/(z + y)^2)
+replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
+@test replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
 
 
-# These stopped working because @jn no longer prevents ordering!
+# These stopped working because @sn no longer prevents ordering!
 # Note depth first, rather than top level first and then stopping
-# @test replaceall( @jn((a*a) * (a*a)) , sq_rule) == @jn((a^2)^2)
+# @test replaceall( @sn((a*a) * (a*a)) , sq_rule) == @sn((a^2)^2)
 
 ## Examples
 
@@ -51,35 +51,35 @@ mulpow_rule = :x_^:n1_ * :x_^:n2_ => :x_^(:n1_+:n2_)
 @test replace( :a^1.2 * :a^2.3, mulpow_rule) == :a^ 3.5
 
 # you can put a condition on the pattern
-@test replace( :a^1.2 * :a^2.3 , @jm(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) ==
+@test replace( :a^1.2 * :a^2.3 , @sj(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) ==
     :a ^ 1.2 * :a ^ 2.3
-@test replace( :a^5 * :a^6 , @jm(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) == :a ^11
+@test replace( :a^5 * :a^6 , @sj(x_^n1_::Int * x_^n2_::Int) => :x_^(:n1_+:n2_)) == :a ^11
 
 # This works, but keeps changing
 #@test string(cmppat( :( "dog" ) , :( x_::String ))) ==
 #    "(true,Any[(Pvar(:x_,AbstractString),\"dog\")])"
 
-# Need to use @jn here to prevent flattening of product
-# But, @jn no longer prevents flattening
+# Need to use @sn here to prevent flattening of product
+# But, @sn no longer prevents flattening
 # We need to devise tests for more complicated replacements
-#@test replaceall( @jn((a^2 * a^3)*a^4), mulpow_rule) == :a ^ 9
+#@test replaceall( @sn((a^2 * a^3)*a^4), mulpow_rule) == :a ^ 9
 
-inv_rule = @jn(1/(1/x_)) => :x_
+inv_rule = @sn(1/(1/x_)) => :x_
 
-@test replace( @jn( 1/(1/(a+b)) ), inv_rule) == :a+:b
+@test replace( @sn( 1/(1/(a+b)) ), inv_rule) == :a+:b
 
-plusmul_rule =  :x_ + :x_  =>  @jn(2 * x_)
+plusmul_rule =  :x_ + :x_  =>  @sn(2 * x_)
 mulpow1_rule = :x_ * :x_   =>  :x_^2
 
 # Tests are tried one at a time until one matches
 @test replaceall( :a * :a , [plusmul_rule, mulpow1_rule]) == :a^2
-@test replaceall( :a + :a , [plusmul_rule, mulpow1_rule]) == @jn(2*a)
+@test replaceall( :a + :a , [plusmul_rule, mulpow1_rule]) == @sn(2*a)
 
-@test replace( @jn( sin(a+b)/cos(a+b) ) , @jn( sin(_) / cos(_) ) => @jn(tan(_) ) ) == @jn(tan(a + b))
+@test replace( @sn( sin(a+b)/cos(a+b) ) , @sn( sin(_) / cos(_) ) => @sn(tan(_) ) ) == @sn(tan(a + b))
 
 # Test anonymous functions as conditions
-@test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>4)) )))[1] == false
-@test (cmppat1( @jn( 3 ) , @jn( x_::((x)->(x>2)) )))[1] == true
+@test (cmppat1( @sn( 3 ) , @sn( x_::((x)->(x>4)) )))[1] == false
+@test (cmppat1( @sn( 3 ) , @sn( x_::((x)->(x>2)) )))[1] == true
 
 @test Pvar( :x_ ) == Pvar(:x_,:All)
 
@@ -99,22 +99,22 @@ mulpow1_rule = :x_ * :x_   =>  :x_^2
 
 #replaceall( :((a + a)/(z+z)  ),  @rule  _ + _ => 2 * _) == :((2a) / (2z))
 # Fails because of new canonical order
-# replaceall( @jn((a + a)/(z+z)),   :_ + :_ => 2 * :_) == @jm((2a) / (2z))
+# replaceall( @sn((a + a)/(z+z)),   :_ + :_ => 2 * :_) == @sj((2a) / (2z))
 
 # Redo all of this.
 # let r,r1
-#     r =  @jn( _ / _::((x)-> x != 0))  => 1
-#     r1 =  @jn( _^-1 * _::((x)-> x != 0))  => 1    
-#     @test replaceall( @jn( 0 / 0) , r) == @jn( 0 / 0 )
-#     @test replaceall( @jn( (a+b) / (a+b) ) , r) == 1
+#     r =  @sn( _ / _::((x)-> x != 0))  => 1
+#     r1 =  @sn( _^-1 * _::((x)-> x != 0))  => 1    
+#     @test replaceall( @sn( 0 / 0) , r) == @sn( 0 / 0 )
+#     @test replaceall( @sn( (a+b) / (a+b) ) , r) == 1
 # end
 
 # Broken
 # use a helper function, iscomplex
 #let r
-#    r = @jm(Exp(Log(x_::iscomplex))) => :x_
-#    @test replaceall( @jm(Exp(Log(1))) , r) == @jm(Exp(Log(1)))
-#    @test replaceall( @jm(Exp(Log(complex(1,1)))) , r) == complex(1,1)
+#    r = @sj(Exp(Log(x_::iscomplex))) => :x_
+#    @test replaceall( @sj(Exp(Log(1))) , r) == @sj(Exp(Log(1)))
+#    @test replaceall( @sj(Exp(Log(complex(1,1)))) , r) == complex(1,1)
 #end
 
 # bug fix: Pvars are not hashable
@@ -126,10 +126,10 @@ mulpow1_rule = :x_ * :x_   =>  :x_^2
 #@test replaceall( 1/:a - 1/:a  , -(:x_) + :x_ => 0 )  == 0
 # Following fix old bugs. Some code is completely rewritten now
 # This is broken again!!
-#@test replaceall( @jn( b^(a-a) ),  :_ + -:_  =>  0) == :b ^ 0
+#@test replaceall( @sn( b^(a-a) ),  :_ + -:_  =>  0) == :b ^ 0
 
 # FIXME: why did this break ?
-#@test replaceall( @jn([a,b,c,d]) ,   :a =>  :b)   ==  @jn([b,b,c,d])
+#@test replaceall( @sn([a,b,c,d]) ,   :a =>  :b)   ==  @sn([b,b,c,d])
 # Fixed bug in mx_to_ex! and mx_to_ex. Deep copy was not enough. There are two refs to 'a'
 let a = :c + 1
     @test a * a == (:c + 1) * (:c + 1)

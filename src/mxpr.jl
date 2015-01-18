@@ -500,21 +500,22 @@ function transex(ex)
     return mx
 end
 
-# construct a Mxpr at the cli,
+# construct a Mxpr and evaluate
 # Try to evaluate once.
-macro jm(ex)
+macro sj(ex)
     mx = transex(ex)  # Translate Expr to Mxpr
     mx = meval(mx)    # order first or eval first ?
     mx = deep_order_if_orderless!(mx)
-#    @if_no_sjulia
-    is_type(mx,Symbol) && return Base.QuoteNode(mx)  # need this always for expressions in files
+    # need this always for expressions in files    
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)
     mx = tryjeval(mx)  # We need this!
     mx
 end
 
 # Construct Mxpr, but don't evaluate
-# This is useful for debugging, or seeing Mxpr before any reordering or evaluation
-macro jn(ex)
+# This is (was) useful for debugging,
+# or seeing Mxpr before any reordering or evaluation
+macro sn(ex)
     transex(ex)
 end
 
