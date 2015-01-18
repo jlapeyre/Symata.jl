@@ -30,6 +30,11 @@ else
     end
 end
 
+const SJOne = 1
+const SJZero = 0
+SJInt(x::Number) = convert(Int,x)
+SJFloat(x::Number) = convert(Float64,x)
+
 ##############################################
 ##  Mxpr type for symbolic math expression   #
 ##############################################
@@ -589,6 +594,7 @@ end
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
 # Then flatten the operands, copying them out of the inner Mxpr
+# FIXME: +a --> a
 for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     namestr = string(name)
     @eval begin
@@ -882,17 +888,40 @@ end
 
 #function n_mul_a_plus_m_mul_b(an,bm)
 
+# getterms(f(a,b,c),1:2) --> f(a,b)
+# getterms(f(a,b,c),2:2) --> b
+# TODO: support StepRange
+function getterms(a::Mxpr,r::UnitRange)
+    if abs(r.start-r.stop) == 0
+        return a[r][1]
+    else
+        return mxpr(a[0],a[r]...)
+    end
+end
+
+# has_numeric_coefficient(a::Mxpr{:mmul}) = is_type_less(a[1],Number)
+# has_numeric_coefficient(x) = false
+# numeric_coefficient(a::Mxpr{:mmul}) = has_numeric_coefficient(a) ? a[1] : 1
+# numeric_coefficient(a::Mxpr{:mmul}) = has_numeric_coefficient(a) ? a[1] : 1
+
+function numeric_coefficient(x::Mxpr{:mmul})
+    local c::Number
+    c = is_type_less(x[1],Number) ? x[1] : 1
+end
+numeric_coefficient(x::Number) = x
+numeric_coefficient(x) = 1
+
 function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
     if is_type_less(a[1],Number)
         if is_type_less(b[1],Number)
             if a[2:end] == b[2:end]
                 println("Hi 1")                
-                return (true,a[1]+b[2],a[2:end])
+                return (true,a[1]+b[1],getterms(a,2:length(a)))
             else
                 println("Hi 2")
                 return (false,0,a)
             end
-        elseif a[2:end] == b
+        elseif a[2:end] == margs(b)
             println("Hi 3")
             return (true,a[1]+1,b)
         else
@@ -900,7 +929,7 @@ function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
             return (false,0,b)
         end
     elseif is_type_less(b[1],Number)
-        if a == b[2:end]
+        if margs(a) == b[2:end]
             println("Hi 5")
             return (true,b[1]+1,a)
         else
@@ -913,6 +942,15 @@ function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
     else
         println("Hi 8")
         return (false,0,a)
+    end
+end
+
+function newfunc(a::Mxpr{:mmul},b::Symbolic)
+    if is_type_less(a[1],Number) &&
+        getterms(a,2:length(a)) == b
+            return (true,a[1]+1,b)
+    else
+        return (false,0,b)
     end
 end
 
