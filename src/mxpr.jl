@@ -719,11 +719,12 @@ register_meval_func(:/,meval_div)
 ## meval top level 
 function meval(mx::Mxpr)
     length(mx) == 0 && return mx
-    if mx[0] == :(=)
+    if mx[0] == :(=)        
         return meval_assign(mx)
     end
     for i in 1:endof(mx)
-        mx[i] = meval(mx[i])
+        @ma(mx,i) = meval(mx[i])
+#        mx[i] = meval(mx[i])        
         meval(mx[i])    # second eval ? Don't want this
     end
     return meval_handle_or_fall_through(mx)
@@ -886,7 +887,7 @@ function orderexpr!(mx::Orderless)
 end
 
 # Canonicalize expression
-function canonexpr!(mx::Mxpr)
+function canonexpr!(mx::Orderless)
     orderexpr!(mx)
 end    
 
@@ -896,12 +897,8 @@ needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 
 function order_if_orderless!(mx::Orderless)
     if needs_ordering(mx)
-        @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
         mx = compactsumlike!(mx)
-#        head(mx) == :mmul ? mx = compactmul!(mx) : nothing
-#        mxprq(mx) && head(mx) == :mplus ? mx = compactplus!(mx) : nothing
-        @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
     mx
 end
