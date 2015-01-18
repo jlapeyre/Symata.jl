@@ -621,7 +621,8 @@ _meval_get_handler(op::Symbol) = MEVALOPFUNCS[op]
 _meval_call_handler(op::Symbol,mx::Mxpr) = (_meval_get_handler(op))(mx)
 
 register_meval_func(op::Symbol, func::Function) = MEVALOPFUNCS[symbol(op)] = func
-function meval_handle_or_fall_through(mx::Mxpr)
+function meval_handle_or_fall_through(mx::Mxpr)  # Called just once in tests. for tan(a+b)
+#    println("meval_handle_or_fall_through $mx")
     if _meval_has_handler(mx[0])
         return _meval_call_handler(mx[0],mx)
     else
@@ -693,8 +694,6 @@ meval_pow(base::Integer,expt::Rational,mx::Mxpr) = mx  # Need to do more.
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
 #register_meval_func(:^,meval_pow)
 
-
-
 ## meval for assignment
 function meval_assign(mx::Mxpr)
     @mdebug(3,"meval_assign entering: ",mx)
@@ -716,8 +715,10 @@ function meval_div(mx::Mxpr)
 end
 register_meval_func(:/,meval_div)
 
+## Only called once in all test suite!
 ## meval top level 
 function meval(mx::Mxpr)
+#    println("in meval $mx")
     length(mx) == 0 && return mx
     if mx[0] == :(=)        
         return meval_assign(mx)

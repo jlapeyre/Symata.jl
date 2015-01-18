@@ -364,9 +364,14 @@ macro pattcond(ex,cond)
     Pattern(ustopat(ex),cond)
 end
 
-macro rule(mx::Mxpr)
-    head(mx) != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(mx[1]),pattern(mx[2]))
+#macro rule(mx::Mxpr)
+#    head(mx) != :(=>) && error("rule: expecting lhs => rhs")
+#    prule(pattern(mx[1]),pattern(mx[2]))
+#end
+
+macro rule(mx)
+    #    exhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
+    prule(pattern(mx.args[1]),pattern(mx.args[2]))
 end
 
 function mkrule(ex::InExpr)
