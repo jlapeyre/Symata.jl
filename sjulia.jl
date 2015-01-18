@@ -27,13 +27,15 @@ end
 function sjulia_on()
     set_symbol_self_eval()
     set_meval_hook()
-    Base.show_quotes_on_symbols(false)    
+    Base.show_quotes_on_symbols(false)
+    nothing
 end
 
 function sjulia_off()
     unset_symbol_self_eval()
     unset_meval_hook()
     Base.show_quotes_on_symbols(true)
+    nothing    
 end
 
 ## functions to work with modified src/interpreter.c
