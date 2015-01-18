@@ -138,8 +138,27 @@ sethead(mx::Expr, val::Symbol) = mx.head = val
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
 getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : margs(mx)[k]
-setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 
+# We need to think about copying in the following. Support both refs and copies ?
+function getindex(mx::Mxpr, r::UnitRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[1:r.stop]...)
+    else
+        return margs(mx)[r]
+    end
+end
+
+function getindex(mx::Mxpr, r::StepRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[0+r.step:r.step:r.stop]...)
+    elseif r.stop == 0 && r.step < 0
+        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mx[0])
+    else
+        return margs(mx)[r]
+    end
+end
+    
+setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
 Base.endof(mx::Mxpr) = length(mx)
@@ -861,45 +880,81 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     end
 end
 
-# Replace n repeated terms x by n*x, and factors x by x^n
-# for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
-#     altop = jtomop(fop)
-#     @eval begin
-#         function ($name)(mx::Mxpr)
-#             length(mx) < 2 && return mx
-#             a = margs(mx)
-#             n = 1
-#             while length(a) > 2
-#                 dupflag = false
-#                 firstdupflag = false
-#                 count = 0
-#                 if n < length(a)
-#                     if a[n] == a[n+1]
-#                 for i in n:(length(a)-1)
-#                     if dupflag
-#                         if a[i] == a[i+1]
-#                             count += 1
-#                         else
-#                             break
-#                         end
-#                     else
-#                         if a[i] == a[i+1]
-#                             firstdupflag = true
-#                             dupflag = true
-#                             count = 1
-#                         end
+#function n_mul_a_plus_m_mul_b(an,bm)
 
-#                     end
-#                     else
-#                     end
-#             end
-#             length(a) == 0 && return sum0            
-#             sum0 != $id && push!(a,sum0)            
-#             length(a) == 1 && return a[1]
-#             return mx
-#         end
-#     end
-# end
+function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
+    if is_type_less(a[1],Number)
+        if is_type_less(b[1],Number)
+            if a[2:end] == b[2:end]
+                println("Hi 1")                
+                return (true,a[1]+b[2],a[2:end])
+            else
+                println("Hi 2")
+                return (false,0,a)
+            end
+        elseif a[2:end] == b
+            println("Hi 3")
+            return (true,a[1]+1,b)
+        else
+            println("Hi 4")            
+            return (false,0,b)
+        end
+    elseif is_type_less(b[1],Number)
+        if a == b[2:end]
+            println("Hi 5")
+            return (true,b[1]+1,a)
+        else
+            println("Hi 6")
+            return (false,0,a)
+        end
+    elseif a == b
+        println("Hi 7")
+        return (true,2,a)
+    else
+        println("Hi 8")
+        return (false,0,a)
+    end
+end
+
+function newfunc{T}(a::T,b::T)
+    a == b && return (true,2,a)
+    return (false,0,a)
+end
+
+
+#Replace n repeated terms x by n*x, and factors x by x^n
+for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
+    opstr = string(op)
+    @eval begin
+        function ($name)(mx::Mxpr)
+            length(mx) < 2 && return mx
+            a = margs(mx)
+            n = 1
+            count = 0
+            coeffcount = 0
+            while n < length(a)
+                if a[n] == a[n+1]
+                    count = 1                        
+                    for i in (n+1):(length(a)-1)
+                        if a[i] == a[i+1]
+                            count += 1
+                        else
+                            break
+                        end
+                    end
+#                    println("n=$n, count=$count")
+                    newex = $(op== :mplus ?
+                              :(mxpr(:mmul,count+1,a[n])) :
+                              0)
+                    println(newex)
+                    splice!(a,n:n+count,[newex])
+                end
+                n += 1
+            end
+            return length(a) == 1 ? a[1] : mx
+        end
+    end
+end
 
 
 ############################################
