@@ -37,3 +37,5 @@ using Base.Test
 # FIXME
 #  ERROR: DivideError: integer division error
 # @test @jm(0/0) == Something
+
+@test @jm(a * 0) == @jm(0*a) == 0
