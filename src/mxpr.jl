@@ -185,13 +185,16 @@ end
 # you can use margs(mx)[i] = val instead of mx[i] = val
 # inside an algorithm and call orderexpr! at the end
 function setindex!(mx::Orderless,val,k::Int)
+    @mdebug(10,"setindex! mx= $mx, val=$val, k=$k")
     if k == 0
         sethead(mx,val)
         return val  # but maybe it is no longer Orderless! Problem.
     else
         margs(mx)[k] = val
-#        orderexpr!(mx)
-#        mx = compactsumlike!(mx)
+        orderexpr!(mx)
+        @mdebug(10,"setindex! done ordering mx= $mx, val=$val, k=$k")        
+        mx = compactsumlike!(mx)
+        @mdebug(10,"setindex! done compact mx= $mx, val=$val, k=$k")        
         return val
     end
 end
@@ -815,6 +818,9 @@ function mxoporder(op::Symbol)
     return _jsoporder[op]
 end
 
+## FIXME jslexless. Probably working. But, write a battery of tests first, then
+# simplify and economize this code.
+
 function jslexless(x::Mxpr{:mpow}, y::Mxpr{:mpow})
     jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
 end
@@ -904,9 +910,11 @@ order_if_orderless!(x) = x
 # Check the dirty bits of all all orderless subexpressions
 function deep_order_if_orderless!(mx::Mxpr)
     for i = 1:length(mx)
-        mx[i] = deep_order_if_orderless!(mx[i])
+        @mdebug(10,"deep_order_if_orderless!: loop: i=$i, mx[$i] = $i")
+        @ma(mx,i) = deep_order_if_orderless!(@ma(mx,i))
     end
     mx = order_if_orderless!(mx)
+    ## FIXME following should be an assertion
     is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
     return mx
 end
@@ -924,9 +932,11 @@ compactsumlike!(mx::Mxpr{:mmul}) = compactmul!(mx)
 for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
-            @mdebug(1,"In ", $name)
+            @mdebug(2,"In ", $name)
             length(mx) < 2 && return mx
+            @mdebug(3, $name, ": length(mx)>1")
             a = margs(mx)
+            @mdebug(3, $name, ": got margs")
             typeof(a[1]) <: Number || return mx
             sum0 = a[1]
             while length(a) > 1
@@ -934,10 +944,12 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
                 typeof(a[1]) <: Number || break
                 sum0 = ($fop)(sum0,a[1])
             end
+            @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
             length(a) == 0 && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
             sum0 != $id && unshift!(a,sum0)
             length(a) == 1 && return a[1]
+            @mdebug(3, $name, ": returning at end")
             return mx
         end
     end

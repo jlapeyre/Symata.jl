@@ -31,17 +31,11 @@ using Base.Test
 @test @sj 1 + 2 + 3 + 4 === 10
 @test @sj 1 * 2 * 3 * 4 === 24
 @test @sj 1//3 + 1//3 + 1//3 === 1
-
 @test (:a + :b ) + (:c + :d) == :a + :b + :c + :d
 
 # FIXME
 #  ERROR: DivideError: integer division error
 # @test @sj(0/0) == Something
 
-# FIXME
-#  +a  should evaluate to a
-
 @test @sj( + aaa ) == @sj( aaa )
-
-# Fix this
 @test @sj(a * 0) == @sj(0*a) == 0
