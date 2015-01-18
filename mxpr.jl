@@ -4,6 +4,10 @@ include("./mxpr_util.jl")
 ## FIX!!
 #  @jm :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
 
+## FIX!!
+## SJulia does not process expressions in files. So we need
+# the auto evaluation of symbols here anyway!
+
 # Test if we have the altered interpreter.c, i.e. SJulia
 const HAVE_SJULIA = try
     ccall((:jl_is_meval_hook, "libjulia.so"), Bool, ())
@@ -229,6 +233,7 @@ function replace_arithmetic_ops!(ex::Expr)
 end
 replace_arithmetic_ops!(x) = x
 
+# we need this always ?
 @if_no_sjulia function set_symbol_self_eval(sym::Symbol)
     symquote = QuoteNode(sym)
     eval(:($sym = $symquote))
@@ -511,7 +516,8 @@ macro jm(ex)
     mx = transex(ex)  # Translate Expr to Mxpr
     mx = meval(mx)    # order first or eval first ?
     mx = deep_order_if_orderless!(mx)
-@if_no_sjulia  is_type(mx,Symbol) && return Base.QuoteNode(mx)
+#    @if_no_sjulia
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)  # need this always for expressions in files
     mx = tryjeval(mx)  # We need this!
     mx
 end
@@ -660,12 +666,9 @@ function meval(mx::Mxpr)
     return meval_handle_or_fall_through(mx)
 end
 
-# Not getting called for some reason
-# Only called on symbols, ie. quoted on cli.
-# Remove this after we are able to run tests again
+# This is needed
 function meval(sym::Symbol)
     @if_no_sjulia ! isdefined(sym) && return set_symbol_self_eval(sym)
-    println("meval sym $sym")
     res =
         try
             eval(sym)

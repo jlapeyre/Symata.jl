@@ -8,6 +8,7 @@ let a
 end
 
 __bbbb = 1  # can't get local scope somehow
+# Test meval(sym::Symbol)
 @test (@jm __bbbb)  == 1
 @test (@jm 1 + 1) == 2
 
