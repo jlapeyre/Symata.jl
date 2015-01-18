@@ -605,6 +605,8 @@ function tryjeval(mx::Union(Mxpr,Expr))
 end
 tryjeval(x) = x  # Don't seem to save time by letting these fall through
 
+## FIXME  Probably change all of these to be dispatched on type.
+## But exactly how that will work is not yet clear. Cos example is at bottom
 ## Handlers for ops to be dispatched by meval
 const MEVALOPFUNCS = Dict{Symbol,Function}()
 _meval_has_handler(op::Symbol) = haskey(MEVALOPFUNCS,op)
@@ -637,6 +639,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     @eval begin
         function meval(mx::Mxpr{symbol($op)})
             @mdebug(1, $namestr, " entry: mx = ",mx)
+#            length(mx) == 1 && return mx[1]  #  +x --> x
             found_mxpr_term = false
             all_numerical_terms = true
             for i in 1:length(mx)  # check if there is at least one Mxpr of type op
@@ -1078,11 +1081,8 @@ Cos_factor_arg(mx::Mxpr{:Cos},f1,f2) = mx
 meval_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
 meval_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
 function meval_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:mmul})
-    if length(arg) == 2
-        return Cos_factor_arg(mx,margs(arg)...)
-    else
-        return mx
-    end
+    return length(arg) == 2 ? Cos_factor_arg(mx,margs(arg)...) :
+    mx
 end
 
 meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx

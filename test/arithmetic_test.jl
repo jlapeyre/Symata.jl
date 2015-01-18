@@ -38,4 +38,7 @@ using Base.Test
 #  ERROR: DivideError: integer division error
 # @test @sj(0/0) == Something
 
+# FIXME
+#  +a  should evaluate to a
+
 @test @sj(a * 0) == @sj(0*a) == 0
