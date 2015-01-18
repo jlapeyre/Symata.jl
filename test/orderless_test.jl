@@ -12,5 +12,7 @@ let s
     s[2] = :z
     margs(s) == @sj([2,b,c,z])  # terms are sorted
     margs(s)[1] = q
-    margs(s) == @sj([q,b,c,z])  # terms are not sorted    
+    margs(s) == @sj([q,b,c,z])  # terms are not sorted
+    @ma(s,1) = q1               # use macro
+    margs(s) == @sj([q1,b,c,z])  # terms are not sorted    
 end
