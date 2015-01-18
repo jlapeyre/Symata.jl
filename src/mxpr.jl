@@ -724,8 +724,7 @@ function meval(mx::Mxpr)
     end
     for i in 1:endof(mx)
         @ma(mx,i) = meval(mx[i])
-#        mx[i] = meval(mx[i])        
-        meval(mx[i])    # second eval ? Don't want this
+#        meval(mx[i])    # second eval ? Don't want this
     end
     return meval_handle_or_fall_through(mx)
 end
