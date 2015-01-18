@@ -1054,6 +1054,7 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
+## TODO: Pi should be implmented like Julia MathConst
 Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
 Cos_pi_coeff(mx::Mxpr{:Cos},c::FloatingPoint) = cospi(c)
 Cos_pi_coeff(mx::Mxpr{:Cos},c) = mx
