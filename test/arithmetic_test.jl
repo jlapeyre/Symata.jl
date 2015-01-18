@@ -41,5 +41,7 @@ using Base.Test
 # FIXME
 #  +a  should evaluate to a
 
+@test @sj( + aaa ) == @sj( aaa )
+
 # Fix this
 @test @sj(a * 0) == @sj(0*a) == 0

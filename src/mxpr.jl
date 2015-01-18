@@ -643,7 +643,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
     @eval begin
         function meval(mx::Mxpr{symbol($op)})
             @mdebug(1, $namestr, " entry: mx = ",mx)
-#            length(mx) == 1 && return mx[1]  #  +x --> x
+            length(mx) == 1 && return mx[1]  #  +x --> x
             found_mxpr_term = false
             all_numerical_terms = true
             for i in 1:length(mx)  # check if there is at least one Mxpr of type op
