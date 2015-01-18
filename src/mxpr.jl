@@ -181,13 +181,17 @@ function getindex(mx::Mxpr, r::StepRange)
     end
 end
 
+## NOTE! This reorders every time. For efficiency,
+# you can use margs(mx)[i] = val instead of mx[i] = val
+# inside an algorithm and call orderexpr! at the end
 function setindex!(mx::Orderless,val,k::Int)
     if k == 0
         sethead(mx,val)
         return val  # but maybe it is no longer Orderless! Problem.
     else
         margs(mx)[k] = val
-        orderexpr!(mx)
+#        orderexpr!(mx)
+#        mx = compactsumlike!(mx)
         return val
     end
 end
@@ -202,7 +206,7 @@ Base.endof(mx::Mxpr) = length(mx)
 
 is_order_clean(mx::Mxpr) = return mx.clean
 set_order_dirty(mx::Mxpr) = (mx.clean = false)
-set_order_clean(mx::Mxpr) = (mx.clean = true)
+set_order_clean(mx::Mxpr) = (mx.clean = true)  # orderexpr! calls this. You don't need to.
 sortiforderless!(mx::Orderless) = orderexpr!(mx)  # regardless of dirty bit
 sortiforderless!(mx) = mx
 
@@ -868,12 +872,17 @@ jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y)
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
 # Order the args in orderless Mxpr.
-function orderexpr!(mx::Mxpr)
+function orderexpr!(mx::Orderless)
     ar = jargs(mx)
-    sort!(ar,lt=jslexless)
+    sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
     set_order_clean(mx)
     mx
 end
+
+# Canonicalize expression
+function canonexpr!(mx::Mxpr)
+    orderexpr!(mx)
+end    
 
 needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 
@@ -900,10 +909,15 @@ function deep_order_if_orderless!(mx::Mxpr)
 end
 deep_order_if_orderless!(x) = x
 
-##########################################################
-## Sum collected numerical args in :+, (or same for :*)  #
-##########################################################
+# TODO  'compact' not a good name for this function
+#################################################################
+## Sum collected numerical args in :mplus, (or same for :mmul)  #
+#################################################################
 # + and * are nary. Replace all numbers in the list of args, by one sum or product
+
+compactsumlike!(mx::Mxpr{:mplus}) = compactplus!(mx)
+compactsumlike!(mx::Mxpr{:mmul}) = compactmul!(mx)
+
 for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     @eval begin
         function ($name)(mx::Mxpr)
@@ -917,9 +931,9 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
                 typeof(a[1]) <: Number || break
                 sum0 = ($fop)(sum0,a[1])
             end
-            length(a) == 0 && return sum0            
-            sum0 != $id && unshift!(a,sum0)
+            length(a) == 0 && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
+            sum0 != $id && unshift!(a,sum0)
             length(a) == 1 && return a[1]
             return mx
         end

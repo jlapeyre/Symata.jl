@@ -13,4 +13,3 @@ to this newer code.
 * mpatrule.jl (and MPatRule.jl) are copies of the old code,
  but I use type aliases everywhere for Expr. The hope is I can
  drop in for Mxpr.
-
