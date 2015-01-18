@@ -886,7 +886,7 @@ end
 
 needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 
-function order_if_orderless!(mx::Mxpr)
+function order_if_orderless!(mx::Orderless)
     if needs_ordering(mx)
         @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)

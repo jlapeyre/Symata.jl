@@ -1,5 +1,6 @@
 using Base.Test
 
+# Restore these after fixing
 # let s
 #     s = @sj(1 + a + b + c)
 #     s[1] = :z
