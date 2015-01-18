@@ -890,8 +890,9 @@ function order_if_orderless!(mx::Orderless)
     if needs_ordering(mx)
         @mdebug(3,"needs_ordering, ordering: ",mx)
         orderexpr!(mx)
-        head(mx) == :mmul ? mx = compactmul!(mx) : nothing
-        mxprq(mx) && head(mx) == :mplus ? mx = compactplus!(mx) : nothing
+        mx = compactsumlike!(mx)
+#        head(mx) == :mmul ? mx = compactmul!(mx) : nothing
+#        mxprq(mx) && head(mx) == :mplus ? mx = compactplus!(mx) : nothing
         @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
     end
     mx
