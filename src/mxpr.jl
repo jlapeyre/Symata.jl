@@ -8,10 +8,6 @@ const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 # the auto evaluation of symbols here anyway!
 
 ## FIX
-# SJulia segfaults when it encounters an unbound symbol representing
-# a macro call.
-
-## FIX
 # @sj Sqrt(a) , and @sj Sqrt(3), etc. are broken
 # in both sjulia and julia and in different ways.
 
@@ -1049,8 +1045,9 @@ end
 # FIXME: We are calling meval here. This is not the right way.
 # Define functions like, eg. Cos(x::Float64) = cos(x).
 # You get the idea. If this idea works, then we complete the list
+# FIXME: sqrt needs to be treated differently
 function mkmathfuncs() # Man, I hate looking for missing commas.
-    func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh"
+    func_list_string = "exp log cos cosd cosh acos sin sind sinh asin tan tand tanh atan"
     for s  in split(func_list_string)
         func = symbol(s)
         Funcstr = string(uppercase(s[1])) * s[2:end]
@@ -1087,6 +1084,9 @@ function meval_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:mmul})
         return mx
     end
 end
+
+meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
+meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin}) = length(x) == 1 ? mpow((1-x[1]^2),1//2) : mx
 meval_one_arg(mx::Mxpr{:Cos},x) = mx    
 meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,mx[1]) : mx
 
