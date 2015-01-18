@@ -43,6 +43,7 @@ else
 end
 
 # This is not yet applied in code.
+# It's ugly, but maybe useful.
 const SJFloat = Float64
 const SJInt = Int
 const SJRational = Rational{SJInt}
@@ -293,7 +294,7 @@ function ex_to_mx!(ex::Expr)
         mxop = ex.head
         mxargs = ex.args
     end
-    @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
+    @mdebug(20,"converting for printing: ", mxop, ", ", jtomop(mxop))
     mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
 end
 
@@ -494,6 +495,14 @@ is_rat_and_int(x) = false
 ## Methods for Mxpr's for Julia arithemtic functions  #
 #######################################################
 
+## FIXME
+# This is the wrong way to do this. Calling Cos() should
+# not run meval. Rather call methods of Cos() and return
+# quoted form if we don't have a reduced form.
+# All the Cos code at the bottom of this file will have to be
+# modified.
+# The code here is an attempt to get meval to run automatically,
+# it works, but is really the wrong approach.
 ordereval(x) = meval(deep_order_if_orderless!(x))
 mxmkevalminus(args...) = ordereval(rewrite_binary_minus(mxpr(args...)))
 mxmkevaldivision(args...) = ordereval(rewrite_division(mxpr(args...)))
@@ -1045,15 +1054,33 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
-function meval(cmx::Mxpr{:Cos})
-    if length(cmx) == 1
-        mx = cmx[1]
-        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[2] == :Pi
-            is_type_less(mx[1],Integer)  && return iseven(mx[1]) ? 1 : -1
-            is_type_less(mx[1],FloatingPoint) && return cospi(mx[1])
-        end
+Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
+Cos_pi_coeff(mx::Mxpr{:Cos},c::FloatingPoint) = cospi(c)
+Cos_pi_coeff(mx::Mxpr{:Cos},c) = mx
+function Cos_factor_arg(mx::Mxpr{:Cos},f1::Number,f2::Symbol)
+    if f2 == :Pi
+        return Cos_pi_coeff(mx,f1)
+    else
+        return mx
     end
-    return cmx
 end
+Cos_factor_arg(mx::Mxpr{:Cos},f1,f2) = mx
+meval_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
+meval_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
+function meval_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:mmul})
+    if length(arg) == 2
+        return Cos_factor_arg(mx,margs(arg)...)
+    else
+        return mx
+    end
+end
+meval_one_arg(mx::Mxpr{:Cos},x) = mx    
+meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,mx[1]) : mx
+
+# This is slow. Nothing smart implemented
+# Of course, we are constructing the product and sorting the factors
+# every time.
+# [Cos(n * :Pi) for n in 1:10^5]
+# z = 3*:Pi; [Cos(z) for n in 1.0:10^5]; is 5 times faster
 
 @if_sjulia  sjulia_on()   # Turn on features defined in sjulia.jl
