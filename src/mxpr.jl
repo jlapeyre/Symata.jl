@@ -1113,7 +1113,7 @@ end
 meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
 meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin}) = length(x) == 1 ? mpow((1-x[1]^2),1//2) : mx
 meval_one_arg(mx::Mxpr{:Cos},x) = mx    
-meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,mx[1]) : mx
+meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,@ma(mx,1)) : mx
 
 # This is slow. Nothing smart implemented
 # Of course, we are constructing the product and sorting the factors
