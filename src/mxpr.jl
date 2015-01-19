@@ -38,21 +38,6 @@ else
     end
 end
 
-# This is not yet applied in code.
-# It's ugly, but maybe useful.
-const SJFloat = Float64
-const SJInt = Int
-const SJRational = Rational{SJInt}
-const _SJOne = 1
-const _SJZero = 0
-SJOne(x) = _SJOne
-SJOne() = _SJOne
-SJZero(x) = _SJZero
-SJZero() = _SJZero
-SJInt(x::Number) = convert(SJInt,x)
-SJFloat(x::Number) = convert(SJFloat,x)
-SJRational(x::Number) = convert(SJRational,x)
-
 ##############################################
 ##  Mxpr type for symbolic math expression   #
 ##############################################
