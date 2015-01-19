@@ -577,7 +577,8 @@ transex(ex::Expr) = ex_to_mx!(replace_arithmetic_ops!(ex))
 # construct a Mxpr and evaluate
 # Try to evaluate once.
 macro sj(ex)
-    mx = transex(ex)  # Translate Expr to Mxpr
+#    mx = transex(ex)  # Translate Expr to Mxpr
+    mx = ex_to_mx!(ex)
     mx = meval(mx)    # order first or eval first ?
     mx = deep_order_if_orderless!(mx)
     # need this always for expressions in files    
@@ -590,7 +591,7 @@ end
 # This is (was) useful for debugging,
 # or seeing Mxpr before any reordering or evaluation
 macro sn(ex)
-    transex(ex)
+    ex_to_mx!(ex)
 end
 
 ############################################
