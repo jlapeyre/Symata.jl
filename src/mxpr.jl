@@ -96,7 +96,7 @@ end
 #  'isthing' or 'thingq' ?
 #  'thingq' would signify difference from standard Julia
 #  eg: thingq takes Mxpr as argument ?
-mk_predicate_sym(sym::Symbol) = symbol(string(sym) * "q")
+#mk_predicate_sym(sym::Symbol) = symbol(string(sym) * "q")
 
 ## generic predicate
 macro mk_predicate(name0,code)
@@ -121,21 +121,6 @@ head(x) = error("head: head not defined for $x, of type $(typeof(x))")
 #mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
 #setmhead(mx::Expr, val::Symbol) = mx.head = val
 sethead(mx::Expr, val::Symbol) = mx.head = val
-
-## Is expr a call to symbol op (this is expression, typ may not be bound)
-# macro mk_call_predicate(name0,op)
-#     name = mk_predicate_sym(name0)
-#     @eval begin
-#         ($name)(x::Expr) = (x.head == :call && x.args[1] == $op)
-#     end
-# end
-
-# macro mk_type_predicate(name0,typ)
-#     name = mk_predicate_sym(name0)
-#     @eval begin
-#         ($name)(x::Expr) = typeof(x) == $typ
-#     end
-# end
 
 ####  index functions
 
