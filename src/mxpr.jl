@@ -293,6 +293,7 @@ end
 # Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
+    ex = replace_arithmetic_ops!(ex)
     ex = tryjeval(ex)  # compile it if we can
     is_type(ex,Expr) || return ex
     is_call(ex,://,3)  && is_number(ex.args[2]) && is_number(ex.args[3]) && return eval(ex)
