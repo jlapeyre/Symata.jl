@@ -915,18 +915,16 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     end
 end
 
-#function n_mul_a_plus_m_mul_b(an,bm)
-
 # getterms(f(a,b,c),1:2) --> f(a,b)
 # getterms(f(a,b,c),2:2) --> b
 # TODO: support StepRange
-function getterms(a::Mxpr,r::UnitRange)
-    if abs(r.start-r.stop) == 0
-        return a[r][1]
-    else
-        return mxpr(a[0],a[r]...)
-    end
-end
+# function getterms(a::Mxpr,r::UnitRange)
+#     if abs(r.start-r.stop) == 0
+#         return a[r][1]
+#     else
+#         return mxpr(a[0],a[r]...)
+#     end
+# end
 
 function numeric_coefficient(x::Mxpr{:mmul})
     local c::Number
@@ -951,60 +949,6 @@ function nf2(a,b)
     (nb,b1) = numeric_coefficient_and_factor(b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
-
-function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
-    if is_type_less(a[1],Number)
-        if is_type_less(b[1],Number)
-            if a[2:end] == b[2:end]
-                println("Hi 1")                
-                return (true,a[1]+b[1],getterms(a,2:length(a)))
-            else
-                println("Hi 2")
-                return (false,0,a)
-            end
-        elseif a[2:end] == margs(b)
-            println("Hi 3")
-            return (true,a[1]+1,b)
-        else
-            println("Hi 4")            
-            return (false,0,b)
-        end
-    elseif is_type_less(b[1],Number)
-        if margs(a) == b[2:end]
-            println("Hi 5")
-            return (true,b[1]+1,a)
-        else
-            println("Hi 6")
-            return (false,0,a)
-        end
-    elseif a == b
-        println("Hi 7")
-        return (true,2,a)
-    else
-        println("Hi 8")
-        return (false,0,a)
-    end
-end
-
-function newfunc(a::Mxpr{:mmul},b::Symbolic)
-    if is_type_less(a[1],Number) &&
-        getterms(a,2:length(a)) == b
-        println("Hi 9")        
-        return (true,a[1]+1,b)
-    else
-        println("Hi 10")         
-        return (false,0,b)
-    end
-end
-
-newfunc(a::Symbolic, b::Mxpr{:mmul}) = newfunc(b,a)
-
-function newfunc{T}(a::T,b::T)
-    println("Hi 11")    
-    a == b && return (true,2,a)
-    return (false,0,a)
-end
-
 
 #Replace n repeated terms x by n*x, and factors x by x^n
 for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
@@ -1036,10 +980,14 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
                     end
 #                    println("n=$n, count=$count")
                     newex = $(op== :mplus ?
-                              :(mxpr(:mmul,coeffcount,fac)) :
-                              0)
+                              :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
+                              :(mxpr(:mpow,fac,coeffcount)))
                     println("newex $newex")
-                    splice!(a,n:n+count,[newex])
+                    if coeffcount == 0
+                        splice!(a,n:n+count)
+                    else 
+                        splice!(a,n:n+count,[newex])
+                    end
                 end
                 n += 1
             end
