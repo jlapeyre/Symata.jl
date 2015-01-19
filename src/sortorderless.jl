@@ -96,18 +96,37 @@ jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 function orderexpr!(mx::Orderless)
     ar = jargs(mx)
     sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
-    set_order_clean(mx)
     mx
 end
 
 # Canonicalize expression
-function canonexpr!(mx::Orderless)
-    orderexpr!(mx)
-end    
-
-#needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 needs_ordering(mx::Mxpr) = false
 needs_ordering(mx::Orderless) = ! is_order_clean(mx)
+function canonexpr!(mx::Orderless)
+    orderexpr!(mx)
+    if needs_ordering(mx)
+        orderexpr!(mx)
+        mx = compactsumlike!(mx)
+        mx = collectordered!(mx)
+        set_order_clean(mx)
+    end
+    mx    
+end    
+canonexpr!(x) = x
+
+function deepcanonexpr!(mx::Orderless)
+    for i = 1:length(mx)
+        @mdebug(10,"deepcanonexpr!: loop: i=$i, mx[$i] = $i")
+        @ma(mx,i) = deepcanonexpr!(@ma(mx,i))
+    end
+    mx = canonexpr!(mx)
+    ## FIXME following should be an assertion
+    is_rat_and_int(mx) && error("canonexpr!: returning integer rational $mx")
+    return mx    
+end
+deepcanonexpr!(x) = x
+
+#needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 
 function order_if_orderless!(mx::Orderless)
     if needs_ordering(mx)
@@ -199,8 +218,10 @@ function _matchterms(a,b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
+collectordered!(mx::Mxpr{:mplus}) = collectmplus!(mx)
+collectordered!(mx::Mxpr{:mmul}) = collectmmul!(mx)
 #Replace n repeated terms x by n*x, and factors x by x^n
-for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
+for (op,name,id) in  ((:mplus,:collectmplus!,0),(:mmul,:collectmul!,1))
     opstr = string(op)
     @eval begin
         function ($name)(mx::Mxpr)
@@ -211,16 +232,15 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
             coeffcount = 0
             while n < length(a)
                 (success,coeffsum,fac) = _matchterms(a[n],a[n+1])
-                println("start (csum=$coeffsum fac=$fac)")
+#                println("start (csum=$coeffsum fac=$fac)")
                 if success
-#                if a[n] == a[n+1]
                     count = 1
                     coeffcount = coeffsum
                     for i in (n+1):(length(a)-1)
                         (success1,coeffsum1,fac1) = _matchterms(fac,a[i+1])
                         #                        if a[i] == a[i+1]
                         if success1
-                            println("next (csum=$coeffsum1 fac1=$fac1)")
+#                            println("next (csum=$coeffsum1 fac1=$fac1)")
                             count += 1
                             coeffcount += coeffsum1 - 1
                         else
@@ -231,7 +251,7 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
                     newex = $(op== :mplus ?
                               :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
                               :(coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
-                    println("newex $newex")
+#                    println("newex $newex")
                     if coeffcount == 0
                         splice!(a,n:n+count)
                     else 
