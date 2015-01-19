@@ -2,8 +2,6 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
-#_jslexless(x::Mxpr{:mmul},y::Mxpr{:mmul})  =  x[end]  < y[end]
-
 const _jstypeorder = Dict{DataType,Int}()
 const _jsoporder = Dict{Symbol,Int}()
 
@@ -168,17 +166,6 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
     end
 end
 
-# getterms(f(a,b,c),1:2) --> f(a,b)
-# getterms(f(a,b,c),2:2) --> b
-# TODO: support StepRange
-# function getterms(a::Mxpr,r::UnitRange)
-#     if abs(r.start-r.stop) == 0
-#         return a[r][1]
-#     else
-#         return mxpr(a[0],a[r]...)
-#     end
-# end
-
 function numeric_coefficient(x::Mxpr{:mmul})
     local c::Number
     c = is_type_less(x[1],Number) ? x[1] : 1
@@ -186,19 +173,19 @@ end
 numeric_coefficient(x::Number) = x
 numeric_coefficient(x) = 1
 
-# Note this is really numeric_exponent
+# Note this is really getting the numeric exponent
 function numeric_coefficient(x::Mxpr{:mpow})
     local c::Number
     c = is_type_less(expt(x),Number) ? expt(x) : 1
 end
 
-function rest(mx::Mxpr)
+function _rest(mx::Mxpr)
     res=deepcopy(mx)
     shift!(margs(res))
     return length(res) == 1 ? @ma(res,1) : res
 end
 
-getfac(mx::Mxpr{:mmul}) = rest(mx)
+getfac(mx::Mxpr{:mmul}) = _rest(mx)
 getfac(mx::Mxpr{:mpow}) = base(mx)
 
 function numeric_coefficient_and_factor(a)
@@ -206,7 +193,7 @@ function numeric_coefficient_and_factor(a)
     return n == 1 ? (n,a) : (n,getfac(a))
 end
 
-function nf2(a,b)
+function _matchterms(a,b)
     (na,a1) = numeric_coefficient_and_factor(a)
     (nb,b1) = numeric_coefficient_and_factor(b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
@@ -223,14 +210,14 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
             count = 0
             coeffcount = 0
             while n < length(a)
-                (success,coeffsum,fac) = nf2(a[n],a[n+1])
+                (success,coeffsum,fac) = _matchterms(a[n],a[n+1])
                 println("start (csum=$coeffsum fac=$fac)")
                 if success
 #                if a[n] == a[n+1]
                     count = 1
                     coeffcount = coeffsum
                     for i in (n+1):(length(a)-1)
-                        (success1,coeffsum1,fac1) = nf2(fac,a[i+1])
+                        (success1,coeffsum1,fac1) = _matchterms(fac,a[i+1])
                         #                        if a[i] == a[i+1]
                         if success1
                             println("next (csum=$coeffsum1 fac1=$fac1)")
