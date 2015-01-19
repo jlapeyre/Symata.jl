@@ -80,8 +80,8 @@ typealias Orderless Union(Mxpr{:mmul},Mxpr{:mplus})
 mxmkargs() = Array(Any,0)
 
 mxpr(h,a,jh,d) = Mxpr{h}(h,a,jh,d)
-# make an empty Mxpr, unused ?
-mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:nothing,false)
+# make an empty Mxpr. eg mxpr(c) --> c()
+mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:call,false)
 
 
 ## Following is OK in principle, but we stopped using the only instance.
@@ -961,6 +961,23 @@ end
 numeric_coefficient(x::Number) = x
 numeric_coefficient(x) = 1
 
+function rest(mx::Mxpr)
+    res=deepcopy(mx)
+    shift!(margs(res))
+    #    return length(res) == 0 ?
+end
+           
+
+function numeric_coefficient_and_factor(a)
+    n = numeric_coefficient(a)
+    return n == 1 ? (n,a) : (n,rest(a))
+end
+
+function nf2(a,b)
+    n1 = numeric_coefficient(a)
+    n2 = numeric_coefficient(b)
+end
+
 function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
     if is_type_less(a[1],Number)
         if is_type_less(b[1],Number)
@@ -998,13 +1015,18 @@ end
 function newfunc(a::Mxpr{:mmul},b::Symbolic)
     if is_type_less(a[1],Number) &&
         getterms(a,2:length(a)) == b
-            return (true,a[1]+1,b)
+        println("Hi 9")        
+        return (true,a[1]+1,b)
     else
+        println("Hi 10")         
         return (false,0,b)
     end
 end
 
+newfunc(a::Symbolic, b::Mxpr{:mmul}) = newfunc(b,a)
+
 function newfunc{T}(a::T,b::T)
+    println("Hi 11")    
     a == b && return (true,2,a)
     return (false,0,a)
 end

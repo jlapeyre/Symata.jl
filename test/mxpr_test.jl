@@ -12,6 +12,9 @@ __bbbb = 1  # can't get local scope somehow
 @test (@sj __bbbb)  == 1
 @test (@sj 1 + 1) == 2
 
+let c
+#    @test mxpr(:c) == @sj( c() )
+end
 
 ## Canonical ordering
 
