@@ -63,6 +63,14 @@ end
 Pattern(ast::ExSymPvar) = Pattern(ast,:All)
 pattern(ast::ExSym) = pattern(ast,:All)
 
+function Base.show(io::IO, pv::Pvar)
+    show(io,pv.name)
+end
+
+function Base.show(io::IO, p::Pattern)
+    show(io,p.ast)
+end
+
 # function pattern(ast::ExSym,cond::CondT)
 #     Pattern(ustopat(ast),cond)
 # end
@@ -79,6 +87,14 @@ type PRule
     rhs::Pattern
 end
 
+function Base.show(io::IO, p::PRule)
+    print(io,"rule: ")
+    show(io,p.lhs)
+    print(io, " => ")
+    show(io,p.rhs)
+end
+
+
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 ==(a::Pattern, b::Pattern) = (a.ast == b.ast)
@@ -90,7 +106,25 @@ prule(x,y) = PRule(x,y)
 prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
 prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
+const ruledict = Dict{Symbol,Array{PRule,1}}()
 
+function downrule(sym::Symbol, r::PRule)
+    if !haskey(ruledict,sym)
+        ruledict[sym] = Array(PRule,0)
+    end
+    push!(ruledict[sym],r)
+    r
+end
+
+macro dr(ex::Expr)
+    ex.head != :(:=) && error("@dr expected head :=")
+    ex1 = deepcopy(ex)
+    ex1.head = :(=>)
+    r = eval(ex1)
+    downrule(r.lhs.ast.head, r)
+    r
+end
+   
 ispvar(x) = typeof(x) == Pvar
 pvarsym(pvar::Pvar) = pvar.name
 pvarcond(pvar::Pvar) = pvar.cond
@@ -364,13 +398,10 @@ macro pattcond(ex,cond)
     Pattern(ustopat(ex),cond)
 end
 
-#macro rule(mx::Mxpr)
-#    head(mx) != :(=>) && error("rule: expecting lhs => rhs")
-#    prule(pattern(mx[1]),pattern(mx[2]))
-#end
-
-macro rule(mx)
+macro rule(ex)
     #    exhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
+    ex1 = deepcopy(ex)
+    mx = transex(ex1)
     prule(pattern(mx.args[1]),pattern(mx.args[2]))
 end
 

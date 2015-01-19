@@ -17,7 +17,7 @@ const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
 # Test if we have the altered interpreter.c, i.e. SJulia
 const HAVE_SJULIA = try
-    ccall((:jl_is_meval_hook, "libjulia.so"), Bool, ())
+    ccall((:jl_is_symbol_evals_to_self, "libjulia.so"), Bool, ())
     true
 catch
     false
@@ -718,7 +718,7 @@ register_meval_func(:/,meval_div)
 ## Only called once in all test suite!
 ## meval top level 
 function meval(mx::Mxpr)
-#    println("in meval $mx")
+    println("in meval $mx")
     length(mx) == 0 && return mx
     if mx[0] == :(=)        
         return meval_assign(mx)
@@ -744,22 +744,6 @@ end
 
 ## generic meval does nothing
 meval(x) = x 
-
-## Called from src/interpreter.c
-# This must be defined after the generic method for meval,
-# because SJulia calls it on everything
-sjulia_meval(x) = x
-
-# FIXME , none of these are being called!
-function sjulia_meval(mx::Mxpr)
-    meval(mx)
-end
-
-function sjulia_meval(ex::Expr)
-    mx = transex(ex)
-    meval(mx)
-end
-
 
 ############################################
 ## Display Mxpr                            #
