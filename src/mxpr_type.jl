@@ -4,7 +4,7 @@ abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
     args::Array{Any,1}
-    jhead::Symbol    # Actual exact Julia head: :call, etc
+    jhead::Symbol    # Actual exact Julia head: :call, etc. TODO: get rid of this field
     clean::Bool      # Is the expression canonicalized ?
 end
 
