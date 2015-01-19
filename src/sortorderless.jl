@@ -117,8 +117,18 @@ function canonexpr!(mx::Orderless)
             pprintln("C $mx")
             if is_type_less(mx,Mxpr)
                 mx = collectordered!(mx)
-                pprintln("D $mx")                
-                is_type_less(mx,Mxpr) ? set_order_clean!(mx) : nothing
+                if is_type(mx,Mxpr{:mpow}) mx = mulpowers(mx) end
+                if is_type(mx,Orderless)
+                    mx = orderexpr!(mx)
+                    # if is_type(mx,Mxpr{:mpow}) mx = mulpowers(mx) end
+                    # for i in 1:length(mx)
+                    #     if is_type(mx[i],Mxpr{:mpow})
+                    #         @ma(mx,i) = mulpowers(mx[i])
+                    #     end
+                    # end
+                    pprintln("D $mx")                
+                    set_order_clean!(mx)
+                end
             end
         end
     end
@@ -249,6 +259,16 @@ function _matchfacs(a,b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
+# (x^n)^m --> x^(n*m)
+function mulpowers(mx::Mxpr{:mpow})
+    (e,b) = numeric_expt_and_base(mx)
+    (e1,b1) = numeric_expt_and_base(base(mx))
+    e != 1 && e1 != 1 && return mxpr(:mpow,b1,mmul(e,e1))
+    return mx
+end
+
+mulpowers(x) = x
+
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:mplus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:mmul}) = collectmmul!(mx)
@@ -267,7 +287,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
             while n < length(a)
                 is_type_less(a[n],Number) && (n += 1; continue)
                 (success,coeffsum,fac) = ($matchf)(a[n],a[n+1])
-                pprintln("start (a[n]=$(a[n]) csum=$coeffsum fac=$fac)")
+#                println("start (a[n]=$(a[n]) csum=$coeffsum fac=$fac)")
                 if success
                     count = 1
                     coeffcount = coeffsum
@@ -284,23 +304,27 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                     end
                     pprintln("n=$n, count=$count")
                     newex = $(op== :mplus ?
-                              :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
-                              :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
+                    :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
+                    :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
                     pprintln("newex $newex, coeffcount: $coeffcount")
                     if coeffcount == 0
                         splice!(a,n:n+count)
-                    else 
+                    else
+#                        newex = mulpowers(newex)
                         splice!(a,n:n+count,[newex])
                     end
                 end
                 n += 1
             end
+ #           a = mulpowers(a)
             if  length(a) == 1
+#                a = mulpowers(a[1])
                 return a[1]
             end
             if length(a) == 0
                 return 0
             end
+#            mx = mulpowers(mx)
             return mx
         end
     end

@@ -222,6 +222,8 @@ is_op(mx::Mxpr, op::Symbol, len::Int) = head(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
+is_type(x,t::UnionType) = typeof(x) == t
+is_type_less(x,t::UnionType) = typeof(x) <: t
 mxprq(x) = is_type_less(x,AbstractMxpr)
 is_number(x) = typeof(x) <: Number
 

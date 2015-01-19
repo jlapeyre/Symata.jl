@@ -43,7 +43,7 @@ let s,a
     @test margs(@sj(a + a * a + a^3)) == [a,a^2,a^3]
     @test @sj(a + a * a - a * a) == a
     @test margs(@sj(a + z + 10*a^2 + 2 * z^2)) == [a,10*a^2,z,2*z^2]
-    
+    @test margs(@sj( a * a + 1 / ((z + y) * (z + y)) )) == [a ^ 2,(y + z) ^ -2]
 end
 
 nothing

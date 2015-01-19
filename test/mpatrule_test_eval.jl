@@ -21,22 +21,23 @@ using Base.Test
 # same as tpatrule, but second arguement is a PRule
 @test replace( :a * :a , :x_ * :x_ =>  :x_^2 ) == :a^2
 
-# Can use underscore for capture var.
-sq_rule = :_ * :_  =>  :_^2
+# Obsolete, squares are already done now.
+# # Can use underscore for capture var.
+# sq_rule = :_ * :_  =>  :_^2
 
-# replace tests the entire expression, not subexpressions
-@test replace(:a * :a + 1 , sq_rule) == :a * :a + 1
+# # replace tests the entire expression, not subexpressions
+# @test replace(:a * :a + 1 , sq_rule) == :a * :a + 1
 
-# replaceall tests subexpressions; depth first.
-# This differs from Mma, which applies rule top-down and
-# stops if there is a success.
-@test replaceall(:a * :a + 1, sq_rule) == :a^2+1
+# # replaceall tests subexpressions; depth first.
+# # This differs from Mma, which applies rule top-down and
+# # stops if there is a success.
+# @test replaceall(:a * :a + 1, sq_rule) == :a^2+1
 
-# applies everywhere
-# Fails first time. passes second time.
-# probably because symbols are read twice
-replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
-@test replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
+# # applies everywhere
+# # Fails first time. passes second time.
+# # probably because symbols are read twice
+# replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
+# @test replaceall(@sn(a*a+1 / ((z+y)*(z+y))) , sq_rule) == @sj(a^2+1/(z + y)^2)
 
 
 # These stopped working because @sn no longer prevents ordering!
