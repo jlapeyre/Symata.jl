@@ -90,36 +90,15 @@ function mxpr(op::Symbol,args...)
     mx = Mxpr{op}(op,theargs,moptojhead(op),false)
 end
 
-## predicates
-
-## What to choose for predicate function names
-#  'isthing' or 'thingq' ?
-#  'thingq' would signify difference from standard Julia
-#  eg: thingq takes Mxpr as argument ?
-#mk_predicate_sym(sym::Symbol) = symbol(string(sym) * "q")
-
-## generic predicate
-macro mk_predicate(name0,code)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x) = $code
-    end
-end
-
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
-#args(mx::Mxpr) = mx.args
-#margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
-#mhead(mx::Mxpr) = mx.head
 head(mx::Mxpr) = mx.head
 exhead(ex::Expr) = ex.head
 exargs(ex::Expr) = ex.args
 exhead(x) = error("exhead: exhead not defined for $x, of type $(typeof(x))")
 head(x) = error("head: head not defined for $x, of type $(typeof(x))")
-#mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
-#setmhead(mx::Expr, val::Symbol) = mx.head = val
 sethead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
@@ -190,12 +169,15 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
-## Particular Mxpr types
+## Index functions for particular Mxpr types
 
 Base.base(p::Mxpr{:mpow}) = p[1]
 expt(p::Mxpr{:mpow}) = p[2]
 
-##################################################
+
+###########################################
+##  Predicates                            #
+###########################################
 
 # Same thing is somewhere in base
 is_call(ex::Expr) = exhead(ex) == :call
@@ -217,6 +199,10 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 # number of args != 3 will pass through. But probably can't be used
 is_division(ex::Expr) = is_call(ex, :mdiv,3)  
 is_power(ex::Expr) = is_call(ex, :mpow)
+
+#################################################
+##  Translate Expr --> Mxpr  and Mxpr --> Expr  #
+#################################################
 
 # There is no binary minus and no division in Mxpr's.
 rewrite_binary_minus(ex::Expr) = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
@@ -258,6 +244,27 @@ replace_arithmetic_ops!(x) = x
     symquote = QuoteNode(sym)
     eval(:($sym = $symquote))
 end
+
+# eval is "not a generic function". So we can't touch it.
+# Do julia evaluation on Mxpr. This will often fail, for
+# instance when there are unbound symbols.
+# Ugh. we are doing a deep copy here. Need more sophisticated
+# evaluation. Converting back to Mxpr would be faster, but
+# still maybe not efficient. I wonder how to get inside eval ?
+#jeval(mx::Mxpr) = eval(mx_to_ex!(deepcopy(mx)))
+jeval(mx::Mxpr) = eval(mx_to_ex(mx))
+jeval(x) = eval(x)
+
+# Try Julia eval, else quietly return unevaluated input.
+function tryjeval(mx::Union(Mxpr,Expr))
+    res = try
+        jeval(mx)
+    catch
+        mx
+    end
+    res
+end
+tryjeval(x) = x  # Don't seem to save time by letting these fall through
 
 # Expr -> Mxpr
 # Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
@@ -553,27 +560,6 @@ end
 ############################################
 ## Evaluate Mxpr                           #
 ############################################
-
-# eval is "not a generic function". So we can't touch it.
-# Do julia evaluation on Mxpr. This will often fail, for
-# instance when there are unbound symbols.
-# Ugh. we are doing a deep copy here. Need more sophisticated
-# evaluation. Converting back to Mxpr would be faster, but
-# still maybe not efficient. I wonder how to get inside eval ?
-#jeval(mx::Mxpr) = eval(mx_to_ex!(deepcopy(mx)))
-jeval(mx::Mxpr) = eval(mx_to_ex(mx))
-jeval(x) = eval(x)
-
-# Try Julia eval, else quietly return unevaluated input.
-function tryjeval(mx::Union(Mxpr,Expr))
-    res = try
-        jeval(mx)
-    catch
-        mx
-    end
-    res
-end
-tryjeval(x) = x  # Don't seem to save time by letting these fall through
 
 ## FIXME  Probably change all of these to be dispatched on type.
 ## But exactly how that will work is not yet clear. Cos example is at bottom
