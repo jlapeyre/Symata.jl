@@ -551,22 +551,27 @@ end
 ##  Macros for constructing Mxpr easily    #
 ############################################
 
+## transex
 # Convert an expression to Mxpr (or number, or symbol...) Call this from
 # within the two macros below, so that we don't need to quote input.
-function transex(ex)
-    local mx
-    T = typeof(ex)
-    if  T == Expr
-        replace_arithmetic_ops!(ex)
-        mx = ex_to_mx!(ex)
-    elseif T == Symbol
-        mx = ex
-    else
-        mx = ex  # Numbers, DataTypes, etc.
-    end
-    @mdebug(3,"transex: returning ",mx)
-    return mx
-end
+
+transex(ex) = ex
+transex(ex::Expr) = ex_to_mx!(replace_arithmetic_ops!(ex))
+
+# function transex(ex)
+#     local mx
+#     T = typeof(ex)
+#     if  T == Expr
+#         replace_arithmetic_ops!(ex)
+#         mx = ex_to_mx!(ex)
+#     elseif T == Symbol
+#         mx = ex
+#     else
+#         mx = ex  # Numbers, DataTypes, etc.
+#     end
+#     @mdebug(3,"transex: returning ",mx)
+#     return mx
+# end
 
 # construct a Mxpr and evaluate
 # Try to evaluate once.
