@@ -702,7 +702,7 @@ register_meval_func(:/,meval_div)
 ## Only called once in all test suite!
 ## meval top level 
 function meval(mx::Mxpr)
-    println("in meval $mx")
+#    println("in meval $mx")
     length(mx) == 0 && return mx
     if mx[0] == :(=)        
         return meval_assign(mx)
@@ -933,11 +933,6 @@ function getterms(a::Mxpr,r::UnitRange)
     end
 end
 
-# has_numeric_coefficient(a::Mxpr{:mmul}) = is_type_less(a[1],Number)
-# has_numeric_coefficient(x) = false
-# numeric_coefficient(a::Mxpr{:mmul}) = has_numeric_coefficient(a) ? a[1] : 1
-# numeric_coefficient(a::Mxpr{:mmul}) = has_numeric_coefficient(a) ? a[1] : 1
-
 function numeric_coefficient(x::Mxpr{:mmul})
     local c::Number
     c = is_type_less(x[1],Number) ? x[1] : 1
@@ -948,9 +943,8 @@ numeric_coefficient(x) = 1
 function rest(mx::Mxpr)
     res=deepcopy(mx)
     shift!(margs(res))
-    #    return length(res) == 0 ?
+    return length(res) == 1 ? @ma(res,1) : res
 end
-           
 
 function numeric_coefficient_and_factor(a)
     n = numeric_coefficient(a)
@@ -958,8 +952,9 @@ function numeric_coefficient_and_factor(a)
 end
 
 function nf2(a,b)
-    n1 = numeric_coefficient(a)
-    n2 = numeric_coefficient(b)
+    (na,a1) = numeric_coefficient_and_factor(a)
+    (nb,b1) = numeric_coefficient_and_factor(b)
+    return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
 function newfunc(a::Mxpr{:mmul},b::Mxpr{:mmul})
@@ -1027,20 +1022,28 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
             count = 0
             coeffcount = 0
             while n < length(a)
-                if a[n] == a[n+1]
-                    count = 1                        
+                (success,coeffsum,fac) = nf2(a[n],a[n+1])
+                println("start (csum=$coeffsum fac=$fac)")
+                if success
+#                if a[n] == a[n+1]
+                    count = 1
+                    coeffcount = coeffsum
                     for i in (n+1):(length(a)-1)
-                        if a[i] == a[i+1]
+                        (success1,coeffsum1,fac1) = nf2(fac,a[i+1])
+                        #                        if a[i] == a[i+1]
+                        if success1
+                            println("next (csum=$coeffsum1 fac1=$fac1)")
                             count += 1
+                            coeffcount += coeffsum1 - 1
                         else
                             break
                         end
                     end
 #                    println("n=$n, count=$count")
                     newex = $(op== :mplus ?
-                              :(mxpr(:mmul,count+1,a[n])) :
+                              :(mxpr(:mmul,coeffcount,fac)) :
                               0)
-                    println(newex)
+                    println("newex $newex")
                     splice!(a,n:n+count,[newex])
                 end
                 n += 1
@@ -1107,6 +1110,7 @@ meval_one_arg(mx::Mxpr{:Cos},x) = mx
 meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,@ma(mx,1)) : mx
 
 # This is slow. Nothing smart implemented
+# (it is 10x faster than Maxima makelist and the 3rd party 'table'
 # We are constructing the product and sorting the factors
 # every time.
 # [Cos(n * :Pi) for n in 1:10^5]
