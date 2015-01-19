@@ -933,15 +933,24 @@ end
 numeric_coefficient(x::Number) = x
 numeric_coefficient(x) = 1
 
+# Note this is really numeric_exponent
+function numeric_coefficient(x::Mxpr{:mpow})
+    local c::Number
+    c = is_type_less(expt(x),Number) ? expt(x) : 1
+end
+
 function rest(mx::Mxpr)
     res=deepcopy(mx)
     shift!(margs(res))
     return length(res) == 1 ? @ma(res,1) : res
 end
 
+getfac(mx::Mxpr{:mmul}) = rest(mx)
+getfac(mx::Mxpr{:mpow}) = base(mx)
+
 function numeric_coefficient_and_factor(a)
     n = numeric_coefficient(a)
-    return n == 1 ? (n,a) : (n,rest(a))
+    return n == 1 ? (n,a) : (n,getfac(a))
 end
 
 function nf2(a,b)
@@ -981,7 +990,7 @@ for (op,name,id) in  ((:mplus,:collectplus!,0),(:mmul,:collectmul!,1))
 #                    println("n=$n, count=$count")
                     newex = $(op== :mplus ?
                               :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
-                              :(mxpr(:mpow,fac,coeffcount)))
+                              :(coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
                     println("newex $newex")
                     if coeffcount == 0
                         splice!(a,n:n+count)
