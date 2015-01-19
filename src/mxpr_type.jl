@@ -1,7 +1,9 @@
 abstract AbstractMxpr
 
+typealias SSymbol Symbol
+
 type Mxpr{T} <: AbstractMxpr
-    head::Symbol
+    head::SSymbol
     args::Array{Any,1}
     jhead::Symbol    # Actual exact Julia head: :call, etc
     clean::Bool      # Is the expression canonicalized ?

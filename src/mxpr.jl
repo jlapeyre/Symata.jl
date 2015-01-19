@@ -1101,7 +1101,7 @@ meval_one_arg(mx::Mxpr{:Cos},x) = mx
 meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,@ma(mx,1)) : mx
 
 # This is slow. Nothing smart implemented
-# Of course, we are constructing the product and sorting the factors
+# We are constructing the product and sorting the factors
 # every time.
 # [Cos(n * :Pi) for n in 1:10^5]
 # z = 3*:Pi; [Cos(z) for n in 1.0:10^5]; is 5 times faster
