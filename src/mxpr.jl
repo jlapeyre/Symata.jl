@@ -189,8 +189,9 @@ Base.endof(mx::Mxpr) = length(mx)
 # one way to be dirty, not just unordered.
 
 is_order_clean(mx::Mxpr) = return mx.clean
-set_order_dirty(mx::Mxpr) = (mx.clean = false)
-set_order_clean(mx::Mxpr) = (mx.clean = true)  # orderexpr! calls this. You don't need to.
+set_order_dirty!(mx::Mxpr) = (mx.clean = false)
+set_order_clean!(mx::Mxpr) = (mx.clean = true)  # orderexpr! calls this. You don't need to.
+#set_order_clean!(x) = true
 sortiforderless!(mx::Orderless) = orderexpr!(mx)  # regardless of dirty bit
 sortiforderless!(mx) = mx
 
@@ -486,8 +487,8 @@ for op = (:mplus, :mmul)
         # note: these definitions must not cause a dispatch loop when +(a,b) is
         # not defined, and must only try to call 2-argument definitions, so
         # that defining +(a,b) is sufficient for full functionality.
-        ($op)(a, b, c)        = ($op)(($op)(a,b),c)
-        ($op)(a, b, c, xs...) = ($op)(($op)(($op)(a,b),c), xs...)
+        ($op){T<:Number}(a::T, b::T, c::T)        = ($op)(($op)(a,b),c)
+        ($op){T<:Number}(a::T, b::T, c::T, xs::T...) = ($op)(($op)(($op)(a,b),c), xs...)
         # a further concern is that it's easy for a type like (Int,Int...)
         # to match many definitions, so we need to keep the number of
         # definitions down to avoid losing type information.
@@ -509,12 +510,12 @@ is_rat_and_int(x) = false
 # modified.
 # The code here is an attempt to get meval to run automatically,
 # it works, but is really the wrong approach.
-ordereval(x) = meval(deep_order_if_orderless!(x))
+ordereval(x) = meval(deepcanonexpr!(x))
 mxmkevalminus(args...) = ordereval(rewrite_binary_minus(mxpr(args...)))
 mxmkevaldivision(args...) = ordereval(rewrite_division(mxpr(args...)))
 
 mxmkeval(args...) = meval(mxpr(args...))
-mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
+mxmkorderless(args...) = deepcanonexpr!(mxmkeval(args...))
 let sym,str
     for str in ("*", "+")
         sym = symbol(str)
@@ -548,7 +549,7 @@ end
 macro sj(ex)
     mx = ex_to_mx!(ex)
     mx = meval(mx)    # order first or eval first ?
-    mx = deep_order_if_orderless!(mx)
+    mx = deepcanonexpr!(mx)
     # need this always for expressions in files    
     is_type(mx,Symbol) && return Base.QuoteNode(mx)
     mx = tryjeval(mx)  # We need this!

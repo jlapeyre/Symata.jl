@@ -5,6 +5,9 @@
 const _jstypeorder = Dict{DataType,Int}()
 const _jsoporder = Dict{Symbol,Int}()
 
+#pprintln(x...) = println(x...)
+pprintln(x...) = nothing
+
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
 function _mklexorder()
@@ -96,6 +99,7 @@ jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 function orderexpr!(mx::Orderless)
     ar = jargs(mx)
     sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
+    set_order_clean!(mx)    
     mx
 end
 
@@ -103,20 +107,27 @@ end
 needs_ordering(mx::Mxpr) = false
 needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 function canonexpr!(mx::Orderless)
-    orderexpr!(mx)
     if needs_ordering(mx)
+        pprintln("A $mx")
         orderexpr!(mx)
-        mx = compactsumlike!(mx)
-        mx = collectordered!(mx)
-        set_order_clean(mx)
+        pprintln("B $mx")        
+        if is_type_less(mx,Mxpr)        
+            mx = compactsumlike!(mx)
+            pprintln("C $mx")
+            if is_type_less(mx,Mxpr)
+                mx = collectordered!(mx)
+                pprintln("D $mx")                
+                is_type_less(mx,Mxpr) ? set_order_clean!(mx) : nothing
+            end
+        end
     end
-    mx    
+    mx
 end    
 canonexpr!(x) = x
 
-function deepcanonexpr!(mx::Orderless)
+function deepcanonexpr!(mx::Mxpr)
     for i = 1:length(mx)
-        @mdebug(10,"deepcanonexpr!: loop: i=$i, mx[$i] = $i")
+        @mdebug(10,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
         @ma(mx,i) = deepcanonexpr!(@ma(mx,i))
     end
     mx = canonexpr!(mx)
@@ -138,7 +149,8 @@ end
 order_if_orderless!(x) = x
 
 # Check the dirty bits of all all orderless subexpressions
-function deep_order_if_orderless!(mx::Mxpr)
+#deep_order_if_orderless!(x) = deepcanonexpr!(x)
+function olddeep_order_if_orderless!(mx::Mxpr)
     for i = 1:length(mx)
         @mdebug(10,"deep_order_if_orderless!: loop: i=$i, mx[$i] = $i")
         @ma(mx,i) = deep_order_if_orderless!(@ma(mx,i))
@@ -148,7 +160,7 @@ function deep_order_if_orderless!(mx::Mxpr)
     is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
     return mx
 end
-deep_order_if_orderless!(x) = x
+#deep_order_if_orderless!(x) = x
 
 # TODO  'compact' not a good name for this function
 #################################################################
@@ -186,17 +198,19 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
 end
 
 function numeric_coefficient(x::Mxpr{:mmul})
+    pprintln("*************Here")
     local c::Number
     c = is_type_less(x[1],Number) ? x[1] : 1
 end
-numeric_coefficient(x::Number) = x
-numeric_coefficient(x) = 1
+numeric_coefficient(x::Number) = (pprintln("****************** NUmber"); x)
+numeric_coefficient(x) = (pprintln("************* anything 1"); 1)
 
-# Note this is really getting the numeric exponent
-function numeric_coefficient(x::Mxpr{:mpow})
+function numeric_expt(x::Mxpr{:mpow})
     local c::Number
     c = is_type_less(expt(x),Number) ? expt(x) : 1
 end
+numeric_expt(x::Number) = 1
+numeric_expt(x) = 1
 
 function _rest(mx::Mxpr)
     res=deepcopy(mx)
@@ -204,54 +218,74 @@ function _rest(mx::Mxpr)
     return length(res) == 1 ? @ma(res,1) : res
 end
 
-getfac(mx::Mxpr{:mmul}) = _rest(mx)
-getfac(mx::Mxpr{:mpow}) = base(mx)
+#getfac(mx::Mxpr{:mmul}) = _rest(mx)
+#getfac(mx::Mxpr{:mpow}) = base(mx)
 
 function numeric_coefficient_and_factor(a)
+    pprintln("getting nc  of $a")    
     n = numeric_coefficient(a)
-    return n == 1 ? (n,a) : (n,getfac(a))
+    res = n == 1 ? (n,a) : (n,_rest(a))    
+    pprintln("nc $res")
+    return res
+end
+
+function numeric_expt_and_base(a)
+    n = numeric_expt(a)
+    return n == 1 ? (n,a) : (n,base(a))
 end
 
 function _matchterms(a,b)
     (na,a1) = numeric_coefficient_and_factor(a)
     (nb,b1) = numeric_coefficient_and_factor(b)
+    pprintln("(na,a1)=($na,$a1), (nb,b1)=($nb,$b1)")
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
+function _matchfacs(a,b)
+    pprintln("matchfacs ($a,$b)")
+    (na,a1) = numeric_expt_and_base(a)
+    (nb,b1) = numeric_expt_and_base(b)
+    return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
+end
+
+collectordered!(x) = x
 collectordered!(mx::Mxpr{:mplus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:mmul}) = collectmmul!(mx)
 #Replace n repeated terms x by n*x, and factors x by x^n
-for (op,name,id) in  ((:mplus,:collectmplus!,0),(:mmul,:collectmul!,1))
-    opstr = string(op)
+for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
+                          (:mmul,:collectmmul!,:_matchfacs))
     @eval begin
         function ($name)(mx::Mxpr)
+#            mx = deepcopy(mx)
+            pprintln("enter collect ", $name ,": $mx")
             length(mx) < 2 && return mx
             a = margs(mx)
             n = 1
             count = 0
             coeffcount = 0
             while n < length(a)
-                (success,coeffsum,fac) = _matchterms(a[n],a[n+1])
-#                println("start (csum=$coeffsum fac=$fac)")
+                is_type_less(a[n],Number) && (n += 1; continue)
+                (success,coeffsum,fac) = ($matchf)(a[n],a[n+1])
+                pprintln("start (a[n]=$(a[n]) csum=$coeffsum fac=$fac)")
                 if success
                     count = 1
                     coeffcount = coeffsum
                     for i in (n+1):(length(a)-1)
-                        (success1,coeffsum1,fac1) = _matchterms(fac,a[i+1])
+                        (success1,coeffsum1,fac1) = ($matchf)(fac,a[i+1])
                         #                        if a[i] == a[i+1]
                         if success1
-#                            println("next (csum=$coeffsum1 fac1=$fac1)")
+                            pprintln("next (a[i]=$(a[i]) csum=$coeffsum1 fac1=$fac1)")
                             count += 1
                             coeffcount += coeffsum1 - 1
                         else
                             break
                         end
                     end
-#                    println("n=$n, count=$count")
+                    pprintln("n=$n, count=$count")
                     newex = $(op== :mplus ?
                               :(coeffcount == 1 ? fac : mxpr(:mmul,coeffcount,fac)) :
-                              :(coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
-#                    println("newex $newex")
+                              :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:mpow,fac,coeffcount)))
+                    pprintln("newex $newex, coeffcount: $coeffcount")
                     if coeffcount == 0
                         splice!(a,n:n+count)
                     else 
@@ -260,7 +294,13 @@ for (op,name,id) in  ((:mplus,:collectmplus!,0),(:mmul,:collectmul!,1))
                 end
                 n += 1
             end
-            return length(a) == 1 ? a[1] : mx
+            if  length(a) == 1
+                return a[1]
+            end
+            if length(a) == 0
+                return 0
+            end
+            return mx
         end
     end
 end
