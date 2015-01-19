@@ -401,7 +401,7 @@ end
 macro rule(ex)
     #    exhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
     ex1 = deepcopy(ex)
-    mx = transex(ex1)
+    mx = ex_to_mx!(ex1)
     prule(pattern(mx.args[1]),pattern(mx.args[2]))
 end
 

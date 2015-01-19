@@ -11,10 +11,6 @@ const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 # @sj Sqrt(a) , and @sj Sqrt(3), etc. are broken
 # in both sjulia and julia and in different ways.
 
-## Less urgent
-## FIX
-# Printing of BigFloats
-
 # Test if we have the altered interpreter.c, i.e. SJulia
 const HAVE_SJULIA = try
     ccall((:jl_is_symbol_evals_to_self, "libjulia.so"), Bool, ())
