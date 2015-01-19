@@ -219,6 +219,7 @@ expt(p::Mxpr{:mpow}) = p[2]
 is_call(ex::Expr) = exhead(ex) == :call
 is_call(ex::Expr, op::Symbol) = exhead(ex) == :call && ex.args[1] == op
 is_call(ex::Expr, op::Symbol, len::Int) = exhead(ex) == :call && ex.args[1] == op && length(ex.args) == len
+is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 is_op(mx::Mxpr, op::Symbol) = head(mx) == op
 is_op(mx::Mxpr, op::Symbol, len::Int) = head(mx) == op && length(mx) == len
 is_op(x...) = false
@@ -279,8 +280,14 @@ end
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
     ex = replace_arithmetic_ops!(ex)
-    ex = tryjeval(ex)  # compile it if we can
-    is_type(ex,Expr) || return ex
+    if ! is_call(ex,1)   # eg :( f() ). sjulia evals this to f, julia fails.
+        @mdebug(2,"ex_to_mx! running tryjeval on:  ", ex)
+        ex = tryjeval(ex)  # compile it if we can
+        if  ! is_type(ex,Expr)
+            @mdebug(2,"ex_to_mx! tryjeval is returning non-expression: ", ex)
+            return ex
+        end
+    end
     is_call(ex,://,3)  && is_number(ex.args[2]) && is_number(ex.args[3]) && return eval(ex)
     ex = rewrite_expr(ex)
     for i in 1:length(ex.args)
@@ -294,12 +301,15 @@ function ex_to_mx!(ex::Expr)
         mxop = ex.head
         mxargs = ex.args
     end
-    @mdebug(20,"converting for printing: ", mxop, ", ", jtomop(mxop))
+#    @mdebug(20,"converting for printing: ", mxop, ", ", jtomop(mxop))
     mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
+    @mdebug(10,"ex_to_mx!: constructed Mxpr: $mx")
+    mx
 end
 
 @if_no_sjulia function ex_to_mx!(sym::Symbol) # if unbound, make symbol evaluate to itself
-    if !isdefined(sym) 
+    @mdebug(12, "ex_to_mx!(sym::Symbol): sym=$sym")
+    if !isdefined(sym)
         set_symbol_self_eval(sym)
     end
     sym

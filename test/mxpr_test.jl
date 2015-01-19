@@ -12,7 +12,7 @@ __bbbb = 1  # can't get local scope somehow
 @test (@sj __bbbb)  == 1
 @test (@sj 1 + 1) == 2
 
-let c
+@if_no_sjulia let c     # bug in sjulia causes :( c() ) to evaluate to c
     @test mxpr(:c) == @sj( c() )
 end
 
