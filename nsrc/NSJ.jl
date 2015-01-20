@@ -1,16 +1,7 @@
 ## Retrieve or create new symbol
 
-sjsym(s::Symbol) = SJSym(s,s,false)
+sjsym(s::Symbol) = SJSym(s,s,false,false,false)
 
-function getsym(s::Symbol)
-    if haskey(SYMTAB,s)
-        return SYMTAB[s]
-    else
-        ns = sjsym(s)
-        SYMTAB[s] = ns
-        return ns
-    end
-end
 
 function get_attribute(s::Symbol, a::Symbol)
     sj = getsym(s)
@@ -22,10 +13,21 @@ function set_attribute(s::Symbol, a::Symbol)
     eval(Expr(:(=), Expr(:.,sj,QuoteNode(a)), true))
 end
 
-set_attribute(:Set,:HoldFirst)
-set_attribute(:SetDelayed,:HoldFirst)
+for v in ( :(:Set), :(:SetDelayed) )
+    @eval begin
+        set_attribute($v,:HoldFirst)
+        set_attribute($v,:Protected)        
+    end
+end
 
-## translate between Julia and SJulia
+for v in ( :(:Clear), )
+    @eval begin
+        set_attribute($v,:HoldAll)
+        set_attribute($v,:Protected)        
+    end
+end
+
+## Symbol correspondence between Julia and SJulia
 
 const JTOMSYM  =
  Dict(
@@ -33,6 +35,10 @@ const JTOMSYM  =
       :(:=) => :SetDelayed,
       :+ => :Plus,
       :* => :Times,
+      :(=>) => :Rule, # Mma uses ->  (hmmm)
+      :vcat => :List,
+      :cell1d => :List,   # curly brackets, but deprecated by julia
+      :comparison => :Comparison,
       )
 
 const MTOJSYM = Dict{Symbol,Symbol}()
@@ -45,6 +51,30 @@ function jtomsym(x::Symbol)
     return x
 end
 
+mtojsym(s::SJSym) = mtojsym(s.name)
+function mtojsym(x::Symbol)
+    if haskey(MTOJSYM,x)
+        return MTOJSYM[x]
+    end
+    return x
+end
+
+const OPTYPE  = Dict{Symbol,Symbol}()
+
+for op in (:(=), :(:=), :(=>), :Rule )
+    OPTYPE[op] = :binary
+end
+
+getoptype(s::SJSym) = getoptype(s.name)
+
+function getoptype(x::Symbol)
+    if haskey(OPTYPE,x)
+        return OPTYPE[x]
+    end
+    return :prefix
+end
+
+
 ## SJSym functions
 
 Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,s.name)
@@ -52,27 +82,33 @@ sjeval(s::SJSym) = s.val
 sjset(s::SJSym,val) = s.val = val
 ==(a::SJSym,b::SJSym) = a.name == b.name
 
-## Special symbols
-
-## Mxpr creation and display
-
 getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
-
 function mxpr(s::SJSym,iargs...)
     args = Array(Any,0)
     for x in iargs push!(args,x) end
     Mxpr{s.name}(s,args)
 end
-
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
 
-const FUNCL = '['
-const FUNCR = ']'
-const LISTL = '{'
-const LISTR = '}'
+## Mxpr Display
+
+# Mathematica syntax
+# const FUNCL = '['
+# const FUNCR = ']'
+# const LISTL = '{'
+# const LISTR = '}'
+
+# Julia-like syntax
+const FUNCL = '('
+const FUNCR = ')'
+const LISTL = '['
+const LISTR = ']'
 
 function Base.show(io::IO, s::Mxpr)
+    if getoptype(s.head) == :binary
+        return show_binary(io,s)
+    end
     s.head == getsym(:List) ? nothing : show(io,s.head)
     args = s.args
     print(io,s.head == getsym(:List) ? LISTL : FUNCL)
@@ -90,6 +126,14 @@ function Base.show(io::IO, s::Mxpr{:SetDelayed})
     show(io,s[2])
 end
 
+function show_binary(io::IO, mx::Mxpr)
+    show(io,mx.args[1])
+    print(io, "  ", mtojsym(mx.head), " ")
+    show(io,mx.args[2])
+end
+
+## Translate Expr to Mxpr
+
 extomx(x) = x
 extomx(s::Symbol) = getsym(jtomsym(s))
 
@@ -106,35 +150,26 @@ function extomx(ex::Expr)
     if ex.head == :call || ex.head == :ref
         head = jtomsym(a[1])
         for i in 2:length(a) push!(newa,extomx(a[i])) end
-    elseif ex.head == :vcat
-        head = :List
-        extomxarr(a,newa)
-    elseif ex.head == :comparison
-        head = :Comparison
-        extomxarr(a,newa)
-    elseif ex.head == :(=)
-        head = :Set
+    elseif haskey(JTOMSYM,ex.head)
+        head = JTOMSYM[ex.head]
         extomxarr(a,newa)        
-    elseif ex.head == :(:=)
-        head = :SetDelayed
-        extomxarr(a,newa)        
-    elseif ex.head == :cell1d
-        head = :List
-        extomxarr(a,newa)
-    else
-        error("extomx: can't translate $(ex.head)")
+    else        
+        dump(ex)
+        error("extomx: No translation for Expr head '$(ex.head)'")
     end
     mxpr(head,newa...)
 end
 
-macro exmx(ex)
+## Macro for translation and evaluation, at repl or from file
+
+macro ex(ex)
     res = extomx(ex)
     mx = meval(res)
     :(($(esc(mx))))
 end
 
 
-## evaluation
+## Evaluation of Mxpr
 
 meval(x) = x
 meval(s::SJSym) = s.val == s.name ? s : s.val
@@ -147,8 +182,12 @@ function meval(mx::Mxpr)
         start = 2
         push!(nargs,mx.args[1])
     end
-    for i in start:length(mx.args)
-        push!(nargs,meval(mx.args[i]))
+    if get_attribute(mx.head.name,:HoldAll)
+        nargs = mx.args
+    else
+        for i in start:length(mx.args)
+            push!(nargs,meval(mx.args[i]))
+        end
     end
     nmx = mxpr(nhead,nargs...)
     apprules(nmx)
@@ -156,7 +195,22 @@ end
 
 apprules(x) = x
 
+function checkprotect(s::SJSym)
+    get_attribute(s.name,:Protected) &&
+    error("Symbol '",s.name, "' is protected.")
+end
+
+# Set SJSym value
 function apprules(mx::Mxpr{:Set})
+    checkprotect(mx.args[1])
     sjset(mx.args[1],mx.args[2])
     mx.args[2]
+end
+
+# 'Clear' a value. ie. set symbol's value to its name
+function apprules(mx::Mxpr{:Clear})
+    for a in mx.args
+        checkprotect(a)
+        a.val = a.name
+    end
 end
