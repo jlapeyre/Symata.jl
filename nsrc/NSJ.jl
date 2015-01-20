@@ -1,17 +1,7 @@
-## Retrieve or create new symbol
-
-sjsym(s::Symbol) = SJSym(s,s,false,false,false)
 
 
-function get_attribute(s::Symbol, a::Symbol)
-    sj = getsym(s)
-    eval(Expr(:.,sj,QuoteNode(a)))
-end
 
-function set_attribute(s::Symbol, a::Symbol)
-    sj = getsym(s)
-    eval(Expr(:(=), Expr(:.,sj,QuoteNode(a)), true))
-end
+
 
 for v in ( :(:Set), :(:SetDelayed) )
     @eval begin
