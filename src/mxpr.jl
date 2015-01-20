@@ -628,7 +628,6 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
             newmx = Mxpr{symbol($op)}($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
-#        register_meval_func(symbol($op),$name)  # register this function as handler
     end
 end 
 
@@ -664,7 +663,31 @@ function meval_div(mx::Mxpr)
 end
 register_meval_func(:/,meval_div)
 
-## Only called once in all test suite!
+
+macro mevaltop(mx1)
+#    emx = (esc(mx))
+    quote
+        mx = deepcopy($mx1)
+        oldhead = head(mx)
+        newhead = eval(oldhead)
+        if newhead != oldhead
+            mx = mxpr(newhead,margs(mx)...)
+        end
+        for i in 1:length(mx)
+            @ma(mx,i) = meval(mx[i])
+        end
+        mx
+    end
+end
+
+function nmeval(mx)
+    @mevaltop(mx)
+    mx
+end
+
+
+
+## Not called very much
 ## meval top level 
 function meval(mx::Mxpr)
 #    println("in meval $mx")
