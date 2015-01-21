@@ -1,16 +1,11 @@
-
-
-
-
-
-for v in ( :(:Set), :(:SetDelayed) )
+for v in ( :(:Set), )
     @eval begin
         set_attribute($v,:HoldFirst)
         set_attribute($v,:Protected)        
     end
 end
 
-for v in ( :(:Clear), )
+for v in ( :(:Clear), :(:SetDelayed) )
     @eval begin
         set_attribute($v,:HoldAll)
         set_attribute($v,:Protected)        
@@ -64,7 +59,6 @@ function getoptype(x::Symbol)
     return :prefix
 end
 
-
 ## SJSym functions
 
 Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,s.name)
@@ -80,6 +74,19 @@ function mxpr(s::SJSym,iargs...)
 end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
+
+function ==(ax::Mxpr, bx::Mxpr)
+    ax.head != bx.head  && return false
+    a = ax.args
+    b = bx.args
+    (na,nb) = (length(a),length(b))
+#    println("length $na $nb")
+    na != nb && return false
+    for i in 1:na
+        a[i] != b[i] && return false
+    end
+    true
+end
 
 ## Mxpr Display
 
@@ -152,10 +159,25 @@ end
 
 ## Macro for translation and evaluation, at repl or from file
 
+global NEVAL = 0
+
 macro ex(ex)
     res = extomx(ex)
+    NEVAL = 1
     mx = meval(res)
-    :(($(esc(mx))))
+    local mx1
+    while true
+        mx1 = meval(mx)
+        if mx1 == mx
+            break
+        end
+        if NEVAL > 1000
+            error("Too many evaluations.")
+        end
+        mx = mx1
+    end
+    NEVAL = 0
+    :(($(esc(mx1))))
 end
 
 
@@ -190,8 +212,9 @@ function checkprotect(s::SJSym)
     error("Symbol '",s.name, "' is protected.")
 end
 
-# Set SJSym value
-function apprules(mx::Mxpr{:Set})
+# Set SJSym value.
+# Set has HoldFirst, SetDelayed has HoldAll.
+function apprules(mx::Union(Mxpr{:Set},Mxpr{:SetDelayed}))
     checkprotect(mx.args[1])
     sjset(mx.args[1],mx.args[2])
     mx.args[2]
