@@ -25,6 +25,8 @@ function getsym(s::Symbol)
 end
 getsym(ss::String) = getsym(symbol(ss))
 
+getsymval(s::Symbol) = getsym(s).val
+
 get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
 set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
 unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)

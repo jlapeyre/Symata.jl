@@ -1,4 +1,4 @@
-for v in ( "Set", "Pattern" )
+for v in ( "Set", "Pattern", "SetJ" )
     @eval begin
         set_attribute(symbol($v),:HoldFirst)
         set_attribute(symbol($v),:Protected)        
@@ -176,12 +176,18 @@ function extomxarr(ain,aout)
 end
 
 function extomx(ex::Expr)
+#    println(ex)
+#    dump(ex)
     newa = Array(Any,0)
     local head::Symbol
     a = ex.args    
     if ex.head == :call
         head = jtomsym(a[1])
         for i in 2:length(a) push!(newa,extomx(a[i])) end
+    elseif ex.head == :block
+        mx = extomx(a[2])
+#        show(mx)
+        return mx
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
         extomxarr(a,newa)        
@@ -261,9 +267,16 @@ function set_and_setdelayed(mx,lhs::SJSym, rhs)
     rhs
 end
 
-function set_and_setdelayed(mx,lhs::Mxpr{:JVar}, rhs)
+function apprules(mx::Mxpr{:SetJ})
+    lhs = mx.args[1]
+    rhs = mx.args[2]
     eval(Expr(:(=),lhs.name,rhs))
-end
+end 
+
+# No, not this way
+#function set_and_setdelayed(mx,lhs::Mxpr{:JVar}, rhs)
+#    eval(Expr(:(=),lhs.args[1].name,rhs))
+#end
 
 set_and_setdelayed(mx,y,z) = mx
 
@@ -292,4 +305,8 @@ end
 
 function apprules(mx::Mxpr{:Head})
     mx.args[1].head
+end
+
+function apprules(mx::Mxpr{:JVar})
+    eval(mx.args[1].name)
 end
