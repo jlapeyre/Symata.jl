@@ -2,7 +2,12 @@ type SJSym
     name::Symbol
     val::Any
     attr::Dict{Symbol,Bool}
+    downvalues::Dict{Symbol,Any}  # need Mxpr here instead of Any
 end
+
+symname(s::SJSym) = s.name
+symval(s::SJSym) = s.val
+setsymval(s::SJSym,val) = (s.val = val)
 
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
@@ -13,7 +18,7 @@ end
 const SYMTAB = Dict{Symbol,SJSym}()
 
 ## Retrieve or create new symbol
-sjsym(s::Symbol) = SJSym(s,s,Dict{Symbol,Bool}())
+sjsym(s::Symbol) = SJSym(s,s,Dict{Symbol,Bool}(),Dict{Symbol,Any}())
 function getsym(s::Symbol)
     if haskey(SYMTAB,s)
         return SYMTAB[s]
@@ -42,3 +47,9 @@ end
 function unset_attribute(sj::SJSym, a::Symbol)
     sj.attr[a] = false
 end
+
+abstract AbstractTSym
+type TSym{T} <: AbstractTSym
+end
+
+tsymname{T}(t::TSym{T}) = T

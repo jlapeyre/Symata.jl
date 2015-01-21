@@ -61,7 +61,7 @@ function jtomsym(x::Symbol)
     return x
 end
 
-mtojsym(s::SJSym) = mtojsym(s.name)
+mtojsym(s::SJSym) = mtojsym(symname(s))
 function mtojsym(x::Symbol)
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]
@@ -75,7 +75,7 @@ for op in (:(=), :(:=), :(=>), :Rule )
     OPTYPE[op] = :binary
 end
 
-getoptype(s::SJSym) = getoptype(s.name)
+getoptype(s::SJSym) = getoptype(symname(s))
 
 function getoptype(x::Symbol)
     if haskey(OPTYPE,x)
@@ -86,16 +86,16 @@ end
 
 ## SJSym functions
 
-Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,s.name)
+Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,symname(s))
 sjeval(s::SJSym) = s.val
 sjset(s::SJSym,val) = s.val = val
-==(a::SJSym,b::SJSym) = a.name == b.name
+==(a::SJSym,b::SJSym) = symname(a) == symname(b)
 
 getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
 function mxpr(s::SJSym,iargs...)
     args = Array(Any,0)
     for x in iargs push!(args,x) end
-    Mxpr{s.name}(s,args)
+    Mxpr{symname(s)}(s,args)
 end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
@@ -249,17 +249,17 @@ end
 ## Evaluation of Mxpr
 
 meval(x) = x
-meval(s::SJSym) = s.val == s.name ? s : s.val
+meval(s::SJSym) = s.val == symname(s) ? s : s.val
 
 function meval(mx::Mxpr)
     nhead = meval(mx.head)
     nargs = Array(Any,0)
     start = 1
-    if get_attribute(mx.head.name,:HoldFirst)
+    if get_attribute(symname(mx.head),:HoldFirst)
         start = 2
         push!(nargs,mx.args[1])
     end
-    if get_attribute(mx.head.name,:HoldAll)
+    if get_attribute(symname(mx.head),:HoldAll)
         nargs = mx.args
     else
         for i in start:length(mx.args)
@@ -273,8 +273,8 @@ end
 apprules(x) = x
 
 function checkprotect(s::SJSym)
-    get_attribute(s.name,:Protected) &&
-    error("Symbol '",s.name, "' is protected.")
+    get_attribute(symname(s),:Protected) &&
+    error("Symbol '",symname(s), "' is protected.")
 end
 
 checkprotect(mx::Mxpr) = checkprotect(mx.head)
@@ -294,7 +294,7 @@ end
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
     rhs = mx.args[2]
-    eval(Expr(:(=),lhs.name,rhs))
+    eval(Expr(:(=),symname(lhs),rhs))
 end 
 
 # No, not this way
@@ -308,7 +308,7 @@ set_and_setdelayed(mx,y,z) = mx
 function apprules(mx::Mxpr{:Clear})
     for a in mx.args
         checkprotect(a)
-        a.val = a.name
+        a.val = symname(a)
     end
 end
 
@@ -328,7 +328,7 @@ apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
 gethead(ex) = typeof(ex)
 
-apprules(mx::Mxpr{:JVar}) = eval(mx.args[1].name)
+apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
 
 apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
 
