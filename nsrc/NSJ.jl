@@ -27,6 +27,14 @@ for v in (:(:Dump), :(:Cos), :(:Length),:(:Plus),:(:Times), :(:Blank),
     end
 end
 
+for v in ("Pi","E")
+    @eval begin
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:ReadProtected)
+        set_attribute(symbol($v),:Constant)        
+    end
+end
+
 ## Symbol correspondence/translation between Julia and SJulia
 
 const JTOMSYM  =
@@ -195,8 +203,6 @@ function extomxarr(ain,aout)
 end
 
 function extomx(ex::Expr)
-#    println(ex)
-#    dump(ex)
     newa = Array(Any,0)
     local head::Symbol
     a = ex.args    
@@ -205,7 +211,6 @@ function extomx(ex::Expr)
         for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif ex.head == :block
         mx = extomx(a[2])
-#        show(mx)
         return mx
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
@@ -308,13 +313,9 @@ function apprules(mx::Mxpr{:Clear})
 end
 
 apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
-function apprules(mx::Mxpr{:Length})
-    symjlength(mx.args[1])
-end
 
-function symjlength(mx::Mxpr)
-    length(mx.args)
-end
+apprules(mx::Mxpr{:Length}) = symjlength(mx.args[1])
+symjlength(mx::Mxpr) = length(mx.args)
 symjlength(x) = length(x)
 
 # This won't work for setting a part
@@ -323,14 +324,17 @@ function apprules(mx::Mxpr{:Part})
     (a[1])[a[2]]
 end
 
-function apprules(mx::Mxpr{:Head})
-    mx.args[1].head
-end
+apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
+gethead(mx::Mxpr) = mx.head
+gethead(ex) = typeof(ex)
 
-function apprules(mx::Mxpr{:JVar})
-    eval(mx.args[1].name)
-end
+apprules(mx::Mxpr{:JVar}) = eval(mx.args[1].name)
 
-function apprules(mx::Mxpr{:Attributes})
-    get_attributes(mx.args[1])
-end
+apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
+
+apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
+makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
+makerat(mx,n,d) = mx
+apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
+makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
+makecomplex(mx,n,d) = mx
