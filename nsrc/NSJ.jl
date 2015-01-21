@@ -12,6 +12,14 @@ for v in ("Clear", "SetDelayed", "HoldPattern", "Hold", "DumpHold")
     end
 end
 
+for v in ("Attributes",)
+    @eval begin
+        set_attribute(symbol($v),:HoldAll)
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:Listable)        
+    end
+end
+
 for v in (:(:Dump), :(:Cos), :(:Length),:(:Plus),:(:Times), :(:Blank),
           :(:JVar))
     @eval begin
@@ -83,6 +91,11 @@ function mxpr(s::SJSym,iargs...)
 end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
+function get_attributes(sj::SJSym)
+    ks = sort!(collect(keys(sj.attr)))
+    sjs = [getsym(x) for x in ks]
+    mxpr(:List,sjs...)
+end
 
 function ==(ax::Mxpr, bx::Mxpr)
     ax.head != bx.head  && return false
@@ -157,13 +170,19 @@ end
 
 function parseblank(s::String)
     a = split(s,['_'], keep=true)
-    length(a) > 2 && error("parseblank: Illegal Blank expression '$a'")
-    (blankhead,blankname) = (a[1],a[2])
-    local blank
-    if length(blankname) == 0
-        blank = mxpr(:Blank)
+    length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
+    if length(a) == 2
+        blanktype = :Blank
+        (blankhead,blankname) = (a[1],a[2])
     else
-        blank = mxpr(:Blank,getsym(blankname))
+        a[2] != "" && error("parseblank: Illegal Pattern expression '$s'")
+        blanktype = :BlankSequence
+        (blankhead,blankname) = (a[1],a[3])
+    end
+    if length(blankname) == 0
+        blank = mxpr(blanktype)
+    else
+        blank = mxpr(blanktype,getsym(blankname))
     end
     length(blankhead) == 0 && return blank
     mxpr(:Pattern,getsym(blankhead),blank)
@@ -298,6 +317,7 @@ function symjlength(mx::Mxpr)
 end
 symjlength(x) = length(x)
 
+# This won't work for setting a part
 function apprules(mx::Mxpr{:Part})
     a = mx.args
     (a[1])[a[2]]
@@ -309,4 +329,8 @@ end
 
 function apprules(mx::Mxpr{:JVar})
     eval(mx.args[1].name)
+end
+
+function apprules(mx::Mxpr{:Attributes})
+    get_attributes(mx.args[1])
 end
