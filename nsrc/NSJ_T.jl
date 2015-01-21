@@ -23,6 +23,7 @@ function getsym(s::Symbol)
         return ns
     end
 end
+getsym(ss::String) = getsym(symbol(ss))
 
 get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
 set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)

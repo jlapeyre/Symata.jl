@@ -1,18 +1,25 @@
-for v in ( :(:Set), )
+for v in ( "Set", "Pattern" )
     @eval begin
-        set_attribute($v,:HoldFirst)
+        set_attribute(symbol($v),:HoldFirst)
+        set_attribute(symbol($v),:Protected)        
+    end
+end
+
+for v in ("Clear", "SetDelayed", "HoldPattern", "Hold", "DumpHold")
+    @eval begin
+        set_attribute(symbol($v),:HoldAll)
+        set_attribute(symbol($v),:Protected)
+    end
+end
+
+for v in (:(:Dump), :(:Cos), :(:Length),:(:Plus),:(:Times), :(:Blank),
+          :(:JVar))
+    @eval begin
         set_attribute($v,:Protected)        
     end
 end
 
-for v in ( :(:Clear), :(:SetDelayed) )
-    @eval begin
-        set_attribute($v,:HoldAll)
-        set_attribute($v,:Protected)        
-    end
-end
-
-## Symbol correspondence between Julia and SJulia
+## Symbol correspondence/translation between Julia and SJulia
 
 const JTOMSYM  =
  Dict(
@@ -20,8 +27,10 @@ const JTOMSYM  =
       :(:=) => :SetDelayed,
       :+ => :Plus,
       :* => :Times,
+      :^ => :Power,
       :(=>) => :Rule, # Mma uses ->  (hmmm)
       :vcat => :List,
+      :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
       :comparison => :Comparison,
       )
@@ -88,6 +97,9 @@ function ==(ax::Mxpr, bx::Mxpr)
     true
 end
 
+getindex(mx::Mxpr, k::Int) = return k == 0 ? mx.head : mx.args[k]
+Base.length(mx::Mxpr) = length(mx.args)
+
 ## Mxpr Display
 
 # Mathematica syntax
@@ -106,33 +118,56 @@ function Base.show(io::IO, s::Mxpr)
     if getoptype(s.head) == :binary
         return show_binary(io,s)
     end
-    s.head == getsym(:List) ? nothing : show(io,s.head)
-    args = s.args
-    print(io,s.head == getsym(:List) ? LISTL : FUNCL)
+    show_prefix_function(io,s)
+end
+
+function show_prefix_function(io::IO, mx::Mxpr)
+    mx.head == getsym(:List) ? nothing : show(io,mx.head)
+    args = mx.args
+    print(io,mx.head == getsym(:List) ? LISTL : FUNCL)
     for i in 1:length(args)-1
         show(io,args[i])
         print(io,",")
     end
-    show(io,args[end])
-    print(io,s.head == getsym(:List) ? LISTR : FUNCR)
-end
-
-function Base.show(io::IO, s::Mxpr{:SetDelayed})
-    show(io,s[1])
-    print(" := ")
-    show(io,s[2])
+    isempty(args) || show(io,args[end])
+    print(io,mx.head == getsym(:List) ? LISTR : FUNCR)    
 end
 
 function show_binary(io::IO, mx::Mxpr)
-    show(io,mx.args[1])
-    print(io, "  ", mtojsym(mx.head), " ")
-    show(io,mx.args[2])
+    if length(mx) != 2
+        show_prefix_function(io,mx)
+    else
+        show(io,mx.args[1])
+        print(io, "  ", mtojsym(mx.head), " ")
+        show(io,mx.args[2])
+    end
 end
 
 ## Translate Expr to Mxpr
 
 extomx(x) = x
-extomx(s::Symbol) = getsym(jtomsym(s))
+function extomx(s::Symbol)
+    ss = string(s)
+    if contains(ss,"_")
+        return parseblank(ss)
+    else
+        return getsym(jtomsym(s))
+    end
+end
+
+function parseblank(s::String)
+    a = split(s,['_'], keep=true)
+    length(a) > 2 && error("parseblank: Illegal Blank expression '$a'")
+    (blankhead,blankname) = (a[1],a[2])
+    local blank
+    if length(blankname) == 0
+        blank = mxpr(:Blank)
+    else
+        blank = mxpr(:Blank,getsym(blankname))
+    end
+    length(blankhead) == 0 && return blank
+    mxpr(:Pattern,getsym(blankhead),blank)
+end
 
 function extomxarr(ain,aout)
     for x in ain
@@ -144,7 +179,7 @@ function extomx(ex::Expr)
     newa = Array(Any,0)
     local head::Symbol
     a = ex.args    
-    if ex.head == :call || ex.head == :ref
+    if ex.head == :call
         head = jtomsym(a[1])
         for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif haskey(JTOMSYM,ex.head)
@@ -152,7 +187,7 @@ function extomx(ex::Expr)
         extomxarr(a,newa)        
     else        
         dump(ex)
-        error("extomx: No translation for Expr head '$(ex.head)'")
+        error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
     mxpr(head,newa...)
 end
@@ -212,13 +247,25 @@ function checkprotect(s::SJSym)
     error("Symbol '",s.name, "' is protected.")
 end
 
+checkprotect(mx::Mxpr) = checkprotect(mx.head)
+
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 function apprules(mx::Union(Mxpr{:Set},Mxpr{:SetDelayed}))
-    checkprotect(mx.args[1])
-    sjset(mx.args[1],mx.args[2])
-    mx.args[2]
+    set_and_setdelayed(mx,mx.args[1],mx.args[2])
 end
+
+function set_and_setdelayed(mx,lhs::SJSym, rhs)
+    checkprotect(lhs)
+    sjset(lhs,rhs)
+    rhs
+end
+
+function set_and_setdelayed(mx,lhs::Mxpr{:JVar}, rhs)
+    eval(Expr(:(=),lhs.name,rhs))
+end
+
+set_and_setdelayed(mx,y,z) = mx
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
@@ -226,4 +273,23 @@ function apprules(mx::Mxpr{:Clear})
         checkprotect(a)
         a.val = a.name
     end
+end
+
+apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
+function apprules(mx::Mxpr{:Length})
+    symjlength(mx.args[1])
+end
+
+function symjlength(mx::Mxpr)
+    length(mx.args)
+end
+symjlength(x) = length(x)
+
+function apprules(mx::Mxpr{:Part})
+    a = mx.args
+    (a[1])[a[2]]
+end
+
+function apprules(mx::Mxpr{:Head})
+    mx.args[1].head
 end
