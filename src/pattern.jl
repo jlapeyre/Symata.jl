@@ -1,7 +1,16 @@
 # This is a hack into the older pattern matcher.
 # We will redesign this.
-function Rule_to_PRule(mx::Union(Mxpr{:RuleDelayed},Mxpr{:Rule}))
+function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
     lhs = mx[1][1]
+    rhs = mx[2]
+    ptp = patterntopvar(lhs)
+    nlhs = PatternT(ptp,:All)
+    nrhs = PatternT(rhs,:All)    
+    PRule(nlhs,nrhs)
+end
+
+function Rule_to_PRule(mx::Mxpr{:Rule})
+    lhs = mx[1]
     rhs = mx[2]
     ptp = patterntopvar(lhs)
     nlhs = PatternT(ptp,:All)
@@ -33,7 +42,7 @@ function patterntopvar(mx::Mxpr{:Pattern})
 end
 
 function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-    prule = Rule_to_PRule(rd)
+    prule = RuleDelayed_to_PRule(rd)
     replacefail(mx,prule)
 end
 
