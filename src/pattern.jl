@@ -34,23 +34,14 @@ end
 
 function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     prule = Rule_to_PRule(rd)
-    res = replacefail(mx,prule)
-#    println("replacefail $rd => $prule: $mx -> $res")
-    res
+    replacefail(mx,prule)
 end
 
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mx.head)
-#    println("trydown head is ", mx.head)
-    #    dump(dvs)
-#    println("**In $dvs")
     for r in dvs
-#        println("*** trydownvalues of ", mx.head, " $r")
         res = trydownvalue(mx,r)
         if res !== false  # false can be a legitimate value ?
-#            println("****OUT $dvs")
-#            println("****OUT 2 ", downvalues(mx.head))
-#            is_type_less(res,Mxpr) && println("****OUT RESHEAD ", downvalues(res.head))
             return res
         end
     end
