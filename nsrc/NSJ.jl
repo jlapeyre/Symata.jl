@@ -5,7 +5,8 @@ for v in ( "Set", "Pattern", "SetJ" )
     end
 end
 
-for v in ("Clear", "SetDelayed", "HoldPattern", "Hold", "DumpHold")
+for v in ("Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
+          "DownValues")
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -84,20 +85,19 @@ function getoptype(x::Symbol)
     return :prefix
 end
 
+## predicate
+
+atomq(x::Mxpr) = false
+atomq(x) = true
+
 ## SJSym functions
 
 Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,symname(s))
-sjeval(s::SJSym) = s.val
-sjset(s::SJSym,val) = s.val = val
+sjeval(s::SJSym) = symval(s)
+sjset(s::SJSym,val) = setsymval(s,val)
 ==(a::SJSym,b::SJSym) = symname(a) == symname(b)
 
 getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
-function mxpr(s::SJSym,iargs...)
-    args = Array(Any,0)
-    for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args)
-end
-mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
 function get_attributes(sj::SJSym)
     ks = sort!(collect(keys(sj.attr)))
@@ -249,7 +249,7 @@ end
 ## Evaluation of Mxpr
 
 meval(x) = x
-meval(s::SJSym) = s.val == symname(s) ? s : s.val
+meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
 
 function meval(mx::Mxpr)
     nhead = meval(mx.head)
@@ -267,8 +267,11 @@ function meval(mx::Mxpr)
         end
     end
     nmx = mxpr(nhead,nargs...)
-    apprules(nmx)
+    nmx = apprules(nmx)
+    applydownvalues(nmx)
 end
+
+## Application of Rules for many SJSym's ...
 
 apprules(x) = x
 
@@ -291,6 +294,14 @@ function set_and_setdelayed(mx,lhs::SJSym, rhs)
     rhs
 end
 
+function set_and_setdelayed(mx,lhs::Mxpr, rhs)
+    checkprotect(lhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    pushdownvalue(lhs.head,rule)
+    rule
+end
+
+
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
     rhs = mx.args[2]
@@ -308,7 +319,15 @@ set_and_setdelayed(mx,y,z) = mx
 function apprules(mx::Mxpr{:Clear})
     for a in mx.args
         checkprotect(a)
-        a.val = symname(a)
+        setsymval(a,symname(a))
+    end
+end
+
+function apprules(mx::Mxpr{:ClearAll})
+    for a in mx.args
+        checkprotect(a)
+        setsymval(a,symname(a))
+        cleardownvalues(a)
     end
 end
 
@@ -327,10 +346,12 @@ end
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
 gethead(ex) = typeof(ex)
-
 apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
-
+apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
 apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
+apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx.args[1])
+
+## A few Number rules
 
 apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
