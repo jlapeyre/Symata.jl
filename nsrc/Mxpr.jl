@@ -1,6 +1,8 @@
 include("mxpr_util.jl")
-include("NSJ_T.jl")
-include("NSJ.jl")
+include("arithmetic.jl")
+include("mxpr_type.jl")
+include("mxpr.jl")
 include("trig.jl")
 include("mpatrule.jl")
 include("pattern.jl")
+nothing

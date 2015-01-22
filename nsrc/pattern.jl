@@ -1,27 +1,9 @@
-# # pattern names can't contain _, so this is no pattern name
-# const nullblank = :_null
-
-# type Blank
-#     name::Symbol
-#     head::Symbol    
-# end
-
-# Blank() = Blank(nullblank)
-
-# type BlankSequence
-#     name::Symbol
-#     head::Symbol    
-# end
-# BlankSequence() = BlankSequence(nullblank)
-
 # This is a hack into the older pattern matcher.
 # We will redesign this.
 function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
     lhs = mx[1][1]
     rhs = mx[2]
-#    println("lhs $lhs, rhs $rhs")
     ptp = patterntopvar(lhs)
-#    println("ptp is $ptp")
     nlhs = PatternT(ptp,:All)
     nrhs = PatternT(rhs,:All)    
     PRule(nlhs,nrhs)
@@ -29,16 +11,11 @@ end
 
 function patterntopvar(mx::Mxpr)
     nargs = Array(Any,0)
-#    println("patterntopaver mxpr $mx")
     for x in mx.args
-#        println("x is $x")
         nx = patterntopvar(x)
-#        println("nx is $nx")        
         push!(nargs,nx)
     end
-#    println("nargs is $nargs")    
     nmx = mxpr(mx.head,nargs...)
-#    println("nmx is $nmx")
     nmx
 end
 

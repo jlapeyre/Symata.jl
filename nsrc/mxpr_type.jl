@@ -38,7 +38,8 @@ function getsym(s::Symbol)
     else
         ns = sjsym(s)
         SYMTAB[s] = ns
-        eval(:($s = true)) # pollute Julia just so we get repl completion. remove this later.
+        # pollute Julia just so we get repl completion. remove this later.        
+        !isdefined(s) && eval(:($s = true)) 
         return ns
     end
 end

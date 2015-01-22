@@ -43,6 +43,7 @@ const JTOMSYM  =
       :(=) => :Set,
       :(:=) => :SetDelayed,
       :+ => :Plus,
+      :- => :Minus,
       :* => :Times,
       :^ => :Power,
       :(=>) => :Rule, # Mma uses ->  (hmmm)
@@ -205,6 +206,7 @@ end
 function extomx(ex::Expr)
     newa = Array(Any,0)
     local head::Symbol
+    ex = rewrite_expr(ex)
     a = ex.args    
     if ex.head == :call
         head = jtomsym(a[1])
@@ -221,6 +223,41 @@ function extomx(ex::Expr)
     end
     mxpr(head,newa...)
 end
+
+
+is_call(ex::Expr) = ex.head == :call
+is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
+is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
+
+# We check for :call repeatedly. We can optimize this later.
+is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
+# number of args != 3 will pass through. But probably can't be used
+is_division(ex::Expr) = is_call(ex, :/,3)  
+is_power(ex::Expr) = is_call(ex, :^)
+
+# There is no binary minus and no division in Mxpr's.
+rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
+rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
+rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
+rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
+
+# Concrete example: a - b --> a + -b.
+# We definitely need to dispatch on a hash query, or types somehow
+function rewrite_expr(ex::Expr)
+    if is_binary_minus(ex)  #  a - b --> a + -b.
+        ex = rewrite_binary_minus(ex)
+    elseif is_division(ex) # a / b --> a + b^(-1)
+        ex = rewrite_division(ex)
+    elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
+        ex = Expr(:call, :^, :E, ex.args[2])
+#    elseif is_call(ex,:Sqrt,2)
+#        ex = Expr(:call, :^, ex.args[2], SJRational(1//2))
+#    end
+    end
+    return ex
+end
+
 
 ## Macro for translation and evaluation, at repl or from file
 
@@ -359,3 +396,10 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
+
+apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
+dopower(mx,b::Number,e::Number) = mpow(b,e)
+dopower(mx,b,e) = mx
+
+
+

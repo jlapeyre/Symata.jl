@@ -227,7 +227,7 @@ end
 # if we don't know what the condition is, try to evalute it.
 # slow.
 function evalcond(c)
-    println("evaling expression $c")
+#    println("evaling expression $c")
     res = try
         eval(c)
     catch
@@ -239,8 +239,10 @@ end
 # check if conditions on capture var cvar are satisfied by ex
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
-matchpat(x,y) = true  # for debugging
-function tmpmatchpat(cvar,ex)
+#matchpat(x,y) = true  # for debugging
+# NOTE!! with SJSym, the evalcond() at the bottom catches x_Integer.
+# We need to get it at the top.
+function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     c = pvarcond(cvar)
     c == :All && return true # no condition
@@ -330,7 +332,6 @@ end
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
 replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
-
 
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
