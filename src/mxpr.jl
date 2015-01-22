@@ -32,7 +32,7 @@ for v in ("RuleDelayed",)
 end
 
 for v in (:(:Dump), :(:Cos), :(:Length),:(:Plus),:(:Times), :(:Blank),
-          :(:JVar))
+          :(:JVar), :(:Replace), :(:ReplaceAll))
     @eval begin
         set_attribute($v,:Protected)        
     end
@@ -121,7 +121,6 @@ function ==(ax::Mxpr, bx::Mxpr)
     a = ax.args
     b = bx.args
     (na,nb) = (length(a),length(b))
-#    println("length $na $nb")
     na != nb && return false
     for i in 1:na
         a[i] != b[i] && return false
@@ -280,6 +279,7 @@ macro ex(ex)
     res = extomx(ex)
     global MEVAL_ENTRY_COUNT = 0
     mx = loopmeval(res)
+    sjset(getsym(:ans),mx)
     :(($(esc(mx))))
 end
 
@@ -319,10 +319,7 @@ function meval(mx::Mxpr)
     if MEVAL_ENTRY_COUNT > 200
         error("Too many meval entries ", MEVAL_ENTRY_COUNT)
     end
-    ind = " " ^ MEVAL_ENTRY_COUNT
-    # println(ind,"meval: $mx")
-    # println(ind,"meval: ", downvalues(mx.head))
-#    nhead = loopmeval(mx.head)
+#    ind = " " ^ MEVAL_ENTRY_COUNT
     nhead = mx.head
     local nargs
     start = 1
@@ -340,41 +337,15 @@ function meval(mx::Mxpr)
     else
         nargs = Array(Any,0)        
         for i in 1:length(mx.args)
-#            println(ind, downvalues(:g))
-            # println(ind,"AA ", downvalues(nhead), " head is ", nhead)
-            # println(ind,"Doing $i ", mx.args[i])
-            # is_type_less(mx.args[i],Mxpr) && println(ind,"AA1 ", downvalues(mx.args[i].head), " head is ", nhead)
             res1 = loopmeval(mx.args[i])
-            # is_type_less(mx.args[i],Mxpr) && println(ind,"AA2 ", downvalues(mx.args[i].head), " head is ", nhead)            
             push!(nargs,res1)
-#            println(ind,downvalues(:g))
-            # println(ind,"BB ",downvalues(nhead))
         end
-#        println(ind,downvalues(:g))
-        # println(ind,"CC ",downvalues(nhead))
-        # println(ind,"After arg loop ", nargs)
     end
-#    println(ind,downvalues(:g))
-    # println(ind,"DD ",downvalues(nhead))
     nmx = mxpr(nhead,nargs...)
-#    println(ind,downvalues(:g))
-    # println(ind,"EE ",downvalues(nhead))
-    # println(ind,"nmx1 before $nmx")
-    # println(ind,"typeof nmx before ", typeof(nmx))
-    # is_type_less(nmx,Mxpr) && println(ind,"COMPARE nmx  ",downvalues(nmx.head))    
     nmx1 = apprules(nmx)
-#    println(ind,downvalues(:g))    
     nmx1 == nothing && return nothing
-#    println(ind,"COMPARE  ",downvalues(:g))
-    # is_type_less(nmx1,Mxpr) && println(ind,"COMPARE  ",downvalues(nmx1.head))
-    # println(ind,"nmx1 after $nmx1")
-    # is_type_less(nmx1,Mxpr) && println(ind,"downvalues Before in meval ",downvalues(nmx1.head)) 
-    res = applydownvalues(nmx1)
-    # is_type_less(nmx1,Mxpr) &&  println(ind,"downvalues After in meval ",downvalues(nmx1.head))     
-    # println(ind,"applied downvalues to $nmx1, got $res")    
-    # println(ind,"mevalret: $mx -> $res")
-    MEVAL_ENTRY_COUNT -= 1
-    res
+    MEVAL_ENTRY_COUNT -= 1    
+    applydownvalues(nmx1)
 end
 
 ## Application of Rules for many SJSym's ...
@@ -458,6 +429,14 @@ apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
 apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
 apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx.args[1])
 
+apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
+doreplace(mx,expr,r::Mxpr{:Rule}) = replace(expr,Rule_to_PRule(r))
+doreplace(mx,a,b) = mx
+
+apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
+doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
+doreplaceall(mx,a,b) = mx
+
 ## A few Number rules
 
 apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
@@ -482,4 +461,3 @@ doplus(mx,a::Number,b::Number) = mplus(a,b)
 doplus(mx,b,e) = mx
 
 apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
-

@@ -1,6 +1,6 @@
 # This is a hack into the older pattern matcher.
 # We will redesign this.
-function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
+function Rule_to_PRule(mx::Union(Mxpr{:RuleDelayed},Mxpr{:Rule}))
     lhs = mx[1][1]
     rhs = mx[2]
     ptp = patterntopvar(lhs)
@@ -33,7 +33,7 @@ function patterntopvar(mx::Mxpr{:Pattern})
 end
 
 function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-    prule = RuleDelayed_to_PRule(rd)
+    prule = Rule_to_PRule(rd)
     res = replacefail(mx,prule)
 #    println("replacefail $rd => $prule: $mx -> $res")
     res
