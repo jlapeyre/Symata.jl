@@ -1,9 +1,12 @@
 # Pattern matching and rules
-include("./mxpr_util.jl")
+#include("./mxpr_util.jl")
 
 typealias CExpr Mxpr    # annotation to constructed expressions
 typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
 typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
+
+head(ex) = ex.head
+margs(ex) = ex.args
 
 function mkexpr(head,args...)
 #    CExpr(head,args...)
@@ -17,13 +20,6 @@ typealias CondT Union(UExpr,Symbol,DataType,Function)
 # Mxpr versions
 # Ugh. what is this ? Need to fix it.
 isexpr(x) = (typeof(x) <: AbstractMxpr)
-
-# iscall only used here
-iscall(x) = isexpr(x) && jhead(x) == :call
-function iscomplex(ex)
-    typeof(ex) <: Complex ||
-    (iscall(ex) && ex.args[1] == :complex)
-end
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -40,7 +36,7 @@ typealias ExSymPvar Union(UExpr,Symbol,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
-    ispvarsym(name) || error("Pvar: name '$name' does not end with '_'")
+#    ispvarsym(name) || error("Pvar: name '$name' does not end with '_'")
     Pvar(name,:All)
 end
 
@@ -55,27 +51,32 @@ pvar(name::Symbol) = pvar(name,:All)
 
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
-type Pattern
+#
+# Hack to get around hack. We are polluting Julia namespace
+# with SJSym's just to get repl completion.
+# So 'Pattern' is already used. So we use PatternT.
+# But, we will fix the repl and rewrite code.
+type PatternT
     ast::Any
     cond::CondT
 end
 
-Pattern(ast::ExSymPvar) = Pattern(ast,:All)
+PatternT(ast::ExSymPvar) = PatternT(ast,:All)
 pattern(ast::ExSym) = pattern(ast,:All)
 
 function Base.show(io::IO, pv::Pvar)
     show(io,pv.name)
 end
 
-function Base.show(io::IO, p::Pattern)
+function Base.show(io::IO, p::PatternT)
     show(io,p.ast)
 end
 
 # function pattern(ast::ExSym,cond::CondT)
-#     Pattern(ustopat(ast),cond)
+#     PatternT(ustopat(ast),cond)
 # end
 
-pattern(x,cond::Symbol) = Pattern(ustopat(x),cond)
+pattern(x,cond::Symbol) = PatternT(ustopat(x),cond)
 
 pattern(x) = pattern(x,:All)
 
@@ -83,8 +84,8 @@ pattern(x) = pattern(x,:All)
 # lhs is a pattern for matching.
 # rhs is a template pattern for replacing.
 type PRule
-    lhs::Pattern
-    rhs::Pattern
+    lhs::PatternT
+    rhs::PatternT
 end
 
 function Base.show(io::IO, p::PRule)
@@ -97,7 +98,7 @@ end
 
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
-==(a::Pattern, b::Pattern) = (a.ast == b.ast)
+==(a::PatternT, b::PatternT) = (a.ast == b.ast)
 prule(x,y) = PRule(x,y)
 # syntax for creating a rule. collides with Dict syntax sometimes.
 =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
@@ -131,7 +132,7 @@ pvarcond(pvar::Pvar) = pvar.cond
 setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # high-level pattern match and capture
-function cmppat1(ex,pat::Pattern)
+function cmppat1(ex,pat::PatternT)
     pat = ustopat(pat)   # convert underscore vars to pat()'s
     capt = capturealloc() # Array(Any,0)  # allocate capture array
 #    println("enter _cmppat $ex ")
@@ -145,13 +146,13 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 ispvarsym(x) = string(x)[end] == '_'
 
 # convert var_ to Pvar(var,:All), else pass through
-ustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
+disableustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
 
 # Syntx for specifying condition is pat_::cond
 # Construct pvar() if we have this kind of expression.
 # Else it is an ordinary expression and we walk it.
 # We eval the condition. It will be a DataType or a Function
-function ustopat(ex::InExpr)
+function disableustopat(ex::InExpr)
     if ex.head == :(::) && length(ex.args) > 0 &&
         typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
         return pvar(ex.args[1],eval(ex.args[2]))
@@ -164,7 +165,7 @@ ustopat(x) = x
 
 # Perform match and capture.
 # Then check consistency of assigned capture variables
-function cmppat(ex,pat::Pattern)
+function cmppat(ex,pat::PatternT)
 #    println("enter cmppat with $ex")
     (res,captures) = cmppat1(ex,pat)
     res === false && return (res,captures) # match failed
@@ -206,10 +207,26 @@ function retrivecapt(pat,cd)
     cd[pvarsym(pat)]
 end
 
+function newretrivecapt(sym,cd)
+    cd[sym]
+end
+
+function newretrivecapt(sym::SJSym,cd)
+    cd[symname(sym)]
+end
+
+function havecapt(sym,cd)
+    haskey(cd,sym)
+end
+
+function havecapt(sym::SJSym,cd)
+    haskey(cd,symname(sym))
+end
+
 # if we don't know what the condition is, try to evalute it.
 # slow.
 function evalcond(c)
-    println("evaling expression $c")
+#    println("evaling expression $c")
     res = try
         eval(c)
     catch
@@ -221,6 +238,9 @@ end
 # check if conditions on capture var cvar are satisfied by ex
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
+#matchpat(x,y) = true  # for debugging
+# NOTE!! with SJSym, the evalcond() at the bottom catches x_Integer.
+# We need to get it at the top.
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     c = pvarcond(cvar)
@@ -287,7 +307,7 @@ end
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
-function patrule(ex,pat1::Pattern,pat2::Pattern)
+function patrule(ex,pat1::PatternT,pat2::PatternT)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
@@ -310,8 +330,10 @@ end
 # apply replacement rule r to expression ex
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
+replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
+
 # Do depth-first replacement applying the same rule to each subexpression
-function replaceall(ex,pat1::Pattern,pat2::Pattern)
+function replaceall(ex,pat1::PatternT,pat2::PatternT)
     if isexpr(ex)
         ex = mkexpr(head(ex),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
@@ -321,6 +343,7 @@ function replaceall(ex,pat1::Pattern,pat2::Pattern)
     res === false && return ex # match failed; return unaltered expression
     res
 end
+
 
 # same as above, but patterns are wrapped in a rule
 function replaceall(ex::ExSym, r::PRule)
@@ -346,7 +369,8 @@ end
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
 # We do a Julia eval if possible after every substitution.
-function patsubst!(pat,cd)
+# Version for old pattern matching format:  x_ => x_^2
+function origpatsubst!(pat,cd)
     if isexpr(pat) && ! ispvar(pat)
         pa = pat.args
         for i in 1:length(pa)
@@ -360,6 +384,23 @@ function patsubst!(pat,cd)
         pat = meval(retrivecapt(pat,cd))
     end
     return meval(pat)
+end
+
+# Version for new pattern matching format:  x_ => x^2
+function patsubst!(pat,cd)
+    if isexpr(pat) && ! havecapt(pat,cd)
+        pa = pat.args
+        for i in 1:length(pa)
+            if havecapt(pa[i],cd)
+                pa[i] =  newretrivecapt(pa[i],cd)
+            elseif isexpr(pa[i])
+                pa[i] = patsubst!(pa[i],cd)
+            end
+        end
+    elseif ispvar(pat)
+        pat = newretrivecapt(pat,cd)
+    end
+    return pat
 end
 
 replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
@@ -390,12 +431,12 @@ end
 ## macros
 
 macro pattern(ex)
-    Pattern(ustopat(ex),:All)
+    PatternT(ustopat(ex),:All)
 end
 
 # We don't know yet how to apply conditions
 macro pattcond(ex,cond)
-    Pattern(ustopat(ex),cond)
+    PatternT(ustopat(ex),cond)
 end
 
 macro rule(ex)

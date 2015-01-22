@@ -1,37 +1,28 @@
 using Base.Test
 
-## Simple numbers
+## These are a few tests while we reorganize the code.
 
-@test (@sj 1)  == 1
-let a
-    @test (@sj a)  == :a
-end
+@ex ClearAll(fib)
+@ex fib(1) := 1
+@ex fib(2) := 1
+@ex fib(n_) := fib(n-1) + fib(n-2)
+@test @ex(fib(10)) == 55
 
-__bbbb = 1  # can't get local scope somehow
-# Test meval(sym::Symbol)
-@test (@sj __bbbb)  == 1
-@test (@sj 1 + 1) == 2
+## SetDelay for SJSym
+@ex Clear(a,b,c)
+@ex (a = 1)
+@ex (b = a)
+@ex (c := a)
+@ex (a = 2)
+@test @ex(b) == 1
+@test @ex(c) == 2
 
-@if_no_sjulia let c     # bug in sjulia (not julia) causes :( c() ) to evaluate to c
-    @test mxpr(:c) == @sj( c() )
-end
+@ex g(1) := "cat"
+@ex g(x_Integer) = "int"
+@ex g(x_Float64) = "float"
 
-## Canonical ordering
+@test @ex(g(1)) == "cat"
+@test @ex(g(2)) == "int"
+@test @ex(g(2.0)) == "float"
 
-@test (@sj z + a + m + 2 + 1) == (@sj a + m + z + 3)
-
-## Arithmetic (esp. Integer and Rational)
-
-@test  (@sj 3 / 4) == 3//4
-@test  (@sj 4 * (3 / 4)) == 3
-@test  (@sj (3 / 4) * 4) == 3
-@test  (@sj 6 / 3) == 2
-@test  (@sj (3 / 4) * 1.0) == 3/4 == 0.75
-
-## Test that Julia assignment and Mjulia assignement give the same thing
-r1 = (@sj r = 3/4)
-@test r1 == r == 3//4
-
-@test typeof(Cos(1)) == Mxpr{:Cos}
-@test typeof(Cos(:c)) == Mxpr{:Cos}
-@test typeof(Cos(1.0)) == Float64
+@test @ex(Cos(ACos(x))) == getsym(:x)
