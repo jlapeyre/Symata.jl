@@ -64,7 +64,7 @@ function Base.show(io::IO, p::PatternT)
 end
 
 
-pattern(x,cond::Symbol) = PatternT(ustopat(x),cond)
+pattern(x,cond::Symbol) = PatternT(x,cond)
 
 pattern(x) = pattern(x,:All)
 
@@ -121,7 +121,6 @@ setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # high-level pattern match and capture
 function cmppat1(ex,pat::PatternT)
-    pat = ustopat(pat)   # convert underscore vars to pat()'s
     capt = capturealloc() # Array(Any,0)  # allocate capture array
 #    println("enter _cmppat $ex ")
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
@@ -132,9 +131,6 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 
 # pattern vars are exactly those ending with '_'
 ispvarsym(x) = string(x)[end] == '_'
-
-# everything else falls through
-ustopat(x) = x
 
 # Perform match and capture.
 # Then check consistency of assigned capture variables
@@ -397,30 +393,6 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
         ex1 = _replacerepeated(ex1,rules,n+1)
     end
     ex1
-end
-
-
-## macros
-
-macro pattern(ex)
-    PatternT(ustopat(ex),:All)
-end
-
-# We don't know yet how to apply conditions
-macro pattcond(ex,cond)
-    PatternT(ustopat(ex),cond)
-end
-
-macro rule(ex)
-    #    exhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
-    ex1 = deepcopy(ex)
-    mx = ex_to_mx!(ex1)
-    prule(pattern(mx.args[1]),pattern(mx.args[2]))
-end
-
-function mkrule(ex::InExpr)
-    ex.head != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(ex.args[1]),pattern(ex.args[2]))
 end
 
 macro replaceall(ex,therule)
