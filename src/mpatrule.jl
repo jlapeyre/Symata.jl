@@ -1,8 +1,7 @@
 ## Pattern matching and rules
 
-#typealias CExpr Mxpr    # annotation to constructed expressions
-typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
-typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
+typealias InExpr Mxpr   # annotation to input arguments
+typealias UExpr  Mxpr  # annotation for expressions in Unions
 
 head(ex) = ex.head
 margs(ex) = ex.args
