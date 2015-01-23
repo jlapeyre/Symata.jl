@@ -1,7 +1,7 @@
 # Pattern matching and rules
 #include("./mxpr_util.jl")
 
-typealias CExpr Mxpr    # annotation to constructed expressions
+#typealias CExpr Mxpr    # annotation to constructed expressions
 typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
 typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
 
@@ -9,7 +9,6 @@ head(ex) = ex.head
 margs(ex) = ex.args
 
 function mkexpr(head,args...)
-#    CExpr(head,args...)
     mxpr(head,args...)    
 end
 
