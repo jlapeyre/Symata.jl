@@ -11,9 +11,12 @@ symname{T}(s::SJSym{T}) = T
 symval(s::SJSym) = s.val
 setsymval(s::SJSym,val) = (s.val = val)
 
-isless(t::SJSym,s::SJSym) = symname(t)  < symname(s)
-isless(s::SJSym,t) = symname(s) < t
-isless(t,s::SJSym) = t  < symname(s)
+import Base:  ==
+
+Base.isless{T,S}(t::SJSym{T}, s::SJSym{S}) = T < S
+Base.isless(t::SJSym,s::SJSym) = symname(t)  < symname(s)
+Base.isless(s::SJSym,t) = symname(s) < t
+Base.isless(t,s::SJSym) = t  < symname(s)
 ==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
 
 function pushdownvalue(s::SJSym,val)

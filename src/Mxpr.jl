@@ -5,4 +5,5 @@ include("mxpr.jl")
 include("trig.jl")
 include("mpatrule.jl")
 include("pattern.jl")
+include("sortorderless.jl")
 nothing
