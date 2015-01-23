@@ -1,5 +1,4 @@
-# Pattern matching and rules
-#include("./mxpr_util.jl")
+## Pattern matching and rules
 
 #typealias CExpr Mxpr    # annotation to constructed expressions
 typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
@@ -8,16 +7,10 @@ typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
 head(ex) = ex.head
 margs(ex) = ex.args
 
-function mkexpr(head,args...)
-    mxpr(head,args...)    
-end
-
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol)
 typealias CondT Union(UExpr,Symbol,DataType,Function)
 
-# Mxpr versions
-# Ugh. what is this ? Need to fix it.
 isexpr(x) = (typeof(x) <: AbstractMxpr)
 
 # Pattern variable. name is the name, ending in underscore cond is a
@@ -122,18 +115,14 @@ setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 # high-level pattern match and capture
 function cmppat1(ex,pat::PatternT)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
-#    println("enter _cmppat $ex ")
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
-#    println("cmmpat1 $success_flag $capt")
     return (success_flag,capt)  # report whether matched, and return captures
 end
 cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 
-# pattern vars are exactly those ending with '_'
-ispvarsym(x) = string(x)[end] == '_'
-
 # Perform match and capture.
 # Then check consistency of assigned capture variables
+# TODO: this should happen while searching; it would be more efficient
 function cmppat(ex,pat::PatternT)
     (res,captures) = cmppat1(ex,pat)
     res === false && return (res,captures) # match failed
@@ -243,32 +232,21 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
-    @mdebug(1, "_cmppat enter '", mx, "'  '", pat, "'  '", captures, "'")
     if ispvar(pat) && matchpat(pat,mx)
         capturepvar(captures,pat,mx)
-        @mdebug(1, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")                
         return true
     end
     if !isexpr(mx)
-        @mdebug(1, "_cmppat checking leaf mx: '", mx, "', pat '", pat, "'")
-        @mdebug(1, "  type of mx = ", typeof(mx))
-        @mdebug(1, "  type of pat = ", typeof(pat))        
         res = mx == pat # 'leaf' on the tree. Must match exactly.
-        @mdebug(1, "_cmppat leaf match is *", res, "*,  mx: '", mx, "', pat '", pat, "'")
         return res
     end
-    @mdebug(1, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
-    @mdebug(1, "  type of mx = ", typeof(mx))
-    @mdebug(1, "  type of pat = ", typeof(pat))        
     if !isexpr(pat) || head(pat) != head(mx) ||
         length(pat) != length(mx)
-        @mdebug(1, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
         return false
     end
     for i in 1:length(mx) # match and capture subexpressions.
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
-    @mdebug(1, "_cmppat returning true")
     return true
 end
 
@@ -303,7 +281,7 @@ replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
     if isexpr(ex)
-        ex = mkexpr(head(ex),
+        ex = mxpr(head(ex),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
     # we have applied replacement at all lower levels. Now do current level.
@@ -322,7 +300,7 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = mkexpr(head(ex),
+        ex = mxpr(head(ex),
                     map((x)->replaceall(x,rules),margs(ex))...)
     end
     for r in rules
@@ -336,24 +314,6 @@ end
 # pat is the template pattern: an expression with 0 or more pattern vars.
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
-# We do a Julia eval if possible after every substitution.
-# Version for old pattern matching format:  x_ => x_^2
-function origpatsubst!(pat,cd)
-    if isexpr(pat) && ! ispvar(pat)
-        pa = pat.args
-        for i in 1:length(pa)
-            if ispvar(pa[i])
-                pa[i] =  meval(retrivecapt(pa[i],cd))
-            elseif isexpr(pa[i])
-                pa[i] = patsubst!(pa[i],cd)
-            end
-        end
-    elseif ispvar(pat)
-        pat = meval(retrivecapt(pat,cd))
-    end
-    return meval(pat)
-end
-
 # Version for new pattern matching format:  x_ => x^2
 function patsubst!(pat,cd)
     if isexpr(pat) && ! havecapt(pat,cd)
@@ -378,7 +338,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
     if isexpr(ex)
-        ex1 = mkexpr(ex.head, ex.args[1],
+        ex1 = mxpr(ex.head, ex.args[1],
              map((x)->replaceall(x,rules),ex.args[2:end])...)
     end
     local res
@@ -395,24 +355,4 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     ex1
 end
 
-macro replaceall(ex,therule)
-    if typeof(therule) == Symbol ||
-        therule.head == :vcat
-        therule = eval(therule)
-    else
-        therule = mkrule(therule)
-    end
-    mkexpr(:call, :replaceall, mkexpr(:quote, ex), therule)
-end
-
-macro replacerepeated(ex,therule)
-    if typeof(therule) == Symbol ||
-        therule.head == :vcat
-        therule = eval(therule)
-    else
-        therule = mkrule(therule)
-    end
-    mkexpr(:call, :replacerepeated, mkexpr(:quote, ex), therule)
-end
-
-true
+nothing
