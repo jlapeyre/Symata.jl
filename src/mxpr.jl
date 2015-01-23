@@ -426,7 +426,16 @@ apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
+## Comparison
+
+function apprules(mx::Mxpr{:comparison})
+    mx
+end
+
 ## A few Number rules
+
+# We should probably remove these because they are done by
+# the canonicalizer
 
 apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
@@ -434,7 +443,6 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
-
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx,b::Number,e::Number) = mpow(b,e)
 dopower(mx,b,e) = mx
@@ -448,8 +456,9 @@ function apprules(mx::Mxpr{:Plus})
 end
 doplus(mx,a::Number,b::Number) = mplus(a,b)
 doplus(mx,b,e) = mx
-
 apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
+
+## Tracing evaluation
 
 apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
