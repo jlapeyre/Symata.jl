@@ -32,7 +32,8 @@ for v in ("RuleDelayed",)
 end
 
 for v in ("Apply","Dump", "Cos", "Length","Plus","Times", "Blank",
-          "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff")
+          "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm",
+         "BI", "BF")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end
@@ -97,6 +98,21 @@ const FUNCL = '('
 const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
+
+# Mma fullform returns the value and prints differently.
+# We only print the value
+function fullform(io::IO, mx::Mxpr)
+    print(io,mx.head)
+    print("(")
+    if length(mx) > 0 fullform(io,mx[1]) end
+    for i in 2:length(mx)
+        print(io,",")        
+        fullform(io,mx[i])
+    end
+    print(")")
+end
+
+fullform(io::IO,x) = show(io,x)
 
 function Base.show(io::IO, s::Mxpr)
     if getoptype(s.head) == :binary  
@@ -470,27 +486,25 @@ apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
+apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
+
 ## Comparison
 
 function apprules(mx::Mxpr{:Comparison})
     nargs1 = Array(Any,0)
     i = 1
     while i <= length(mx)
-#        println("S  $i  ", mx[i])        
         if is_type_less(mx[i],SJSym) && symname(mx[i]) == :(==)
             if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
-                i += 1  # this does not work
+                i += 1
             else
                 return false
             end
         else
-#            println("hisdfn ls")
             push!(nargs1,mx[i])
-#            println(nargs1)            
         end
         i += 1
     end
-#    println("aftre firs ", nargs1)
     length(nargs1) == 1  && return true
     nargs = Array(Any,0)    
     for x in nargs1
@@ -502,7 +516,6 @@ function apprules(mx::Mxpr{:Comparison})
             return mx
         end
     end
-#    println("Final: ", nargs)
     eval(Expr(:comparison,nargs...))
 end
 
@@ -520,6 +533,14 @@ makecomplex(mx,n,d) = mx
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx,b::Number,e::Number) = mpow(b,e)
 dopower(mx,b,e) = mx
+
+
+apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
+dobigint(mx,x) = mx
+dobigint{T<:Number}(mx,x::T) = BigInt(x)
+apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
+dobigfloat(mx,x) = mx
+dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
 
 function apprules(mx::Mxpr{:Plus})
     if length(mx) == 2
