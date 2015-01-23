@@ -7,8 +7,9 @@ head(ex) = ex.head
 margs(ex) = ex.args
 
 # pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union(UExpr,Symbol)
-typealias CondT Union(UExpr,Symbol,DataType,Function)
+typealias ExSym Union(UExpr,Symbol,SJSym)
+# TODO: need to split this up and separate them by dispatch
+typealias CondT Union(UExpr,Symbol,SJSym,DataType,Function)
 
 isexpr(x) = (typeof(x) <: AbstractMxpr)
 
@@ -16,14 +17,11 @@ isexpr(x) = (typeof(x) <: AbstractMxpr)
 # condition that must be satisfied to match But, cond may be :All,
 # which matches anything.  The most imporant feature is that the Pvar
 # matches based on its context in an AST.
-#
-# Julia manual says the grab-bag data type is a sign
-# of bad design!
 type Pvar
     name::Symbol  # name
     cond::CondT   # condition for matching. DataType, function...
 end
-typealias ExSymPvar Union(UExpr,Symbol,Pvar)
+typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
