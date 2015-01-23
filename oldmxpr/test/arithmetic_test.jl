@@ -28,14 +28,6 @@ using Base.Test
 @test @sj 4 * 1//3 === 4//3
 
 # Mxpr are never constructed, Expr is evaluated directly
-<<<<<<< HEAD:arithmetic_test.jl
-@test @jm 1 + 2 + 3 + 4 === 10
-@test @jm 1 * 2 * 3 * 4 === 24
-@test @jm 1//3 + 1//3 + 1//3 === 1
-
-
-@test (:a + :b ) + (:c + :d) == :a + :b + :c + :d
-=======
 @test @sj 1 + 2 + 3 + 4 === 10
 @test @sj 1 * 2 * 3 * 4 === 24
 @test @sj 1//3 + 1//3 + 1//3 === 1
@@ -47,4 +39,3 @@ using Base.Test
 
 @test @sj( + aaa ) == @sj( aaa )
 @test @sj(a * 0) == @sj(0*a) == 0
->>>>>>> parammxpr:oldmxpr/test/arithmetic_test.jl
