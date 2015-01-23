@@ -31,7 +31,7 @@ for v in ("RuleDelayed",)
     end
 end
 
-for v in ("Dump", "Cos", "Length","Plus","Times", "Blank",
+for v in ("Apply","Dump", "Cos", "Length","Plus","Times", "Blank",
           "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff")
     @eval begin
         set_attribute(symbol($v),:Protected)        

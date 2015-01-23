@@ -7,5 +7,6 @@ include("mxpr.jl")
 include("trig.jl")
 include("mpatrule.jl")
 include("pattern.jl")
+include("expressions.jl")
 include("sortorderless.jl")
 nothing
