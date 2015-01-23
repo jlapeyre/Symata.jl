@@ -32,7 +32,7 @@ type Mxpr{T} <: AbstractMxpr
 end
 
 function mxpr(s::SJSym,iargs...)
-    args = Array(Any,0)
+    args = newargs()
     for x in iargs push!(args,x) end
     Mxpr{symname(s)}(s,args)
 end

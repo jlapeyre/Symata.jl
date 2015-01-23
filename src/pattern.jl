@@ -19,7 +19,7 @@ function Rule_to_PRule(mx::Mxpr{:Rule})
 end
 
 function patterntopvar(mx::Mxpr)
-    nargs = Array(Any,0)
+    nargs = newargs()
     for x in mx.args
         nx = patterntopvar(x)
         push!(nargs,nx)
