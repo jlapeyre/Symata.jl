@@ -28,5 +28,3 @@ copy and alter the scheme parser and invoke it optionally, via a macro
 or terminal mode or something. But, this incurrs a big complexity penalty.
 
 ** Organizing function calls, simplifier, meval, rewriting with patterns.
-
-** Interface. It is too early to attempt defining an interface.

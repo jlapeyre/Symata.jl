@@ -1,8 +1,0 @@
-Sun Jan 18 01:52:53 CET 2015
-
-This older code and tests work:
-
- include("PatRule.jl")
- include("patrule_test_eval.jl")
-
-This uses Julia Expr's for symbolic manipulation.
