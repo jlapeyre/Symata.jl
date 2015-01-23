@@ -278,6 +278,11 @@ set_meval_trace() = MEVAL.traceon = true
 unset_meval_trace() = MEVAL.traceon = false
 is_meval_trace() = MEVAL.traceon
 
+macro exnoeval(ex)
+    mx = extomx(ex)
+    :(($(esc(mx))))
+end
+
 macro ex(ex)
     res = extomx(ex)
     reset_meval_count()

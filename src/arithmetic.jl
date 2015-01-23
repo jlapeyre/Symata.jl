@@ -31,3 +31,13 @@ for op = (:mplus, :mmul)
         # definitions down to avoid losing type information.
     end
 end
+
+## Not really arithmetic.
+
+*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
+*(a::Mxpr,b) = mxpr(:Times,a,b)
+*(a,b::Mxpr) = mxpr(:Times,a,b)
+-(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
+^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
+^(base::Mxpr,expt) = mxpr(:Power,base,expt)

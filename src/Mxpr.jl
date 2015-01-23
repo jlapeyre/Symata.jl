@@ -1,6 +1,6 @@
 include("mxpr_util.jl")
-include("arithmetic.jl")
 include("mxpr_type.jl")
+include("arithmetic.jl")
 include("mxpr_top.jl")
 include("mxpr.jl")
 include("trig.jl")
