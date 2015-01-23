@@ -47,6 +47,9 @@ for v in ("Pi","E")
     end
 end
 
+Base.base(p::Mxpr{:Power}) = p.args[1]
+expt(p::Mxpr{:Power}) = p.args[2]
+
 ## Symbol correspondence/translation between Julia and SJulia
 
 const JTOMSYM  =

@@ -38,6 +38,37 @@ function mxpr(s::SJSym,iargs...)
 end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
+margs(mx::Mxpr) = mx.args
+#setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
+# No, this should be fast
+setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
+
+#getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : margs(mx)[k]
+getindex(mx::Mxpr, k::Int) = margs(mx)[k]
+Base.length(mx::Mxpr) = length(margs(mx))
+Base.length(s::SJSym) = 0
+Base.endof(mx::Mxpr) = length(mx)
+
+# We need to think about copying in the following. Support both refs and copies ?
+function getindex(mx::Mxpr, r::UnitRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[1:r.stop]...)
+    else
+        return margs(mx)[r]
+    end
+end
+
+function getindex(mx::Mxpr, r::StepRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[0+r.step:r.step:r.stop]...)
+    elseif r.stop == 0 && r.step < 0
+        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mx[0])
+    else
+        return margs(mx)[r]
+    end
+end
+
+
 #downvalues(s::SJSym) = s.downvalues
 # FIXME!
 # workaround for mysterious bug, SJSym is copied somewhere and downvalues are altered.

@@ -52,8 +52,12 @@ function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
 end
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Times}) = jslexless(x[end],y[end])
 #jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],base(y))
+
+## These get most of it
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],y)
-jslexless(x::Mxpr{:Power}, y::Mxpr{:Times}) = jslexless(base(x),y[end])
+jslexless(x::Mxpr{:Power}, y::Mxpr{:Times}) = jslexless(x,y[end])
+
+
 function jslexless(x::Mxpr{:Power}, y::Mxpr)
     if y == base(x)
         return is_type_less(expt(x),Real) && expt(x) < 0
