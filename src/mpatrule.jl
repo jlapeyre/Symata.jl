@@ -313,7 +313,7 @@ end
 # Subsitute the pattern vars in pat with the vals from cd.
 # Version for new pattern matching format:  x_ => x^2
 function patsubst!(pat,cd)
-    if isexpr(pat) && ! havecapt(pat,cd)
+    if (isexpr(pat) || is_type_less(pat,SJSym)) && ! havecapt(pat,cd)
         pa = pat.args
         for i in 1:length(pa)
             if havecapt(pa[i],cd)
@@ -322,7 +322,7 @@ function patsubst!(pat,cd)
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
-    elseif ispvar(pat)
+    elseif ispvar(pat) || is_type_less(pat,SJSym)
         pat = newretrivecapt(pat,cd)
     end
     return pat

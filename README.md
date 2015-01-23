@@ -100,12 +100,11 @@ I did not try make test all.)
 
 Mixing Julia and symbolic manipulation via patterns and term rewriting was problematic.
 So the next step amounts to writing another language. Symbols, and "functions" and
-"variables" in "SJulia" (I don't have a name, maybe "Tungsten" ?) are completely separate
+"variables" in "SJulia" (I don't have a name) are completely separate
 from Julia symbols (But, I currently bind Julia symbols as well, as a hack, to get completion
 in the repl. This can be removed later.)  I am using Mathematica as a model in order to
 get something working and see how it interacts with Julia. But, the design could be
-changed. Some of the thing from the earlier experiments is ported, but not all. Eg.
-the expression canonicalizer is not.
+changed. Some of the thing from the earlier experiments is ported, but not all.
 
 #### Pattern matching.
 

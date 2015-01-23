@@ -421,6 +421,8 @@ end
 
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
+gethead(s::SJSym) = getsym(:Symbol)
+gethead(s::Symbol) = getsym(:JuliaSymbol)
 gethead(ex) = typeof(ex)
 apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
