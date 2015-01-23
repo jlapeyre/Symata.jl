@@ -161,7 +161,7 @@ function Base.show(io::IO, s::Mxpr)
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    mx.head == getsym(:List) ? nothing : show(io,mx.head)
+    mx.head == getsym(:List) ? nothing : show(io,mtojsym(mx.head))
     args = mx.args
     print(io,mx.head == getsym(:List) ? LISTL : FUNCL)
     for i in 1:length(args)-1
@@ -298,7 +298,6 @@ global NEVAL = 0
 
 global MEVAL_ENTRY_COUNT = 0
 
-# move stuff in loop to function
 macro ex(ex)
     res = extomx(ex)
     global MEVAL_ENTRY_COUNT = 0
@@ -327,10 +326,6 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     mx
 end
 
-# function loopmeval(s::SJSym)
-#     @mdebug(2, "loopmeval(s::SJSym), $s")
-#     symval(s)
-# end
 loopmeval(x) = x
 
 ## Evaluation of Mxpr

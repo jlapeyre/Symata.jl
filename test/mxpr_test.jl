@@ -28,6 +28,9 @@ using Base.Test
 @test @ex(Cos(ACos(x))) == getsym(:x)
 
 # Test replacement
+@ex Clear(a,b)
 @ex cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1
 @test @ex(Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)) == @ex(Cos(a+b)^2 + Sin(a+c)^2)
 @test @ex(Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)) == 1
+@test @ex(Replace( a , a => 1)) == 1
+@test @ex(Replace( b , a => 1)) == @ex(b)
