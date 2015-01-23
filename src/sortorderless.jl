@@ -226,7 +226,7 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
                 shift!(a)
 #                println("in loop: after shift $a")
 #                println("typeof a1 ",typeof(a[1]))
-#                typeof(a[1]) <: Number || println("Got non bumber")                
+#                 typeof(a[1]) <: Number || println("Got non bumber")                
                 typeof(a[1]) <: Number || break
                 sum0 = ($fop)(sum0,a[1])
 #                println(" bottom of loop: a is $a, length is ", length(a))
