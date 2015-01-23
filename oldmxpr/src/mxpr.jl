@@ -1,10 +1,38 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
-include("./mxpr_util.jl")
 
-#type MParseError <: Exception  Not really a parse error
-#    msg::String
-#end
-#Base.showerror(io::IO,e::MParseError) = print(io,e.msg)
+## FIX
+#  @sj :(:(:(a + 1))) --> :(mplus(a,1)) , too many evaluations.
+
+## FIX
+## SJulia does not process expressions in files. So we need
+# the auto evaluation of symbols here anyway!
+
+## FIX
+# @sj Sqrt(a) , and @sj Sqrt(3), etc. are broken
+# in both sjulia and julia and in different ways.
+
+# Test if we have the altered interpreter.c, i.e. SJulia
+const HAVE_SJULIA = try
+    ccall((:jl_is_symbol_evals_to_self, "libjulia.so"), Bool, ())
+    true
+catch
+    false
+end
+
+if HAVE_SJULIA
+    include("sjulia.jl")  # Code that only works with SJulia
+    macro if_no_sjulia(e)
+    end
+    macro if_sjulia(e)
+        :($(esc(e)))
+    end    
+else        
+    macro if_no_sjulia(e)
+        :($(esc(e)))
+    end
+    macro if_sjulia(e)
+    end
+end
 
 ##############################################
 ##  Mxpr type for symbolic math expression   #
@@ -16,36 +44,28 @@ include("./mxpr_util.jl")
 # not clear how to organize the data. So: Do not access fields the
 # directly!
 
-# Mxpr.args is exactly the equivalent Julia args, if possible. This
-# allows lightweight construction of Julia Expr for evaluation.
-# Fortunately, Expr is mutable.  But, a better choice may be to pop
-# the function name symbol from the front of the equivalent Julia
-# args. We probably will not do direct Julia eval.
+# Mxpr.args is not the same as the equivalent Julia args.  If it were,
+# it would allow faster construction of Julia Expr for evaluation.
+# Instead, for Expr with head field :call, we use the function name,
+# i.e. args[1] as the head of Mxpr.
 
-# Using a (singly) linked list (LL) vs. packed array of pointers (ie
-# Array{Any}) for args are complementary. Retrieving an element is
-# O(n) for LLs, and O(1) for arrays.  Splicing arguments is
-# O(1) for LLs and O(n) for arrays. Supporting LLs
-# in some way may be useful, eg, when lots of swapping parts happens
-# in an internal routine. Maxima uses singly linked lists
+# We share the Julia symbol table, rather than managing our own symbol
+# table.
 
-# We share the Julia symbol table, rather than managing our own
-# symbol table.
-
-type Mxpr
-    head::Symbol     # Not sure what to use here. Eg. :call or :+, or ... ?
-    args::Array{Any,1}
-    jhead::Symbol    # Actual exact Julia head: :call, :comparison, etc.
-    clean::Bool      # In canonical order ?
-end
-
+# get ambiguous method warnings when I use Symbolic
 typealias Symbolic Union(Mxpr,Symbol)
+# For fast method dispatch. Users can define Orderless Mxpr, too.
+# But, we don't handle that yet.
+typealias Orderless Union(Mxpr{:mmul},Mxpr{:mplus})
 
-mxpr(h,a,jh,d) = Mxpr(h,a,jh,d)
-# make an empty Mxpr, unused ?
-mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
+mxmkargs() = Array(Any,0)
 
-## Following is OK in principle, but nothing in it yet
+mxpr(h,a,jh,d) = Mxpr{h}(h,a,jh,d)
+# make an empty Mxpr. eg mxpr(c) --> c()
+mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:call,false)
+
+
+## Following is OK in principle, but we stopped using the only instance.
 ## convert Mxpr.head to Expr.head
 # const MOPTOJHEAD = Dict{Symbol,Symbol}()
 # let mop,jhead 
@@ -56,78 +76,88 @@ mxpr(s::Symbol) = Mxpr(s,Array(Any,0),:nothing,false)
 # function moptojhead(op::Symbol)
 #     return haskey(MOPTOJHEAD,op) ? MOPTOJHEAD[op] : :call
 # end
-# For constructing Mxpr from scratch, we make up a Julia head
+
+# Assumed head field of Expr corresponding to Mxpr if we don't know.
 moptojhead(x) = :call   
 
 ## Construct Mxpr, similar to construction Expr(head,args...)
 #  Set dirty bit. Guess corresponding Julia Expr field 'head'
 function mxpr(op::Symbol,args...)
-    theargs = Array(Any,0)
+    theargs = mxmkargs()
     for x in args
         push!(theargs,x)
     end
-    mx = Mxpr(op,theargs,moptojhead(op),false)
+    mx = Mxpr{op}(op,theargs,moptojhead(op),false)
 end
-
-## predicates
-
-## What to choose for predicate function names
-#  'isthing' or 'thingq' ?
-#  'thingq' would signify difference from standard Julia
-#  eg: thingq takes Mxpr as argument ?
-mk_predicate_sym(sym::Symbol) = symbol(string(sym) * "q")
-
-## generic predicate
-macro mk_predicate(name0,code)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x) = $code
-    end
-end
-
-## Is expr a call to symbol op (this is expression, typ may not be bound)
-macro mk_call_predicate(name0,op)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x::Expr) = (x.head == :call && x.args[1] == $op)
-    end
-end
-
-macro mk_type_predicate(name0,typ)
-    name = mk_predicate_sym(name0)
-    @eval begin
-        ($name)(x::Expr) = typeof(x) == $typ
-    end
-end
-
-mxprq(x) = typeof(x) == Mxpr
 
 # get Mxpr head and args
 jhead(mx::Mxpr) = mx.jhead
 jargs(mx::Mxpr) = mx.args
 margs(mx::Mxpr) = mx.args
-#margs(ex::Expr) = ex.args  # sometimes Expr can stand in for Mxpr
-mhead(mx::Mxpr) = mx.head
-#mhead(ex::Expr) = ex.head
-mhead(x) = error("mhead: mhead not defined for $x, of type $(typeof(x))")
-setmhead(mx::Expr, val::Symbol) = mx.head = val
+head(mx::Mxpr) = mx.head
+exhead(ex::Expr) = ex.head
+exargs(ex::Expr) = ex.args
+exhead(x) = error("exhead: exhead not defined for $x, of type $(typeof(x))")
+head(x) = error("head: head not defined for $x, of type $(typeof(x))")
+sethead(mx::Expr, val::Symbol) = mx.head = val
 
 ####  index functions
 
 # Get and set parts of expressions. mx[0] is the head
 # mx[1] is the first argument, etc.
-getindex(mx::Mxpr, k::Int) = return k == 0 ? mhead(mx) : margs(mx)[k]
-setindex!(mx::Mxpr, val, k::Int) = k == 0 ? setmhead(mx,val) : (margs(mx)[k] = val)
+getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : margs(mx)[k]
 
-Base.endof(mx::Mxpr) = length(margs(mx))
+# We need to think about copying in the following. Support both refs and copies ?
+function getindex(mx::Mxpr, r::UnitRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[1:r.stop]...)
+    else
+        return margs(mx)[r]
+    end
+end
+
+function getindex(mx::Mxpr, r::StepRange)
+    if r.start == 0
+        return mxpr(mx[0],margs(mx)[0+r.step:r.step:r.stop]...)
+    elseif r.stop == 0 && r.step < 0
+        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mx[0])
+    else
+        return margs(mx)[r]
+    end
+end
+
+## NOTE! This reorders every time. For efficiency,
+# you can use margs(mx)[i] = val instead of mx[i] = val
+# inside an algorithm and call orderexpr! at the end
+function setindex!(mx::Orderless,val,k::Int)
+    @mdebug(10,"setindex! mx= $mx, val=$val, k=$k")
+    if k == 0
+        sethead(mx,val)
+        return val  # but maybe it is no longer Orderless! Problem.
+    else
+        margs(mx)[k] = val
+        orderexpr!(mx)
+        @mdebug(10,"setindex! done ordering mx= $mx, val=$val, k=$k")        
+        mx = compactsumlike!(mx)
+        @mdebug(10,"setindex! done compact mx= $mx, val=$val, k=$k")        
+        return val
+    end
+end
+        
+setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
+Base.endof(mx::Mxpr) = length(mx)
 
-# Do we want 'ordered' or 'clean' ? There is likely more than
+# Do we want 'ordered' or 'clean' ? There will be more than
 # one way to be dirty, not just unordered.
-getorderedflag(mx::Mxpr) = mx.clean
-setorderedflag(mx::Mxpr,val::Bool) = (mx.clean = val)
-isclean(mx::Mxpr) = mx.clean
+
+is_order_clean(mx::Mxpr) = return mx.clean
+set_order_dirty!(mx::Mxpr) = (mx.clean = false)
+set_order_clean!(mx::Mxpr) = (mx.clean = true)  # orderexpr! calls this. You don't need to.
+#set_order_clean!(x) = true
+sortiforderless!(mx::Orderless) = orderexpr!(mx)  # regardless of dirty bit
+sortiforderless!(mx) = mx
 
 # This is deep ==, I think
 function ==(a::Mxpr, b::Mxpr)
@@ -139,14 +169,29 @@ function ==(a::Mxpr, b::Mxpr)
     true
 end
 
+## Index functions for particular Mxpr types
+
+Base.base(p::Mxpr{:mpow}) = p[1]
+expt(p::Mxpr{:mpow}) = p[2]
+
+
+###########################################
+##  Predicates                            #
+###########################################
+
 # Same thing is somewhere in base
-is_call(ex::Expr) = ex.head == :call
-is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
-is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
-is_op(mx::Mxpr, op::Symbol) = mhead(mx) == op
-is_op(mx::Mxpr, op::Symbol, len::Int) = mhead(mx) == op && length(mx) == len
+is_call(ex::Expr) = exhead(ex) == :call
+is_call(ex::Expr, op::Symbol) = exhead(ex) == :call && ex.args[1] == op
+is_call(ex::Expr, op::Symbol, len::Int) = exhead(ex) == :call && ex.args[1] == op && length(ex.args) == len
+is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
+is_op(mx::Mxpr, op::Symbol) = head(mx) == op
+is_op(mx::Mxpr, op::Symbol, len::Int) = head(mx) == op && length(mx) == len
 is_op(x...) = false
 is_type(x,t::DataType) = typeof(x) == t
+is_type_less(x,t::DataType) = typeof(x) <: t
+is_type(x,t::UnionType) = typeof(x) == t
+is_type_less(x,t::UnionType) = typeof(x) <: t
+mxprq(x) = is_type_less(x,AbstractMxpr)
 is_number(x) = typeof(x) <: Number
 
 # We check for :call repeatedly. We can optimize this later.
@@ -155,6 +200,10 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :mdiv,3)  
 is_power(ex::Expr) = is_call(ex, :mpow)
 
+#################################################
+##  Translate Expr --> Mxpr  and Mxpr --> Expr  #
+#################################################
+
 # There is no binary minus and no division in Mxpr's.
 rewrite_binary_minus(ex::Expr) = Expr(:call, :mplus, ex.args[2], Expr(:call,:(-),ex.args[3]))
 rewrite_division(ex::Expr) = Expr(:call, :mmul, ex.args[2], Expr(:call,:mpow,ex.args[3],-1))
@@ -162,7 +211,7 @@ rewrite_binary_minus(mx::Mxpr) = mxpr(:mplus, mx[1], mxpr(:(-),mx[2]))
 rewrite_division(mx::Mxpr) = mxpr(:mmul, mx[1], mxpr(:mpow,mx[2],-1))
 
 # rewrite_expr : Expr -> Expr
-# Input could be expresion from cli. Output is closer to Mxpr form.
+# Input could be expression from cli. Output is closer to Mxpr form.
 # Relative to Expr, Mxpr needs to encode more canonical semantics.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
@@ -174,7 +223,7 @@ function rewrite_expr(ex::Expr)
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :mpow, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2)
-        ex = Expr(:call, :mpow, ex.args[2], 1//2)
+        ex = Expr(:call, :mpow, ex.args[2], SJRational(1//2))
     end
     return ex
 end
@@ -189,19 +238,47 @@ function replace_arithmetic_ops!(ex::Expr)
     ex
 end
 replace_arithmetic_ops!(x) = x
-    
+
+# we need this always ?
+@if_no_sjulia function set_symbol_self_eval(sym::Symbol)
+    symquote = QuoteNode(sym)
+    eval(:($sym = $symquote))
+end
+
+# eval is "not a generic function". So we can't touch it.
+# Do julia evaluation on Mxpr. This will often fail, for
+# instance when there are unbound symbols.
+# Ugh. we are doing a deep copy here. Need more sophisticated
+# evaluation. Converting back to Mxpr would be faster, but
+# still maybe not efficient. I wonder how to get inside eval ?
+#jeval(mx::Mxpr) = eval(mx_to_ex!(deepcopy(mx)))
+jeval(mx::Mxpr) = eval(mx_to_ex(mx))
+jeval(x) = eval(x)
+
+# Try Julia eval, else quietly return unevaluated input.
+function tryjeval(mx::Union(Mxpr,Expr))
+    res = try
+        jeval(mx)
+    catch
+        mx
+    end
+    res
+end
+tryjeval(x) = x  # Don't seem to save time by letting these fall through
 
 # Expr -> Mxpr
 # Take a Expr, eg constructed from quoted input on cli, and construct an Mxpr.
 function ex_to_mx!(ex::Expr)
     @mdebug(1,"ex_to_mx! start ", ex)
-#    is_call(ex) ? ex.head = jtomop(ex.head) : nothing # replace arithmetic ops
-    ex = tryjeval(ex)  # compile it if we can
-    is_type(ex,Expr) || return ex
-    # if ex.head == :(->)  # Try to compile anonymous functions now.
-    #     f = tryjeval(ex) # If it succeeds, we are done with this expr.
-    #     typeof(f) == Function && return f
-    # end
+    ex = replace_arithmetic_ops!(ex)
+    if ! is_call(ex,1)   # eg :( f() ). sjulia evals this to f, julia fails.
+        @mdebug(2,"ex_to_mx! running tryjeval on:  ", ex)
+        ex = tryjeval(ex)  # compile it if we can
+        if  ! is_type(ex,Expr)
+            @mdebug(2,"ex_to_mx! tryjeval is returning non-expression: ", ex)
+            return ex
+        end
+    end
     is_call(ex,://,3)  && is_number(ex.args[2]) && is_number(ex.args[3]) && return eval(ex)
     ex = rewrite_expr(ex)
     for i in 1:length(ex.args)
@@ -215,10 +292,20 @@ function ex_to_mx!(ex::Expr)
         mxop = ex.head
         mxargs = ex.args
     end
-    @mdebug(5,"converting for printing: ", mxop, ", ", jtomop(mxop))
-    mx = Mxpr(mxop,mxargs,ex.head,false)  # expression not clean
-#    mx = Mxpr(jtomop(mxop),mxargs,ex.head,false)  # expression not clean    
+#    @mdebug(20,"converting for printing: ", mxop, ", ", jtomop(mxop))
+    mx = Mxpr{mxop}(mxop,mxargs,ex.head,false)  # expression not clean
+    @mdebug(10,"ex_to_mx!: constructed Mxpr: $mx")
+    mx
 end
+
+@if_no_sjulia function ex_to_mx!(sym::Symbol) # if unbound, make symbol evaluate to itself
+    @mdebug(12, "ex_to_mx!(sym::Symbol): sym=$sym")
+    if !isdefined(sym)
+        set_symbol_self_eval(sym)
+    end
+    sym
+end
+
 ex_to_mx!(x) = x
 
 ##  Convert a Mxpr to Expr.
@@ -237,28 +324,29 @@ function mx_to_ex!(mx::Mxpr)
     end
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojop(mhead(mx)))  # identity now        
+        unshift!(a,mtojop(head(mx)))  # identity now        
     else   # :hcat, etc
         nothing
     end    
     ex.args = a
     return ex
 end
-# Other things fall through. Though, there may be an expression lurking down there
 #mx_to_ex!(x) = x
 
+# Hijack Julia display code until we can write our own.
+# Conver Mxpr to Expr for printing.
 function mx_to_ex(inmx::Mxpr)
     mx = deepcopy(inmx)
-    @mdebug(5,"mx_to_ex: entering with won't print")    
+    @mdebug(50,"mx_to_ex: entering with won't print")    
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
         a[i] = mx_to_ex(a[i]) # convert to Mxpr at lower levels
     end
     a = copy(a)
-    @mdebug(5,"mx_to_ex: returning recursivley converted args: ", a)
+    @mdebug(50,"mx_to_ex: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojop(mhead(mx)))  # We want Julia to *print* + instead of mplus
+        unshift!(a,mtojop(head(mx)))  # We want Julia to *print* + instead of mplus
     else   # :hcat, etc
         nothing
     end    
@@ -269,7 +357,7 @@ end
 # Other things fall through. Though, there may be an expression lurking down there
 mx_to_ex(x) = x
 
-# This is for exectuion.
+# Convert Mxpr to Expr for evaluation via eval()
 function fast_mxpr_to_expr(inmx::Mxpr)
     @mdebug(5,"fast_mxpr_to_expr: ")
     mx = deepcopy(inmx)
@@ -278,7 +366,7 @@ function fast_mxpr_to_expr(inmx::Mxpr)
     if jhead(mx) == :call
         #        unshift!(a,mtojop(mhead(mx)))  # identity now
         #        println("using op ", mhead(mx))
-        unshift!(a,mhead(mx))  #  We want Julia to call our subsitute functions
+        unshift!(a,head(mx))  #  We want Julia to call our subsitute functions
     else   # :hcat, etc
         nothing
     end        
@@ -314,7 +402,8 @@ function get_attribute(sym::Symbol,attr::Symbol)
 end
 
 # get attribute function name from head of a particular expression
-get_attribute(mx::Mxpr,a) = get_attribute(mhead(mx),a)
+# But, we will try to use multiple dispatch instead, where possible.
+get_attribute(mx::Mxpr,a) = get_attribute(head(mx),a)
 
 # eg. set_attribute(:+, :orderless, true)
 function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
@@ -328,6 +417,7 @@ function set_attribute(sym::Symbol,attr::Symbol,val::Bool)
     attrs[attr] = val
 end
 
+# These also make up union type Orderless
 for func in (:mplus, :mmul)
     set_attribute(func,:orderless,true)
 end
@@ -385,14 +475,14 @@ mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y > 0 ? x^y : 1//(x^(-y))
 mpow(x,y) = x^y
 
-## copied from base/operators
+## copied from base/operators, a great trick
 for op = (:mplus, :mmul)
     @eval begin
         # note: these definitions must not cause a dispatch loop when +(a,b) is
         # not defined, and must only try to call 2-argument definitions, so
         # that defining +(a,b) is sufficient for full functionality.
-        ($op)(a, b, c)        = ($op)(($op)(a,b),c)
-        ($op)(a, b, c, xs...) = ($op)(($op)(($op)(a,b),c), xs...)
+        ($op){T<:Number}(a::T, b::T, c::T)        = ($op)(($op)(a,b),c)
+        ($op){T<:Number}(a::T, b::T, c::T, xs::T...) = ($op)(($op)(($op)(a,b),c), xs...)
         # a further concern is that it's easy for a type like (Int,Int...)
         # to match many definitions, so we need to keep the number of
         # definitions down to avoid losing type information.
@@ -402,17 +492,24 @@ end
 is_rat_and_int(x::Rational) = x.den == 1
 is_rat_and_int(x) = false
 
-############################################
-## Julia-level functions for Mxpr's        #
-############################################
+#######################################################
+## Methods for Mxpr's for Julia arithemtic functions  #
+#######################################################
 
-
-ordereval(x) = meval(deep_order_if_orderless!(x))
+## FIXME
+# This is the wrong way to do this. Calling Cos() should
+# not run meval. Rather call methods of Cos() and return
+# quoted form if we don't have a reduced form.
+# All the Cos code at the bottom of this file will have to be
+# modified.
+# The code here is an attempt to get meval to run automatically,
+# it works, but is really the wrong approach.
+ordereval(x) = meval(deepcanonexpr!(x))
 mxmkevalminus(args...) = ordereval(rewrite_binary_minus(mxpr(args...)))
 mxmkevaldivision(args...) = ordereval(rewrite_division(mxpr(args...)))
 
 mxmkeval(args...) = meval(mxpr(args...))
-mxmkorderless(args...) = deep_order_if_orderless!(mxmkeval(args...))
+mxmkorderless(args...) = deepcanonexpr!(mxmkeval(args...))
 let sym,str
     for str in ("*", "+")
         sym = symbol(str)
@@ -441,64 +538,42 @@ end
 ##  Macros for constructing Mxpr easily    #
 ############################################
 
-# Convert an expression to Mxpr (or number, or symbol...) Call this from
-# within the two macros below, so that we don't need to quote input.
-function transex(ex)
-    local mx
-    T = typeof(ex)
-    if  T == Expr
-        replace_arithmetic_ops!(ex)
-        mx = ex_to_mx!(ex)
-    elseif T == Symbol
-        mx = ex
-    else
-        mx = ex  # Numbers, DataTypes, etc.
-    end
-    @mdebug(3,"transex: returning ",mx)
-    return mx
+# construct a Mxpr and evaluate
+# Try to evaluate once.
+macro sj(ex)
+    mx = ex_to_mx!(ex)
+    mx = meval(mx)    # order first or eval first ?
+    mx = deepcanonexpr!(mx)
+    # need this always for expressions in files    
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)
+    mx = tryjeval(mx)  # We need this!
+    mx
 end
 
-# construct a Mxpr at the cli,
-# Try to evaluate once.
-macro jm(ex)
-    mx = transex(ex)
-    mx = meval(mx)  # backwards ??
-    mx = deep_order_if_orderless!(mx)
-    typeof(mx) == Symbol && return Base.QuoteNode(mx)
-    mx = tryjeval(mx)  # need this. but maybe not here
+# The new sjulia expects a macro called @ex
+macro ex(ex)
+    mx = ex_to_mx!(ex)
+    mx = meval(mx)    # order first or eval first ?
+    mx = deepcanonexpr!(mx)
+    # need this always for expressions in files    
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)
+    mx = tryjeval(mx)  # We need this!
+    mx
 end
 
 # Construct Mxpr, but don't evaluate
-# This is useful for debugging, or seeing Mxpr before any reordering or evaluation
-macro jn(ex)
-    transex(ex)
+# This is (was) useful for debugging,
+# or seeing Mxpr before any reordering or evaluation
+macro sn(ex)
+    ex_to_mx!(ex)
 end
 
 ############################################
 ## Evaluate Mxpr                           #
 ############################################
 
-# eval is "not a generic function". So we can't touch it.
-# Do julia evaluation on Mxpr. This will often fail, for
-# instance when there are unbound symbols.
-# Ugh. we are doing a deep copy here. Need more sophisticated
-# evaluation. Converting back to Mxpr would be faster, but
-# still maybe not efficient. I wonder how to get inside eval ?
-#jeval(mx::Mxpr) = eval(mx_to_ex!(deepcopy(mx)))
-jeval(mx::Mxpr) = eval(mx_to_ex(mx))
-jeval(x) = eval(x)
-
-# Try Julia eval, else quietly return unevaluated input.
-function tryjeval(mx::Union(Mxpr,Expr))
-    res = try
-        jeval(mx)
-    catch
-        mx
-    end
-    res
-end
-tryjeval(x) = x  # Don't seem to save time by letting these fall through
-
+## FIXME  Probably change all of these to be dispatched on type.
+## But exactly how that will work is not yet clear. Cos example is at bottom
 ## Handlers for ops to be dispatched by meval
 const MEVALOPFUNCS = Dict{Symbol,Function}()
 _meval_has_handler(op::Symbol) = haskey(MEVALOPFUNCS,op)
@@ -506,7 +581,8 @@ _meval_get_handler(op::Symbol) = MEVALOPFUNCS[op]
 _meval_call_handler(op::Symbol,mx::Mxpr) = (_meval_get_handler(op))(mx)
 
 register_meval_func(op::Symbol, func::Function) = MEVALOPFUNCS[symbol(op)] = func
-function meval_handle_or_fall_through(mx::Mxpr)
+function meval_handle_or_fall_through(mx::Mxpr)  # Called just once in tests. for tan(a+b)
+#    println("meval_handle_or_fall_through $mx")
     if _meval_has_handler(mx[0])
         return _meval_call_handler(mx[0],mx)
     else
@@ -525,14 +601,17 @@ end
 # If no operands are Mxpr, do nothing.
 # If one or more operands are Mxpr and also of op :+
 # Then flatten the operands, copying them out of the inner Mxpr
+# FIXME: +a --> a
 for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
+    namestr = string(name)
     @eval begin
-        function ($name)(mx::Mxpr)
-            @mdebug(1,$name, " entry: mx = ",mx)
+        function meval(mx::Mxpr{symbol($op)})
+            @mdebug(1, $namestr, " entry: mx = ",mx)
+            length(mx) == 1 && return mx[1]  #  +x --> x
             found_mxpr_term = false
             all_numerical_terms = true
             for i in 1:length(mx)  # check if there is at least one Mxpr of type op
-                if typeof(mx[i]) == Mxpr && mx[i][0] == symbol($op)
+                if mxprq(mx[i]) && mx[i][0] == symbol($op)
                     found_mxpr_term = true
                     all_numerical_terms = false
                     break
@@ -542,15 +621,14 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                 end
             end
             if all_numerical_terms
-                @mdebug(3, $name, ": all numerical terms mx = ", mx)                
+                @mdebug(3, $namestr, ": all numerical terms mx = ", mx)                
                 return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
-#            nargs = Any[symbol($op)]  # new args for the output     ***************
-            nargs = Any[]  # new args for the output            
+            nargs = mxmkargs()  # new args for the output            
             for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
-                if typeof(mxel) == Mxpr && mxel[0] == symbol($op)
+                if is_type(mxel,Mxpr{symbol($op)})
                     for j in 1:endof(mxel)  # got Mxpr of type op, copy elements
                         push!(nargs,mxel[j])
                     end
@@ -558,22 +636,22 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                     push!(nargs,mx[i]) # something else, just it in
                 end
             end
-            newmx = Mxpr($op,nargs,:call,false) # construct new Mxpr
+            newmx = Mxpr{symbol($op)}($op,nargs,:call,false) # construct new Mxpr
             return newmx
         end
-        register_meval_func(symbol($op),$name)  # register this function as handler
     end
 end 
 
 ## meval for powers
-meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
+#meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
+meval(mx::Mxpr{:mpow}) =  meval_pow(mx[1],mx[2],mx)
 meval_pow(base::FloatingPoint, expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::FloatingPoint, expt::Integer, mx::Mxpr) = base ^ expt
 meval_pow(base::Union(FloatingPoint,Integer), expt::FloatingPoint, mx::Mxpr) = base ^ expt
 meval_pow(base::Integer,expt::Integer,mx::Mxpr) = mpow(base,expt)
 meval_pow(base::Integer,expt::Rational,mx::Mxpr) = mx  # Need to do more.
 meval_pow(base,expt,mx::Mxpr) = mx  # generic case is to do nothing
-register_meval_func(:^,meval_pow)
+#register_meval_func(:^,meval_pow)
 
 ## meval for assignment
 function meval_assign(mx::Mxpr)
@@ -596,39 +674,59 @@ function meval_div(mx::Mxpr)
 end
 register_meval_func(:/,meval_div)
 
+
+macro mevaltop(mx1)
+#    emx = (esc(mx))
+    quote
+        mx = deepcopy($mx1)
+        oldhead = head(mx)
+        newhead = eval(oldhead)
+        if newhead != oldhead
+            mx = mxpr(newhead,margs(mx)...)
+        end
+        for i in 1:length(mx)
+            @ma(mx,i) = meval(mx[i])
+        end
+        mx
+    end
+end
+
+function nmeval(mx)
+    @mevaltop(mx)
+    mx
+end
+
+
+
+## Not called very much
 ## meval top level 
 function meval(mx::Mxpr)
+#    println("in meval $mx")
     length(mx) == 0 && return mx
-    if mx[0] == :(=)
+    if mx[0] == :(=)        
         return meval_assign(mx)
     end
     for i in 1:endof(mx)
-        mx[i] = meval(mx[i])
-        meval(mx[i])    # second eval ?
+        @ma(mx,i) = meval(mx[i])
+#        meval(mx[i])    # second eval ? Don't want this
     end
     return meval_handle_or_fall_through(mx)
 end
 
-function meval(s::Symbol)
-#    println(" meval evaling symbol $s")
+# This is needed
+function meval(sym::Symbol)
+    @if_no_sjulia ! isdefined(sym) && return set_symbol_self_eval(sym)
     res =
         try
-            eval(s)
+            eval(sym)
         catch
-            s
+            sym
         end
-    if typeof(res) == Function
-#        println("Got Funciton ! $res")
-    end
-#    println("meval: symbol evaled to $res")    
     res
 end
 
 ## generic meval does nothing
-function meval(x)
-#    println(" evaling unknown $x, type: ", typeof(x))
-    x
-end
+meval(x) = x 
 
 ############################################
 ## Display Mxpr                            #
@@ -638,199 +736,18 @@ end
 # expression.
 function Base.show(io::IO, mxin::Mxpr)
     mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
-#    ex = mx_to_ex!_revert(mx)  ******************  # use original Julia function names
     ex = mx_to_ex(mx)
     Base.show_unquoted(io,ex)    
 end
 
-# Don't show quote on symbol. This changes basic Julia behavior.
-# Or, we could make our own symbol type: MSymbol.
-Base.show(io::IO, ex::Symbol) = Base.show_unquoted(io, ex)
-
-###########################################################
-## Lexicographical ordering of elements in orderless Mxpr #
-###########################################################
-
-const _jslexorder = Dict{DataType,Int}()
-
-# orderless (commutative) functions will have terms ordered from first
-# to last according to this order of types. Then lex within types.
-function _mklexorder()
-    i = 1
-    for typ in (Symbol,Expr,Mxpr,Rational,Any,Int,Float64)
-        _jslexorder[typ] = i
-        i += 1
+@if_no_sjulia begin 
+    const SHOW_QUOTED_SYMBOLS = [false]
+    function show_quotes_on_symbols(val::Bool)
+        SHOW_QUOTED_SYMBOLS[1] = val
     end
-end
-
-_mklexorder()
-
-# interface: returns ordering precedence of Type, typ
-function mxlexorder(typ::DataType)
-    ! haskey(_jslexorder,typ)  && return 5  # Any
-    return _jslexorder[typ]
-end
-
-#mxlexorder(x) = false
-
-# we need these because type annotations are compared
-# isless{T}(::Type{T}, ::Type{T}) = false
-# function isless(::Int64, ::Int64)
-#     println("In is less int64")
-#     return false
-# end
-
-# function isless(::Int64, a::Symbol)
-#     println("In is less int64 and dymbol")
-#     return false
-# end
-
-# function isless(a::Symbol, ::Int64)
-#     println("In is less int64 and dymbol")
-#     return false
-# end
-
-#function _jslexless(x::Union(Mxpr,Expr),y::Union(Mxpr,Expr))
-function _jslexless(x::Mxpr,y::Mxpr)
-    x === y && return false
-    mhead(x) != mhead(y) && return mhead(x) < mhead(y)
-    ax = margs(x)
-    ay = margs(y)
-    lx = length(ax)
-    ly = length(ay)
-    for i in 1:min(lx,ly)
-#        println("_jslexless: trying $i th parts")
-#        println(" ", ax[i],"  ", ay[i])
-        _jslexless(ax[i],ay[i]) && return true
-    end
-#    if typeof(lx) == DataType && typeof(ly) == DataType
-#        lx <: ly && return true
-#    else
-        lx < ly && return true
-#    end
-    return false
-end
-_jslexless(x,y) = lexless(x,y)  # use Julia definitions
-_jslexless(x::DataType,y::DataType) = x <: y
-
-# comparision function for sort routine
-# First compare types, then structure
-function jslexless(x,y)
-    tx = typeof(x)
-    ty = typeof(y)
-#    println("cmp '$x' '$y'")
-    if tx != ty
-        return mxlexorder(tx) < mxlexorder(ty)
-    end
-    return _jslexless(x,y)
-end
-
-
-# Order the args in orderless Mxpr.
-# Now it is a disadvantage that the op is in the args array.
-# We have to remove op to avoid sorting it.
-function orderexpr!(mx::Mxpr)
-    ar = jargs(mx)
-    sort!(ar,lt=jslexless)
-    setorderedflag(mx,true)
-    mx
-end
-
-function needs_ordering(mx::Mxpr)
-#    println("needs_ordering: $mx")    
-    get_attribute(mx,:orderless) && ! getorderedflag(mx)
-end
-
-function order_if_orderless!(mx::Mxpr)
-    if needs_ordering(mx)
-        @mdebug(3,"needs_ordering, ordering: ",mx)
-        orderexpr!(mx)
-        mhead(mx) == :mmul ? mx = compactmul!(mx) : nothing
-        mxprq(mx) && mhead(mx) == :mplus ? mx = compactplus!(mx) : nothing
-        @mdebug(4,"needs_ordering, done ordering and compact: ",mx)
-    end
-    mx
-end
-order_if_orderless!(x) = x
-
-# Check the dirty bits of all all orderless subexpressions
-function deep_order_if_orderless!(mx::Mxpr)
-    for i = 1:length(mx)
-        mx[i] = deep_order_if_orderless!(mx[i])
-    end
-    mx = order_if_orderless!(mx)
-    is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
-    return mx
-end
-deep_order_if_orderless!(x) = x
-
-##########################################################
-## Sum collected numerical args in :+, (or same for :*)  #
-##########################################################
-# + and * are nary. Replace all numbers in the list of args, by one sum or product
-for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
-    @eval begin
-        function ($name)(mx::Mxpr)
-            length(mx) < 2 && return mx
-            a = margs(mx)
-            typeof(a[end]) <: Number || return mx
-            sum0 = a[end]
-            while length(a) > 1
-                pop!(a)
-                typeof(a[end]) <: Number || break
-                sum0 = ($fop)(sum0,a[end]) # call alternate Julia func
-            end
-            length(a) == 0 && return sum0            
-            sum0 != $id && push!(a,sum0)            
-            length(a) == 1 && return a[1]
-            return mx
-        end
-    end
-end
-
-
-
-# Replace n repeated terms x by n*x, and factors x by x^n
-# for (fop,name,id) in  ((:+,:collectplus!,0),(:*,:collectmul!,1))
-#     altop = jtomop(fop)
-#     @eval begin
-#         function ($name)(mx::Mxpr)
-#             length(mx) < 2 && return mx
-#             a = margs(mx)
-#             n = 1
-#             while length(a) > 2
-#                 dupflag = false
-#                 firstdupflag = false
-#                 count = 0
-#                 if n < length(a)
-#                     if a[n] == a[n+1]
-#                 for i in n:(length(a)-1)
-#                     if dupflag
-#                         if a[i] == a[i+1]
-#                             count += 1
-#                         else
-#                             break
-#                         end
-#                     else
-#                         if a[i] == a[i+1]
-#                             firstdupflag = true
-#                             dupflag = true
-#                             count = 1
-#                         end
-
-#                     end
-#                     else
-#                     end
-#             end
-#             length(a) == 0 && return sum0            
-#             sum0 != $id && push!(a,sum0)            
-#             length(a) == 1 && return a[1]
-#             return mx
-#         end
-#     end
-# end
-
-
+    # Don't show quote on symbol. This changes basic Julia behavior.
+    Base.show(io::IO, s::Symbol) = Base.show_unquoted(io, SHOW_QUOTED_SYMBOLS[1] ?  QuoteNode(s) : s)
+end    
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
@@ -842,10 +759,12 @@ end
 # Cos(1) --> Cos(1)
 # Cos(1.0) --> 0.54...
 
+# FIXME: We are calling meval here. This is not the right way.
 # Define functions like, eg. Cos(x::Float64) = cos(x).
 # You get the idea. If this idea works, then we complete the list
+# FIXME: sqrt needs to be treated differently
 function mkmathfuncs() # Man, I hate looking for missing commas.
-    func_list_string = "exp log cos cosh cosd sin sind sinh tan tand tanh"
+    func_list_string = "exp log cos cosd cosh acos sin sind sinh asin tan tand tanh atan"
     for s  in split(func_list_string)
         func = symbol(s)
         Funcstr = string(uppercase(s[1])) * s[2:end]
@@ -861,14 +780,35 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
 end
 mkmathfuncs()
 
-function meval_Cos(cmx::Mxpr)
-    if length(cmx) == 1
-        mx = cmx[1]
-        if length(mx) == 2 && is_op(mx,:mmul,2) && mx[1] == :Pi
-            typeof(mx[2]) <: Integer  && return iseven(mx[2]) ? 1 : -1
-            typeof(mx[2]) <: FloatingPoint && return cospi(mx[2])
-        end
+## TODO: Pi should be implmented like Julia MathConst
+Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
+Cos_pi_coeff(mx::Mxpr{:Cos},c::FloatingPoint) = cospi(c)
+Cos_pi_coeff(mx::Mxpr{:Cos},c) = mx
+function Cos_factor_arg(mx::Mxpr{:Cos},f1::Number,f2::Symbol)
+    if f2 == :Pi
+        return Cos_pi_coeff(mx,f1)
+    else
+        return mx
     end
-    return cmx
 end
-register_meval_func(:Cos,meval_Cos)
+Cos_factor_arg(mx::Mxpr{:Cos},f1,f2) = mx
+meval_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
+meval_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
+function meval_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:mmul})
+    return length(arg) == 2 ? Cos_factor_arg(mx,margs(arg)...) :
+    mx
+end
+
+meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
+meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin}) = length(x) == 1 ? mpow((1-x[1]^2),1//2) : mx
+meval_one_arg(mx::Mxpr{:Cos},x) = mx    
+meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,@ma(mx,1)) : mx
+
+# This is slow. Nothing smart implemented
+# (it is 10x faster than Maxima makelist and the 3rd party 'table'
+# We are constructing the product and sorting the factors
+# every time.
+# [Cos(n * :Pi) for n in 1:10^5]
+# z = 3*:Pi; [Cos(z) for n in 1.0:10^5]; is 5 times faster
+
+@if_sjulia  sjulia_on()   # Turn on features defined in sjulia.jl

@@ -1,13 +1,6 @@
 # Pattern matching and rules
 include("./mxpr_util.jl")
 
-# These work fine
-#typealias CExpr Expr    # annotation to constructed expressions
-#typealias InExpr Expr   # annotation to input arguments
-#typealias UExpr  Expr  # annotation for expressions in Unions
-
-
-# Try Mxpr
 typealias CExpr Mxpr    # annotation to constructed expressions
 typealias InExpr Union(Mxpr,Expr)   # annotation to input arguments
 typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
@@ -21,20 +14,16 @@ end
 typealias ExSym Union(UExpr,Symbol)
 typealias CondT Union(UExpr,Symbol,DataType,Function)
 
-# Julia Expr versions
-#isexpr(x) = (typeof(x) == Expr)
-#iscall(x) = isexpr(x) && x.head == :call
-
 # Mxpr versions
-isexpr(x) = (typeof(x) == Mxpr)
-#isexpr(x) = (typeof(x) == Mxpr || typeof(x) == Expr)
+# Ugh. what is this ? Need to fix it.
+isexpr(x) = (typeof(x) <: AbstractMxpr)
 
+# iscall only used here
 iscall(x) = isexpr(x) && jhead(x) == :call
 function iscomplex(ex)
     typeof(ex) <: Complex ||
     (iscall(ex) && ex.args[1] == :complex)
 end
-
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -74,6 +63,14 @@ end
 Pattern(ast::ExSymPvar) = Pattern(ast,:All)
 pattern(ast::ExSym) = pattern(ast,:All)
 
+function Base.show(io::IO, pv::Pvar)
+    show(io,pv.name)
+end
+
+function Base.show(io::IO, p::Pattern)
+    show(io,p.ast)
+end
+
 # function pattern(ast::ExSym,cond::CondT)
 #     Pattern(ustopat(ast),cond)
 # end
@@ -90,6 +87,14 @@ type PRule
     rhs::Pattern
 end
 
+function Base.show(io::IO, p::PRule)
+    print(io,"rule: ")
+    show(io,p.lhs)
+    print(io, " => ")
+    show(io,p.rhs)
+end
+
+
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 ==(a::Pattern, b::Pattern) = (a.ast == b.ast)
@@ -101,7 +106,25 @@ prule(x,y) = PRule(x,y)
 prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
 prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
+const ruledict = Dict{Symbol,Array{PRule,1}}()
 
+function downrule(sym::Symbol, r::PRule)
+    if !haskey(ruledict,sym)
+        ruledict[sym] = Array(PRule,0)
+    end
+    push!(ruledict[sym],r)
+    r
+end
+
+macro dr(ex::Expr)
+    ex.head != :(:=) && error("@dr expected head :=")
+    ex1 = deepcopy(ex)
+    ex1.head = :(=>)
+    r = eval(ex1)
+    downrule(r.lhs.ast.head, r)
+    r
+end
+   
 ispvar(x) = typeof(x) == Pvar
 pvarsym(pvar::Pvar) = pvar.name
 pvarcond(pvar::Pvar) = pvar.cond
@@ -199,6 +222,7 @@ end
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
 function matchpat(cvar,ex)
+    @mdebug(1, "matchpat entering ex = ", ex)
     c = pvarcond(cvar)
     c == :All && return true # no condition
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
@@ -207,7 +231,8 @@ function matchpat(cvar,ex)
             println("Got a function expression")
             f = meval(c)
             println("Type of f is now ", typeof(f))
-# Replacing expression with compiled anonymous function does not work.            .
+            # Replacing expression with compiled anonymous function does not work.
+            # clean this up, anyway. it is usually compiled long before we get here.
             setpvarcond(cvar,f)  
             return f(ex)
         end
@@ -247,7 +272,7 @@ function _cmppat(mx,pat,captures)
     @mdebug(1, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
     @mdebug(1, "  type of mx = ", typeof(mx))
     @mdebug(1, "  type of pat = ", typeof(pat))        
-    if !isexpr(pat) || mhead(pat) != mhead(mx) ||
+    if !isexpr(pat) || head(pat) != head(mx) ||
         length(pat) != length(mx)
         @mdebug(1, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
         return false
@@ -255,6 +280,7 @@ function _cmppat(mx,pat,captures)
     for i in 1:length(mx) # match and capture subexpressions.
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
+    @mdebug(1, "_cmppat returning true")
     return true
 end
 
@@ -287,7 +313,7 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::Pattern,pat2::Pattern)
     if isexpr(ex)
-        ex = mkexpr(mhead(ex),
+        ex = mkexpr(head(ex),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
     # we have applied replacement at all lower levels. Now do current level.
@@ -305,7 +331,7 @@ end
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if isexpr(ex)
-        ex = mkexpr(mhead(ex),
+        ex = mkexpr(head(ex),
                     map((x)->replaceall(x,rules),margs(ex))...)
     end
     for r in rules
@@ -372,9 +398,11 @@ macro pattcond(ex,cond)
     Pattern(ustopat(ex),cond)
 end
 
-macro rule(mx::Mxpr)
-    mhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
-    prule(pattern(mx[1]),pattern(mx[2]))
+macro rule(ex)
+    #    exhead(mx) != :(=>) && error("rule: expecting lhs => rhs")
+    ex1 = deepcopy(ex)
+    mx = ex_to_mx!(ex1)
+    prule(pattern(mx.args[1]),pattern(mx.args[2]))
 end
 
 function mkrule(ex::InExpr)
