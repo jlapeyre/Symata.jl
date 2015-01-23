@@ -32,10 +32,10 @@ for v in ("RuleDelayed",)
     end
 end
 
-for v in (:(:Dump), :(:Cos), :(:Length),:(:Plus),:(:Times), :(:Blank),
-          :(:JVar), :(:Replace), :(:ReplaceAll))
+for v in ("Dump", "Cos", "Length","Plus","Times", "Blank",
+          "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff")
     @eval begin
-        set_attribute($v,:Protected)        
+        set_attribute(symbol($v),:Protected)        
     end
 end
 
@@ -501,3 +501,7 @@ doplus(mx,a::Number,b::Number) = mplus(a,b)
 doplus(mx,b,e) = mx
 
 apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
+
+apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
+apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
+
