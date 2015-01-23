@@ -248,7 +248,7 @@ function extomxarr(ain,aout)
 end
 
 function extomx(ex::Expr)
-    newa = Array(Any,0)
+    newa = newargs()
     local head::Symbol
     ex = rewrite_expr(ex)
     a = ex.args    
@@ -374,7 +374,7 @@ function meval(mx::Mxpr)
     local nargs
     start = 1
     if get_attribute(mx.head,:HoldFirst)
-        nargs = Array(Any,0)
+        nargs = newargs()
         push!(nargs,mx.args[1])
         for i in 2:length(mx.args)
             push!(nargs,loopmeval(mx.args[i]))
@@ -385,7 +385,7 @@ function meval(mx::Mxpr)
         nargs = mx.args
         nargs[1] = loopmeval(nargs[1])
     else
-        nargs = Array(Any,0)        
+        nargs = newargs()        
         for i in 1:length(mx.args)
             res1 = loopmeval(mx.args[i])
             push!(nargs,res1)
@@ -491,7 +491,7 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 ## Comparison
 
 function apprules(mx::Mxpr{:Comparison})
-    nargs1 = Array(Any,0)
+    nargs1 = newargs()
     i = 1
     while i <= length(mx)
         if is_type_less(mx[i],SJSym) && symname(mx[i]) == :(==)
@@ -506,7 +506,7 @@ function apprules(mx::Mxpr{:Comparison})
         i += 1
     end
     length(nargs1) == 1  && return true
-    nargs = Array(Any,0)    
+    nargs = newargs()    
     for x in nargs1
         if is_type_less(x,Number)
             push!(nargs,x)

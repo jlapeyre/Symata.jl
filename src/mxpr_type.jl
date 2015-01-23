@@ -39,11 +39,13 @@ end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
 margs(mx::Mxpr) = mx.args
+
+newargs() = Array(Any,0)
+
 #setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 # No, this should be fast
 setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
 
-#getindex(mx::Mxpr, k::Int) = return k == 0 ? head(mx) : margs(mx)[k]
 getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::SJSym) = 0
