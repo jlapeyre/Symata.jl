@@ -148,9 +148,12 @@ come from Mma might be good (if this ultimately will look like Mma).
 #### Data and dispatch
 
 Big question, how to use best Julia features, (multiple dispatch, and
-others) with this language ? Another thing, Mma offers no way to write
-code except in Mma. It should be possible to write user or quasi-user
-level code *easily* in Julia.
+others) with this language ? There are of course numerous other
+questions.  Eg, how to handle integer overflow.
+
+Another thing, Mma offers no way to write code except in Mma. It
+should be possible to write user or quasi-user level code *easily* in
+Julia.
 
 Symbols are currently done this way
 
