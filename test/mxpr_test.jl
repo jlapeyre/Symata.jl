@@ -39,4 +39,3 @@ using Base.Test
 @test @ex(Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)) == 1
 @test @ex(Replace( a , a => 1)) == 1
 @test @ex(Replace( b , a => 1)) == @ex(b)
-
