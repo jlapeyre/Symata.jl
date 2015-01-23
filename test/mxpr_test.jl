@@ -26,3 +26,8 @@ using Base.Test
 @test @ex(g(2.0)) == "float"
 
 @test @ex(Cos(ACos(x))) == getsym(:x)
+
+# Test replacement
+@ex cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1
+@test @ex(Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)) == @ex(Cos(a+b)^2 + Sin(a+c)^2)
+@test @ex(Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)) == 1

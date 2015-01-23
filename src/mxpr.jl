@@ -83,13 +83,18 @@ end
 
 const OPTYPE  = Dict{Symbol,Symbol}()
 
-for op in (:(=), :(:=), :(=>), :Rule )
+for op in (:(=), :(:=), :(=>), :Rule , :Power )
     OPTYPE[op] = :binary
+end
+
+for op in (:Plus, :Times)
+    OPTYPE[op] = :infix
 end
 
 getoptype(s::SJSym) = getoptype(symname(s))
 
 function getoptype(x::Symbol)
+#    println("Cheking $x")
     if haskey(OPTYPE,x)
         return OPTYPE[x]
     end
@@ -146,8 +151,11 @@ const LISTL = '['
 const LISTR = ']'
 
 function Base.show(io::IO, s::Mxpr)
+#    println(s.head, " " ,getoptype(s.head))
     if getoptype(s.head) == :binary
         return show_binary(io,s)
+    elseif getoptype(s.head) == :infix
+        return show_infix(io,s)
     end
     show_prefix_function(io,s)
 end
@@ -169,9 +177,25 @@ function show_binary(io::IO, mx::Mxpr)
         show_prefix_function(io,mx)
     else
         show(io,mx.args[1])
-        print(io, "  ", mtojsym(mx.head), " ")
-        show(io,mx.args[2])
+        print(io, "", mtojsym(mx.head), "")
+        rop = mx.args[2]
+        if is_type_less(rop,Mxpr) && length(rop) > 1
+            print(io,"(")
+            show(io,rop)
+            print(io,")")
+        else
+            show(io,rop)
+        end
     end
+end
+
+function show_infix(io::IO, mx::Mxpr)
+    args = mx.args
+    for i in 1:length(args)-1
+        show(io,args[i])
+        print(io, mtojsym(mx.head))
+    end
+    isempty(args) || show(io,args[end])
 end
 
 ## Translate Expr to Mxpr
