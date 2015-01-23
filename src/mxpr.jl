@@ -176,7 +176,15 @@ function show_binary(io::IO, mx::Mxpr)
     if length(mx) != 2
         show_prefix_function(io,mx)
     else
-        show(io,mx.args[1])
+        lop = mx.args[1]
+        if is_type_less(lop,Mxpr) && length(lop) > 1
+            print(io,"(")
+            show(io,lop)
+            print(io,")")
+        else
+            show(io,lop)
+        end        
+#        show(io,mx.args[1])
         print(io, "", mtojsym(mx.head), "")
         rop = mx.args[2]
         if is_type_less(rop,Mxpr) && length(rop) > 1
@@ -210,6 +218,8 @@ function extomx(s::Symbol)
     end
 end
 
+# Underscore is not allow in symbols. Instead,
+# they signify part of a pattern
 function parseblank(s::String)
     a = split(s,['_'], keep=true)
     length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
@@ -269,12 +279,13 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :/,3)  
 is_power(ex::Expr) = is_call(ex, :^)
 
-# There is no binary minus and no division in Mxpr's.
+
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
 rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
 rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
 rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
 
+# There is no binary minus and no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
 function rewrite_expr(ex::Expr)
@@ -284,17 +295,14 @@ function rewrite_expr(ex::Expr)
         ex = rewrite_division(ex)
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :^, :E, ex.args[2])
-#    elseif is_call(ex,:Sqrt,2)
+#    elseif is_call(ex,:Sqrt,2)  TODO
 #        ex = Expr(:call, :^, ex.args[2], SJRational(1//2))
 #    end
     end
     return ex
 end
 
-
 ## Macro for translation and evaluation, at repl or from file
-
-global NEVAL = 0
 
 global MEVAL_ENTRY_COUNT = 0
 
