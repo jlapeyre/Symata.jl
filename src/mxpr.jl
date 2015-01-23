@@ -99,14 +99,14 @@ const LISTL = '['
 const LISTR = ']'
 
 function Base.show(io::IO, s::Mxpr)
-#    println(s.head, " " ,getoptype(s.head))
-    if getoptype(s.head) == :binary  # do this by dispatch on arg !
+    if getoptype(s.head) == :binary  
         return show_binary(io,s)
     elseif getoptype(s.head) == :infix
         return show_infix(io,s)
     end
     show_prefix_function(io,s)
 end
+
 
 function Base.show(io::IO, mx::Mxpr{:Comparison})
     args = mx.args    
@@ -152,6 +152,34 @@ function show_binary(io::IO, mx::Mxpr)
             show(io,rop)
         end
     end
+end
+
+# unary minus
+function Base.show(io::IO, mx::Mxpr{:Minus})
+    arg = mx.args[1]
+    if is_type_less(arg,Number) || is_type_less(arg,SJSym)
+        print(io,"-")
+        show(io,arg)
+    else
+        print(io,"-(")
+        show(io,arg)
+        print(io,")")
+    end
+end
+
+function Base.show(io::IO, mx::Mxpr{:Plus})
+    args = mx.args
+    show(io,args[1])    
+    for i in 2:length(args)
+        if is_type(args[i],Mxpr{:Minus})
+            print(io, " - ")            
+            show(io,(args[i]).args[1])
+        else
+            print(io, " + ")
+            show(io,args[i])
+        end
+    end
+#    isempty(args) || show(io,args[end])    
 end
 
 function show_infix(io::IO, mx::Mxpr)

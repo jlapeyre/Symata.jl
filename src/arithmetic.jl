@@ -35,6 +35,8 @@ end
 ## Not really arithmetic.
 
 *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+*(a::SJSym,b::Number) = mxpr(:Times,b,a)
+*(a::Number,b::SJSym) = mxpr(:Times,a,b)
 *(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
 *(a::Mxpr,b) = mxpr(:Times,a,b)
 *(a,b::Mxpr) = mxpr(:Times,a,b)

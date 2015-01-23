@@ -6,12 +6,6 @@ macro mdebug(level, a...)
     end
 end
 
-is_type(x,t::DataType) = typeof(x) == t
-is_type_less(x,t::DataType) = typeof(x) <: t
-is_type(x,t::UnionType) = typeof(x) == t
-is_type_less(x,t::UnionType) = typeof(x) <: t
-
-
 ## For compatibility with older code.
 ## Usage: @ma(mx,k) = val  --> margs(mx)[k] = val
 # Use this to set an element of an Mxpr without canonicalizing.  Eg,
