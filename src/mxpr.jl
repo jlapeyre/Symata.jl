@@ -1,5 +1,6 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
+
 for v in ( "Set", "Pattern", "SetJ" )
     @eval begin
         set_attribute(symbol($v),:HoldFirst)
@@ -304,11 +305,26 @@ end
 
 ## Macro for translation and evaluation, at repl or from file
 
+type Meval
+    entrycount::Int
+    traceon::Bool
+end
+const MEVAL = Meval(0,false)
+
+# TODO: get rid of the global
 global MEVAL_ENTRY_COUNT = 0
+
+reset_meval_count() = MEVAL.entrycount = 0
+get_meval_count() = MEVAL.entrycount
+increment_meval_count() = MEVAL.entrycount += 1
+decrement_meval_count() = MEVAL.entrycount -= 1
+set_meval_trace() = MEVAL.traceon = true
+unset_meval_trace() = MEVAL.traceon = false
+is_meval_trace() = MEVAL.traceon
 
 macro ex(ex)
     res = extomx(ex)
-    global MEVAL_ENTRY_COUNT = 0
+    reset_meval_count()
     mx = loopmeval(res)
     sjset(getsym(:ans),mx)
     :(($(esc(mx))))
@@ -342,11 +358,12 @@ meval(x) = x
 meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
 
 function meval(mx::Mxpr)
-    global MEVAL_ENTRY_COUNT += 1
-    if MEVAL_ENTRY_COUNT > 200
-        error("Too many meval entries ", MEVAL_ENTRY_COUNT)
+    increment_meval_count()
+    if get_meval_count() > 200
+        error("Too many meval entries ", get_meval_count())
     end
-#    ind = " " ^ MEVAL_ENTRY_COUNT
+    is_meval_trace() ? ind = " " ^ get_meval_count() : nothing
+    is_meval_trace() && println(ind,"me<- " , mx)
     nhead = mx.head
     local nargs
     start = 1
@@ -371,8 +388,10 @@ function meval(mx::Mxpr)
     nmx = mxpr(nhead,nargs...)
     nmx1 = apprules(nmx)
     nmx1 == nothing && return nothing
-    MEVAL_ENTRY_COUNT -= 1    
-    applydownvalues(nmx1)
+    decrement_meval_count()    
+    res = applydownvalues(nmx1)
+    is_meval_trace() && println(ind,"me-> " , res)
+    res
 end
 
 ## Application of Rules for many SJSym's ...
