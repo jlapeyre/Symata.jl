@@ -83,6 +83,7 @@ jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
 jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 jslexless(x::SJSym, y::SJSym) = isless(x,y)
+jslexless(x::Number, y::SJSym) = true
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
