@@ -35,7 +35,6 @@ typealias ExSymPvar Union(UExpr,Symbol,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
-#    ispvarsym(name) || error("Pvar: name '$name' does not end with '_'")
     Pvar(name,:All)
 end
 
@@ -71,9 +70,6 @@ function Base.show(io::IO, p::PatternT)
     show(io,p.ast)
 end
 
-# function pattern(ast::ExSym,cond::CondT)
-#     PatternT(ustopat(ast),cond)
-# end
 
 pattern(x,cond::Symbol) = PatternT(ustopat(x),cond)
 
@@ -144,28 +140,12 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 # pattern vars are exactly those ending with '_'
 ispvarsym(x) = string(x)[end] == '_'
 
-# convert var_ to Pvar(var,:All), else pass through
-disableustopat(sym::Symbol) = ispvarsym(sym) ? Pvar(sym,:All) : sym
-
-# Syntx for specifying condition is pat_::cond
-# Construct pvar() if we have this kind of expression.
-# Else it is an ordinary expression and we walk it.
-# We eval the condition. It will be a DataType or a Function
-function disableustopat(ex::InExpr)
-    if ex.head == :(::) && length(ex.args) > 0 &&
-        typeof(ex.args[1]) == Symbol && ispvarsym(ex.args[1])
-        return pvar(ex.args[1],eval(ex.args[2]))
-    end
-    mkexpr(ex.head, map(ustopat,ex.args)...)
-end
-
 # everything else falls through
 ustopat(x) = x
 
 # Perform match and capture.
 # Then check consistency of assigned capture variables
 function cmppat(ex,pat::PatternT)
-#    println("enter cmppat with $ex")
     (res,captures) = cmppat1(ex,pat)
     res === false && return (res,captures) # match failed
     cd = Dict{Symbol,Any}()
