@@ -1,29 +1,58 @@
-** Symbolic manipulation code.
+## Symbolic manipulation code.
 
-This code is a sketch that implements a few things.
-I am posting it to get feedback on design decisions. The
-code is cleaner in some places than others. But, I expect
-most of it to be rewritten. I don't want to spend time with
-localized inefficiencies. I am concerned about efficiency and
-expressiveness that is difficult to change without big rewrites.
+This code is a sketch that is not meant to demonstrate computations,
+but rather to test implementing core features.  I am posting it to get
+feedback on design decisions. The code is cleaner in some places than
+others. But, I expect most of it to be rewritten. I don't want to
+spend time with localized inefficiencies. I am concerned about
+efficiency and expressiveness that is difficult to change without big
+rewrites.
 
 ```julia
 include("src/Mxpr.jl")
 include("src/mxpr_test.jl")
 ```
 
+If you install the sjulia repl:
+
+```julia
+sjulia> ClearAll(fib)
+sjulia> fib(1) := 1
+sjulia> fib(2) := 1
+sjulia> fib(n_) := fib(n-1) + fib(n-2)
+sjulia> fib(10)
+55
+```
+
+Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
+
+* `SetJ(x,val)` set a Julia variable
+* `Clear(), ClearAll()` clear a symbol's value, or all associated rules, too.
+* `DownValues(x)` rules associated with x
+* `Attributes(x)` attributes of symbol x
+* `Dump(x)`
+* `Cos(x)`
+* `Length(x)`
+* `TraceOn()`
+* `TraceOff()`
+* `Replace(expr,rule)`
+* `ReplaceAll(expr,rule)`
+* `a = b` assignment
+* `a := b` delayed assignment
+* `f(x_) := x` delayed rule assignment
+
 There are three versions, or experiments. Each one has test files
 that run and serve as examples. The instructions for loading
 the code and running the tests,  are in the subdirs.
 
-Exressions can be entered at the Julia repl. For the two most recent
+Expressions can be entered at the Julia repl. For the two most recent
 versions, there is also a repl mode "sjulia" in my Julia fork in the branch
 jl/symrepl.  You enter and exit the mode with ".". The only file
 changed in this branch is REPL.jl. The only thing the new mode does is
 wrap input lines in a macro. Of course, a better thing would be to
 add a facility that works like: `newrepl(:name, :wrappermacro)`.
 
-*** Using Julia `Expr`
+### Experiment 1. Using Julia `Expr`
 
 The oldest is in directory `premxprcode`. This uses Julia `Expr` and
 Julia `Symbol` types to represent symbolic expressions. A
@@ -38,7 +67,7 @@ r =  @rule _ / _::((x)-> x != 0)  => 1
 @test replaceall( :( (a+b) / (a+b) ) , r) == 1
 ```
 
-*** Using type `Mxpr` and Julia `Symbol` and some Julia evaluation.
+### Experiment 2. Using type `Mxpr` and Julia `Symbol` and some Julia evaluation.
 
 This code is in the directory `oldmxpr`. An input `Expr` is captured
 by a macro and some things are rewritten and a `Mxpr` is constructed.
@@ -62,7 +91,7 @@ and get an `Mxpr`. But, I abandoned this approach. (By the way, "make test"
 passed with this modification, so there is no test for undefined symbols.
 I did not try make test all.)
 
-*** Using type `Mxpr` and a symbol type `SJSym`
+### Latest experiment. Using type `Mxpr` and a symbol type `SJSym`
 
 Mixing Julia and symbolic manipulation via patterns and term rewriting was problematic.
 So the next step amounts to writing another language. Symbols, and "functions" and
@@ -73,7 +102,7 @@ get something working and see how it interacts with Julia. But, the design could
 changed. Some of the thing from the earlier experiments is ported, but not all. Eg.
 the expression canonicalizer is not.
 
-**** Pattern matching.
+#### Pattern matching.
 
 This still uses the same pattern matcher, but some features need to be implemented differently.
 The most important missing feature is matching objects in a commutative (Orderless) expression.
@@ -96,13 +125,13 @@ sjulia> f(a+b)
 ```
 
 When `f` is encountered as the head of an expression, a list of such rules is
-tried. The first that succeeds makes the transformtion and that round of evaluation
+tried. The first that succeeds makes the transformation and that round of evaluation
 is done. You should also be able to  associate automatic rules with `f` like this
 `g(f(x_)) ^= x^2`. But, this is not done yet.
 
 You can see the evaluation sequence in `loopmeval` and `meval` in the code.
 
-**** Parsing
+#### Parsing
 
 I use the Julia parser and reinterpret the results. Maybe there is an elegant enough
 way to get everything you need this way. But, probably copying and altering the
@@ -112,16 +141,16 @@ square brackets. Once you change the parser, you can ask whether you want full M
 syntax. Richard Fateman wrote a complete Mma parser in common lisp. If this
 is the route to take, he may be willing agree to an MIT license, there is none at
 all now IIRC. Maybe it could be translated to scheme without too much trouble.
-OTOH, staying close to Julia (and everyone elses) syntax is also reasonable.
-OTOOH, Julia trys to make it easy to come from matlab. So making it easy to
-come from Mma might be good (if this ultimatley will look like Mma).
+OTOH, staying close to Julia (and everyone else's) syntax is also reasonable.
+OTOOH, Julia tries to make it easy to come from matlab. So making it easy to
+come from Mma might be good (if this ultimately will look like Mma).
 
-**** Data and dispatch
+#### Data and dispatch
 
-Big question, how to use Julia features, (multiple dispatch, and
-others) with this language ?  Mma offers no way to write code except
-in Mma. It should be possible to write user or quasi-user level code
-*easily* in Julia.
+Big question, how to use best Julia features, (multiple dispatch, and
+others) with this language ? Another thing, Mma offers no way to write
+code except in Mma. It should be possible to write user or quasi-user
+level code *easily* in Julia.
 
 Symbols are currently done this way
 
@@ -153,4 +182,19 @@ end
 There are `Protected` (reserved) symbols, like `Cos`,
 and `RuleDelayed`. Evaluation of these is dispatched by the subtype.
 
-
+<!--  LocalWords:  julia src sjulia repl ClearAll SetJ DownValues jl
+ -->
+<!--  LocalWords:  TraceOn TraceOff expr ReplaceAll subdirs symrepl
+ -->
+<!--  LocalWords:  newrepl wrappermacro premxprcode Mathematica Eg
+ -->
+<!--  LocalWords:  matcher replaceall Mxpr oldmxpr SJSym SJulia meval
+ -->
+<!--  LocalWords:  canonicalizer Orderless cossinrule loopmeval Mma
+ -->
+<!--  LocalWords:  Fateman IIRC OTOOH else's matlab AbstractSJSym
+ -->
+<!--  LocalWords:  Bool symname sjsym downvalues subtype AbstractMxpr
+ -->
+<!--  LocalWords:  RuleDelayed
+ -->
