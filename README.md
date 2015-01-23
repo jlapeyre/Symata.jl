@@ -13,7 +13,12 @@ include("src/Mxpr.jl")
 include("src/mxpr_test.jl")
 ```
 
-If you install the sjulia repl:
+I added a mode to the Julia repl to support this code.
+
+https://github.com/jlapeyre/julia/tree/jl/symrepl
+
+You enter and exit the sjulia mode with '.'
+Here is an example.
 
 ```julia
 sjulia> ClearAll(fib)
