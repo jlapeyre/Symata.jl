@@ -438,8 +438,27 @@ doreplaceall(mx,a,b) = mx
 ## Comparison
 
 function apprules(mx::Mxpr{:Comparison})
-    nargs = Array(Any,0)
-    for x in margs(mx)
+    nargs1 = Array(Any,0)
+    i = 1
+    while i <= length(mx)
+#        println("S  $i  ", mx[i])        
+        if is_type_less(mx[i],SJSym) && symname(mx[i]) == :(==)
+            if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
+                i += 1  # this does not work
+            else
+                return false
+            end
+        else
+#            println("hisdfn ls")
+            push!(nargs1,mx[i])
+#            println(nargs1)            
+        end
+        i += 1
+    end
+#    println("aftre firs ", nargs1)
+    length(nargs1) == 1  && return true
+    nargs = Array(Any,0)    
+    for x in nargs1
         if is_type_less(x,Number)
             push!(nargs,x)
         elseif is_comparison_symbol(x)
@@ -448,6 +467,7 @@ function apprules(mx::Mxpr{:Comparison})
             return mx
         end
     end
+#    println("Final: ", nargs)
     eval(Expr(:comparison,nargs...))
 end
 
