@@ -100,12 +100,21 @@ const LISTR = ']'
 
 function Base.show(io::IO, s::Mxpr)
 #    println(s.head, " " ,getoptype(s.head))
-    if getoptype(s.head) == :binary
+    if getoptype(s.head) == :binary  # do this by dispatch on arg !
         return show_binary(io,s)
     elseif getoptype(s.head) == :infix
         return show_infix(io,s)
     end
     show_prefix_function(io,s)
+end
+
+function Base.show(io::IO, mx::Mxpr{:Comparison})
+    args = mx.args    
+    for i in 1:length(args)-1
+        show(io,args[i])
+        print(io," ")
+    end
+    isempty(args) || show(io,args[end])
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
@@ -428,8 +437,18 @@ doreplaceall(mx,a,b) = mx
 
 ## Comparison
 
-function apprules(mx::Mxpr{:comparison})
-    mx
+function apprules(mx::Mxpr{:Comparison})
+    nargs = Array(Any,0)
+    for x in margs(mx)
+        if is_type_less(x,Number)
+            push!(nargs,x)
+        elseif is_comparison_symbol(x)
+            push!(nargs,symname(x))
+        else
+            return mx
+        end
+    end
+    eval(Expr(:comparison,nargs...))
 end
 
 ## A few Number rules
