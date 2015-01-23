@@ -38,13 +38,6 @@ function Pvar(name::Symbol)
     Pvar(name,:All)
 end
 
-function pvar(name::Symbol, cond::CondT)
-    ispvarsym(name) || error("pvar: name '$name' does not end with '_'")
-    Pvar(name,cond)
-end
-
-pvar(name::Symbol) = pvar(name,:All)
-
 ==(a::Pvar, b::Pvar) = (a.name == b.name && a.cond == b.cond)
 
 # ast is the pattern including Pvars for capture.
