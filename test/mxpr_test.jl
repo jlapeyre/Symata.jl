@@ -7,6 +7,11 @@ using Base.Test
 @ex fib(2) := 1
 @ex fib(n_) := fib(n-1) + fib(n-2)
 @test @ex(fib(10)) == 55
+@ex Clear(fib)   # does not remove definition
+@test @ex(fib(11)) == @ex(fib(10)) + @ex(fib(9))
+@ex ClearAll(fib)  # removes definition
+@test @ex(Head(fib(11))) == getsym(:fib)
+
 
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
@@ -34,3 +39,4 @@ using Base.Test
 @test @ex(Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)) == 1
 @test @ex(Replace( a , a => 1)) == 1
 @test @ex(Replace( b , a => 1)) == @ex(b)
+

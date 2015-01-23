@@ -161,7 +161,7 @@ function Base.show(io::IO, s::Mxpr)
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    mx.head == getsym(:List) ? nothing : show(io,mtojsym(mx.head))
+    mx.head == getsym(:List) ? nothing : print(io,mtojsym(mx.head))
     args = mx.args
     print(io,mx.head == getsym(:List) ? LISTL : FUNCL)
     for i in 1:length(args)-1
@@ -398,17 +398,11 @@ function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     nothing
 end
 
-
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
     rhs = mx.args[2]
     eval(Expr(:(=),symname(lhs),rhs))
 end 
-
-# No, not this way
-#function set_and_setdelayed(mx,lhs::Mxpr{:JVar}, rhs)
-#    eval(Expr(:(=),lhs.args[1].name,rhs))
-#end
 
 set_and_setdelayed(mx,y,z) = mx
 

@@ -550,6 +550,17 @@ macro sj(ex)
     mx
 end
 
+# The new sjulia expects a macro called @ex
+macro ex(ex)
+    mx = ex_to_mx!(ex)
+    mx = meval(mx)    # order first or eval first ?
+    mx = deepcanonexpr!(mx)
+    # need this always for expressions in files    
+    is_type(mx,Symbol) && return Base.QuoteNode(mx)
+    mx = tryjeval(mx)  # We need this!
+    mx
+end
+
 # Construct Mxpr, but don't evaluate
 # This is (was) useful for debugging,
 # or seeing Mxpr before any reordering or evaluation

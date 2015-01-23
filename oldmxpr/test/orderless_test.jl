@@ -1,5 +1,7 @@
 using Base.Test
 
+## Test canonical ordering of 'orderless' (commutative) expressions.
+
 # Restore these after fixing
 let s,a
 
