@@ -198,7 +198,7 @@ for (fop,name,id) in  ((:mplus,:compactplus!,0),(:mmul,:compactmul!,1))
                 sum0 = ($fop)(sum0,a[1])
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
-            length(a) == 0 && return sum0
+            (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
             sum0 != $id && unshift!(a,sum0)
             length(a) == 1 && return a[1]

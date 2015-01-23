@@ -2,7 +2,15 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
-## This is only partially translated for the new code.
+# There are three stages:
+# 1. Put the terms and factors in a canonical order.
+# 2. Evaluate all + and * between numbers and replace with result
+# 3. Combine terms with:
+#    A. same numeric coefficient
+#    B. same numeric power
+
+# We should also compare to the same algorithms for other
+# available CAS's. But, Maxima uses a different order.
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
 
@@ -212,13 +220,19 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             @mdebug(3, $name, ": got margs")
             typeof(a[1]) <: Number || return mx
             sum0 = a[1]
+#            println("before loop , doing ", a[1])
             while length(a) > 1
+#                println("in loop: before shift $a")
                 shift!(a)
+#                println("in loop: after shift $a")
+#                println("typeof a1 ",typeof(a[1]))
+#                typeof(a[1]) <: Number || println("Got non bumber")                
                 typeof(a[1]) <: Number || break
                 sum0 = ($fop)(sum0,a[1])
+#                println(" bottom of loop: a is $a, length is ", length(a))
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
-            length(a) == 0 && return sum0
+            (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
             sum0 != $id && unshift!(a,sum0)
             length(a) == 1 && return a[1]

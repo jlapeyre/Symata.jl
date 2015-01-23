@@ -1,6 +1,5 @@
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-
 for v in ( "Set", "Pattern", "SetJ" )
     @eval begin
         set_attribute(symbol($v),:HoldFirst)
@@ -49,61 +48,6 @@ end
 
 Base.base(p::Mxpr{:Power}) = p.args[1]
 expt(p::Mxpr{:Power}) = p.args[2]
-
-## Symbol correspondence/translation between Julia and SJulia
-
-const JTOMSYM  =
- Dict(
-      :(=) => :Set,
-      :(:=) => :SetDelayed,
-      :+ => :Plus,
-      :- => :Minus,
-      :* => :Times,
-      :^ => :Power,
-      :(=>) => :Rule, # Mma uses ->  (hmmm)
-      :vcat => :List,
-      :ref => :Part,
-      :cell1d => :List,   # curly brackets, but deprecated by julia
-      :comparison => :Comparison,
-      )
-
-const MTOJSYM = Dict{Symbol,Symbol}()
-for (k,v) in JTOMSYM  MTOJSYM[v] = k end
-
-function jtomsym(x::Symbol)
-    if haskey(JTOMSYM,x)
-        return JTOMSYM[x]
-    end
-    return x
-end
-
-mtojsym(s::SJSym) = mtojsym(symname(s))
-function mtojsym(x::Symbol)
-    if haskey(MTOJSYM,x)
-        return MTOJSYM[x]
-    end
-    return x
-end
-
-const OPTYPE  = Dict{Symbol,Symbol}()
-
-for op in (:(=), :(:=), :(=>), :Rule , :Power )
-    OPTYPE[op] = :binary
-end
-
-for op in (:Plus, :Times)
-    OPTYPE[op] = :infix
-end
-
-getoptype(s::SJSym) = getoptype(symname(s))
-
-function getoptype(x::Symbol)
-#    println("Cheking $x")
-    if haskey(OPTYPE,x)
-        return OPTYPE[x]
-    end
-    return :prefix
-end
 
 ## predicate
 
@@ -340,13 +284,14 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     local mx1    
     while true
         mx1 = meval(mx)
-        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
+#        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
+#        println( " loopmeval in loop: mx=$mx, mx1=$mx1")
         if mx1 == mx
             break
         end
         neval += 1
         if neval > 5
-            error("Too many evaluations.")
+            error("loopeval: Too many, $neval, evaluations. Expression still changing")
         end
         mx = mx1
     end
@@ -393,6 +338,7 @@ function meval(mx::Mxpr)
     nmx1 == nothing && return nothing
     decrement_meval_count()    
     res = applydownvalues(nmx1)
+    res = deepcanonexpr!(res) # actually, this should be orderless only. others split off
     is_meval_trace() && println(ind,"me-> " , res)
     res
 end
@@ -507,4 +453,3 @@ apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
 
 apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
-
