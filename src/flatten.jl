@@ -1,3 +1,7 @@
+## Flatten, flatten nested operations that are associative
+
+# eg   (a + b + (c + d)) --> (a + b + c + d)
+
 typealias Flat Union(Mxpr{:Plus},Mxpr{:Times})
 
 # Here we copy
