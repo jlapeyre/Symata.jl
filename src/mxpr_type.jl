@@ -21,6 +21,7 @@ Base.isless(t,s::SJSym) = t  < symname(s)
 
 function pushdownvalue(s::SJSym,val)
     push!(s.downvalues,val)
+    sort!(s.downvalues,lt=isless_patterns)
 end
     
 cleardownvalues(s::SJSym) = (s.downvalues = Array(Any,0))

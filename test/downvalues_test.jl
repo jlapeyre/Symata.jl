@@ -6,7 +6,15 @@
 @ex Clear(fib)   # does not remove definition
 @testex fib(11) == fib(10) + fib(9)
 @ex ClearAll(fib)  # removes definition
-@testex Head(fib(11)) == fib
+@testex Head(fib(11)) == fib  # does not evaluate to number
+
+# Test sorting of downvalues
+# Enter downvalues in wrong order. 
+@ex fib(n_) := fib(n-1) + fib(n-2)
+@ex fib(1) := 1
+@ex fib(2) := 1
+@testex fib(10) == 55
+@ex ClearAll(fib)
 
 ## Condition on pattern
 
