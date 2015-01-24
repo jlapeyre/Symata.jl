@@ -56,7 +56,7 @@ end
 # simplify and economize this code.
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
-    (jslexless(base(x),base(y)) && !jslexless(base(x),base(y))) ||  jslexless(expt(x),expt(y))
+    jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))
 end
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Times}) = jslexless(x[end],y[end])
 #jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],base(y))
