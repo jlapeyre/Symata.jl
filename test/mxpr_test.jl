@@ -49,3 +49,9 @@ using Base.Test
 @ex res = ( a = 3, 4)
 @testex a == 3
 @testex res == 4
+
+@ex ClearAll(f,a,b)
+@ex f(x_) := ( a = 1, x + 1 )
+@testex   f(b) == b + 1
+@ex ClearAll(f,a,b)
+
