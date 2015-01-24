@@ -291,6 +291,7 @@ function _matchfacs(a,b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
+# Not used. Done in apprules for Power
 # (x^n)^m --> x^(n*m)
 function mulpowers(mx::Mxpr{:Power})
     (e,b) = numeric_expt_and_base(mx)
@@ -309,8 +310,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                           (:mmul,:collectmmul!,:_matchfacs))
     @eval begin
         function ($name)(mx::Mxpr)
-#            mx = deepcopy(mx)
-            pprintln("enter collect ", $name ,": $mx")
+#            println("enter collect ", $name ,": $mx")
             length(mx) < 2 && return mx
             a = margs(mx)
             n = 1
@@ -338,7 +338,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                     newex = $(op== :mplus ?
                     :(coeffcount == 1 ? fac : mxpr(:Times,coeffcount,fac)) :
                     :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:Power,fac,coeffcount)))
-#                    println("newex $newex, coeffcount: $coeffcount")
+                    pprintln("newex $newex, coeffcount: $coeffcount, count: $count")
                     if coeffcount == 0
                         splice!(a,n:n+count)
                     else
@@ -348,9 +348,9 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                 end
                 n += 1
             end
- #           a = mulpowers(a)
+#            a = mulpowers(a)
             if  length(a) == 1
-#                a = mulpowers(a[1])
+                a = mulpowers(a[1])
                 return a[1]
             end
             if length(a) == 0

@@ -23,3 +23,4 @@
 @testex Apply(List, a * a + 1 / ((z + y) * (z + y)) ) == [a ^ 2,(y + z) ^ -2]
 @testex Apply(List,a + z + 10*a^2 + 2 * z^2) == [a,10*a^2,z,2*z^2]
 @testex (a+b)/(a+b) == 1
+@testex (a + b)^2/(a+b) == a + b

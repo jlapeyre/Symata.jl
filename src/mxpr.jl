@@ -542,6 +542,10 @@ makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx,b::Number,e::Number) = mpow(b,e)
+function dopower(mx,b::Mxpr{:Power},exp)
+    newex = exp*expt(b)
+    mxpr(:Power,base(b),(exp*expt(b)))
+end
 dopower(mx,b,e) = mx
 
 
