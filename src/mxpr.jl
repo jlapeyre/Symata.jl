@@ -561,6 +561,7 @@ function apprules(mx::Mxpr{:Plus})
 end
 doplus(mx,a::Number,b::Number) = mplus(a,b)
 doplus(mx,b,e) = mx
+
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
 ## Tracing evaluation

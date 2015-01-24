@@ -301,10 +301,10 @@ end
 
 mulpowers(x) = x
 
+#Replace n repeated terms x by n*x, and factors x by x^n
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)
-#Replace n repeated terms x by n*x, and factors x by x^n
 for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                           (:mmul,:collectmmul!,:_matchfacs))
     @eval begin
@@ -338,7 +338,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                     newex = $(op== :mplus ?
                     :(coeffcount == 1 ? fac : mxpr(:Times,coeffcount,fac)) :
                     :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:Power,fac,coeffcount)))
-                    pprintln("newex $newex, coeffcount: $coeffcount")
+#                    println("newex $newex, coeffcount: $coeffcount")
                     if coeffcount == 0
                         splice!(a,n:n+count)
                     else
@@ -354,7 +354,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                 return a[1]
             end
             if length(a) == 0
-                return 0
+                $(op== :mplus ? :(return 0) : :(return 1))
             end
 #            mx = mulpowers(mx)
             return mx
