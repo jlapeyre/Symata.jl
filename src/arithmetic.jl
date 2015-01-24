@@ -43,3 +43,5 @@ end
 -(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
 ^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
+^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+^(base::SJSym,expt) = mxpr(:Power,base,expt)

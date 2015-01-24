@@ -356,7 +356,7 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
             break
         end
         neval += 1
-        if neval > 5
+        if neval > 100
             println(mx)
             error("loopeval: Too many, $neval, evaluations. Expression still changing")
         end
@@ -542,10 +542,7 @@ makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx,b::Number,e::Number) = mpow(b,e)
-function dopower(mx,b::Mxpr{:Power},exp)
-    newex = exp*expt(b)
-    mxpr(:Power,base(b),(exp*expt(b)))
-end
+dopower(mx,b::Mxpr{:Power},exp) = base(b)^(exp*expt(b))
 dopower(mx,b,e) = mx
 
 
