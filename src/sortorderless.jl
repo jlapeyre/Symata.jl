@@ -350,7 +350,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
             end
 #            a = mulpowers(a)
             if  length(a) == 1
-                a = mulpowers(a[1])
+#                a = mulpowers(a[1])  # BAD
                 return a[1]
             end
             if length(a) == 0
