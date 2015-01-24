@@ -72,7 +72,7 @@ So the next step amounts to writing another language. Symbols, and "functions" a
 from Julia symbols (But, I currently bind Julia symbols as well, as a hack, to get completion
 in the repl. This can be removed later.)  I am using Mathematica as a model in order to
 get something working and see how it interacts with Julia. But, the design could be
-changed. Some of the thing from the earlier experiments is ported, but not all.
+changed. Some of the things from the earlier experiments are ported, but not all.
 
 #### Pattern matching.
 
