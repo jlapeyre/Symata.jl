@@ -27,7 +27,14 @@ sjulia> fib(2) := 1
 sjulia> fib(n_) := fib(n-1) + fib(n-2)
 sjulia> fib(10)
 55
+sjulia> addone(x_) := (a = 1,  x + a)  # compound expression
+sjulia> addone(y)
+1 + y
 ```
+
+Symbols that associated with some functionality can be listed with
+`BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
+prompt.
 
 Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
 
@@ -56,45 +63,6 @@ jl/symrepl.  You enter and exit the mode with ".". The only file
 changed in this branch is REPL.jl. The only thing the new mode does is
 wrap input lines in a macro. Of course, a better thing would be to
 add a facility that works like: `newrepl(:name, :wrappermacro)`.
-
-### Experiment 1. Using Julia `Expr`
-
-The oldest is in directory `premxprcode`. This uses Julia `Expr` and
-Julia `Symbol` types to represent symbolic expressions. A
-Mathematica-like pattern matcher is partly implemented, along with
-`replace`, `replaceall`, etc.  Matching with conditions or a test on
-the matched terms is works.  Eg. from the test code, this replaces
-`x/x` by 1, unless the expression is `0/0`.
-
-```julia
-r =  @rule _ / _::((x)-> x != 0)  => 1
-@test replaceall( :( 0 / 0) , r) == :( 0 / 0 )
-@test replaceall( :( (a+b) / (a+b) ) , r) == 1
-```
-
-### Experiment 2. Using type `Mxpr` and Julia `Symbol` and some Julia evaluation.
-
-This code is in the directory `oldmxpr`. An input `Expr` is captured
-by a macro and some things are rewritten and a `Mxpr` is constructed.
-In this code, there is no single sequence for evaluation of input
-expressions. I did not want to write a language in Julia, but
-rather to extend Julia with a package. I was thinking of
-Mathematica-like pattern matching for Julia. But you really need
-to put, and maintain, expressions in a canonical form for this to work.
-For this reason and others a separate type `Mxpr` is used. Parts of
-the expression are any other Julia type. Undefined symbols that are
-encountered are set to themselves, i.e. thereafter, they evaluate
-to themselves. This is done if input is wrapped in a macro.
-I also edited "src/interperter.c" to do this. And I defined
-`+(a::Symbol,b)`, etc. So then, with no macro, you can do
-
-```julia
-julia> a + 1
-```
-
-and get an `Mxpr`. But, I abandoned this approach. (By the way, "make test"
-passed with this modification, so there is no test for undefined symbols.
-I did not try make test all.)
 
 ### Latest experiment. Using type `Mxpr` and a symbol type `SJSym`
 
@@ -142,10 +110,7 @@ way to get everything you need this way. But, probably copying and altering the
 parser would be better even though it adds more complication. Eg. Now, I can use curly
 braces for literal construction of lists, but get a deprecation warning. So I use
 square brackets. Once you change the parser, you can ask whether you want full Mma
-syntax. Richard Fateman wrote a complete Mma parser in common lisp. If this
-is the route to take, he may be willing agree to an MIT license, there is none at
-all now IIRC. Maybe it could be translated to scheme without too much trouble.
-OTOH, staying close to Julia (and everyone else's) syntax is also reasonable.
+syntax. OTOH, staying close to Julia (and everyone else's) syntax is also reasonable.
 OTOOH, Julia tries to make it easy to come from matlab. So making it easy to
 come from Mma might be good (if this ultimately will look like Mma).
 
@@ -173,9 +138,8 @@ sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0))
 ```
 
 Of course the attributes should probably be a bit field, or stored somewhere
-else. But, I hope that's a detail that does not need to be addressed now.
-The downvalues field is a list of definitions like `f(x_) := x`. I am not
-yet using the symbol subtype for dispatch.
+else. The downvalues field is a list of definitions like `f(x_) := x`. I am not
+yet using the symbol subtype (parameter) for dispatch.
 
 Expressions are done like this
 
