@@ -395,7 +395,8 @@ function meval(mx::Mxpr)
     nmx1 = apprules(nmx)
     nmx1 == nothing && return nothing
     decrement_meval_count()
-    res = deepcanonexpr!(nmx1) # actually, this should be orderless only. others split off
+    res = deepflatten!(nmx1)
+    res = deepcanonexpr!(res) # actually, this should be orderless only. others split off
     res = applydownvalues(res)
     is_meval_trace() && println(ind,"me-> " , res)
     res
