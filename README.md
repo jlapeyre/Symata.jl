@@ -32,7 +32,7 @@ sjulia> addone(y)
 1 + y
 ```
 
-Symbols that associated with some functionality can be listed with
+Symbols that are associated with some functionality can be listed with
 `BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
 prompt.
 
