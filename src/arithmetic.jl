@@ -7,8 +7,8 @@
 #  13/6 --> 13//6
 #  (13//6) * 6 --> 13
 rat_to_int(r::Rational) = r.den == 1 ? r.num : r
-mmul(x::Int, y::Rational) =  (res = x * y; return res.den == 1 ? res.num : res )
-mmul(x::Rational, y::Int) =  (res = x * y; return res.den == 1 ? res.num : res )
+mmul(x::Int, y::Rational) = (res = x * y; return res.den == 1 ? res.num : res )
+mmul(x::Rational, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
 mmul(x,y) = x * y
 mplus(x::Rational, y::Rational) = rat_to_int(x+y)
 mplus(x,y) = x + y

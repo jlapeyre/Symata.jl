@@ -218,16 +218,10 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             @mdebug(3, $name, ": got margs")
             typeof(a[1]) <: Number || return mx
             sum0 = a[1]
-#            println("before loop , doing ", a[1])
             while length(a) > 1
-#                println("in loop: before shift $a")
                 shift!(a)
-#                println("in loop: after shift $a")
-#                println("typeof a1 ",typeof(a[1]))
-#                 typeof(a[1]) <: Number || println("Got non bumber")                
                 typeof(a[1]) <: Number || break
                 sum0 = ($fop)(sum0,a[1])
-#                println(" bottom of loop: a is $a, length is ", length(a))
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
             (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
@@ -241,12 +235,11 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
 end
 
 function numeric_coefficient(x::Mxpr{:Times})
-    pprintln("*************Here")
     local c::Number
     c = is_type_less(x[1],Number) ? x[1] : 1
 end
-numeric_coefficient(x::Number) = (pprintln("****************** NUmber"); x)
-numeric_coefficient(x) = (pprintln("************* anything 1"); 1)
+numeric_coefficient(x::Number) = x
+numeric_coefficient(x) = 1
 
 function numeric_expt(x::Mxpr{:Power})
     local c::Number
