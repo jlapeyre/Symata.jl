@@ -107,6 +107,11 @@ const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
 
+needsparen(x::Mxpr) = length(x) > 1
+needsparen(x::Rational) = true
+needsparen(x::Complex) = true
+needsparen(x) = false
+
 # Mma fullform returns the value and prints differently.
 # We only print the value
 function fullform(io::IO, mx::Mxpr)
@@ -158,17 +163,16 @@ function show_binary(io::IO, mx::Mxpr)
         show_prefix_function(io,mx)
     else
         lop = mx.args[1]
-        if is_Mxpr(lop) && length(lop) > 1
+        if needsparen(lop) #length(lop) > 1
             print(io,"(")
             show(io,lop)
             print(io,")")
         else
             show(io,lop)
         end        
-#        show(io,mx.args[1])
         print(io, "", mtojsym(mx.head), "")
         rop = mx.args[2]
-        if is_Mxpr(rop) && length(rop) > 1
+        if  needsparen(rop) # length(rop) > 1
             print(io,"(")
             show(io,rop)
             print(io,")")
