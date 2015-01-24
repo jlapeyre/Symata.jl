@@ -31,6 +31,14 @@ for v in ("RuleDelayed",)
     end
 end
 
+for v in ("Timing",)
+    @eval begin
+        set_attribute(symbol($v),:HoldAll)
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:SequenceHold)        
+    end
+end
+
 for v in ("Apply","Dump", "Cos", "Length","Plus","Times", "Blank",
           "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm",
          "BI", "BF")
@@ -558,3 +566,13 @@ apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
 
 apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
+
+function apprules(mxt::Mxpr{:Timing})
+    mx = mxt[1]
+    t = @elapsed begin
+        reset_meval_count()
+        mx = loopmeval(mx)
+        sjset(getsym(:ans),mx)
+    end
+    mxpr(:List,t,mx)
+end
