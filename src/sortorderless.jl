@@ -158,8 +158,9 @@ end
 canonexpr!(x) = x
 
 function deepcanonexpr!(mx::Mxpr)
+    @mdebug(5,"deepcanonexpr!: mx = $mx")
     for i = 1:length(mx)
-#        @mdebug(10,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
+        @mdebug(8,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
         mx.args[i] = deepcanonexpr!(mx.args[i])
     end
     mx = canonexpr!(mx)

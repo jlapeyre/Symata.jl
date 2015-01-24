@@ -16,6 +16,20 @@ mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y > 0 ? x^y : 1//(x^(-y))
+
+# FIXME: currently (3*3)^(2/3) --> 3^(4//3). should be 3 * 3^(1//3)
+# (7*7*7)^(1//2) --> 7 * 7^(1//2)
+function mpow{T<:Integer}(x::T,y::Rational)
+    facs = factor(x)    
+    newfacs = newargs()
+    for (fac,mul) in facs
+        (q,r) = divrem(mul,y.den)
+        push!(newfacs,fac^q)
+        newexp = mmul(r,y)
+        newexp != 0 ? push!(newfacs,mxpr(:Power,fac,newexp)) : nothing
+    end
+    mxpr(:Times,newfacs...)
+end
 mpow(x,y) = x^y
 
 ## copied from base/operators, a great trick

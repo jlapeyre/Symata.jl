@@ -119,8 +119,8 @@ function fullform(io::IO, mx::Mxpr)
     end
     print(")")
 end
-
 fullform(io::IO,x) = show(io,x)
+fullform(x) = fullform(STDOUT,x)
 
 function Base.show(io::IO, s::Mxpr)
     if getoptype(s.head) == :binary  
