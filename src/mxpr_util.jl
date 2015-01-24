@@ -6,6 +6,12 @@ macro mdebug(level, a...)
     end
 end
 
+macro testex(expr)
+    mx = Expr(:macrocall, symbol("@ex"), expr)
+    Expr(:macrocall,symbol("@test"),mx)
+end
+
+
 ## For compatibility with older code.
 ## Usage: @ma(mx,k) = val  --> margs(mx)[k] = val
 # Use this to set an element of an Mxpr without canonicalizing.  Eg,

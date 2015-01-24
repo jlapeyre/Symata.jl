@@ -330,6 +330,7 @@ set_meval_trace() = MEVAL.traceon = true
 unset_meval_trace() = MEVAL.traceon = false
 is_meval_trace() = MEVAL.traceon
 
+## Don't evaluate the expression
 macro exnoeval(ex)
     mx = extomx(ex)
     :(($(esc(mx))))
@@ -351,12 +352,12 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     while true
         mx1 = meval(mx)
 #        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
-#        println( " loopmeval in loop: mx=$mx, mx1=$mx1")
         if mx1 == mx
             break
         end
         neval += 1
         if neval > 5
+            println(mx)
             error("loopeval: Too many, $neval, evaluations. Expression still changing")
         end
         mx = mx1
@@ -400,10 +401,10 @@ function meval(mx::Mxpr)
         end
     end
     nmx = mxpr(nhead,nargs...)
-    nmx1 = apprules(nmx)
-    nmx1 == nothing && return nothing
+    res = apprules(nmx)
+    res == nothing && return nothing
     decrement_meval_count()
-    res = deepflatten!(nmx1)
+    res = deepflatten!(res)
     res = deepcanonexpr!(res) # actually, this should be orderless only. others split off
     res = applydownvalues(res)
     is_meval_trace() && println(ind,"me-> " , res)

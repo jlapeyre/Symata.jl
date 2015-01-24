@@ -52,11 +52,11 @@ function mxoporder(op::SJSym)
     return _jsoporder[op]
 end
 
-## FIXME jslexless. Probably working. But, write a battery of tests first, then
+## FIXME jslexless. Probably working. But, need to  write tests, then
 # simplify and economize this code.
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
-    jslexless(base(x),base(y))  ||  jslexless(expt(x),expt(y))
+    (jslexless(base(x),base(y)) && !jslexless(base(x),base(y))) ||  jslexless(expt(x),expt(y))
 end
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Times}) = jslexless(x[end],y[end])
 #jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],base(y))
@@ -92,6 +92,10 @@ function jslexless(x::SJSym, y::Mxpr{:Power})
 end
 jslexless(x::Mxpr{:Times}, y::SJSym) = jslexless(x[end],y)
 jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
+
+jslexless(x::Mxpr{:Plus}, y::SJSym) = jslexless(x[end],y)
+jslexless(x::SJSym, y::Mxpr{:Plus}) = jslexless(x,y[end])
+
 jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 jslexless(x::SJSym, y::SJSym) = isless(x,y)
@@ -143,12 +147,6 @@ function canonexpr!(mx::Orderless)
                 if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end
                 if is_type(mx,Orderless)
                     mx = orderexpr!(mx)
-                    # if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end
-                    # for i in 1:length(mx)
-                    #     if is_type(mx[i],Mxpr{:Power})
-                    #         @ma(mx,i) = mulpowers(mx[i])
-                    #     end
-                    # end
                     pprintln("D $mx")                
                     set_order_clean!(mx)
                 end
