@@ -31,7 +31,7 @@ for v in ("RuleDelayed",)
     end
 end
 
-for v in ("Timing",)
+for v in ("Timing","Allocated")
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -574,4 +574,14 @@ function apprules(mxt::Mxpr{:Timing})
         sjset(getsym(:ans),mx)
     end
     mxpr(:List,t,mx)
+end
+
+function apprules(mxt::Mxpr{:Allocated})
+    local mx
+    a = @allocated begin
+        reset_meval_count()
+        mx = loopmeval(mxt[1])
+        sjset(getsym(:ans),mx)
+    end
+    mxpr(:List,a,mx)
 end

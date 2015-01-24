@@ -11,6 +11,7 @@ const JTOMSYM  =
       :* => :Times,
       :^ => :Power,
       :(=>) => :Rule, # Mma uses ->  (hmmm)
+      :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
       :vcat => :List,
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
@@ -37,7 +38,7 @@ end
 
 const OPTYPE  = Dict{Symbol,Symbol}()
 
-for op in (:(=), :(:=), :(=>), :Rule , :Power )
+for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power )
     OPTYPE[op] = :binary
 end
 
