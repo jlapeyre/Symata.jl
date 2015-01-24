@@ -51,9 +51,18 @@ for v in ("Pi","E")
     @eval begin
         set_attribute(symbol($v),:Protected)
         set_attribute(symbol($v),:ReadProtected)
-        set_attribute(symbol($v),:Constant)        
+        set_attribute(symbol($v),:Constant)
     end
 end
+
+for v in ("CompoundExpression",)
+    @eval begin
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:ReadProtected)
+        set_attribute(symbol($v),:HoldAll) 
+    end
+end
+
 
 Base.base(p::Mxpr{:Power}) = p.args[1]
 expt(p::Mxpr{:Power}) = p.args[2]
@@ -432,9 +441,11 @@ function apprules(mx::Union(Mxpr{:Set},Mxpr{:SetDelayed}))
     set_and_setdelayed(mx,mx.args[1],mx.args[2])
 end
 
+# getsym(symname(lhs)) is because a copy of symbol is being made somewhere
+# so we look up the original in the table
 function set_and_setdelayed(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
-    sjset(lhs,rhs)
+    sjset(getsym(symname(lhs)),rhs)
     rhs
 end
 
@@ -591,4 +602,13 @@ function apprules(mxt::Mxpr{:Allocated})
         sjset(getsym(:ans),mx)
     end
     mxpr(:List,a,mx)
+end
+
+function apprules(mx::Mxpr{:CompoundExpression})
+    local res
+    for i in 1:length(mx)
+        reset_meval_count()
+        res = loopmeval(mx[i])
+    end
+    res
 end

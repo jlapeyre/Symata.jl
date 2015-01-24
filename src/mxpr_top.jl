@@ -28,6 +28,7 @@ function jtomsym(x::Symbol)
     return x
 end
 
+# Inverse of translations already present in MTOJSYM will be recorded
 mtojsym(s::SJSym) = mtojsym(symname(s))
 function mtojsym(x::Symbol)
     if haskey(MTOJSYM,x)
@@ -36,6 +37,12 @@ function mtojsym(x::Symbol)
     return x
 end
 
+# These will not be translated back to Julia expression symbol on printing
+for (k,v) = ( (:tuple,:CompoundExpression),)
+    JTOMSYM[k] = v
+end
+
+# For printing only
 const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power )

@@ -43,3 +43,9 @@ using Base.Test
 ## Set a Julia variable
 @ex(SetJ(a,"cat"))
 @test Main.a == "cat"
+
+# Test compound expression
+@ex Clear(a)
+@ex res = ( a = 3, 4)
+@testex a == 3
+@testex res == 4
