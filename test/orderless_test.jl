@@ -15,8 +15,9 @@
 @testex a * 0  == 0
 @testex a * -0  == 0
 @testex -0 * a  == 0
-
+# fixed bug
+@testex a + a * a - a * a == a
 # fixed bug for this one
 @testex Apply(List, zb + za + 7 + 2 * x^r  + 2 + a + c + x^3 + x^2) ==  [9,2*a,x^2,x^3,2*x^r,za,zb]
-@testex Apply(List,z^7 + 2 * z^6 + 5*z^3 + 10 *z  + 1) == [1,10*z,5*z^3,2*z^6,z^7]
+@testex Apply(List, z^7 + 2 * z^6 + 5*z^3 + 10 *z  + 1) == [1,10*z,5*z^3,2*z^6,z^7]
 @testex Apply(List, a * a + 1 / ((z + y) * (z + y)) ) == [a ^ 2,(y + z) ^ -2]
