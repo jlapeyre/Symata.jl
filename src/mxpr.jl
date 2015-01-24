@@ -158,7 +158,7 @@ function show_binary(io::IO, mx::Mxpr)
         show_prefix_function(io,mx)
     else
         lop = mx.args[1]
-        if is_type_less(lop,Mxpr) && length(lop) > 1
+        if is_Mxpr(lop) && length(lop) > 1
             print(io,"(")
             show(io,lop)
             print(io,")")
@@ -168,7 +168,7 @@ function show_binary(io::IO, mx::Mxpr)
 #        show(io,mx.args[1])
         print(io, "", mtojsym(mx.head), "")
         rop = mx.args[2]
-        if is_type_less(rop,Mxpr) && length(rop) > 1
+        if is_Mxpr(rop) && length(rop) > 1
             print(io,"(")
             show(io,rop)
             print(io,")")
@@ -181,7 +181,7 @@ end
 # unary minus
 function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
-    if is_type_less(arg,Number) || is_type_less(arg,SJSym)
+    if is_Number(arg) || is_SJSym(arg)
         print(io,"-")
         show(io,arg)
     else
@@ -503,7 +503,7 @@ function apprules(mx::Mxpr{:Comparison})
     nargs1 = newargs()
     i = 1
     while i <= length(mx)
-        if is_type_less(mx[i],SJSym) && symname(mx[i]) == :(==)
+        if is_SJSym(mx[i]) && symname(mx[i]) == :(==)
             if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
                 i += 1
             else
@@ -517,7 +517,7 @@ function apprules(mx::Mxpr{:Comparison})
     length(nargs1) == 1  && return true
     nargs = newargs()    
     for x in nargs1
-        if is_type_less(x,Number)
+        if is_Number(x)
             push!(nargs,x)
         elseif is_comparison_symbol(x)
             push!(nargs,symname(x))
@@ -560,7 +560,7 @@ function apprules(mx::Mxpr{:Plus})
 end
 doplus(mx,a::Number,b::Number) = mplus(a,b)
 doplus(mx,b,e) = mx
-apprules(mx::Mxpr{:Minus}) = is_type_less(mx[1],Number) ? -mx[1] : mx
+apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : mx
 
 ## Tracing evaluation
 
@@ -568,10 +568,9 @@ apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
 
 function apprules(mxt::Mxpr{:Timing})
-    mx = mxt[1]
     t = @elapsed begin
         reset_meval_count()
-        mx = loopmeval(mx)
+        mx = loopmeval(mxt[1])
         sjset(getsym(:ans),mx)
     end
     mxpr(:List,t,mx)
