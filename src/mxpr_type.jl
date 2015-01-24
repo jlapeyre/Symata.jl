@@ -103,6 +103,15 @@ get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
 set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
 unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)
 
+
+function protectedsymbols()
+    args = newargs()
+    for s in keys(SYMTAB)
+        if get_attribute(s,:Protected) push!(args,getsym(s)) end
+    end
+    mxpr(:List, sort!(args)...)
+end
+
 function get_attribute(sj::SJSym, a::Symbol)
     get(sj.attr,a,false)
 end

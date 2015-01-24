@@ -44,7 +44,8 @@ using Base.Test
 @ex(SetJ(a,"cat"))
 @test Main.a == "cat"
 
-# Test compound expression
+## Test compound expression
+
 @ex Clear(a)
 @ex res = ( a = 3, 4)
 @testex a == 3
@@ -54,4 +55,3 @@ using Base.Test
 @ex f(x_) := ( a = 1, x + 1 )
 @testex   f(b) == b + 1
 @ex ClearAll(f,a,b)
-

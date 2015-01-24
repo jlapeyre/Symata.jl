@@ -41,7 +41,7 @@ end
 
 for v in ("Apply","Dump", "Cos", "Length","Plus","Times", "Blank",
           "JVar", "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm",
-         "BI", "BF")
+         "BI", "BF", "BuiltIns")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end
@@ -612,3 +612,5 @@ function apprules(mx::Mxpr{:CompoundExpression})
     end
     res
 end
+
+apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
