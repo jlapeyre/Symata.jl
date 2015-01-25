@@ -163,7 +163,7 @@ end
 # if we don't know what the condition is, try to evalute it.
 # slow.
 function evalcond(c)
-#    println("evaling expression $c")
+    println("evaling expression $c")
     res = try
         eval(c)
     catch
@@ -182,7 +182,10 @@ function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     c = pvarcond(cvar)
     c == :All && return true # no condition
-    typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
+#    println(typeof(c), " $c")
+    ce = eval(c)
+#    println(typeof(c), " $c")    
+    typeof(ce) == DataType && return typeof(ex) <: ce  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
             println("Got a function expression")
