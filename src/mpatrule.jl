@@ -109,22 +109,16 @@ end
 ispvar(x) = typeof(x) == Pvar
 #pvarsym(pvar::Pvar) = pvar.name
 pvarsym(pvar::Symbol) = pvar
-pvarcond(pvar::Pvar) = pvar.cond
+getpvarcond(pvar::Pvar) = pvar.cond
 setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
-# high-level pattern match and capture
-function cmppat1(ex,pat::PatternT)
-    capt = capturealloc() # Array(Any,0)  # allocate capture array
-    success_flag = _cmppat(ex,pat.ast,capt) # do the matching
-    return (success_flag,capt)  # report whether matched, and return captures
-end
-cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 
 # Perform match and capture.
 function cmppat(ex,pat::PatternT)
-    (res,captures) = cmppat1(ex,pat)
+    capt = capturealloc() # Array(Any,0)  # allocate capture array
+    success_flag = _cmppat(ex,pat.ast,capt) # do the matching
+    return (success_flag,capt)  # report whether matched, and return captures    
 end
-
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 function capturealloc()
@@ -176,16 +170,14 @@ end
 # No condition is signaled by :All
 # Only matching DataType and anonymous functions are implemented
 #matchpat(x,y) = true  # for debugging
-# NOTE!! with SJSym, the evalcond() at the bottom catches x_Integer.
-# We need to get it at the top.
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    c = pvarcond(cvar)
+    c = getpvarcond(cvar)
     c == :All && return true # no condition
-#    println(typeof(c), " $c")
-    ce = eval(c)
-#    println(typeof(c), " $c")    
-    typeof(ce) == DataType && return typeof(ex) <: ce  # NOTE: We use <: !
+    if typeof(c) == Symbol
+        ce = eval(c)
+        typeof(ce) == DataType && return typeof(ex) <: ce  # NOTE: We use <: !
+    end
     if isexpr(c)
         if c.head == :->  # anon function
             println("Got a function expression")
