@@ -121,55 +121,21 @@ end
 cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 
 # Perform match and capture.
-# Then check consistency of assigned capture variables
-# TODO: this should happen while searching; it would be more efficient
 function cmppat(ex,pat::PatternT)
     (res,captures) = cmppat1(ex,pat)
-#    res === false && return (res,captures) # match failed
-#     cd = Dict{Symbol,Any}()
-#     for (pvar,capt) in captures
-# #        pn = pvar.name
-#         pn = pvar        
-#         v = get(cd,pn,nothing)
-#         if v == nothing
-#             cd[pn] = capt
-#         else
-#             v != capt && return (false,captures) # one named var captured two different things
-#         end
-#     end
-#    return (true,captures)
 end
 
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 function capturealloc()
     return Dict{Symbol,Any}()
-#    return Array(Any,0)
 end
 
-# TODO. We push to array and later make a dict.
-# We should just build the Dict directly and not use an
-# array. This may be more efficient because we check as
-# we capture.
-# push onto array as we capture expressions
 function capturepvar(capt,pvar,ex)
-#    println("type ", typeof(pvar))    
     name = pvar.name
-#    println("checking pvar $pvar, ex $ex, capt $capt")
-#    if haskey(capt,pvar)
-#        println("Already there $pvar, new $ex, old ", capt[pvar])
-#    end
-    if haskey(capt,name)
-#        println("Already there $pvar, new $ex, old ", capt[name])
-        if capt[name] != ex
-#            println("Disagrees $pvar, new $ex, old ", capt[name])
-            return false
-        end
-    else
-        capt[name] = ex
-    end
+    haskey(capt,name) && capt[name] != ex  && return false
+    capt[name] = ex
     return true
-#    push!(capt,(pvar,ex))
 end
 
 # store captured expression in Dict. Here only the capture var name
