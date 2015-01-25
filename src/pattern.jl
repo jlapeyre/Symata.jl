@@ -1,5 +1,8 @@
 # This is a hack into the older pattern matcher.
 # We will redesign this.
+
+#function Pattern_to_PatternT(mx::Mxpr)
+
 function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
     lhs = mx[1][1]
     rhs = mx[2]
@@ -17,6 +20,11 @@ function Rule_to_PRule(mx::Mxpr{:Rule})
     nlhs = PatternT(ptp,:All)
     nrhs = PatternT(rhs,:All)
     PRule(nlhs,nrhs)
+end
+
+# Works on just a blank, and ... ?
+function just_pattern(mx::Mxpr)
+    PatternT(patterntopvar(mx), :All)
 end
 
 function patterntopvar(mx::Mxpr)
@@ -49,10 +57,27 @@ function patterntopvar(mx::Mxpr{:Pattern})
     res
 end
 
+# Be careful this is not called depth-first.
+# It should apply when Blank is  not wrapped in Pattern.
+# Eg. MatchQ( a, _Integer)
+function patterntopvar(mx::Mxpr{:Blank})
+    var = :_  # good choice ??
+    blank = mx
+#    dump(blank)
+#    println("Blank $blank, length ", length(blank))
+    if length(blank) == 0 # match any head
+       res = Pvar(var,:All,:None)
+    else
+       res = Pvar(var,symname(blank[1]),:None)
+    end
+    res    
+end
+
 function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     prule = RuleDelayed_to_PRule(rd)
     replacefail(mx,prule)
 end
+
 
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mx.head)

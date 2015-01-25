@@ -6,3 +6,10 @@ using Base.Test
 @testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),2*d(-2)]
 @testex ReplaceAll( [a,b,[a,b]] , [x_,y_,[x_,y_]] => 1 ) == 1
 @testex ReplaceAll( [b,a,[a,b]] , [x_,y_,[x_,y_]] => 1 ) == [b,a,[a,b]]
+
+@testex MatchQ( 1, _Integer) == true
+@testex MatchQ( 1.0, _Integer) == false
+@testex MatchQ( "zebra", _String) == true
+@testex MatchQ( 1.0, _String) == false
+
+

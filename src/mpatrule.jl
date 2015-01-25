@@ -107,7 +107,7 @@ macro dr(ex::Expr)
     r
 end
    
-ispvar(x) = typeof(x) == Pvar
+ispvar(x) = is_type(x,Pvar)
 #pvarsym(pvar::Pvar) = pvar.name
 pvarsym(pvar::Symbol) = pvar
 getpvarptest(pvar::Pvar) = pvar.ptest
@@ -154,33 +154,24 @@ function havecapt(sym::SJSym,cd)
     haskey(cd,symname(sym))
 end
 
-# if we don't know what the condition is, try to evalute it.
-function evalcond(c)
-    println("evaling expression $c")
-    res = try
-        eval(c)
-    catch
-        false
-    end
-    return res
-end
-
-# check if conditions on capture var cvar are satisfied by ex
-# No condition is signaled by :All
-# Only matching DataType and anonymous functions are implemented
-#matchpat(x,y) = true  # for debugging
+# check if restriction on Head and pattern test
+# are satisfied.
+# TODO: reorganzie. maybe make type of Pvar.head Any
+# so it can be a Symbol (only for finding SJSym),
+# or a DataType. This is determined when the Pvar is
+# created (of course later, this should be done once and stored with the downvalue)
+# Then, much of the logic below can be eliminated
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    local headmatch
-    local ptestmatch
-    isdatatype = false
+    local headmatch  # does the head match ?
+    local ptestmatch  # is the pattern test satisfied ?
+    isdatatype = false  # does head-to-match evaluate to a DataType ?
     hh = getpvarhead(cvar)  # head to match
-    if typeof(hh) == Symbol  # Head to match
-#        println("hh is $hh")
+    if is_type(hh,Symbol)
         if hh == :All
             headmatch = true
         else
-            if isdefined(hh)
+            if isdefined(hh) # Julia symbol represents data type ?
                 hhe = eval(hh)
                 if is_type(hhe,DataType)
                     isdatatype = true
@@ -204,16 +195,12 @@ function matchpat(cvar,ex)
     end
     cc = getpvarptest(cvar)
     is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")
-#    println("cc is $cc")
     if cc != :None
         testmx = mxpr(cc,ex)
-#        println("test $testmx")
-#        println("eval res ", loopmeval(testmx))
         ptestmatch = (loopmeval(testmx) == true)
     else
         ptestmatch = true
     end
-#    println("$ex: ptestmatch $ptestmatch, headmatch $headmatch")
     return ptestmatch && headmatch
 end
 
@@ -223,6 +210,8 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
+#    println("$mx $pat $captures")
+#    println("ispvar ", ispvar(pat))
     if ispvar(pat) && matchpat(pat,mx)
         return capturepvar(captures,pat,mx)  # false means contradicts previous capture
     end

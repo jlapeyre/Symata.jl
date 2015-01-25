@@ -527,6 +527,11 @@ apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
+function apprules(mx::Mxpr{:MatchQ})
+    (gotmatch,cap) = cmppat(mx[1],just_pattern(mx[2]))
+    gotmatch
+end
+
 apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 ## Comparison
