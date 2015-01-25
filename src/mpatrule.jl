@@ -107,7 +107,8 @@ macro dr(ex::Expr)
 end
    
 ispvar(x) = typeof(x) == Pvar
-pvarsym(pvar::Pvar) = pvar.name
+#pvarsym(pvar::Pvar) = pvar.name
+pvarsym(pvar::Symbol) = pvar
 pvarcond(pvar::Pvar) = pvar.cond
 setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
@@ -127,7 +128,8 @@ function cmppat(ex,pat::PatternT)
     res === false && return (res,captures) # match failed
     cd = Dict{Symbol,Any}()
     for (pvar,capt) in captures
-        pn = pvar.name
+#        pn = pvar.name
+        pn = pvar        
         v = get(cd,pn,nothing)
         if v == nothing
             cd[pn] = capt
@@ -141,7 +143,7 @@ end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 function capturealloc()
-    return Dict{Any,Any}()
+    return Dict{Symbol,Any}()
 #    return Array(Any,0)
 end
 
@@ -150,15 +152,23 @@ end
 # array. This may be more efficient because we check as
 # we capture.
 # push onto array as we capture expressions
-function capturepvar(capt,pat,ex)
-    println("checking $pat, $ex")    
-    if haskey(capt,pat) && capt[pat] != ex
-        println("Disagrees $pat, $ex")
-        return false
+function capturepvar(capt,pvar,ex)
+#    println("type ", typeof(pvar))    
+    name = pvar.name
+#    println("checking pvar $pvar, ex $ex, capt $capt")
+#    if haskey(capt,pvar)
+#        println("Already there $pvar, new $ex, old ", capt[pvar])
+#    end
+    if haskey(capt,name)
+#        println("Already there $pvar, new $ex, old ", capt[name])
+        if capt[name] != ex
+#            println("Disagrees $pvar, new $ex, old ", capt[name])
+            return false
+        end
     else
-        capt[pat] = ex
+        capt[name] = ex
     end
-#    push!(capt,(pat,ex))
+#    push!(capt,(pvar,ex))
 end
 
 # store captured expression in Dict. Here only the capture var name
