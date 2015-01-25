@@ -141,7 +141,8 @@ end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 function capturealloc()
-    return Array(Any,0)
+    return Dict{Any,Any}()
+#    return Array(Any,0)
 end
 
 # TODO. We push to array and later make a dict.
@@ -150,7 +151,14 @@ end
 # we capture.
 # push onto array as we capture expressions
 function capturepvar(capt,pat,ex)
-    push!(capt,(pat,ex))
+    println("checking $pat, $ex")    
+    if haskey(capt,pat) && capt[pat] != ex
+        println("Disagrees $pat, $ex")
+        return false
+    else
+        capt[pat] = ex
+    end
+#    push!(capt,(pat,ex))
 end
 
 # store captured expression in Dict. Here only the capture var name
@@ -232,8 +240,7 @@ end
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
     if ispvar(pat) && matchpat(pat,mx)
-        capturepvar(captures,pat,mx)
-        return true
+        return capturepvar(captures,pat,mx)  # false means contradicts previous capture
     end
     if !isexpr(mx)
         res = mx == pat # 'leaf' on the tree. Must match exactly.
