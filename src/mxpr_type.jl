@@ -20,7 +20,16 @@ Base.isless(t,s::SJSym) = t  < symname(s)
 ==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
 
 function pushdownvalue(s::SJSym,val)
-    push!(s.downvalues,val)
+    dv = s.downvalues
+    isnewrule = true
+    for i in 1:length(dv)
+        if val[1] == dv[i][1]
+            dv[i] = val
+            isnewrule = false
+            break
+        end
+    end
+    isnewrule && push!(s.downvalues,val)
     sort!(s.downvalues,lt=isless_patterns)
 end
     
