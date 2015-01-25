@@ -172,33 +172,50 @@ end
 #matchpat(x,y) = true  # for debugging
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    c = getpvarhead(cvar)  # head to match
-    c == :All && return true # no condition
-    if typeof(c) == Symbol
-        ce = eval(c)
-        typeof(ce) == DataType && return typeof(ex) <: ce  # NOTE: We use <: !
-    end
-    if isexpr(c)
-        if c.head == :->  # anon function
-            println("Got a function expression")
-            f = meval(c)
-            println("Type of f is now ", typeof(f))
-            # Replacing expression with compiled anonymous function does not work.
-            # clean this up, anyway. it is usually compiled long before we get here.
-            #  setpvarcond(cvar,f)  
-            return f(ex)
+    local headmatch
+    local condmatch
+    isdatatype = false
+    hh = getpvarhead(cvar)  # head to match
+    if typeof(hh) == Symbol  # Head to match
+#        println("hh is $hh")
+        if hh == :All
+            headmatch = true
+        else
+            if isdefined(hh)
+                hhe = eval(hh)
+                if is_type(hhe,DataType)
+                    isdatatype = true
+                    if typeof(ex) <: hhe
+                        headmatch = true
+                    else
+                        headmatch = false
+                    end
+                end
+            end
         end
+        if ! isdatatype
+            if is_Mxpr(ex) && symname(head(ex)) == hh
+                condmatch = true
+            else
+                condmatch = false
+            end
+        end
+    else
+        error("matchpat: Head to match is not a symbol")
     end
-    if typeof(c) == Function
-#        println("Got a real function")
-        return c(ex)
+    cc = getpvarcond(cvar)
+    is_type(cc,Symbol) || error("matchpat: Condition to match is not a symbol")
+#    println("cc is $cc")
+    if cc != :None
+        testmx = mxpr(cc,ex)
+#        println("test $testmx")
+#        println("eval res ", loopmeval(testmx))
+        condmatch = (loopmeval(testmx) == true)
+    else
+        condmatch = true
     end
-    ce = evalcond(c) # punt and try eval
-    ce === false && return false # maybe true here ?!
-    if typeof(ce) == DataType && !(typeof(ex) <: ce)
-        return false
-    end
-    true
+#    println("$ex: condmatch $condmatch, headmatch $headmatch")
+    return condmatch && headmatch
 end
 
 # Descend expression tree. If there is no pattern var in

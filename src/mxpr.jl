@@ -630,3 +630,7 @@ function apprules(mx::Mxpr{:CompoundExpression})
 end
 
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+
+apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
+apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
+apprules(mx::Mxpr{:StringLength}) = length(mx[1])

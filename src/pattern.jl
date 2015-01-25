@@ -31,22 +31,12 @@ end
 
 patterntopvar(x) = x
 
-# function patterntopvar(mx::Mxpr{:PatternTest})
-#     pvar = patterntopvar(mx[1])
-#     cond = mx[2]
-#     if is_type(cond, Mxpr{:?})
-#         cond1 = cond[1]
-#         if is_type(cond1,Function)
-#             pvar.cond = cond1
-#         else
-#             #f = eval(Expr(:(->),pvar.name, Expr(:block,)
-#             dump(cond1)
-#         end
-#     else
-#         error("Unknown pattern test $mx")
-#     end
-#     pvar
-# end
+function patterntopvar(mx::Mxpr{:PatternTest})
+    pvar = patterntopvar(mx[1])
+    cond = mx[2]
+    pvar.cond = symname(cond)
+    pvar
+end
 
 function patterntopvar(mx::Mxpr{:Pattern})
     var = mx[1]
