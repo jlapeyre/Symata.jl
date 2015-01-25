@@ -112,7 +112,6 @@ pvarsym(pvar::Symbol) = pvar
 getpvarcond(pvar::Pvar) = pvar.cond
 setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
-
 # Perform match and capture.
 function cmppat(ex,pat::PatternT)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
@@ -155,7 +154,6 @@ function havecapt(sym::SJSym,cd)
 end
 
 # if we don't know what the condition is, try to evalute it.
-# slow.
 function evalcond(c)
     println("evaling expression $c")
     res = try
