@@ -8,7 +8,8 @@ margs(ex) = ex.args
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol,SJSym)
-# TODO: need to split this up and separate them by dispatch
+# TODO: need to split this up and separate them by dispatch,
+# or just make this Any
 typealias CondT Union(UExpr,Symbol,SJSym,DataType,Function)
 
 isexpr(x) = (typeof(x) <: AbstractMxpr)
@@ -19,13 +20,14 @@ isexpr(x) = (typeof(x) <: AbstractMxpr)
 # matches based on its context in an AST.
 type Pvar
     name::Symbol  # name
-    cond::CondT   # condition for matching. DataType, function...
+    head::Symbol  # head to match
+    cond::Symbol   # head of "function" to call (meval) for bool test
 end
 typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
-    Pvar(name,:All)
+    Pvar(name,:All,:All)
 end
 
 ==(a::Pvar, b::Pvar) = (a.name == b.name && a.cond == b.cond)
@@ -52,7 +54,6 @@ end
 function Base.show(io::IO, p::PatternT)
     show(io,p.ast)
 end
-
 
 pattern(x,cond::Symbol) = PatternT(x,cond)
 
@@ -110,7 +111,8 @@ ispvar(x) = typeof(x) == Pvar
 #pvarsym(pvar::Pvar) = pvar.name
 pvarsym(pvar::Symbol) = pvar
 getpvarcond(pvar::Pvar) = pvar.cond
-setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
+getpvarhead(pvar::Pvar) = pvar.head
+#setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # Perform match and capture.
 function cmppat(ex,pat::PatternT)
@@ -170,7 +172,7 @@ end
 #matchpat(x,y) = true  # for debugging
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    c = getpvarcond(cvar)
+    c = getpvarhead(cvar)  # head to match
     c == :All && return true # no condition
     if typeof(c) == Symbol
         ce = eval(c)
@@ -183,7 +185,7 @@ function matchpat(cvar,ex)
             println("Type of f is now ", typeof(f))
             # Replacing expression with compiled anonymous function does not work.
             # clean this up, anyway. it is usually compiled long before we get here.
-            setpvarcond(cvar,f)  
+            #  setpvarcond(cvar,f)  
             return f(ex)
         end
     end

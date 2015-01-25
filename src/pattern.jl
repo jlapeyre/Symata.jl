@@ -5,7 +5,8 @@ function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
     rhs = mx[2]
     ptp = patterntopvar(lhs)
     nlhs = PatternT(ptp,:All)
-    nrhs = PatternT(rhs,:All)    
+    nrhs = PatternT(rhs,:All)
+#    if ptp == lhs  println("same ptp ", lhs) end
     PRule(nlhs,nrhs)
 end
 
@@ -30,13 +31,30 @@ end
 
 patterntopvar(x) = x
 
+# function patterntopvar(mx::Mxpr{:PatternTest})
+#     pvar = patterntopvar(mx[1])
+#     cond = mx[2]
+#     if is_type(cond, Mxpr{:?})
+#         cond1 = cond[1]
+#         if is_type(cond1,Function)
+#             pvar.cond = cond1
+#         else
+#             #f = eval(Expr(:(->),pvar.name, Expr(:block,)
+#             dump(cond1)
+#         end
+#     else
+#         error("Unknown pattern test $mx")
+#     end
+#     pvar
+# end
+
 function patterntopvar(mx::Mxpr{:Pattern})
     var = mx[1]
     blank = mx[2]
-    if length(blank) == 0
-       res = Pvar(symname(var),:All)
-    else
-       res = Pvar(symname(var),symname(blank[1]))
+    if length(blank) == 0 # match any head
+       res = Pvar(symname(var),:All,:All)
+    else # match only if head is blank[1]
+       res = Pvar(symname(var),symname(blank[1]),:All)
     end
     res
 end

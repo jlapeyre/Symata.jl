@@ -23,7 +23,7 @@ for v in ("Attributes",)
     end
 end
 
-for v in ("RuleDelayed",)
+for v in ("RuleDelayed","PatternTest")
     @eval begin
         set_attribute(symbol($v),:HoldRest)
         set_attribute(symbol($v),:Protected)
@@ -268,6 +268,7 @@ function extomxarr(ain,aout)
     end
 end
 
+## Main translation routine
 function extomx(ex::Expr)
     newa = newargs()
     local head::Symbol
@@ -281,14 +282,29 @@ function extomx(ex::Expr)
         return mx
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
-        extomxarr(a,newa)        
+        extomxarr(a,newa)
+    elseif ex.head == :(:)
+        if length(a) == 2
+            if is_type(a[1], Symbol) && is_type(a[2], Expr) &&
+                (a[2].args)[1] == :(?)
+                ptargs = a[2].args
+                length(ptargs) != 2 && error("extomx: too many args to PatternTest")
+                is_type(ptargs[2],Symbol) || error("extomx: argument to PatternTest must be a Symbol")
+                head = :PatternTest
+                push!(newa,extomx(a[1]),getsym(ptargs[2]))
+            else
+                # something here later
+                error("extomx: No translation for $ex")
+            end
+        else
+            error("extomx: No translation for $ex")
+        end
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
     mxpr(head,newa...)
 end
-
 
 is_call(ex::Expr) = ex.head == :call
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
@@ -307,7 +323,7 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
 rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
 
-# There is no binary minus and no division, and no sqrt in Mxpr's.
+# There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
 function rewrite_expr(ex::Expr)
@@ -391,7 +407,7 @@ function meval(mx::Mxpr)
         error("Too many meval entries ", get_meval_count())
     end
     is_meval_trace() ? ind = " " ^ get_meval_count() : nothing
-    is_meval_trace() && println(ind,"me<- " , mx)
+    is_meval_trace() && println(ind,"<< " , mx)
     nhead = mx.head
     local nargs
     start = 1
@@ -419,7 +435,7 @@ function meval(mx::Mxpr)
     res = deepflatten!(res)
     res = deepcanonexpr!(res) # actually, this should be orderless only. others split off
     res = applydownvalues(res)
-    is_meval_trace() && println(ind,"me-> " , res)
+    is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()    
     res
 end
