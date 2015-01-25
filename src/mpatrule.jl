@@ -137,11 +137,11 @@ function storecapt(pat,cap,cd)
 end
 
 # retrieve captured expression by caption var name
-function newretrievecapt(sym,cd)
+function retrievecapt(sym,cd)
     cd[sym]
 end
 
-function newretrievecapt(sym::SJSym,cd)
+function retrievecapt(sym::SJSym,cd)
     cd[symname(sym)]
 end
 
@@ -291,13 +291,13 @@ function patsubst!(pat,cd)
         pa = pat.args
         for i in 1:length(pa)
             if havecapt(pa[i],cd)
-                pa[i] =  newretrievecapt(pa[i],cd)
+                pa[i] =  retrievecapt(pa[i],cd)
             elseif isexpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
     elseif ispvar(pat) || is_SJSym(pat)
-        pat = newretrievecapt(pat,cd)
+        pat = retrievecapt(pat,cd)
     end
     return pat
 end
