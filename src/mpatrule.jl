@@ -125,7 +125,7 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 # TODO: this should happen while searching; it would be more efficient
 function cmppat(ex,pat::PatternT)
     (res,captures) = cmppat1(ex,pat)
-    res === false && return (res,captures) # match failed
+#    res === false && return (res,captures) # match failed
 #     cd = Dict{Symbol,Any}()
 #     for (pvar,capt) in captures
 # #        pn = pvar.name
@@ -137,7 +137,7 @@ function cmppat(ex,pat::PatternT)
 #             v != capt && return (false,captures) # one named var captured two different things
 #         end
 #     end
-    return (true,captures)
+#    return (true,captures)
 end
 
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
