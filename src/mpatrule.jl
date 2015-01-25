@@ -168,29 +168,24 @@ function matchpat(cvar,ex)
     isdatatype = false  # does head-to-match evaluate to a DataType ?
     hh = getpvarhead(cvar)  # head to match
     if is_type(hh,Symbol)
-        if hh == :All
-            headmatch = true
-        else
-            if isdefined(hh) # Julia symbol represents data type ?
-                hhe = eval(hh)
-                if is_type(hhe,DataType)
-                    isdatatype = true
-                    if typeof(ex) <: hhe
-                        headmatch = true
-                    else
-                        headmatch = false
-                    end
+#        if hh == :All
+#            headmatch = true
+#        else
+        if isdefined(hh) # Julia symbol represents data type ?
+            hhe = eval(hh)
+            if is_type(hhe,DataType)
+                isdatatype = true
+                if typeof(ex) <: hhe
+                    headmatch = true
+                else
+                    headmatch = false
                 end
             end
         end
         if ! isdatatype
-#            println("Not datatype")
-#            println(symname(head(ex)), hh)
             if hh == :All || (is_Mxpr(ex) && symname(head(ex)) == hh)
-#                println("hm true")                
                 headmatch = true
             else
-#                println("hm false")
                 headmatch = false
             end
         end
