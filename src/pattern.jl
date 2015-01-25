@@ -15,7 +15,7 @@ function Rule_to_PRule(mx::Mxpr{:Rule})
     rhs = mx[2]
     ptp = patterntopvar(lhs)
     nlhs = PatternT(ptp,:All)
-    nrhs = PatternT(rhs,:All)    
+    nrhs = PatternT(rhs,:All)
     PRule(nlhs,nrhs)
 end
 
@@ -52,9 +52,9 @@ function patterntopvar(mx::Mxpr{:Pattern})
     var = mx[1]
     blank = mx[2]
     if length(blank) == 0 # match any head
-       res = Pvar(symname(var),:All,:All)
+       res = Pvar(symname(var),:All,:None)
     else # match only if head is blank[1]
-       res = Pvar(symname(var),symname(blank[1]),:All)
+       res = Pvar(symname(var),symname(blank[1]),:None)
     end
     res
 end
