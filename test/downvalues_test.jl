@@ -1,3 +1,5 @@
+using Base.Test
+
 @ex ClearAll(fib)
 @ex fib(1) := 1
 @ex fib(2) := 1
@@ -29,4 +31,10 @@
 @ex ClearAll(g,h,a,b)
 @ex h(x_^2) := x
 @testex  h((a+b)^2) == a + b
+@ex ClearAll(h)
+
+@ex h(x_,x_) := 1
+@ex h(x_,y_) := 2
+@testex h(a,a) == 1
+@testex h(a,b) == 2
 @ex ClearAll(h)

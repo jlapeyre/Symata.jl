@@ -126,17 +126,17 @@ cmppat1(ex,pat::ExSym) = cmppat1(ex, pattern(pat))
 function cmppat(ex,pat::PatternT)
     (res,captures) = cmppat1(ex,pat)
     res === false && return (res,captures) # match failed
-    cd = Dict{Symbol,Any}()
-    for (pvar,capt) in captures
-#        pn = pvar.name
-        pn = pvar        
-        v = get(cd,pn,nothing)
-        if v == nothing
-            cd[pn] = capt
-        else
-            v != capt && return (false,captures) # one named var captured two different things
-        end
-    end
+#     cd = Dict{Symbol,Any}()
+#     for (pvar,capt) in captures
+# #        pn = pvar.name
+#         pn = pvar        
+#         v = get(cd,pn,nothing)
+#         if v == nothing
+#             cd[pn] = capt
+#         else
+#             v != capt && return (false,captures) # one named var captured two different things
+#         end
+#     end
     return (true,captures)
 end
 
