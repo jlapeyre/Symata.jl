@@ -11,10 +11,11 @@ using Base.Test
 @testex MatchQ( 1.0, _Integer) == false
 @testex MatchQ( "zebra", _String) == true
 @testex MatchQ( 1.0, _String) == false
-@ex Clear(a,b)
+@ex Clear(a,b,gg,xx)
 @ex a = 1
 @testex MatchQ( a^2, x_^2) == false
 @testex MatchQ( b^2, x_^2) == true
 @testex MatchQ( b^2, _^2) == true
 @testex MatchQ(f(b^2), f(x_^2)) == true
+@testex MatchQ( gg(xx) , _gg)
 @ex Clear(a)

@@ -184,10 +184,14 @@ function matchpat(cvar,ex)
             end
         end
         if ! isdatatype
-            if is_Mxpr(ex) && symname(head(ex)) == hh
-                ptestmatch = true
+#            println("Not datatype")
+#            println(symname(head(ex)), hh)
+            if hh == :All || (is_Mxpr(ex) && symname(head(ex)) == hh)
+#                println("hm true")                
+                headmatch = true
             else
-                ptestmatch = false
+#                println("hm false")
+                headmatch = false
             end
         end
     else
