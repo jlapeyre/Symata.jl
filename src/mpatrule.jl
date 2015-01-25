@@ -21,7 +21,7 @@ isexpr(x) = (typeof(x) <: AbstractMxpr)
 type Pvar
     name::Symbol  # name
     head::Symbol  # head to match
-    cond::Symbol   # head of "function" to call (meval) for bool test
+    ptest::Symbol   # head of "function" to call (meval) for bool test
 end
 typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
 
@@ -30,7 +30,7 @@ function Pvar(name::Symbol)
     Pvar(name,:All,:All)
 end
 
-==(a::Pvar, b::Pvar) = (a.name == b.name && a.cond == b.cond)
+==(a::Pvar, b::Pvar) = (a.name == b.name && a.ptest == b.ptest)
 
 # ast is the pattern including Pvars for capture.
 # cond is condition to apply to any Pvars in the pattern
@@ -110,9 +110,8 @@ end
 ispvar(x) = typeof(x) == Pvar
 #pvarsym(pvar::Pvar) = pvar.name
 pvarsym(pvar::Symbol) = pvar
-getpvarcond(pvar::Pvar) = pvar.cond
+getpvarptest(pvar::Pvar) = pvar.ptest
 getpvarhead(pvar::Pvar) = pvar.head
-#setpvarcond(pvar::Pvar,cond) = pvar.cond = cond
 
 # Perform match and capture.
 function cmppat(ex,pat::PatternT)
@@ -173,7 +172,7 @@ end
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     local headmatch
-    local condmatch
+    local ptestmatch
     isdatatype = false
     hh = getpvarhead(cvar)  # head to match
     if typeof(hh) == Symbol  # Head to match
@@ -195,27 +194,27 @@ function matchpat(cvar,ex)
         end
         if ! isdatatype
             if is_Mxpr(ex) && symname(head(ex)) == hh
-                condmatch = true
+                ptestmatch = true
             else
-                condmatch = false
+                ptestmatch = false
             end
         end
     else
         error("matchpat: Head to match is not a symbol")
     end
-    cc = getpvarcond(cvar)
-    is_type(cc,Symbol) || error("matchpat: Condition to match is not a symbol")
+    cc = getpvarptest(cvar)
+    is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")
 #    println("cc is $cc")
     if cc != :None
         testmx = mxpr(cc,ex)
 #        println("test $testmx")
 #        println("eval res ", loopmeval(testmx))
-        condmatch = (loopmeval(testmx) == true)
+        ptestmatch = (loopmeval(testmx) == true)
     else
-        condmatch = true
+        ptestmatch = true
     end
-#    println("$ex: condmatch $condmatch, headmatch $headmatch")
-    return condmatch && headmatch
+#    println("$ex: ptestmatch $ptestmatch, headmatch $headmatch")
+    return ptestmatch && headmatch
 end
 
 # Descend expression tree. If there is no pattern var in

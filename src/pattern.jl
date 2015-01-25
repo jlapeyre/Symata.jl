@@ -34,7 +34,7 @@ patterntopvar(x) = x
 function patterntopvar(mx::Mxpr{:PatternTest})
     pvar = patterntopvar(mx[1])
     cond = mx[2]
-    pvar.cond = symname(cond)
+    pvar.ptest = symname(cond)
     pvar
 end
 
