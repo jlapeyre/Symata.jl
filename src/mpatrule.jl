@@ -168,6 +168,7 @@ function capturepvar(capt,pvar,ex)
     else
         capt[name] = ex
     end
+    return true
 #    push!(capt,(pvar,ex))
 end
 
