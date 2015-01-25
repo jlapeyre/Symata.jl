@@ -74,6 +74,8 @@ function Base.show(io::IO, p::PRule)
 end
 
 
+## most of this stuff is old. works in Julia, not SJulia
+
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 ==(a::PatternT, b::PatternT) = (a.ast == b.ast)

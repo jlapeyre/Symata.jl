@@ -11,4 +11,3 @@ is_Mxpr{T<:Mxpr}(mx::T) = true
 is_Mxpr(x) = false
 is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
-
