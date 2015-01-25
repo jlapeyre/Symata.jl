@@ -144,15 +144,11 @@ function storecapt(pat,cap,cd)
 end
 
 # retrieve captured expression by caption var name
-function retrivecapt(pat,cd)
-    cd[pvarsym(pat)]
-end
-
-function newretrivecapt(sym,cd)
+function newretrievecapt(sym,cd)
     cd[sym]
 end
 
-function newretrivecapt(sym::SJSym,cd)
+function newretrievecapt(sym::SJSym,cd)
     cd[symname(sym)]
 end
 
@@ -273,7 +269,6 @@ function replaceall(ex,pat1::PatternT,pat2::PatternT)
     res
 end
 
-
 # same as above, but patterns are wrapped in a rule
 function replaceall(ex::ExSym, r::PRule)
     replaceall(ex,r.lhs,r.rhs)
@@ -303,13 +298,13 @@ function patsubst!(pat,cd)
         pa = pat.args
         for i in 1:length(pa)
             if havecapt(pa[i],cd)
-                pa[i] =  newretrivecapt(pa[i],cd)
+                pa[i] =  newretrievecapt(pa[i],cd)
             elseif isexpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
     elseif ispvar(pat) || is_SJSym(pat)
-        pat = newretrivecapt(pat,cd)
+        pat = newretrievecapt(pat,cd)
     end
     return pat
 end
