@@ -3,11 +3,6 @@ const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 Base.base(p::Mxpr{:Power}) = p.args[1]
 expt(p::Mxpr{:Power}) = p.args[2]
 
-## predicate
-
-atomq(x::Mxpr) = false
-atomq(x) = true
-
 ## SJSym functions
 
 function Base.show(io::IO, s::SJSym)

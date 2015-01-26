@@ -2,11 +2,7 @@
 
 This code is a sketch that is not meant to demonstrate computations,
 but rather to test implementing core features.  I am posting it to get
-feedback on design decisions. The code is cleaner in some places than
-others. But, I expect most of it to be rewritten. I don't want to
-spend time with localized inefficiencies. I am concerned about
-efficiency and expressiveness that is difficult to change without big
-rewrites.
+feedback on design decisions.
 
 ```julia
 include("src/Mxpr.jl")
@@ -18,7 +14,7 @@ I added a mode to the Julia repl to support this code.
 https://github.com/jlapeyre/julia/tree/jl/symrepl
 
 You enter and exit the sjulia mode with '.'
-Here is an example.
+Here are some examples. See the test directory for others
 
 ```julia
 sjulia> ClearAll(fib)
@@ -30,6 +26,9 @@ sjulia> fib(10)
 sjulia> addone(x_) := (a = 1,  x + a)  # compound expression
 sjulia> addone(y)
 1 + y
+sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
+sjulia> gt5(x_) := x > 5
+sjulia> g(x_FloatingPoint:?(gt5)) = 1
 ```
 
 Symbols that are associated with some functionality can be listed with
