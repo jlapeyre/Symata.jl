@@ -60,7 +60,7 @@ needsparen(x::Complex) = true
 needsparen(x) = false
 
 # Mma fullform returns the value and prints differently.
-# We only print the value
+# We only print the value.
 function fullform(io::IO, mx::Mxpr)
     print(io,mx.head)
     print("(")
@@ -82,7 +82,6 @@ function Base.show(io::IO, s::Mxpr)
     end
     show_prefix_function(io,s)
 end
-
 
 function Base.show(io::IO, mx::Mxpr{:Comparison})
     args = mx.args    
@@ -110,7 +109,7 @@ function show_binary(io::IO, mx::Mxpr)
         show_prefix_function(io,mx)
     else
         lop = mx.args[1]
-        if needsparen(lop) #length(lop) > 1
+        if needsparen(lop)
             print(io,"(")
             show(io,lop)
             print(io,")")
@@ -119,7 +118,7 @@ function show_binary(io::IO, mx::Mxpr)
         end        
         print(io, "", mtojsym(mx.head), "")
         rop = mx.args[2]
-        if  needsparen(rop) # length(rop) > 1
+        if  needsparen(rop)
             print(io,"(")
             show(io,rop)
             print(io,")")
@@ -154,7 +153,6 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
             show(io,args[i])
         end
     end
-#    isempty(args) || show(io,args[end])    
 end
 
 function show_infix(io::IO, mx::Mxpr)
@@ -207,6 +205,8 @@ function extomxarr(ain,aout)
 end
 
 ## Main translation routine
+# We use Julia for lexing/parsing. But we change the semantics:
+# sometimes a little, sometimes a lot.
 function extomx(ex::Expr)
     newa = newargs()
     local head::Symbol
@@ -311,15 +311,14 @@ macro ex(ex)
     :(($(esc(mx))))
 end
 
+# We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Union(Mxpr,SJSym))
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
     mx = meval(mxin)
-#    println("first mx $mx")
     local mx1    
     while true
         mx1 = meval(mx)
-#        println("antohter mx1 $mx1")        
 #        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
         if mx1 == mx
             break
@@ -380,7 +379,7 @@ function meval(mx::Mxpr)
     res
 end
 
-## Application of Rules for many SJSym's ...
+## Application of Rules for many heads of Mxpr
 
 apprules(x) = x
 
@@ -406,6 +405,7 @@ function set_and_setdelayed(mx,lhs::SJSym, rhs)
 end
 
 # Create DownValue. "function" definition
+# eg f(x_) := x  defines a DownValue for the SJSym f
 function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
@@ -429,7 +429,6 @@ set_and_setdelayed(mx,y,z) = mx
 function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
-
 dosymbol(mx,s::String) = getsym(symbol(s))
 dosymbol(mx,x) = error("Symbol: expected a string")
 
@@ -441,6 +440,7 @@ function apprules(mx::Mxpr{:Clear})
     end
 end
 
+# Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})
     for a in mx.args
         checkprotect(a)
@@ -449,12 +449,14 @@ function apprules(mx::Mxpr{:ClearAll})
     end
 end
 
+# DumpHold does not evaluate args before dumping
 apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
 
 apprules(mx::Mxpr{:Length}) = symjlength(mx.args[1])
 symjlength(mx::Mxpr) = length(mx.args)
 symjlength(x) = length(x)
 
+# Get part of expression. Julia :ref is mapped to :Part
 # This won't work for setting a part
 function apprules(mx::Mxpr{:Part})
     a = mx.args
@@ -488,6 +490,7 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 ## Comparison
 
+# Mma does not do it this way. Julia does, and mma4max does.
 function apprules(mx::Mxpr{:Comparison})
     nargs1 = newargs()
     i = 1
@@ -532,7 +535,6 @@ apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx,b::Number,e::Number) = mpow(b,e)
 dopower(mx,b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
 dopower(mx,b,e) = mx
-
 
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
@@ -579,21 +581,15 @@ end
 
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
-#    for j in 1:2
         for i in 1:length(mx)
-            #        reset_meval_count() hmmm
             res = loopmeval(mx[i])
         end
-#    end
     res
 end
 
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
-
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
-
 apprules(mx::Mxpr{:Module}) = localize_module(mx)
-
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)

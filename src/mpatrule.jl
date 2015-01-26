@@ -156,7 +156,7 @@ end
 
 # check if restriction on Head and pattern test
 # are satisfied.
-# TODO: reorganzie. maybe make type of Pvar.head Any
+# TODO: reorganize. maybe make type of Pvar.head Any
 # so it can be a Symbol (only for finding SJSym),
 # or a DataType. This is determined when the Pvar is
 # created (of course later, this should be done once and stored with the downvalue)

@@ -63,8 +63,6 @@ end
 function patterntopvar(mx::Mxpr{:Blank})
     var = :_  # good choice ??
     blank = mx
-#    dump(blank)
-#    println("Blank $blank, length ", length(blank))
     if length(blank) == 0 # match any head
        res = Pvar(var,:All,:None)
     else

@@ -1,4 +1,6 @@
 ## expand product of two sums
+
+## This code is not used yet.
 function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
     terms = newargs()
     for ax in a.args

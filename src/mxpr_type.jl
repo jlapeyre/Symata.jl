@@ -83,8 +83,9 @@ end
 
 #downvalues(s::SJSym) = s.downvalues
 # FIXME!
-# workaround for mysterious bug, SJSym is copied somewhere and downvalues are altered.
-# So we look up the orginal SJSym from the name
+# We may have fixed this with change in getsymval.
+# We look up the orginal SJSym from the name
+# because altered, spurious, copies of downvalues were being used.
 downvalues(s::SJSym) = getsym(symname(s)).downvalues
 downvalues(s::Symbol) = downvalues(getsym(s))
 listdownvalues(s::SJSym) = mxpr(:List,s.downvalues...)

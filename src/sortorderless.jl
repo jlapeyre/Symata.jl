@@ -136,18 +136,14 @@ needs_ordering(x) = true
 #needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 function canonexpr!(mx::Orderless)
     if needs_ordering(mx)
-        pprintln("A $mx")
         orderexpr!(mx)
-        pprintln("B $mx")        
         if is_type_less(mx,Mxpr)        
             mx = compactsumlike!(mx)
-            pprintln("C $mx")
             if is_type_less(mx,Mxpr)
                 mx = collectordered!(mx)
                 if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end
                 if is_type(mx,Orderless)
                     mx = orderexpr!(mx)
-                    pprintln("D $mx")                
                     set_order_clean!(mx)
                 end
             end
@@ -259,10 +255,8 @@ end
 #getfac(mx::Mxpr{:Power}) = base(mx)
 
 function numeric_coefficient_and_factor(a)
-    pprintln("getting nc  of $a")    
     n = numeric_coefficient(a)
     res = n == 1 ? (n,a) : (n,_rest(a))    
-    pprintln("nc $res")
     return res
 end
 
@@ -274,12 +268,10 @@ end
 function _matchterms(a,b)
     (na,a1) = numeric_coefficient_and_factor(a)
     (nb,b1) = numeric_coefficient_and_factor(b)
-    pprintln("(na,a1)=($na,$a1), (nb,b1)=($nb,$b1)")
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
 function _matchfacs(a,b)
-    pprintln("matchfacs ($a,$b)")
     (na,a1) = numeric_expt_and_base(a)
     (nb,b1) = numeric_expt_and_base(b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
@@ -304,7 +296,6 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                           (:mmul,:collectmmul!,:_matchfacs))
     @eval begin
         function ($name)(mx::Mxpr)
-#            println("enter collect ", $name ,": $mx")
             length(mx) < 2 && return mx
             a = margs(mx)
             n = 1
@@ -313,7 +304,6 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
             while n < length(a)
                 is_type_less(a[n],Number) && (n += 1; continue)
                 (success,coeffsum,fac) = ($matchf)(a[n],a[n+1])
-#                println("start (a[n]=$(a[n]) csum=$coeffsum fac=$fac)")
                 if success
                     count = 1
                     coeffcount = coeffsum
@@ -321,22 +311,18 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                         (success1,coeffsum1,fac1) = ($matchf)(fac,a[i+1])
                         #                        if a[i] == a[i+1]
                         if success1
-                            pprintln("next (a[i]=$(a[i]) csum=$coeffsum1 fac1=$fac1)")
                             count += 1
                             coeffcount += coeffsum1 - 1
                         else
                             break
                         end
                     end
-                    pprintln("n=$n, count=$count")
                     newex = $(op== :mplus ?
                     :(coeffcount == 1 ? fac : mxpr(:Times,coeffcount,fac)) :
                     :(coeffcount == 0 ? 0 : coeffcount == 1 ? fac : mxpr(:Power,fac,coeffcount)))
-                    pprintln("newex $newex, coeffcount: $coeffcount, count: $count")
                     if coeffcount == 0
                         splice!(a,n:n+count)
                     else
-#                        newex = mulpowers(newex)
                         splice!(a,n:n+count,[newex])
                     end
                 end
@@ -350,7 +336,6 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
             if length(a) == 0
                 $(op== :mplus ? :(return 0) : :(return 1))
             end
-#            mx = mulpowers(mx)
             return mx
         end
     end

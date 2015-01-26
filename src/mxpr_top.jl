@@ -56,7 +56,6 @@ end
 getoptype(s::SJSym) = getoptype(symname(s))
 
 function getoptype(x::Symbol)
-#    println("Cheking $x")
     if haskey(OPTYPE,x)
         return OPTYPE[x]
     end
