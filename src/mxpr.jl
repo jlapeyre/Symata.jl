@@ -313,9 +313,11 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
     mx = meval(mxin)
+#    println("first mx $mx")
     local mx1    
     while true
         mx1 = meval(mx)
+#        println("antohter mx1 $mx1")        
 #        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
         if mx1 == mx
             break
@@ -401,6 +403,7 @@ function set_and_setdelayed(mx,lhs::SJSym, rhs)
     rhs
 end
 
+# Create DownValue. "function" definition
 function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
@@ -409,6 +412,10 @@ function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     nothing
 end
 
+# Optimize a bit. Localize variables once, not every time pattern is evaluated
+set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
+
+# Bind a Julia symbol to the rhs
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
     rhs = mx.args[2]
@@ -416,6 +423,13 @@ function apprules(mx::Mxpr{:SetJ})
 end 
 
 set_and_setdelayed(mx,y,z) = mx
+
+function apprules(mx::Mxpr{:Symbol})
+    dosymbol(mx,mx[1])
+end
+
+dosymbol(mx,s::String) = getsym(symbol(s))
+dosymbol(mx,x) = error("Symbol: expected a string")
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
@@ -563,10 +577,12 @@ end
 
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
-    for i in 1:length(mx)
-        reset_meval_count()
-        res = loopmeval(mx[i])
-    end
+#    for j in 1:2
+        for i in 1:length(mx)
+            #        reset_meval_count() hmmm
+            res = loopmeval(mx[i])
+        end
+#    end
     res
 end
 
@@ -575,3 +591,7 @@ apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
+
+apprules(mx::Mxpr{:Module}) = localize_module(mx)
+
+apprules(mx::Mxpr{:Println}) = println(margs(mx)...)

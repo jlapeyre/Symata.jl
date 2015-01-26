@@ -1,15 +1,15 @@
 abstract AbstractSJSym
 type SJSym{T}  <: AbstractSJSym
-#    name::Symbol
     val::Any
     attr::Dict{Symbol,Bool}
     downvalues::Array{Any,1}
 end
 
 symname{T}(s::SJSym{T}) = T
-#symname(s::SJSym) = s.name
-symval(s::SJSym) = s.val
-setsymval(s::SJSym,val) = (s.val = val)
+symval(s::SJSym) = getsym(s).val  # This is the key: Look up the copy in the table
+function setsymval(s::SJSym,val)
+    (getsym(s).val = val)  # maybe not necessary
+end
 
 import Base:  ==
 
@@ -106,6 +106,9 @@ function getsym(s::Symbol)
     end
 end
 getsym(ss::String) = getsym(symbol(ss))
+
+# refresh a copy that is not in the symbol table. how does this happen?
+getsym(sjs::SJSym) = getsym(symname(sjs))
 
 getsymval(s::Symbol) = getsym(s).val
 

@@ -5,7 +5,7 @@ for v in ( "Set", "Pattern", "SetJ" )
     end
 end
 
-for v in ("Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
+for v in ("Module","Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
           "DownValues")
     @eval begin
         set_attribute(symbol($v),:HoldAll)
@@ -54,9 +54,9 @@ for v in ("CompoundExpression",)
 end
 
 for v in ("Apply","Dump", "Cos", "Length","Plus","Times", "Blank",
-          "JVar", "MatchQ", "EvenQ", "OddQ",
+          "JVar", "MatchQ", "EvenQ", "OddQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm",
-          "BI", "BF", "BuiltIns")
+          "BI", "BF", "BuiltIns", "Symbol")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end

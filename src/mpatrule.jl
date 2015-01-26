@@ -168,9 +168,6 @@ function matchpat(cvar,ex)
     isdatatype = false  # does head-to-match evaluate to a DataType ?
     hh = getpvarhead(cvar)  # head to match
     if is_type(hh,Symbol)
-#        if hh == :All
-#            headmatch = true
-#        else
         if isdefined(hh) # Julia symbol represents data type ?
             hhe = eval(hh)
             if is_type(hhe,DataType)
@@ -231,6 +228,7 @@ end
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
+# Copying Dict is inefficient!
 function patrule(ex,pat1::PatternT,pat2::PatternT)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)

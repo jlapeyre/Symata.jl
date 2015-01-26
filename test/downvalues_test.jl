@@ -45,11 +45,11 @@ using Base.Test
 @ex      stringgt4(x_) := StringLength(x) > 4
 @ex      gt5(x_) := x > 5
 @ex      g(x_Integer:?(EvenQ)) := x
-@ex      g(x_String:?(stringgt4)) = "Greater that 4"
+@ex      g(x_String:?(stringgt4)) = "Greater than 4"
 @ex      g(x_FloatingPoint:?(gt5)) = 1
 @testex  Head(g(3)) == g
 @testex  g(4) == 4
 @testex  Head(g(5)) == g
 @testex  Head(g("cat")) == g
-@testex  g("zebra") == "Greater that 4"
+@testex  g("zebra") == "Greater than 4"
 @ex      ClearAll(stringgt4,g,gt5)

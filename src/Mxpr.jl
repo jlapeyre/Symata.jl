@@ -12,4 +12,5 @@ include("pattern.jl")
 include("expressions.jl")
 include("flatten.jl")
 include("sortorderless.jl")
+include("module.jl")
 nothing
