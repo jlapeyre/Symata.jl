@@ -9,6 +9,12 @@ focus now is not on implementing specific mathematical computation,
 but rather on implementing core features. The most important of these
 features are pattern matching and the evaluation sequence.
 
+The main features implemented so far are: canonical ordering of sums
+and products; pattern matching based on structure, "Head", and
+"pattern test". Lexically scoped "function" bodies. The most important
+items not yet implemented are: conditions on the entire pattern,
+matching of commutative and associative terms.
+
 
 ```julia
 include("src/Mxpr.jl")
@@ -58,9 +64,10 @@ Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
 * `a := b` delayed assignment
 * `f(x_) := x` delayed rule assignment
 
-There are three versions, or experiments. Each one has test files
+There are also two older versions, or experiments. Each one has test files
 that run and serve as examples. The instructions for loading
-the code and running the tests,  are in the subdirs.
+the code and running the tests, are in the subdirs. They have some
+examples of rules that have not yet been ported to the latest version.
 
 Expressions can be entered at the Julia repl. For the two most recent
 versions, there is also a repl mode "sjulia" in my Julia fork in the branch
@@ -81,7 +88,6 @@ changed. Some of the things from the earlier experiments are ported, but not all
 
 #### Pattern matching.
 
-This still uses the same pattern matcher, but some features need to be implemented differently.
 The most important missing feature is matching objects in a commutative (Orderless) expression.
 Eg, `a + b` should match the terms in `a + c + b`, etc.
 
