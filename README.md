@@ -1,8 +1,14 @@
-## Symbolic manipulation code.
+## Symbolic manipulation code
 
-This code is a sketch that is not meant to demonstrate computations,
-but rather to test implementing core features.  I am posting it to get
-feedback on design decisions.
+This is a partial implementation of a language for symbolic computation.
+It is based on pattern matching and an evaluation sequence closely modeled
+on Mathematica.
+
+I am making it available to get feedback on design decisions.  The
+focus now is not on implementing specific mathematical computation,
+but rather on implementing core features. The most important of these
+features are pattern matching and the evaluation sequence.
+
 
 ```julia
 include("src/Mxpr.jl")
@@ -166,5 +172,7 @@ and `RuleDelayed`. Evaluation of these is dispatched by the subtype.
  -->
 <!--  LocalWords:  Bool symname sjsym downvalues subtype AbstractMxpr
  -->
-<!--  LocalWords:  RuleDelayed
+<!--  LocalWords:  RuleDelayed addone lexically FloatingPoint
+ -->
+<!--  LocalWords:  BuiltIns
  -->
