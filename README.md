@@ -17,7 +17,7 @@ matching of commutative and associative terms.
 
 
 ```julia
-include("src/Mxpr.jl")
+include("src/SJulia.jl")
 include("src/run_tests.jl")
 ```
 
