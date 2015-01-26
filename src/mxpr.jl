@@ -10,7 +10,14 @@ atomq(x) = true
 
 ## SJSym functions
 
-Base.show(io::IO, s::SJSym) = Base.show_unquoted(io,symname(s))
+function Base.show(io::IO, s::SJSym)
+    ss = string(symname(s))
+    if ss[1] == '#' && ss[2] == '#'  # De-gensym local variables for display
+        ss = split(ss,['#'],keep=false)[1]
+    end
+    Base.show_unquoted(io,symbol(ss))
+end
+
 sjeval(s::SJSym) = symval(s)
 sjset(s::SJSym,val) = setsymval(s,val)
 ==(a::SJSym,b::SJSym) = symname(a) == symname(b)
