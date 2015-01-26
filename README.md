@@ -39,8 +39,8 @@ sjulia> addone(x_) := (a = 1,  x + a)  # compound expression
 sjulia> addone(y)
 1 + y
 sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
-sjulia> gt5(x_) := x > 5
-sjulia> g(x_FloatingPoint:?(gt5)) = 1
+sjulia> gt5(x_) := x > 5     # conditions on patterns
+sjulia> g(x_FloatingPoint:?(gt5)) = 1   # only matches floating point numbers > 5
 ```
 
 Symbols that are associated with some functionality can be listed with
