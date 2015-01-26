@@ -12,10 +12,10 @@ features are pattern matching and the evaluation sequence.
 
 ```julia
 include("src/Mxpr.jl")
-include("src/mxpr_test.jl")
+include("src/run_tests.jl")
 ```
 
-I added a mode to the Julia repl to support this code.
+I added a mode to the Julia repl to support this code (but it is not necessary)
 
 https://github.com/jlapeyre/julia/tree/jl/symrepl
 
