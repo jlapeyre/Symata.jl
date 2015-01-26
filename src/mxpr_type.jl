@@ -19,7 +19,7 @@ Base.isless(s::SJSym,t) = symname(s) < t
 Base.isless(t,s::SJSym) = t  < symname(s)
 ==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
 
-function pushdownvalue(s::SJSym,val)
+function push_downvalue(s::SJSym,val)
     dv = s.downvalues
     isnewrule = true
     for i in 1:length(dv)
@@ -33,7 +33,7 @@ function pushdownvalue(s::SJSym,val)
     sort!(s.downvalues,lt=isless_patterns)
 end
     
-cleardownvalues(s::SJSym) = (s.downvalues = Array(Any,0))
+clear_downvalues(s::SJSym) = (s.downvalues = Array(Any,0))
 
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr

@@ -409,7 +409,7 @@ end
 function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    pushdownvalue(lhs.head,rule)
+    push_downvalue(lhs.head,rule) # push DownValue
     rule
     nothing
 end
@@ -445,7 +445,7 @@ function apprules(mx::Mxpr{:ClearAll})
     for a in mx.args
         checkprotect(a)
         setsymval(a,symname(a))
-        cleardownvalues(a)
+        clear_downvalues(a)
     end
 end
 
