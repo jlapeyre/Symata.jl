@@ -41,6 +41,9 @@ sjulia> addone(y)
 sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
 sjulia> gt5(x_) := x > 5     # conditions on patterns
 sjulia> g(x_FloatingPoint:?(gt5)) = 1   # only matches floating point numbers > 5
+sjulia> h(x_^2) := x    # Structural matching
+sjulia> h((a+b)^2)
+a + b
 ```
 
 Symbols that are associated with some functionality can be listed with
