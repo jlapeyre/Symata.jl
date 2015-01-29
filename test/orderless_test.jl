@@ -32,5 +32,8 @@
 @testex Apply(List, a_h + x) == List(x,a_h)
 @testex Apply(List, a__ + x) == List(x,a__)
 @testex Apply(List, a__h + x) == List(x,a__h)
+@testex Apply(List, a_ + _x) == List(_x,a_)
+@testex Apply(List, _ + __) == List(_,__)
+
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
 

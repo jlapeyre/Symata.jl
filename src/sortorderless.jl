@@ -59,20 +59,45 @@ end
 
 ## FIXME jslexless.  simplify and economize this code.
 
+blankname(b) = length(b) == 0 ? "" : b[1]
+
+lessblanknoname(x::Mxpr{:Blank},y::Mxpr{:BlankSequence}) = true
+lessblanknoname(x::Mxpr{:BlankSequence},y::Mxpr{:Blank}) = false
+lessblanknoname(x::Mxpr{:Blank},y::Mxpr{:BlankNullSequence}) = true
+lessblanknoname(x::Mxpr{:BlankNullSequence},y::Mxpr{:Blank}) = false
+lessblanknoname(x::Mxpr{:BlankNullSequence},y::Mxpr{:BlankSequence}) = true
+lessblanknoname(x::Mxpr{:BlankSequence},y::Mxpr{:BlankNullSequence}) = false
+
+jslexless(x::Mxpr{:Pattern}, y::Mxpr{:Pattern}) = jslexless(x[1],y[1])
+
+for b in ("Blank","BlankSequence","BlankNullSequence")
+    for b1 in ("Blank","BlankSequence","BlankNullSequence")    
+        @eval begin
+            function jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($b1)})
+                blankname(x) == blankname(y) == "" && return lessblanknoname(x,y)
+                jslexless(blankname(x),blankname(y))
+            end
+        end
+    end
+    @eval begin
+        jslexless(x::Mxpr{symbol($b)},y::Mxpr{:Pattern}) = true
+        jslexless(x::Mxpr{:Pattern},y::Mxpr{symbol($b)}) = false
+    end
+end
+
 for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
         @eval begin
+            jslexless(x::Mxpr{symbol($o)},y::Mxpr{symbol($b)}) = false            
             jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($o)}) = true
         end
     end
-    @eval begin    
+    @eval begin
+        jslexless(x::Mxpr, y::Mxpr{symbol($b)}) = false        
         jslexless(x::Mxpr{symbol($b)},y::Mxpr) = true
     end        
 end
 
-function jslexless(x::Mxpr{:Blank},y::Mxpr{:BlankSequence})
-    
-end
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
     jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))
