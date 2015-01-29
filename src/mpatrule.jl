@@ -219,7 +219,9 @@ function _cmppat(mx,pat,captures)
         length(pat) != length(mx)
         return false
     end
-    for i in 1:length(mx) # match and capture subexpressions.
+    # match and capture subexpressions. false propagates to the top node
+    # retracing all steps. This is inefficient if we are not AC matching
+    for i in 1:length(mx)
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
     return true

@@ -61,7 +61,7 @@ end
 # It should apply when Blank is  not wrapped in Pattern.
 # Eg. MatchQ( a, _Integer)
 function patterntopvar(mx::Mxpr{:Blank})
-    var = :_  # good choice ??
+    var = :_  # Underscore is currently illegal in SJulia identifiers, so this is safe.
     blank = mx
     if length(blank) == 0 # match any head
        res = Pvar(var,:All,:None)
