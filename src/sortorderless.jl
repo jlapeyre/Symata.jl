@@ -9,20 +9,15 @@
 #    A. same numeric coefficient
 #    B. same numeric power
 
-# Note that anything with a blank is greater than anything without a blank.
+# Anything with a Blank is greater than anything without a Blank.
 # This is the natural order for pattern matching.
-
-# BlankSequence is less than Blank
-# a__ + b_   
-
-# BlankNullSequence (three blanks) is less than BlankSequence
-# a___ + b__
-
+# Blank, BlankSequence, BlankNullSequence are not less than one another
 
 # We should also compare to the same algorithms for other
 # available CAS's. But, Maxima uses a different order.
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
+typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
 
 ## compatibility with old code. fix this later
 is_order_clean(x) = true
@@ -62,8 +57,31 @@ function mxoporder(op::SJSym)
     return _jsoporder[op]
 end
 
-## FIXME jslexless. Probably working. But, need to  write tests, then
-# simplify and economize this code.
+## FIXME jslexless.  simplify and economize this code.
+
+for b in ("Blank","BlankSequence","BlankNullSequence")
+    for o in ("Times","Plus","Power")
+        @eval begin
+            jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($o)}) = true
+        end
+    end
+    @eval begin    
+        jslexless(x::Mxpr{symbol($b)},y::Mxpr) = true
+    end        
+end
+
+#jslexless(x::Mxpr{:Blank},y::Mxpr) = true
+#jslexless(x::Mxpr{:BlankSequence},y::Mxpr) = true
+#jslexless(x::Mxpr{:BlankNullSequence},y::Mxpr) = true
+
+function jslexless(x::Mxpr{:Blank},y::Mxpr{:BlankSequence})
+    
+end
+
+jslexless(x::Mxpr{:Blank},y::Mxpr{:BlankNullSequence}) = false
+jslexless(x::Mxpr{:BlankSequence},y::Mxpr{:BlankSequence}) = false
+
+
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
     jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))

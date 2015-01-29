@@ -26,3 +26,10 @@
 @testex (a + b)^2/(a+b) == a + b
 @testex (a^2)^2 == a^4
 @testex (a^t)^z == a^(t*z)
+
+# Blank's are less than non-Blanks
+@testex Apply(List, a_ + x) == List(x,a_)
+@testex Apply(List, a_ + x) == List(x,a_)
+@testex Apply(List, a__ + x) == List(x,a__)
+#@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
+
