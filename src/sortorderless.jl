@@ -95,6 +95,8 @@ for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     @eval begin
         jslexless(x::Mxpr, y::Mxpr{symbol($b)}) = false        
         jslexless(x::Mxpr{symbol($b)},y::Mxpr) = true
+        jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
+        jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
     end        
 end
 
