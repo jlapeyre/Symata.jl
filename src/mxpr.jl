@@ -74,6 +74,8 @@ end
 fullform(io::IO,x) = show(io,x)
 fullform(x) = fullform(STDOUT,x)
 
+## Base.show
+
 function Base.show(io::IO, s::Mxpr)
     if getoptype(s.head) == :binary  
         return show_binary(io,s)
@@ -162,6 +164,32 @@ function show_infix(io::IO, mx::Mxpr)
         print(io, mtojsym(mx.head))
     end
     isempty(args) || show(io,args[end])
+end
+
+function Base.show(io::IO, mx::Mxpr{:Blank})
+    print(io,"_")    
+    if length(mx) > 0
+        show(io,mx[1])
+    end
+end
+
+function Base.show(io::IO, mx::Mxpr{:BlankSequence})
+    print(io,"__")    
+    if length(mx) > 0
+        show(io,mx[1])
+    end
+end
+
+function Base.show(io::IO, mx::Mxpr{:BlankNullSequence})
+    print(io,"__")    
+    if length(mx) > 0
+        show(io,mx[1])
+    end
+end
+
+function Base.show(io::IO, mx::Mxpr{:Pattern})
+    show(io,mx[1])
+    show(io,mx[2])    
 end
 
 ## Translate Expr to Mxpr

@@ -59,7 +59,7 @@ end
 
 ## FIXME jslexless.  simplify and economize this code.
 
-for b in ("Blank","BlankSequence","BlankNullSequence")
+for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
         @eval begin
             jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($o)}) = true
@@ -70,18 +70,9 @@ for b in ("Blank","BlankSequence","BlankNullSequence")
     end        
 end
 
-#jslexless(x::Mxpr{:Blank},y::Mxpr) = true
-#jslexless(x::Mxpr{:BlankSequence},y::Mxpr) = true
-#jslexless(x::Mxpr{:BlankNullSequence},y::Mxpr) = true
-
 function jslexless(x::Mxpr{:Blank},y::Mxpr{:BlankSequence})
     
 end
-
-jslexless(x::Mxpr{:Blank},y::Mxpr{:BlankNullSequence}) = false
-jslexless(x::Mxpr{:BlankSequence},y::Mxpr{:BlankSequence}) = false
-
-
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
     jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))
