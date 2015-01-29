@@ -53,6 +53,14 @@ for v in ("CompoundExpression",)
     end
 end
 
+for v in ("Cos","Sin","Tan","Cosh","Sinh","Log")  # etc.
+    @eval begin    
+        set_attribute(symbol($v),:Listable)
+        set_attribute(symbol($v),:NumericFunction)
+        set_attribute(symbol($v),:Protected)        
+    end
+end
+
 for v in ("Plus", "Times")
     @eval begin
         set_attribute(symbol($v),:Flat)
@@ -64,8 +72,15 @@ for v in ("Plus", "Times")
     end
 end
 
-for v in ("Apply","Dump", "Cos", "Length","Blank",
-          "JVar", "MatchQ", "EvenQ", "OddQ", "Println",
+for v in ("EvenQ","OddQ")
+    @eval begin
+        set_attribute(symbol($v),:Listable)
+        set_attribute(symbol($v),:Protected)        
+    end
+end
+
+for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
+          "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm",
           "BI", "BF", "BuiltIns", "Symbol")
     @eval begin

@@ -9,6 +9,16 @@
 #    A. same numeric coefficient
 #    B. same numeric power
 
+# Note that anything with a blank is greater than anything without a blank.
+# This is the natural order for pattern matching.
+
+# BlankSequence is less than Blank
+# a__ + b_   
+
+# BlankNullSequence (three blanks) is less than BlankSequence
+# a___ + b__
+
+
 # We should also compare to the same algorithms for other
 # available CAS's. But, Maxima uses a different order.
 
