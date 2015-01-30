@@ -43,8 +43,12 @@ function expand_binomial(b,a,n::Integer)
         l = l + 1
         fac *= k
         fac = div(fac,l)
-#        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
+        #        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
         args[j+1] = mxpr(:Times, fac , mxpr(:Power,a,j),  mxpr(:Power, b, (n-j)))
     end
-    mxprcf(:Plus,args)
+    mx = mxprcf(:Plus,args)
+    mergesyms(mx,a)
+    mergesyms(mx,b)
+#    dump(mx.syms)
+    mx
 end

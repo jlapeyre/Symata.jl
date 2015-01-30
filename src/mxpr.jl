@@ -67,7 +67,6 @@ end
 fullform(io::IO,x) = show(io,x)
 fullform(x) = fullform(STDOUT,x)
 
-
 ## Translate Expr to Mxpr
 
 extomx(x) = x
@@ -286,7 +285,9 @@ function meval(mx::Mxpr)
     end
     res = applydownvalues(res)
     is_meval_trace() && println(ind,">> " , res)
-    decrement_meval_count()    
+    decrement_meval_count()
+#    println("exiting eval dump")
+#    is_Mxpr(res) ? dump(res.syms) : nothing
     res
 end
 

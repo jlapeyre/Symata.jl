@@ -67,6 +67,7 @@ function mxpr(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}())
 end
 
+# set fixed point and clean bits
 function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
@@ -95,18 +96,21 @@ end
 # Existing record of SJSym a must be older
 function mergesyms(mx::Mxpr, a::SJSym)
     an = symname(a)
+    println("merging $a")
     if ! haskey(mx.syms, an)
-        mx.syms[an] = a.age
+        println("setting age $an, $(a.age)")
+        (mx.syms)[an] = a.age
     end
+    dump(mx.syms)
 end
 
-# is_canon(mx::Mxpr) = mx.canon
-# is_fixed(mx::Mxpr) = mx.canon
-# is_fixed{T}(s::SJSym{T}) = symval(s) == T
-# setcanon(mx::Mxpr) = mx.canon = true
-# setfixed(mx::Mxpr) = mx.canon = true
-# unsetcanon(mx::Mxpr) = mx.canon = false
-# unsetfixed(mx::Mxpr) = mx.canon = false
+is_canon(mx::Mxpr) = mx.canon
+is_fixed(mx::Mxpr) = mx.fixed
+is_fixed{T}(s::SJSym{T}) = symval(s) == T
+setcanon(mx::Mxpr) = mx.canon = true
+setfixed(mx::Mxpr) = mx.fixed = true
+unsetcanon(mx::Mxpr) = mx.canon = false
+unsetfixed(mx::Mxpr) = mx.fixed = false
 
 is_canon(x) = false
 setcanon(x) = false
@@ -180,7 +184,6 @@ get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
 set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
 unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)
 
-
 function protectedsymbols()
     args = newargs()
     for s in keys(SYMTAB)
@@ -202,6 +205,7 @@ function unset_attribute(sj::SJSym, a::Symbol)
 end
 
 function Base.copy(mx::Mxpr)
+    println("copying $mx")
     args = copy(mx.args)
-    mxpr(mx.head,args...)
+    mxpr(mx.head,args)
 end
