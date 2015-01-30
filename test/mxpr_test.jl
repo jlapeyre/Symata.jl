@@ -10,6 +10,10 @@ using Base.Test
 @ex (a = 2)
 @test @ex(b) == 1
 @test @ex(c) == 2
+@ex Clear(a,b,res)
+@ex res = a * b
+@ex a = 1
+@testex res == b   # test fix for bug in commit 6565
 @ex Clear(a,b,c)
 
 # Test replacement
