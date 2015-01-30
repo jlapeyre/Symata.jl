@@ -26,9 +26,6 @@ doapply(mx,x,y) = mx
 
 function expand_binomial(a,b,n::Integer)
     args = newargs(n+1)
-#    fac = one(n)
-#    k = n+1
-    #    l = zero(n)
     args[1] = b^n
     args[n+1] =  a^n
     if n == 2
@@ -37,14 +34,17 @@ function expand_binomial(a,b,n::Integer)
     end
     args[2] = n * a * b^(n-1)
     args[n] =  n * a^(n-1) * b
+    fac = n
+    k = n
+    l = one(n)
     for j in 2:n-2
-        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # does not look slower
-#       args[j+1] = fac * a^(j) * b^(n-j)        # also not slower than code below
-#        args[j+1] = mxpr(:Times, fac , mxpr(:Power,a,j),  mxpr(:Power, b, (n-j)))
-#        k = k - 1
-#        l = l + 1
-#        fac *= k
-#        fac = div(fac,l)
+#        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # slower.
+        k = k - 1
+        l = l + 1
+        fac *= k
+        fac = div(fac,l)
+#        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
+        args[j+1] = mxpr(:Times, fac , mxpr(:Power,a,j),  mxpr(:Power, b, (n-j)))
     end
     mxprcf(:Plus,args)
 end
