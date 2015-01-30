@@ -35,10 +35,12 @@ end
     
 clear_downvalues(s::SJSym) = (s.downvalues = Array(Any,0))
 
+typealias MxprArgs Array{Any,1}
+
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
-    args::Array{Any,1}
+    args::MxprArgs
     fixed::Bool
     canon::Bool
 end
@@ -46,14 +48,24 @@ end
 typealias Symbolic Union(Mxpr,SJSym)
 
 function mxpr(s::SJSym,iargs...)
+#    println("$s, $iargs")
     args = newargs()
     for x in iargs push!(args,x) end
+    Mxpr{symname(s)}(s,args,false,false)
+end
+
+function mxpr(s::SJSym,args::MxprArgs)
+#    println("$s, $iargs")
     Mxpr{symname(s)}(s,args,false,false)
 end
 
 function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
+    Mxpr{symname(s)}(s,args,true,true)
+end
+
+function mxprcf(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,true,true)
 end
 
@@ -64,11 +76,18 @@ margs(mx::Mxpr) = mx.args
 getcanon(mx::Mxpr) = mx.canon
 getfixed(mx::Mxpr) = mx.canon
 getfixed{T}(s::SJSym{T}) = symval(s) == T
-getfixed(x) = true
 setcanon(mx::Mxpr) = mx.canon = true
 setfixed(mx::Mxpr) = mx.canon = true
 unsetcanon(mx::Mxpr) = mx.canon = false
 unsetfixed(mx::Mxpr) = mx.canon = false
+
+getcanon(x) = true
+setcanon(x) = true
+unsetcanon(x) = true
+getfixed(x) = true
+setfixed(x) = true
+unsetfixed(x) = true
+
 
 newargs() = Array(Any,0)
 newargs(n::Integer) = Array(Any,n)

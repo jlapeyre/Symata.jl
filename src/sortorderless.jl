@@ -20,7 +20,7 @@ typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
 typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
 
 ## compatibility with old code. fix this later
-is_order_clean(x) = true
+#is_order_clean(x) = true
 set_order_clean!(x) = true
 
 const _jstypeorder = Dict{DataType,Int}()
@@ -172,7 +172,7 @@ jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 function orderexpr!(mx::Orderless)
     ar = mx.args
     sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
-    set_order_clean!(mx)    
+#    set_order_clean!(mx)    
     mx
 end
 
@@ -190,11 +190,12 @@ function canonexpr!(mx::Orderless)
                 if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end
                 if is_type(mx,Orderless)
                     mx = orderexpr!(mx)
-                    set_order_clean!(mx)
                 end
             end
         end
     end
+    setcanon(mx)
+    setfixed(mx)
     mx
 end    
 canonexpr!(x) = x

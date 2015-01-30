@@ -348,8 +348,8 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     local mx1    
     while true
         mx1 = meval(mx)
-#        @mdebug(2, " loopmeval in loop: mx=$mx, mx1=$mx1")
-        if mx1 == mx
+        if getfixed(mx1) || mx1 == mx
+            mx = mx1
             break
         end
         neval += 1
@@ -374,8 +374,10 @@ function meval(mx::Mxpr)
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
     end
-    is_meval_trace() ? ind = " " ^ get_meval_count() : nothing
-    is_meval_trace() && println(ind,"<< " , mx)
+    if is_meval_trace()
+        ind = " " ^ get_meval_count()
+        println(ind,"<< " , mx)
+    end
     nhead = mx.head
     local nargs
     start = 1
