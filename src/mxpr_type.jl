@@ -50,6 +50,7 @@ type Mxpr{T} <: AbstractMxpr
     args::MxprArgs
     fixed::Bool
     canon::Bool
+    syms::Dict{Symbol,UInt64}    
 end
 
 typealias Symbolic Union(Mxpr,SJSym)
@@ -57,21 +58,21 @@ typealias Symbolic Union(Mxpr,SJSym)
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,false,false)
+    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}())
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,false,false)
+    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}())
 end
 
 function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,true,true)
+    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
 end
 
 function mxprcf(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,true,true)
+    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
 end
 
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
