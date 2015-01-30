@@ -17,6 +17,8 @@ function setsymval(s::SJSym,val)
     (getsym(s).val = val)  # maybe not necessary to get symbol from table
     s.age += 1
 end
+symage(s::SJSym) = getsym(s).age
+symage(s::Symbol) = getsym(s).age
 
 import Base:  ==
 
@@ -78,6 +80,25 @@ end
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
+
+function mergesyms(mx::Mxpr, a::Mxpr)
+    mxs = mx.syms
+    for (sym,age) in a.syms
+        if haskey(mxs,sym) && age  < mxs[sym]
+            mxs[sym] = age
+        else
+            mxs[sym] = age
+        end
+    end
+end
+
+# Existing record of SJSym a must be older
+function mergesyms(mx::Mxpr, a::SJSym)
+    an = symname(a)
+    if ! haskey(mx.syms, an)
+        mx.syms[an] = a.age
+    end
+end
 
 # is_canon(mx::Mxpr) = mx.canon
 # is_fixed(mx::Mxpr) = mx.canon
