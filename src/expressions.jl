@@ -23,3 +23,11 @@ end
 
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
 doapply(mx,x,y) = mx
+
+function expand_binomial(a::SJSym,b::SJSym,n::Integer)
+    args = newargs()
+    for j in 0:n
+        push!(args, binomial(n,j) * a^(j) * b^(n-j))
+    end
+    mxpr(:Plus,args...)
+end

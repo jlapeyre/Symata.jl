@@ -41,6 +41,8 @@ type Mxpr{T} <: AbstractMxpr
     args::Array{Any,1}
 end
 
+typealias Symbolic Union(Mxpr,SJSym)
+
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end

@@ -559,10 +559,13 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
+#apprules(mx::Mxpr{:Power}) = (println("dopower $mx $(mx[1]), $(mx[2])"); dopower(mx,mx[1],mx[2]))
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
-dopower(mx,b::Number,e::Number) = mpow(b,e)
-dopower(mx,b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
-dopower(mx,b,e) = mx
+dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
+dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 0 ? one(n) : n == 1 ? b : mx
+dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), (exp*expt(b)))
+dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
+dopower(mx,b,e) = mx 
 
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
@@ -621,3 +624,28 @@ apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 apprules(mx::Mxpr{:Module}) = localize_module(mx)
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
+
+## Expand
+
+function apprules(mx::Mxpr{:Expand})
+    mx1 = mx[1]
+    ! is_Mxpr(mx1) && return mx # TODO
+    doexpand(mx,mx1)
+end
+
+function doexpand(mx::Mxpr{:Expand}, p::Mxpr{:Power})
+    do_expand_power(mx,base(p),expt(p))
+end
+doexpand(mx,n) = mx
+
+function do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer)
+    length(b) != 2 && return mx
+    do_expand_binomial(mx,b[1],b[2],n)
+end
+
+do_expand_power(mx,b,ex) = mx
+do_expand_binomial(mx,a,b,n) = mx
+
+function do_expand_binomial(mx::Mxpr{:Expand}, a::SJSym, b::SJSym, n::Integer)
+    expand_binomial(a,b,n)
+end
