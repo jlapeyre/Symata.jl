@@ -24,7 +24,7 @@ end
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
 doapply(mx,x,y) = mx
 
-function expand_binomial(a,b,n::Integer)
+function expand_binomial(b,a,n::Integer)
     args = newargs(n+1)
     args[1] = b^n
     args[n+1] =  a^n

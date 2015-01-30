@@ -71,18 +71,18 @@ mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
 
-getcanon(mx::Mxpr) = mx.canon
-getfixed(mx::Mxpr) = mx.canon
-getfixed{T}(s::SJSym{T}) = symval(s) == T
+is_canon(mx::Mxpr) = mx.canon
+is_fixed(mx::Mxpr) = mx.canon
+is_fixed{T}(s::SJSym{T}) = symval(s) == T
 setcanon(mx::Mxpr) = mx.canon = true
 setfixed(mx::Mxpr) = mx.canon = true
 unsetcanon(mx::Mxpr) = mx.canon = false
 unsetfixed(mx::Mxpr) = mx.canon = false
 
-getcanon(x) = true
+is_canon(x) = true
 setcanon(x) = true
 unsetcanon(x) = true
-getfixed(x) = true
+is_fixed(x) = true
 setfixed(x) = true
 unsetfixed(x) = true
 

@@ -344,11 +344,11 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
     mx = meval(mxin)
-    getfixed(mx) && (unsetfixed(mx); return mx)
+    is_fixed(mx) && return mx # (unsetfixed(mx); return mx)
     local mx1    
     while true
         mx1 = meval(mx)
-        if getfixed(mx1) || mx1 == mx
+        if is_fixed(mx1) || mx1 == mx
             mx = mx1
             break
         end
@@ -359,7 +359,7 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
         end
         mx = mx1
     end
-    unsetfixed(mx)
+#    unsetfixed(mx)
     mx
 end
 
@@ -403,8 +403,11 @@ function meval(mx::Mxpr)
     nmx = mxpr(nhead,nargs...)
     res = apprules(nmx)
     res == nothing && return nothing
-    res = deepflatten!(res)
-    res = deepcanonexpr!(res) # actually, this should be orderless only. others split off
+    if  ! is_canon(res)
+        res = deepflatten!(res)        
+        res = deepcanonexpr!(res)
+#        res = (print("dc "); @time(deepcanonexpr!(res))) # actually, this should be orderless only. others split off        
+    end
     res = applydownvalues(res)
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()    
@@ -644,5 +647,6 @@ do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer) =
     length(b) != 2 ? mx : do_expand_binomial(mx,b[1],b[2],n)
 do_expand_power(mx,b,ex) = mx
 
-do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
+#do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
+do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = expand_binomial(a,b,n)
 do_expand_binomial(mx,a,b,n) = mx
