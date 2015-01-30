@@ -14,7 +14,8 @@ sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 symname{T}(s::SJSym{T}) = T
 symval(s::SJSym) = getsym(s).val  # This is the key: Look up the copy in the table
 function setsymval(s::SJSym,val)
-    (getsym(s).val = val)  # maybe not necessary
+    (getsym(s).val = val)  # maybe not necessary to get symbol from table
+    s.age += 1
 end
 
 import Base:  ==
