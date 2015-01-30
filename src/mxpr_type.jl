@@ -48,14 +48,12 @@ end
 typealias Symbolic Union(Mxpr,SJSym)
 
 function mxpr(s::SJSym,iargs...)
-#    println("$s, $iargs")
     args = newargs()
     for x in iargs push!(args,x) end
     Mxpr{symname(s)}(s,args,false,false)
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
-#    println("$s, $iargs")
     Mxpr{symname(s)}(s,args,false,false)
 end
 
@@ -87,7 +85,6 @@ unsetcanon(x) = true
 getfixed(x) = true
 setfixed(x) = true
 unsetfixed(x) = true
-
 
 newargs() = Array(Any,0)
 newargs(n::Integer) = Array(Any,n)
