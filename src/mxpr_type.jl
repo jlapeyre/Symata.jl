@@ -205,7 +205,7 @@ function unset_attribute(sj::SJSym, a::Symbol)
 end
 
 function Base.copy(mx::Mxpr)
-    println("copying $mx")
+#    println("copying $mx")
     args = copy(mx.args)
     mxpr(mx.head,args)
 end

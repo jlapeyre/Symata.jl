@@ -295,6 +295,7 @@ numeric_expt(x) = 1
 # TODO: decide whether to copy and propogate the !
 # Tests fail unless we copy. But, there may be a way around this
 function _rest!(mx::Mxpr)
+#    println("rest copy $mx")
     res=copy(mx)  # slow
 #    res = mx
     shift!(margs(res))
