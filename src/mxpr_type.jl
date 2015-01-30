@@ -51,9 +51,24 @@ function mxpr(s::SJSym,iargs...)
     Mxpr{symname(s)}(s,args,false,false)
 end
 
-mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
+function mxprcf(s::SJSym,iargs...)
+    args = newargs()
+    for x in iargs push!(args,x) end
+    Mxpr{symname(s)}(s,args,true,true)
+end
 
+mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
+mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
+
+getcanon(mx::Mxpr) = mx.canon
+getfixed(mx::Mxpr) = mx.canon
+getfixed{T}(s::SJSym{T}) = symval(s) == T
+getfixed(x) = true
+setcanon(mx::Mxpr) = mx.canon = true
+setfixed(mx::Mxpr) = mx.canon = true
+unsetcanon(mx::Mxpr) = mx.canon = false
+unsetfixed(mx::Mxpr) = mx.canon = false
 
 newargs() = Array(Any,0)
 newargs(n::Integer) = Array(Any,n)

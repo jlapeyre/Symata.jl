@@ -344,6 +344,7 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
     mx = meval(mxin)
+    getfixed(mx) && return mx
     local mx1    
     while true
         mx1 = meval(mx)

@@ -38,5 +38,5 @@ function expand_binomial(a,b,n::Integer)
 #        fac *= k
 #        fac = div(fac,l)
     end
-    mxpr(:Plus,args...)
+    mxprcf(:Plus,args...)
 end
