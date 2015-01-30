@@ -39,6 +39,8 @@ abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
     args::Array{Any,1}
+    fixed::Bool
+    canon::Bool
 end
 
 typealias Symbolic Union(Mxpr,SJSym)
@@ -46,13 +48,15 @@ typealias Symbolic Union(Mxpr,SJSym)
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args)
+    Mxpr{symname(s)}(s,args,false,false)
 end
+
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 
 margs(mx::Mxpr) = mx.args
 
 newargs() = Array(Any,0)
+newargs(n::Integer) = Array(Any,n)
 
 #setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 # No, this should be fast

@@ -6,6 +6,14 @@ typealias Flat Union(Mxpr{:Plus},Mxpr{:Times})
 
 # Here we copy
 function flatten!{T<:Flat}(mx::T)
+    needsflat = false
+    for x in margs(mx)
+        if is_type(x,T)
+            needsflat = true
+            break
+        end
+    end
+    needsflat == false && return mx
     na = newargs()
     for x in margs(mx)
         if is_type(x,T)

@@ -625,7 +625,7 @@ apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 apprules(mx::Mxpr{:Module}) = localize_module(mx)
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 
-## Expand
+## Expand, only a bit implemented
 
 function apprules(mx::Mxpr{:Expand})
     mx1 = mx[1]
@@ -633,19 +633,12 @@ function apprules(mx::Mxpr{:Expand})
     doexpand(mx,mx1)
 end
 
-function doexpand(mx::Mxpr{:Expand}, p::Mxpr{:Power})
-    do_expand_power(mx,base(p),expt(p))
-end
+doexpand(mx::Mxpr{:Expand}, p::Mxpr{:Power}) = do_expand_power(mx,base(p),expt(p))
 doexpand(mx,n) = mx
 
-function do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer)
-    length(b) != 2 && return mx
-    do_expand_binomial(mx,b[1],b[2],n)
-end
-
+do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer) =
+    length(b) != 2 ? mx : do_expand_binomial(mx,b[1],b[2],n)
 do_expand_power(mx,b,ex) = mx
-do_expand_binomial(mx,a,b,n) = mx
 
-function do_expand_binomial(mx::Mxpr{:Expand}, a::SJSym, b::SJSym, n::Integer)
-    expand_binomial(a,b,n)
-end
+do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
+do_expand_binomial(mx,a,b,n) = mx

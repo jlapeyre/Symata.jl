@@ -24,10 +24,19 @@ end
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
 doapply(mx,x,y) = mx
 
-function expand_binomial(a::SJSym,b::SJSym,n::Integer)
-    args = newargs()
-    for j in 0:n
-        push!(args, binomial(n,j) * a^(j) * b^(n-j))
+function expand_binomial(a,b,n::Integer)
+    args = newargs(n+1)
+#    fac = one(n)
+#    k = n+1
+#    l = zero(n)
+    for j in zero(n):n
+        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # does not look slower
+#       args[j+1] = fac * a^(j) * b^(n-j)        # also not slower than code below
+#        args[j+1] = mxpr(:Times, fac , mxpr(:Power,a,j),  mxpr(:Power, b, (n-j)))
+#        k = k - 1
+#        l = l + 1
+#        fac *= k
+#        fac = div(fac,l)
     end
     mxpr(:Plus,args...)
 end

@@ -291,8 +291,10 @@ end
 numeric_expt(x::Number) = 1
 numeric_expt(x) = 1
 
-function _rest(mx::Mxpr)
-    res=deepcopy(mx)
+# TODO: decide whether to copy and propogate the !
+function _rest!(mx::Mxpr)
+    res=copy(mx)  # slow
+#    res = mx
     shift!(margs(res))
     return length(res) == 1 ? @ma(res,1) : res
 end
@@ -302,7 +304,7 @@ end
 
 function numeric_coefficient_and_factor(a)
     n = numeric_coefficient(a)
-    res = n == 1 ? (n,a) : (n,_rest(a))    
+    res = n == 1 ? (n,a) : (n,_rest!(a))    
     return res
 end
 
