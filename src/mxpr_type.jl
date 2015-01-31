@@ -1,5 +1,7 @@
+typealias SJSym Symbol 
+
 abstract AbstractSJSym
-type SJSym{T}  <: AbstractSJSym
+type SSJSym{T}  <: AbstractSJSym
     val::Any
     attr::Dict{Symbol,Bool}
     downvalues::Array{Any,1}
@@ -8,30 +10,33 @@ end
 
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
-sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
+ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 
-symname{T}(s::SJSym{T}) = T
-symval(s::SJSym) = getsym(s).val  # This is the key: Look up the copy in the table
+#symname{T}(s::SJSym{T}) = T
+symname(s::SJSym) = s
+getsym(s) = s
+symval(s::SJSym) = getssym(s).val  # This is the key: Look up the copy in the table
 function setsymval(s::SJSym,val)
-    (getsym(s).val = val)  # maybe not necessary to get symbol from table
-    s.age += 1
+    (getssym(s).val = val)  # maybe not necessary to get symbol from table
+    getssym(s).age += 1
 end
 
 sjset(s::SJSym,val) = setsymval(s,val)
-==(a::SJSym,b::SJSym) = symname(a) == symname(b)
 
-symage(s::SJSym) = getsym(s).age
-symage(s::Symbol) = getsym(s).age
+symage(s::SJSym) = getssym(s).age
+#symage(s::Symbol) = getssym(s).age
 
 import Base:  ==
 
-Base.isless{T,S}(t::SJSym{T}, s::SJSym{S}) = T < S
-Base.isless(t::SJSym,s::SJSym) = symname(t)  < symname(s)
-Base.isless(s::SJSym,t) = symname(s) < t
-Base.isless(t,s::SJSym) = t  < symname(s)
-==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
+# SJSym is now alias to Symbol
+# Base.isless{T,S}(t::SJSym{T}, s::SJSym{S}) = T < S
+# Base.isless(t::SJSym,s::SJSym) = symname(t)  < symname(s)
+# Base.isless(s::SJSym,t) = symname(s) < t
+# Base.isless(t,s::SJSym) = t  < symname(s)
+# ==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
 
-function push_downvalue(s::SJSym,val)
+function push_downvalue(ins::SJSym,val)
+    s = getssym(ins)
     dv = s.downvalues
     isnewrule = true
     for i in 1:length(dv)
@@ -45,7 +50,7 @@ function push_downvalue(s::SJSym,val)
     sort!(s.downvalues,lt=isless_patterns)
 end
     
-clear_downvalues(s::SJSym) = (s.downvalues = Array(Any,0))
+clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
 typealias MxprArgs Array{Any,1}
 
@@ -81,6 +86,7 @@ function mxprcf(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
 end
 
+# redundant now
 mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
@@ -98,11 +104,10 @@ end
 
 # Existing record of SJSym a must be older
 function mergesyms(mx::Mxpr, a::SJSym)
-    an = symname(a)
 #    println("merging $a")
-    if ! haskey(mx.syms, an)
+    if ! haskey(mx.syms, a)
 #        println("setting age $an, $(a.age)")
-        (mx.syms)[an] = a.age
+        (mx.syms)[a] = getssym(a).age
     end
 #    dump(mx.syms)
 end
@@ -119,7 +124,8 @@ checkdirtysyms(x) = false
 
 is_canon(mx::Mxpr) = mx.canon
 is_fixed(mx::Mxpr) = mx.fixed
-is_fixed{T}(s::SJSym{T}) = symval(s) == T
+is_fixed(s::SJSym) = symval(s) == s
+#is_fixed{T}(s::SJSym{T}) = symval(s) == T
 setcanon(mx::Mxpr) = mx.canon = true
 setfixed(mx::Mxpr) = mx.fixed = true
 unsetcanon(mx::Mxpr) = mx.canon = false
@@ -169,34 +175,34 @@ end
 # We may have fixed this with change in getsymval.
 # We look up the orginal SJSym from the name
 # because altered, spurious, copies of downvalues were being used.
-downvalues(s::SJSym) = getsym(symname(s)).downvalues
-downvalues(s::Symbol) = downvalues(getsym(s))
-listdownvalues(s::SJSym) = mxpr(:List,s.downvalues...)
+downvalues(s::SJSym) = getssym(s).downvalues
+listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 
-const SYMTAB = Dict{Symbol,SJSym}()
+const SYMTAB = Dict{Symbol,SSJSym}()
 
 ## Retrieve or create new symbol
-function getsym(s::Symbol)
+function getssym(s::Symbol)
     if haskey(SYMTAB,s)
         return SYMTAB[s]
     else
-        ns = sjsym(s)
+        ns = ssjsym(s)
         SYMTAB[s] = ns
         # pollute Julia just so we get repl completion. remove this later.        
         !isdefined(s) && eval(:($s = true)) 
         return ns
     end
 end
-getsym(ss::String) = getsym(symbol(ss))
+getssym(ss::String) = getssym(symbol(ss))
 
 # refresh a copy that is not in the symbol table. how does this happen?
-getsym(sjs::SJSym) = getsym(symname(sjs))
+#getsym(sjs::SJSym) = getsym(symname(sjs))
 
-getsymval(s::Symbol) = getsym(s).val
+# was never used
+#getsymval(s::Symbol) = getsym(s).val
 
-get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
-set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
-unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)
+#get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
+#set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
+#unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)
 
 function protectedsymbols()
     args = newargs()
@@ -207,15 +213,15 @@ function protectedsymbols()
 end
 
 function get_attribute(sj::SJSym, a::Symbol)
-    get(sj.attr,a,false)
+    get(getssym(sj).attr,a,false)
 end
 
 function set_attribute(sj::SJSym, a::Symbol)
-    sj.attr[a] = true
+    getssym(sj).attr[a] = true
 end
 
 function unset_attribute(sj::SJSym, a::Symbol)
-    sj.attr[a] = false
+    getssym(sj).attr[a] = false
 end
 
 function Base.copy(mx::Mxpr)

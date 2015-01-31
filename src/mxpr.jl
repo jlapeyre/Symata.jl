@@ -40,7 +40,6 @@ const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
 
-
 # Mma fullform returns the value and prints differently.
 # We only print the value.
 function fullform(io::IO, mx::Mxpr)
