@@ -208,6 +208,7 @@ end
 
 macro ex(ex)
     res = extomx(ex)
+#    println("Here in ex")
     reset_meval_count()
     mx = loopmeval(res)
     sjset(getsym(:ans),mx)
@@ -217,9 +218,20 @@ end
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Union(Mxpr,SJSym))
     @mdebug(2, "loopmeval ", mxin)
+#    println("trying $mxin")
     neval = 0
+    # if checkdirtysyms(mxin)
+    #     println("mxin is dirty, unsetting")
+    #     unsetfixed(mxin)
+    # end
     mx = meval(mxin)
+ #   println("mevaled once")
+    if checkdirtysyms(mx)
+#        println("mxin is dirty, unsetting")
+        unsetfixed(mx)
+    end    
     is_fixed(mx) && return mx # (unsetfixed(mx); return mx)
+#    println("was fixed in liooper")
     local mx1    
     while true
         mx1 = meval(mx)
@@ -246,6 +258,7 @@ meval(x) = x
 meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
 
 function meval(mx::Mxpr)
+#   println("herweeee minsf ")
     increment_meval_count()
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
@@ -269,6 +282,7 @@ function meval(mx::Mxpr)
         nargs = mx.args
         nargs[1] = loopmeval(nargs[1])
     else
+#        println("Evaling each arg")
         nargs = newargs()        
         for i in 1:length(mx.args)
             res1 = loopmeval(mx.args[i])
