@@ -6,7 +6,6 @@ type SJSym{T}  <: AbstractSJSym
     age::UInt64    
 end
 
-## Retrieve or create new symbol
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
 sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
@@ -172,6 +171,7 @@ listdownvalues(s::SJSym) = mxpr(:List,s.downvalues...)
 
 const SYMTAB = Dict{Symbol,SJSym}()
 
+## Retrieve or create new symbol
 function getsym(s::Symbol)
     if haskey(SYMTAB,s)
         return SYMTAB[s]

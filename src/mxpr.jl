@@ -47,10 +47,6 @@ const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
 
-needsparen(x::Mxpr) = length(x) > 1
-needsparen(x::Rational) = true
-needsparen(x::Complex) = true
-needsparen(x) = false
 
 # Mma fullform returns the value and prints differently.
 # We only print the value.
