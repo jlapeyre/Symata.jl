@@ -378,7 +378,10 @@ symjlength(x) = length(x)
 # This won't work for setting a part
 function apprules(mx::Mxpr{:Part})
     a = mx.args
-    (a[1])[a[2]]
+    arr = a[1]
+    i = a[2]
+    i = i < 0 ? length(arr)+i+1 : i
+    arr[i]
 end
 
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])

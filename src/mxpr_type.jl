@@ -5,7 +5,7 @@ type SSJSym{T}  <: AbstractSJSym
     val::Any
     attr::Dict{Symbol,Bool}
     downvalues::Array{Any,1}
-    age::UInt64    
+    age::UInt64
 end
 
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
@@ -16,25 +16,17 @@ ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 symname(s::SJSym) = s
 symname(s::String) = symbol(s)
 getsym(s) = s
-symval(s::SJSym) = getssym(s).val  # This is the key: Look up the copy in the table
+symval(s::SJSym) = getssym(s).val
 function setsymval(s::SJSym,val)
-    (getssym(s).val = val)  # maybe not necessary to get symbol from table
+    (getssym(s).val = val)
     getssym(s).age += 1
 end
 
 sjset(s::SJSym,val) = setsymval(s,val)
 
 symage(s::SJSym) = getssym(s).age
-#symage(s::Symbol) = getssym(s).age
 
 import Base:  ==
-
-# SJSym is now alias to Symbol
-# Base.isless{T,S}(t::SJSym{T}, s::SJSym{S}) = T < S
-# Base.isless(t::SJSym,s::SJSym) = symname(t)  < symname(s)
-# Base.isless(s::SJSym,t) = symname(s) < t
-# Base.isless(t,s::SJSym) = t  < symname(s)
-# ==(s::SJSym,t::SJSym) = symname(s) == symname(t) # but, we sometimes have rogue copies
 
 function push_downvalue(ins::SJSym,val)
     s = getssym(ins)
@@ -62,6 +54,11 @@ type Mxpr{T} <: AbstractMxpr
     fixed::Bool
     canon::Bool
     syms::Dict{Symbol,UInt64}    
+end
+
+function Base.hash(mx::Mxpr, h::UInt64)
+    hout = hash(mx.head,h)
+    hout = hash(mx.args,hout)
 end
 
 typealias Symbolic Union(Mxpr,SJSym)
