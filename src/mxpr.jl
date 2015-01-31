@@ -6,7 +6,6 @@ expt(p::Mxpr{:Power}) = p.args[2]
 ## SJSym functions
 
 
-sjeval(s::SJSym) = symval(s)
 sjset(s::SJSym,val) = setsymval(s,val)
 ==(a::SJSym,b::SJSym) = symname(a) == symname(b)
 
