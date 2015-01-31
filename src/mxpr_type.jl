@@ -14,6 +14,7 @@ ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 
 #symname{T}(s::SJSym{T}) = T
 symname(s::SJSym) = s
+symname(s::String) = symbol(s)
 getsym(s) = s
 symval(s::SJSym) = getssym(s).val  # This is the key: Look up the copy in the table
 function setsymval(s::SJSym,val)
@@ -86,9 +87,9 @@ function mxprcf(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
 end
 
-# redundant now
-mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
-mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
+# stack overflow
+#mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
+#mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
 
 function mergesyms(mx::Mxpr, a::Mxpr)

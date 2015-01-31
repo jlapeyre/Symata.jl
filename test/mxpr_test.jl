@@ -55,5 +55,5 @@ using Base.Test
 
 ## Special rule
 
-@test @ex(Cos(ACos(x))) == getsym(:x)
+#@testex Cos(ACos(x)) == x
 @testex Cos(ACos(x)) == x

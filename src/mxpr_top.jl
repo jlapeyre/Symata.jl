@@ -75,6 +75,7 @@ function is_comparison_symbol(x::Symbol)
     end
     return false
 end
-is_comparison_symbol(x::SJSym) = is_comparison_symbol(symname(x))
+# stack overflow
+#is_comparison_symbol(x::SJSym) = is_comparison_symbol(symname(x))
 is_comparison_symbol(x) = false
 

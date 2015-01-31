@@ -83,10 +83,10 @@ function parseblank(s::String)
     if length(blankname) == 0
         blank = mxpr(blanktype)
     else
-        blank = mxpr(blanktype,getsym(blankname))
+        blank = mxpr(blanktype,symbol(blankname))
     end
     length(blankhead) == 0 && return blank
-    mxpr(:Pattern,getsym(blankhead),blank)
+    mxpr(:Pattern,symbol(blankhead),blank)
 end
 
 function extomxarr(ain,aout)
@@ -106,6 +106,7 @@ function extomx(ex::Expr)
     if ex.head == :call
         head = jtomsym(a[1])
         for i in 2:length(a) push!(newa,extomx(a[i])) end
+#        println("got coll")
     elseif ex.head == :block
         mx = extomx(a[2])
         return mx
@@ -132,7 +133,10 @@ function extomx(ex::Expr)
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
-    mxpr(head,newa...)
+#    println("Making mxpr")
+    mx = mxpr(head,newa...)
+#    println("done Making mxpr")
+    mx
 end
 
 is_call(ex::Expr) = ex.head == :call
@@ -195,6 +199,7 @@ macro exnoeval(ex)
 end
 
 macro ex(ex)
+#    println("starting ex")    
     res = extomx(ex)
 #    println("Here in ex")
     reset_meval_count()
@@ -405,6 +410,7 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 # Mma does not do it this way. Julia does, and mma4max does.
 function apprules(mx::Mxpr{:Comparison})
+#    println("Hello")
     nargs1 = newargs()
     i = 1
     while i <= length(mx)
@@ -419,7 +425,9 @@ function apprules(mx::Mxpr{:Comparison})
         end
         i += 1
     end
+#    println("Hello1")
     length(nargs1) == 1  && return true
+#    println("Hello1a")        
     nargs = newargs()    
     for x in nargs1
         if is_Number(x)
@@ -430,6 +438,7 @@ function apprules(mx::Mxpr{:Comparison})
             return mx
         end
     end
+#    println("Hello2")
     eval(Expr(:comparison,nargs...))
 end
 
