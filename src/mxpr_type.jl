@@ -16,6 +16,10 @@ function setsymval(s::SJSym,val)
     (getsym(s).val = val)  # maybe not necessary to get symbol from table
     s.age += 1
 end
+
+sjset(s::SJSym,val) = setsymval(s,val)
+==(a::SJSym,b::SJSym) = symname(a) == symname(b)
+
 symage(s::SJSym) = getsym(s).age
 symage(s::Symbol) = getsym(s).age
 

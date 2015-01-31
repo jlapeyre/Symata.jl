@@ -3,12 +3,6 @@ const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 Base.base(p::Mxpr{:Power}) = p.args[1]
 expt(p::Mxpr{:Power}) = p.args[2]
 
-## SJSym functions
-
-
-sjset(s::SJSym,val) = setsymval(s,val)
-==(a::SJSym,b::SJSym) = symname(a) == symname(b)
-
 getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
 
 function get_attributes(sj::SJSym)
