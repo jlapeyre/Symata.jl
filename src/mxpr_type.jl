@@ -96,13 +96,23 @@ end
 # Existing record of SJSym a must be older
 function mergesyms(mx::Mxpr, a::SJSym)
     an = symname(a)
-    println("merging $a")
+#    println("merging $a")
     if ! haskey(mx.syms, an)
-        println("setting age $an, $(a.age)")
+#        println("setting age $an, $(a.age)")
         (mx.syms)[an] = a.age
     end
-    dump(mx.syms)
+#    dump(mx.syms)
 end
+
+function checkdirtysyms(mx::Mxpr)
+    length(mx.syms) == 0 && return true  # assume re-eval is necessary
+    for (sym,age) in mx.syms
+        symage(sym) > age && return true
+    end
+    return false  # no symbols in mx have been set since mx was constructed
+end
+
+checkdirtysyms(x) = false
 
 is_canon(mx::Mxpr) = mx.canon
 is_fixed(mx::Mxpr) = mx.fixed
