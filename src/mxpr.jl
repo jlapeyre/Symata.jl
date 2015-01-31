@@ -247,7 +247,6 @@ meval(x) = x
 meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
 
 function meval(mx::Mxpr)
-#   println("herweeee minsf ")
     increment_meval_count()
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
