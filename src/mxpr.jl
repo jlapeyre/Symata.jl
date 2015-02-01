@@ -219,6 +219,11 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     if checkdirtysyms(mx)
         unsetfixed(mx)
     end
+    if !(is_fixed(mx)) && mx == mxin  # not working.
+        setfixed(mxin)
+        setage(mxin)
+        return mxin
+    end    
     is_fixed(mx) && return mx
     local mx1    
     while true
@@ -236,8 +241,9 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     end
     #    unsetfixed(mx)
     if !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
-        setfixed(mx)
-        setage(mx)
+        setfixed(mxin)
+        setage(mxin)
+        return mxin
     end
     mx
 end

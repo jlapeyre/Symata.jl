@@ -101,7 +101,7 @@ function mxprcf(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
 end
 
-setage(mx::Mxpr) = increvalage()
+setage(mx::Mxpr) = mx.age = increvalage()
 getage(mx::Mxpr) = mx.age
 
 # stack overflow
