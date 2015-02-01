@@ -8,6 +8,7 @@ using Base.Test
 @test  @ex(a == b) == false
 @testex  a != b
 @testex  a == a != b
+@testex  (a != a == b) == false
 @ex (a = 1)
 @ex (b = a)
 @ex (c := a)
