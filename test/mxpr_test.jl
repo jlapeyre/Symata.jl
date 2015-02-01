@@ -4,6 +4,8 @@ using Base.Test
 
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
+@testex a == a
+@testex a != b
 @ex (a = 1)
 @ex (b = a)
 @ex (c := a)

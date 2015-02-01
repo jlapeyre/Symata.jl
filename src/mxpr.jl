@@ -199,9 +199,7 @@ macro exnoeval(ex)
 end
 
 macro ex(ex)
-#    println("starting ex")    
     res = extomx(ex)
-#    println("Here in ex")
     reset_meval_count()
     mx = loopmeval(res)
     sjset(getsym(:ans),mx)
@@ -210,6 +208,7 @@ end
 
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Union(Mxpr,SJSym))
+#    println("in fixed status $mxin ", is_fixed(mxin))
     @mdebug(2, "loopmeval ", mxin)
 #    println("trying $mxin")
     neval = 0
@@ -239,7 +238,12 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
         end
         mx = mx1
     end
-#    unsetfixed(mx)
+    #    unsetfixed(mx)
+    if !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
+#        println("setting fixed $mx")
+        setfixed(mx)
+#        println("out fixed status ", is_fixed(mx))
+    end
     mx
 end
 

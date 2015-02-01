@@ -63,7 +63,8 @@ type Mxpr{T} <: AbstractMxpr
     args::MxprArgs
     fixed::Bool
     canon::Bool
-    syms::Dict{Symbol,UInt64}    
+    syms::Dict{Symbol,UInt64}
+    age::UInt64  # Not used yet.
 end
 
 function Base.hash(mx::Mxpr, h::UInt64)
@@ -76,22 +77,22 @@ typealias Symbolic Union(Mxpr,SJSym)
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}())
+    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}())
+    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
 end
 
 # set fixed point and clean bits
 function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
+    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
 end
 
 function mxprcf(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}())
+    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
 end
 
 # stack overflow
@@ -127,8 +128,11 @@ function checkdirtysyms(mx::Mxpr)
     end
     return false  # no symbols in mx have been set since mx was constructed
 end
-
 checkdirtysyms(x) = false
+
+#function setcleansyms(mx::Mxpr)
+#    for (sym,age) in mx.syms
+#end
 
 is_canon(mx::Mxpr) = mx.canon
 is_fixed(mx::Mxpr) = mx.fixed
