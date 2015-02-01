@@ -80,11 +80,13 @@ function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
     mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    setage(mx)    
     mx
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
     mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    setage(mx)
     mx
 end
 

@@ -280,7 +280,8 @@ function meval(mx::Mxpr)
             push!(nargs,res1)
         end
     end
-    nmx = mxpr(nhead,nargs...)
+#    nmx = mxpr(nhead,nargs...)
+    nmx = mxpr(nhead,nargs)
     res = apprules(nmx)
     res == nothing && return nothing
     if  ! is_canon(res)
