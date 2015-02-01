@@ -49,6 +49,7 @@ function expand_binomial(b,a,n::Integer)
     mx = mxprcf(:Plus,args)
     mergesyms(mx,a)
     mergesyms(mx,b)
+    setage(mx)
 #    dump(mx.syms)
     mx
 end

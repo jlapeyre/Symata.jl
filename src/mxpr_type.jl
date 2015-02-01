@@ -36,6 +36,7 @@ end
 sjset(s::SJSym,val) = setsymval(s,val)
 
 symage(s::SJSym) = getssym(s).age
+getage(s::SJSym) = symage(s)  # should only use one of these
 
 import Base:  ==
 
@@ -78,11 +79,13 @@ typealias Symbolic Union(Mxpr,SJSym)
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    mx
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    mx
 end
 
 # set fixed point and clean bits
@@ -96,6 +99,9 @@ function mxprcf(s::SJSym,args::MxprArgs)
     Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
 end
 
+setage(mx::Mxpr) = increvalage()
+getage(mx::Mxpr) = mx.age
+
 # stack overflow
 #mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
 #mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
@@ -105,9 +111,9 @@ function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
     for (sym,age) in a.syms
         if haskey(mxs,sym) && age  < mxs[sym]
-            mxs[sym] = age
+            mxs[sym] = age  # !!!!
         else
-            mxs[sym] = age
+            mxs[sym] = age  # !!!!
         end
     end
 end
@@ -124,8 +130,10 @@ end
 
 function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true  # assume re-eval is necessary
+    mxage = mx.age
     for (sym,age) in mx.syms
-        symage(sym) > age && return true
+#        symage(sym) > age && return true
+        symage(sym) > mxage && return true        
     end
     return false  # no symbols in mx have been set since mx was constructed
 end

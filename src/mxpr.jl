@@ -237,6 +237,7 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     #    unsetfixed(mx)
     if !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
         setfixed(mx)
+        setage(mx)
     end
     mx
 end
@@ -446,7 +447,6 @@ function apprules(mx::Mxpr{:Comparison})
             return mx
         end
     end
-#    println("Hello2")
     eval(Expr(:comparison,nargs...))
 end
 
