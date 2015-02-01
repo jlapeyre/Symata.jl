@@ -1,3 +1,12 @@
+type Evalage
+    t::UInt64
+end
+
+const evalage = Evalage(0)
+
+increvalage() = evalage.t += 1
+getevalage() = evalage.t
+
 typealias SJSym Symbol 
 
 abstract AbstractSJSym
@@ -19,7 +28,8 @@ getsym(s) = s
 symval(s::SJSym) = getssym(s).val
 function setsymval(s::SJSym,val)
     (getssym(s).val = val)
-    getssym(s).age += 1
+#    getssym(s).age += 1
+    getssym(s).age = increvalage()
 end
 
 sjset(s::SJSym,val) = setsymval(s,val)
