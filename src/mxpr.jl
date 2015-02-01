@@ -422,7 +422,8 @@ function apprules(mx::Mxpr{:Comparison})
     i = 1
     while i <= length(mx)
         if is_SJSym(mx[i]) && symname(mx[i]) == :(==)
-            if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
+#            if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
+            if mx[i-1] == mx[i+1]
                 i += 1
             else
                 return false

@@ -5,7 +5,7 @@ using Base.Test
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
 @testex a == a
-@testex a != b
+@test  @ex(a == b) == false
 @ex (a = 1)
 @ex (b = a)
 @ex (c := a)
