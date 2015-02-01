@@ -21,11 +21,12 @@ end
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
 ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 
-#symname{T}(s::SJSym{T}) = T
+symname{T}(s::SSJSym{T}) = T
 symname(s::SJSym) = s
 symname(s::String) = symbol(s)
 getsym(s) = s
 symval(s::SJSym) = getssym(s).val
+symval(s::SSJSym) = s.val
 function setsymval(s::SJSym,val)
     (getssym(s).val = val)
 #    getssym(s).age += 1
@@ -200,7 +201,7 @@ function getssym(s::Symbol)
         ns = ssjsym(s)
         SYMTAB[s] = ns
         # pollute Julia just so we get repl completion. remove this later.        
-        !isdefined(s) && eval(:($s = true)) 
+#        !isdefined(s) && eval(:($s = true))
         return ns
     end
 end

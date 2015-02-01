@@ -202,27 +202,24 @@ macro ex(ex)
     res = extomx(ex)
     reset_meval_count()
     mx = loopmeval(res)
+    if is_SJSym(mx) mx = getssym(mx) end
     sjset(getsym(:ans),mx)
     :(($(esc(mx))))
 end
 
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Union(Mxpr,SJSym))
-#    println("in fixed status $mxin ", is_fixed(mxin))
     @mdebug(2, "loopmeval ", mxin)
-#    println("trying $mxin")
     neval = 0
     # if checkdirtysyms(mxin)
     #     println("mxin is dirty, unsetting")
     #     unsetfixed(mxin)
     # end
     mx = meval(mxin)
- #   println("mevaled once")
     if checkdirtysyms(mx)
-#        println("mxin is dirty, unsetting")
         unsetfixed(mx)
-    end    
-    is_fixed(mx) && return mx # (unsetfixed(mx); return mx)
+    end
+    is_fixed(mx) && return mx
     local mx1    
     while true
         mx1 = meval(mx)
@@ -239,9 +236,7 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
     end
     #    unsetfixed(mx)
     if !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
-#        println("setting fixed $mx")
         setfixed(mx)
-#        println("out fixed status ", is_fixed(mx))
     end
     mx
 end
@@ -251,8 +246,6 @@ loopmeval(x) = x
 ## Evaluation of Mxpr
 
 meval(x) = x
-#meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
-#meval(s::SJSym) = (println("ding sym"); symval(s))
 meval(s::SJSym) = symval(s)
 
 function meval(mx::Mxpr)

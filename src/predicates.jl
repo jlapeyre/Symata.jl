@@ -5,7 +5,10 @@ is_type_less(x,t::DataType) = typeof(x) <: t
 is_type(x,t::UnionType) = typeof(x) == t
 is_type_less(x,t::UnionType) = typeof(x) <: t
 
-is_SJSym{T<:SJSym}(s::T) = true
+#is_SJSym{T<:SJSym}(s::T) = true
+is_SSJSym(s::SSJSym) = true
+is_SSJSym(x) = false
+is_SJSym(s::SJSym) = true
 is_SJSym(x) = false
 is_Mxpr{T<:Mxpr}(mx::T) = true
 is_Mxpr(x) = false
