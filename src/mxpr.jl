@@ -223,7 +223,6 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
         unsetfixed(mx)
     end    
     is_fixed(mx) && return mx # (unsetfixed(mx); return mx)
-#    println("was fixed in liooper")
     local mx1    
     while true
         mx1 = meval(mx)
@@ -252,7 +251,9 @@ loopmeval(x) = x
 ## Evaluation of Mxpr
 
 meval(x) = x
-meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
+#meval(s::SJSym) = symval(s) == symname(s) ? s : symval(s)
+#meval(s::SJSym) = (println("ding sym"); symval(s))
+meval(s::SJSym) = symval(s)
 
 function meval(mx::Mxpr)
     increment_meval_count()
