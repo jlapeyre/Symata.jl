@@ -24,32 +24,39 @@ end
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
 doapply(mx,x,y) = mx
 
-function expand_binomial(b,a,n::Integer)
+# Be careful to construct expression in canonical form.
+# Lots of ways to go wrong.
+# Assume a < b in canonical order
+function expand_binomial(a,b,n::Integer)
     args = newargs(n+1)
-    args[1] = b^n
-    args[n+1] =  a^n
+    args[1] = a^n
+    args[n+1] =  b^n
     if n == 2
-        args[2] = 2 * a * b
-        return mxprcf(:Plus,args)
-    end
-    args[2] = n * a * b^(n-1)
-    args[n] =  n * a^(n-1) * b
-    fac = n
-    k = n
-    l = one(n)
-    for j in 2:n-2
-#        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # slower.
-        k = k - 1
-        l = l + 1
-        fac *= k
-        fac = div(fac,l)
-        #        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
-        args[j+1] = mxpr(:Times, fac , mxpr(:Power,a,j),  mxpr(:Power, b, (n-j)))
+        args[2] = mxpr(:Times,2,a,b)  # don't use 2 * a * b; it won't be flat
+#        return mxprcf(:Plus,args)
+    else 
+        args[2] = mxpr(:Times,n,a^(n-1),b)
+        args[n] = mxpr(:Times,n,a,b^(n-1))
+        fac = n
+        k = n
+        l = one(n)
+        for j in 2:n-2
+            #        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # slower.
+            k = k - 1
+            l = l + 1
+            fac *= k
+            fac = div(fac,l)
+            #        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
+            args[j+1] = mxpr(:Times, fac , mxpr(:Power, a, (n-j)), mxpr(:Power,b,j))
+        end
     end
     mx = mxprcf(:Plus,args)
-    mergesyms(mx,a)
-    mergesyms(mx,b)
+    is_SJSym(a) ? mergesyms(mx,a) : nothing
+    is_SJSym(b) ? mergesyms(mx,b) : nothing
+#    println("expand setting age of $mx")
     setage(mx)
+    setfixed(mx)
+#    print("******* dumping syms: ")
 #    dump(mx.syms)
     mx
 end

@@ -208,27 +208,44 @@ macro ex(ex)
 end
 
 # We use 'infinite' evaluation. Evaluate till expression does not change.
-function loopmeval(mxin::Union(Mxpr,SJSym))
+function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
     # if checkdirtysyms(mxin)
     #     println("mxin is dirty, unsetting")
     #     unsetfixed(mxin)
     # end
-    mx = meval(mxin)
-    if checkdirtysyms(mx)
-        unsetfixed(mx)
+    if checkdirtysyms(mxin)
+#        println("got dirty syms $mxin")
+        unsetfixed(mxin)
+#        println("is fixed $mxin ? ", is_fixed(mxin))
     end
-    if !(is_fixed(mx)) && mx == mxin  # not working.
+    if is_fixed(mxin)
+       # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
+        return mxin
+    end
+    mx = meval(mxin)
+    if is_Mxpr(mx) && is_fixed(mx) return mx end
+#    println("Check $mx == $mxin : ", mx == mxin)
+    if is_Mxpr(mx) && mx == mxin
         setfixed(mxin)
         setage(mxin)
         return mxin
-    end    
-    is_fixed(mx) && return mx
+    end
+    # if !(is_fixed(mx)) && is_SJSym(mxin) &&  mx == symval(mxin)  # not working.
+    #     setfixed(mx)
+    #     println("1 setting age of $mx")
+    #     setage(mx)
+    #     return mx
+    # else
+    #     if is_Mxpr(mx)
+    #         println("Not fixing $mx != $mxin")
+    #     end
+    # end
     local mx1    
     while true
         mx1 = meval(mx)
-        if is_fixed(mx1) || mx1 == mx
+        if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx
             mx = mx1
             break
         end
@@ -240,12 +257,20 @@ function loopmeval(mxin::Union(Mxpr,SJSym))
         mx = mx1
     end
     #    unsetfixed(mx)
-    if !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
+    if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
         setfixed(mxin)
+#        println("3 setting age of $mxin")
         setage(mxin)
         return mxin
+    else
+#        println("3 not setting age of $mxin != $mx")
     end
     mx
+end
+
+function loopmeval(s::SJSym)
+    mx = meval(s)
+    return mx == s ? s : loopmeval(mx)
 end
 
 loopmeval(x) = x
@@ -527,6 +552,12 @@ function apprules(mx::Mxpr{:CompoundExpression})
     res
 end
 
+apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
+do_getage(mx,s::Symbol) = int(getage(s))
+do_getage(mx,s::Mxpr) = int(getage(symval(s)))
+do_getage(mx,x) = mx
+
+apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])

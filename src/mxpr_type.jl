@@ -103,6 +103,9 @@ end
 
 setage(mx::Mxpr) = mx.age = increvalage()
 getage(mx::Mxpr) = mx.age
+# For Symbol. Better to avoid calling on Symbols. They should not be update
+# just for evaluating to themselves
+#setage(x) = true 
 
 # stack overflow
 #mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
@@ -147,7 +150,7 @@ checkdirtysyms(x) = false
 
 is_canon(mx::Mxpr) = mx.canon
 is_fixed(mx::Mxpr) = mx.fixed
-is_fixed(s::SJSym) = symval(s) == s
+#is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
 setcanon(mx::Mxpr) = mx.canon = true
 setfixed(mx::Mxpr) = mx.fixed = true
@@ -157,9 +160,9 @@ unsetfixed(mx::Mxpr) = mx.fixed = false
 is_canon(x) = false
 setcanon(x) = false
 unsetcanon(x) = false
-is_fixed(x) = false
-setfixed(x) = false
-unsetfixed(x) = false
+#is_fixed(x) = false
+#setfixed(x) = false
+#unsetfixed(x) = false
 
 newargs() = Array(Any,0)
 newargs(n::Integer) = Array(Any,n)

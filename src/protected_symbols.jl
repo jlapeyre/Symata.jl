@@ -6,7 +6,7 @@ for v in ( "Set", "Pattern", "SetJ" )
 end
 
 for v in ("Module","Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
-          "DownValues")
+          "DownValues", "Age", "Fixed") # Age, Fixed and others are not Mma
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
