@@ -6,6 +6,7 @@ using Base.Test
 @ex Clear(a,b,c)
 @testex a == a
 @test  @ex(a == b) == false
+@testex  a != b
 @ex (a = 1)
 @ex (b = a)
 @ex (c := a)

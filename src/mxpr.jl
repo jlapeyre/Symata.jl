@@ -417,25 +417,31 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 # Mma does not do it this way. Julia does, and mma4max does.
 function apprules(mx::Mxpr{:Comparison})
-#    println("Hello")
     nargs1 = newargs()
     i = 1
     while i <= length(mx)
-        if is_SJSym(mx[i]) && symname(mx[i]) == :(==)
-#            if eval(Expr(:comparison,mx[i-1],:(==),mx[i+1]))
-            if mx[i-1] == mx[i+1]
-                i += 1
+        if is_SJSym(mx[i])
+            if symname(mx[i]) == :(==)
+                if mx[i-1] == mx[i+1]
+                    i += 1
+                else
+                    return false
+                end
+            elseif symname(mx[i]) == :(!=)
+                if mx[i-1] != mx[i+1]
+                    i += 1
+                else
+                    return false
+                end
             else
-                return false
+                push!(nargs1,mx[i])
             end
         else
             push!(nargs1,mx[i])
         end
         i += 1
     end
-#    println("Hello1")
     length(nargs1) == 1  && return true
-#    println("Hello1a")        
     nargs = newargs()    
     for x in nargs1
         if is_Number(x)
