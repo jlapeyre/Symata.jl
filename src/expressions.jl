@@ -1,5 +1,7 @@
 ## expand product of two sums
 
+## In test cases, this is fast. later, canonicalizing each term is
+# slowest thing.
 function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
     terms = newargs(length(a)*length(b))
     i = 0

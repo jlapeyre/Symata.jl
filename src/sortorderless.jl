@@ -231,27 +231,25 @@ deepcanonexpr!(x) = x
 
 #needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 
-function order_if_orderless!(mx::Orderless)
-    if needs_ordering(mx)
-        orderexpr!(mx)
-        mx = compactsumlike!(mx)
-    end
-    mx
-end
-order_if_orderless!(x) = x
+# function order_if_orderless!(mx::Orderless)
+#     if needs_ordering(mx)
+#         orderexpr!(mx)
+#         mx = compactsumlike!(mx)
+#     end
+#     mx
+# end
+# order_if_orderless!(x) = x
 
-# Check the dirty bits of all all orderless subexpressions
-#deep_order_if_orderless!(x) = deepcanonexpr!(x)
-function olddeep_order_if_orderless!(mx::Mxpr)
-    for i = 1:length(mx)
-        @mdebug(10,"deep_order_if_orderless!: loop: i=$i, mx[$i] = $i")
-        @ma(mx,i) = deep_order_if_orderless!(@ma(mx,i))
-    end
-    mx = order_if_orderless!(mx)
-    ## FIXME following should be an assertion
-#    is_rat_and_int(mx) && error("deep_order_if_orderless!: returning integer rational $mx")
-    return mx
-end
+# # Check the dirty bits of all all orderless subexpressions
+# #deep_order_if_orderless!(x) = deepcanonexpr!(x)
+# function olddeep_order_if_orderless!(mx::Mxpr)
+#     for i = 1:length(mx)
+#         @mdebug(10,"deep_order_if_orderless!: loop: i=$i, mx[$i] = $i")
+#         @ma(mx,i) = deep_order_if_orderless!(@ma(mx,i))
+#     end
+#     mx = order_if_orderless!(mx)
+#     return mx
+# end
 #deep_order_if_orderless!(x) = x
 
 # TODO  'compact' not a good name for this function
