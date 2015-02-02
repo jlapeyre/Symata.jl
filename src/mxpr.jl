@@ -496,7 +496,7 @@ makecomplex(mx,n,d) = mx
 #apprules(mx::Mxpr{:Power}) = (println("dopower $mx $(mx[1]), $(mx[2])"); dopower(mx,mx[1],mx[2]))
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
-dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 0 ? one(n) : n == 1 ? b : mx
+dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), (exp*expt(b)))
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
 dopower(mx,b,e) = mx 
