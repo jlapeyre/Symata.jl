@@ -300,7 +300,8 @@ function meval(mx::Mxpr)
         ind = " " ^ get_meval_count()
         println(ind,"<< " , mx)
     end
-    nhead = mx.head
+    nhead = loopmeval(mx.head)
+#    nhead = mx.head
     local nargs
     start = 1
     if get_attribute(mx.head,:HoldFirst)
@@ -322,7 +323,6 @@ function meval(mx::Mxpr)
             push!(nargs,res1)
         end
     end
-#    nmx = mxpr(nhead,nargs...)
     nmx = mxpr(nhead,nargs)
     res = apprules(nmx)
     res == nothing && return nothing
@@ -598,3 +598,54 @@ do_expand_power(mx,b,ex) = mx
 #do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
 do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = expand_binomial(a,b,n)
 do_expand_binomial(mx,a,b,n) = mx
+
+# Just a small amount implemented for testing.
+function apprules(mx::Mxpr{:Range})
+    n = mx[1]
+    args = newargs(n);
+    for i in 1:n
+        args[i] = i
+    end
+    mx = mxpr(:List,args)
+    setfixed(mx)
+    setcanon(mx)
+    mx
+end
+
+
+## quickly hacked Table, just for testing other parts of evaluation
+
+# Replace symbol os with ns in ex
+function replsym(ex,os,ns)
+    if is_Mxpr(ex)
+        args = margs(ex)
+        for i in 1:length(args)
+            args[i] = replsym(args[i],os,ns)
+        end
+    end
+    if ex == os
+        return ns
+    else
+        return ex
+    end
+end
+
+
+# We only do Table(expr,[i,imax])
+function apprules(mx::Mxpr{:Table})
+    expr = mx[1]
+    iter = mx[2]
+    isym = gensym(string(iter[1]))
+    imax = iter[2]
+    ex = replsym(deepcopy(expr),iter[1],isym)
+    args = newargs(imax)
+    for i in 1:imax
+        sjset(getsym(isym),i)
+        v = loopmeval(ex)
+        setfixed(v)
+        args[i] = v
+    end
+    mx = mxpr(:List,args)
+    setfixed(mx)
+    mx
+end

@@ -6,7 +6,7 @@ for v in ( "Set", "Pattern", "SetJ" )
 end
 
 for v in ("Module","Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
-          "DownValues", "Age", "Fixed") # Age, Fixed and others are not Mma
+          "DownValues", "Age", "Fixed", "Table") # Age, Fixed and others are not Mma
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -79,7 +79,7 @@ for v in ("Plus", "Times")
     end
 end
 
-for v in ("EvenQ","OddQ")
+for v in ("EvenQ","OddQ","Range")
     @eval begin
         set_attribute(symbol($v),:Listable)
         set_attribute(symbol($v),:Protected)        

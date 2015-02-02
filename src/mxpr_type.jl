@@ -30,7 +30,6 @@ symval(s::SJSym) = getssym(s).val
 symval(s::SSJSym) = s.val
 function setsymval(s::SJSym,val)
     (getssym(s).val = val)
-#    getssym(s).age += 1
     getssym(s).age = increvalage()
 end
 
@@ -158,7 +157,14 @@ mergesyms(x,y) = true
 setfixed(x) = true
 
 function checkdirtysyms(mx::Mxpr)
-    length(mx.syms) == 0 && return true  # assume re-eval is necessary
+    length(mx.syms) == 0 && return true    
+    # if length(mx.syms) == 0
+    #     if is_fixed(mx)
+    #         return false
+    #     else
+    #         return true  # assume re-eval is necessary
+    #     end
+    # end
     mxage = mx.age
     for (sym,age) in mx.syms
 #        symage(sym) > age && return true
