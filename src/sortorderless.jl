@@ -197,7 +197,7 @@ needs_ordering(x) = true
 #needs_ordering(mx::Mxpr) = false
 #needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 function canonexpr!(mx::Orderless)
-    if needs_ordering(mx)
+    if ! is_canon(mx) # needs_ordering(mx)
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
             mx = compactsumlike!(mx)
