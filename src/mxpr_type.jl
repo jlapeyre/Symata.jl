@@ -85,6 +85,7 @@ global gotit = 0
 
 # Slows operations down by factor of, say, 2 to 5
 function checkhash(mx::Mxpr)
+    mx.key != 0 && return mx
     k = hash(mx)
     if haskey(EXPRDICT,k)
 #        global gotit += 1
@@ -94,7 +95,7 @@ function checkhash(mx::Mxpr)
     EXPRDICT[k] = mx
     mx
 end
-discheckhash(x) = x
+checkhash(x) = x
 
 typealias Symbolic Union(Mxpr,SJSym)
 

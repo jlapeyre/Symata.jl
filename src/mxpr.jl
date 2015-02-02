@@ -206,6 +206,11 @@ macro ex(ex)
     :(($(esc(mx))))
 end
 
+global const exitcounts = Int[0,0,0,0,0]
+
+
+lcheckhash(x) = x
+
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
@@ -220,16 +225,21 @@ function loopmeval(mxin::Mxpr)
 #        println("is fixed $mxin ? ", is_fixed(mxin))
     end
     if is_fixed(mxin)
-       # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
-        return mxin
+        # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
+        exitcounts[1] += 1
+        return lcheckhash(mxin)
     end
     mx = meval(mxin)
-    if is_Mxpr(mx) && is_fixed(mx) return mx end
+    if is_Mxpr(mx) && is_fixed(mx)  # Few exits here
+        exitcounts[2] += 1        
+        return lcheckhash(mx)
+    end
 #    println("Check $mx == $mxin : ", mx == mxin)
     if is_Mxpr(mx) && mx == mxin
         setfixed(mxin)
         setage(mxin)
-        return mxin
+        exitcounts[3] += 1
+        return lcheckhash(mxin)
     end
     # if !(is_fixed(mx)) && is_SJSym(mxin) &&  mx == symval(mxin)  # not working.
     #     setfixed(mx)
@@ -255,16 +265,18 @@ function loopmeval(mxin::Mxpr)
         end
         mx = mx1
     end
-    #    unsetfixed(mx)
-    if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin  # not working. we need to set age, too
+    # No test exits via this point
+    if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin
         setfixed(mxin)
 #        println("3 setting age of $mxin")
         setage(mxin)
+        exitcounts[4] += 1        
         return mxin
     else
 #        println("3 not setting age of $mxin != $mx")
     end
-    return mx
+    exitcounts[5] += 1            
+    return lcheckhash(mx)
 end
 
 function loopmeval(s::SJSym)
