@@ -1,27 +1,31 @@
 ## expand product of two sums
 
-## This code is not used yet.
 function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
-    terms = newargs()
+    terms = newargs(length(a)*length(b))
+    i = 0
     for ax in a.args
         for bx in b.args
-            push!(terms,ax * bx)
+            i += 1
+            t = mxpr(:Times, ax, bx)
+            mergesyms(t,ax)
+            mergesyms(t,bx)
+            setfixed(t)
+            terms[i] = t
         end
     end
-    # efficiency, we need to limit this to two levels deep.
-    # i.e., we need level specifications
-    deepcanonexpr!(mxpr(:Plus,terms...))
+    mx = mxpr(:Plus,terms)
+    for t in terms   # all these merging don't take time. s.t. else is slow:  orderexpr! is not slowest
+        mergesyms(mx,t)
+    end
+    setfixed(mx)
+    mx
 end
 
 mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}) = mulsums(mulsums(a,b),c)
 mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}, xs::Mxpr{:Plus}...) = mulsums(mulsums(mulsums(a,b),c),xs...)
 
-function apprules(mx::Mxpr{:Apply})
-    doapply(mx,mx[1],mx[2])
-end
-
-doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
-doapply(mx,x,y) = mx
+#function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
+#end
 
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
@@ -73,3 +77,10 @@ function expand_binomial(a,b,n::Integer)
     setfixed(mx)
     mx
 end
+
+
+function apprules(mx::Mxpr{:Apply})
+    doapply(mx,mx[1],mx[2])
+end
+doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
+doapply(mx,x,y) = mx

@@ -113,7 +113,13 @@ getage(mx::Mxpr) = mx.age
 #mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
 
-function mergesyms(mx::Mxpr, a::Mxpr)
+# record dependence of mx on symbols that a depends on
+@inline function mergesyms(mx::Mxpr, a::Mxpr)
+    mxs = mx.syms
+    for sym in keys(a.syms)
+        mxs[sym] = true
+    end
+end
     # println("merging $a")    
     # mxs = mx.syms
     # for sym in keys(a.syms)
@@ -123,8 +129,8 @@ function mergesyms(mx::Mxpr, a::Mxpr)
     #         mxs[sym] = age  # !!!!
     #     end
     # end
-end
 
+# record dependence of mx on symbol a
 function mergesyms(mx::Mxpr, a::SJSym)
     #    println("merging $a")
     (mx.syms)[a] = true    
