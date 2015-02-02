@@ -12,7 +12,7 @@ typealias SJSym Symbol
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
     val::Any
-    attr::Dict{Symbol,Bool}
+    attr::Dict{Symbol,Bool}  # attributes
     downvalues::Array{Any,1}
     age::UInt64
 end
@@ -24,6 +24,7 @@ ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 symname{T}(s::SSJSym{T}) = T
 symname(s::SJSym) = s
 symname(s::String) = symbol(s)
+symattr(s::SJSym) = getssym(s).attr
 getsym(s) = s
 symval(s::SJSym) = getssym(s).val
 symval(s::SSJSym) = s.val

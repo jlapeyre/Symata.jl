@@ -16,7 +16,6 @@ end
 mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}) = mulsums(mulsums(a,b),c)
 mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}, xs::Mxpr{:Plus}...) = mulsums(mulsums(mulsums(a,b),c),xs...)
 
-
 function apprules(mx::Mxpr{:Apply})
     doapply(mx,mx[1],mx[2])
 end
@@ -68,14 +67,9 @@ function expand_binomial(a,b,n::Integer)
         end
     end
     mx = mxprcf(:Plus,args)
-#    is_SJSym(mx) ? mergesyms(mx,a) : nothing
-#    is_SJSym(mx) ? mergesyms(mx,b) : nothing
     mergesyms(mx,a)
     mergesyms(mx,b)
-#    println("expand setting age of $mx")
     setage(mx)
     setfixed(mx)
-#    print("******* dumping syms: ")
-#    dump(mx.syms)
     mx
 end

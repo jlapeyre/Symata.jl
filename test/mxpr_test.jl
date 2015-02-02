@@ -62,3 +62,4 @@ using Base.Test
 
 #@testex Cos(ACos(x)) == x
 @testex Cos(ACos(x)) == x
+@testex Attributes(Plus)  == [Flat,Listable,NumericFunction,OneIdentity,Orderless,Protected]

@@ -6,9 +6,8 @@ expt(p::Mxpr{:Power}) = p.args[2]
 getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
 
 function get_attributes(sj::SJSym)
-    ks = sort!(collect(keys(sj.attr)))
-    sjs = [getsym(x) for x in ks]
-    mxpr(:List,sjs...)
+    ks = sort!(collect(keys(symattr(sj))))
+    mxpr(:List,ks...)    
 end
 
 function ==(ax::Mxpr, bx::Mxpr)
@@ -574,6 +573,10 @@ function apprules(mx::Mxpr{:Expand})
 end
 
 doexpand(mx::Mxpr{:Expand}, p::Mxpr{:Power}) = do_expand_power(mx,base(p),expt(p))
+function doexpand(mx::Mxpr{:Expand}, prod::Mxpr{:Times})
+    mulsums(margs(prod)...)
+end
+
 doexpand(mx,n) = mx
 
 do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer) =

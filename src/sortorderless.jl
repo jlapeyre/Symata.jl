@@ -148,17 +148,33 @@ jslexless(x::SJSym, y::SJSym) = isless(x,y)
 jslexless(x::Number, y::SJSym) = true
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
+
+# assume args of x and y are sorted
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
     ay = margs(y)
     lx = length(ax)
     ly = length(ay)
-    for i in 1:min(lx,ly)
-        jslexless(ax[i],ay[i]) && return true
+    ix = lx
+    iy = ly
+    n = min(lx,ly)
+    eqterms_flag = true
+    for i in 1:n
+#        println("cmp ", ax[ix], "  ", ay[iy])
+        jslexless(ax[ix],ay[iy]) && return true
+        if jslexless(ay[iy],ax[ix]) eqterms_flag = false end
+        ix -= 1
+        iy -= 1
     end
-    lx < ly && return true
-    return false    
+#    println("Eqterms ", eqterms_flag)
+    return eqterms_flag ? lx < ly : false
+#    return lx < ly
+    # for i in 1:min(lx,ly)
+    #     jslexless(ax[i],ay[i]) && return true
+    # end
+    # lx < ly && return true
+    # return false    
 end
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 jslexless(x::SJSym, y::Mxpr) = true

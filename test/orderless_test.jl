@@ -26,6 +26,7 @@
 @testex (a + b)^2/(a+b) == a + b
 @testex (a^2)^2 == a^4
 @testex (a^t)^z == a^(t*z)
+@testex Apply(List,( y + z  + 1) * ( y + z)) == [(y + z),1 + y + z]  # bug fix
 
 # Blank's are less than non-Blanks
 @testex Apply(List, a_ + x) == List(x,a_)
