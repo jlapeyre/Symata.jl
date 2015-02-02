@@ -53,6 +53,13 @@ for v in ("CompoundExpression",)
     end
 end
 
+for v in ("Part",)
+    @eval begin
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:ReadProtected)        
+    end
+end
+
 for v in ("Cos","Sin","Tan","Cosh","Sinh","Log")  # etc.
     @eval begin    
         set_attribute(symbol($v),:Listable)
