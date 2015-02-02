@@ -133,9 +133,9 @@ function extomx(ex::Expr)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
 #    println("Making mxpr")
-    mx = mxpr(head,newa...)
+    mx = mxpr(head,newa)
 #    println("done Making mxpr")
-    mx
+    return mx
 end
 
 is_call(ex::Expr) = ex.head == :call
@@ -264,7 +264,7 @@ function loopmeval(mxin::Mxpr)
     else
 #        println("3 not setting age of $mxin != $mx")
     end
-    mx
+    return mx
 end
 
 function loopmeval(s::SJSym)
@@ -324,7 +324,7 @@ function meval(mx::Mxpr)
     decrement_meval_count()
 #    println("exiting eval dump")
 #    is_Mxpr(res) ? dump(res.syms) : nothing
-    res
+    return res
 end
 
 ## Application of Rules for many heads of Mxpr

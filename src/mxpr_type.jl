@@ -67,27 +67,50 @@ type Mxpr{T} <: AbstractMxpr
     fixed::Bool
     canon::Bool
     syms::Dict{Symbol,Bool}
-    age::UInt64  # Not used yet.
+    age::UInt64
+    key::UInt64
 end
 
+# Important that we do not hash any meta data. We take the
+# cached version
 function Base.hash(mx::Mxpr, h::UInt64)
+    mx.key != 0 && return mx.key
     hout = hash(mx.head,h)
     hout = hash(mx.args,hout)
 end
+
+const EXPRDICT = Dict{UInt64,Mxpr}()
+
+global gotit = 0
+
+# Slows operations down by factor of, say, 2 to 5
+function checkhash(mx::Mxpr)
+    k = hash(mx)
+    if haskey(EXPRDICT,k)
+#        global gotit += 1
+        return EXPRDICT[k]
+    end
+    mx.key = k
+    EXPRDICT[k] = mx
+    mx
+end
+discheckhash(x) = x
 
 typealias Symbolic Union(Mxpr,SJSym)
 
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
-    setage(mx)    
+    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0)
+    setage(mx)
+#    checkhash(mx)
     mx
 end
 
 function mxpr(s::SJSym,args::MxprArgs)
-    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0)
+    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0)
     setage(mx)
+#    checkhash(mx)    
     mx
 end
 
@@ -95,22 +118,25 @@ end
 function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
+    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
+#    checkhash(mx)
+    mx
 end
 
 function mxprcf(s::SJSym,args::MxprArgs)
-    Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0)
+    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
+#    checkhash(mx)
+    mx
 end
 
 setage(mx::Mxpr) = mx.age = increvalage()
 getage(mx::Mxpr) = mx.age
+
 # For Symbol. Better to avoid calling on Symbols. They should not be update
 # just for evaluating to themselves
 #setage(x) = true 
 
 # stack overflow
-#mxpr(s::Symbol,args...) = mxpr(getsym(s),args...)
-#mxprcf(s::Symbol,args...) = mxprcf(getsym(s),args...)
 margs(mx::Mxpr) = mx.args
 
 # record dependence of mx on symbols that a depends on
@@ -120,26 +146,10 @@ margs(mx::Mxpr) = mx.args
         mxs[sym] = true
     end
 end
-    # println("merging $a")    
-    # mxs = mx.syms
-    # for sym in keys(a.syms)
-    #     if haskey(mxs,sym) && age  < mxs[sym]
-    #         mxs[sym] = age  # !!!!
-    #     else
-    #         mxs[sym] = age  # !!!!
-    #     end
-    # end
 
 # record dependence of mx on symbol a
 function mergesyms(mx::Mxpr, a::SJSym)
-    #    println("merging $a")
     (mx.syms)[a] = true    
-#    if ! haskey(mx.syms, a)
-#        println("setting age $an, $(a.age)")
-#        (mx.syms)[a] = getssym(a).age
-#        (mx.syms)[a] = true
-#    end
-#    dump(mx.syms)
 end
 
 # should we detect type and not call these ?

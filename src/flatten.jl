@@ -24,7 +24,7 @@ function flatten!{T<:Flat}(mx::T)
             push!(na,x)
         end
     end
-    nmx = mxpr(head(mx),na...)
+    nmx = mxpr(head(mx),na)
     nmx
 end
 
