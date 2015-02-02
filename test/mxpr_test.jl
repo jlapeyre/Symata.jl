@@ -19,7 +19,10 @@ using Base.Test
 @ex res = a * b
 @ex a = 1
 @testex res == b   # test fix for bug in commit 6565
-@ex Clear(a,b,c)
+@ex Clear(a,b,c,g)
+@ex a = g
+@testex a(b) == g(b)
+@ex Clear(a,g)
 
 # Test replacement
 @ex ClearAll(a,b,c,g)
