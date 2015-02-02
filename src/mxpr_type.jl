@@ -65,7 +65,7 @@ type Mxpr{T} <: AbstractMxpr
     args::MxprArgs
     fixed::Bool
     canon::Bool
-    syms::Dict{Symbol,UInt64}
+    syms::Dict{Symbol,Bool}
     age::UInt64  # Not used yet.
 end
 
@@ -113,25 +113,29 @@ getage(mx::Mxpr) = mx.age
 margs(mx::Mxpr) = mx.args
 
 function mergesyms(mx::Mxpr, a::Mxpr)
-    mxs = mx.syms
-    for (sym,age) in a.syms
-        if haskey(mxs,sym) && age  < mxs[sym]
-            mxs[sym] = age  # !!!!
-        else
-            mxs[sym] = age  # !!!!
-        end
-    end
+    # println("merging $a")    
+    # mxs = mx.syms
+    # for sym in keys(a.syms)
+    #     if haskey(mxs,sym) && age  < mxs[sym]
+    #         mxs[sym] = age  # !!!!
+    #     else
+    #         mxs[sym] = age  # !!!!
+    #     end
+    # end
 end
 
-# Existing record of SJSym a must be older
 function mergesyms(mx::Mxpr, a::SJSym)
-#    println("merging $a")
-    if ! haskey(mx.syms, a)
+    #    println("merging $a")
+    (mx.syms)[a] = true    
+#    if ! haskey(mx.syms, a)
 #        println("setting age $an, $(a.age)")
-        (mx.syms)[a] = getssym(a).age
-    end
+#        (mx.syms)[a] = getssym(a).age
+#        (mx.syms)[a] = true
+#    end
 #    dump(mx.syms)
 end
+
+mergesyms(x) = true
 
 function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true  # assume re-eval is necessary

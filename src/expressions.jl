@@ -30,29 +30,48 @@ doapply(mx,x,y) = mx
 function expand_binomial(a,b,n::Integer)
     args = newargs(n+1)
     args[1] = a^n
+    mergesyms(args[1],a)
+    setfixed(args[1])
     args[n+1] =  b^n
+    mergesyms(args[n+1],b)
+    setfixed(args[n+1])    
     if n == 2
         args[2] = mxpr(:Times,2,a,b)  # don't use 2 * a * b; it won't be flat
-#        return mxprcf(:Plus,args)
     else 
         args[2] = mxpr(:Times,n,a^(n-1),b)
         args[n] = mxpr(:Times,n,a,b^(n-1))
+        mergesyms(args[2],a)
+        mergesyms(args[2],b)
+        mergesyms(args[n],a)
+        mergesyms(args[n],b)
+        setfixed(args[2])
+        setfixed(args[n])
         fac = n
         k = n
         l = one(n)
         for j in 2:n-2
-            #        args[j+1] = binomial(n,j) * a^(j) * b^(n-j)  # slower.
             k = k - 1
             l = l + 1
             fac *= k
             fac = div(fac,l)
-            #        args[j+1] = fac * a^(j) * b^(n-j)  #  maybe a bit slower
-            args[j+1] = mxpr(:Times, fac , mxpr(:Power, a, (n-j)), mxpr(:Power,b,j))
+            m1 = mxpr(:Power, a, (n-j))
+            m2 = mxpr(:Power,b,j)
+            setfixed(m1)
+            setfixed(m2)
+            mergesyms(m1,a)
+            mergesyms(m2,b)            
+            args[j+1] = mxpr(:Times, fac, m1, m2)
+            mergesyms(args[j+1],a)
+            mergesyms(args[j+1],b)
+            setfixed(args[j+1])
+#            args[j+1] = mxpr(:Times, fac , mxpr(:Power, a, (n-j)), mxpr(:Power,b,j))            
         end
     end
     mx = mxprcf(:Plus,args)
-    is_SJSym(a) ? mergesyms(mx,a) : nothing
-    is_SJSym(b) ? mergesyms(mx,b) : nothing
+#    is_SJSym(mx) ? mergesyms(mx,a) : nothing
+#    is_SJSym(mx) ? mergesyms(mx,b) : nothing
+    mergesyms(mx,a)
+    mergesyms(mx,b)
 #    println("expand setting age of $mx")
     setage(mx)
     setfixed(mx)
