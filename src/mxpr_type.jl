@@ -142,7 +142,9 @@ function mergesyms(mx::Mxpr, a::SJSym)
 #    dump(mx.syms)
 end
 
-mergesyms(x) = true
+# should we detect type and not call these ?
+mergesyms(x,y) = true
+setfixed(x) = true
 
 function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true  # assume re-eval is necessary

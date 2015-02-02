@@ -197,7 +197,7 @@ needs_ordering(x) = true
 #needs_ordering(mx::Mxpr) = false
 #needs_ordering(mx::Orderless) = ! is_order_clean(mx)
 function canonexpr!(mx::Orderless)
-    if ! is_canon(mx) # needs_ordering(mx)
+    if true
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
             mx = compactsumlike!(mx)
@@ -220,7 +220,7 @@ function deepcanonexpr!(mx::Mxpr)
     @mdebug(5,"deepcanonexpr!: mx = $mx")
     for i = 1:length(mx)
         @mdebug(8,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
-        mx.args[i] = deepcanonexpr!(mx.args[i])
+        if ! is_canon(mx) mx.args[i] = deepcanonexpr!(mx.args[i]) end
     end
     mx = canonexpr!(mx)
     ## FIXME following should be an assertion

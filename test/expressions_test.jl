@@ -11,3 +11,4 @@ using Base.Test
 @ex mx
 @testex Fixed(mx) == true
 @ex Clear(a,b)
+@ex Expand((a+1)^3)
