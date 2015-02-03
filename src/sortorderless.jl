@@ -362,15 +362,15 @@ function _matchfacs(a,b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
-# Not used. Done in apprules for Power
+# Is used in canonexpr!
 # (x^n)^m --> x^(n*m)
-# function mulpowers(mx::Mxpr{:Power})
-#     (e,b) = numeric_expt_and_base(mx)
-#     (e1,b1) = numeric_expt_and_base(base(mx))
-#     e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
-#     return mx
-# end
-# mulpowers(x) = x
+function mulpowers(mx::Mxpr{:Power})
+    (e,b) = numeric_expt_and_base(mx)
+    (e1,b1) = numeric_expt_and_base(base(mx))
+    e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
+    return mx
+end
+mulpowers(x) = x
 
 # Replace n repeated terms x by n*x, and factors x by x^n
 collectordered!(x) = x

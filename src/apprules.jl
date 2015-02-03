@@ -1,4 +1,7 @@
-# Might be nice to get something like this working to get
+##  Some 'apprules' definitions.
+# These evaluate expressions with builtin (protected) heads.
+
+# Would be nice to get something like this working to get
 # rid of boiler plate or allow changing how dispatch is done
 #macro apphead(sym,body...)
 #    name = :apprules
@@ -83,7 +86,9 @@ symjlength(mx::Mxpr) = length(mx.args)
 symjlength(x) = length(x)
 
 # Get part of expression. Julia :ref is mapped to :Part
-# This won't work for setting a part
+# This won't work for setting a part.
+# You must nest this to go down more than one level.
+# a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
 function apprules(mx::Mxpr{:Part})
     a = mx.args
     arr = a[1]
@@ -93,6 +98,8 @@ function apprules(mx::Mxpr{:Part})
 end
 
 ## crude implementation.
+# We don't have syntax to set a part yet.
+# This only works at one level.
 function apprules(mx::Mxpr{:SetPart})
     a = mx.args
     x = a[1]
@@ -101,11 +108,10 @@ function apprules(mx::Mxpr{:SetPart})
     x[ind] = val
 end
 
-
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
 gethead(s::SJSym) = getsym(:Symbol)
-gethead(s::Symbol) = getsym(:JuliaSymbol)
+#gethead(s::Symbol) = getsym(:JuliaSymbol)  # out dated
 gethead(ex) = typeof(ex)
 apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
