@@ -267,28 +267,17 @@ function loopnumsfirst!(mx::Orderless)
     len = length(mx)
     m = 1
     while true
-#        println("entering: $mx, $m")
         (mx,m) =  numsfirst!(mx,m)
-#        println("returned: $mx,  $m")
-#        println(" IS $m >= $len")
         (is_Number(mx) || m >= len) && return mx
-        p = len - m
         nlen = length(mx)
+        p = len - m        
         m = nlen - p
         len = nlen
-#        println("new $mx,  $m")        
     end
 end 
 
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
-
-#function numsfirst!(mx::Mxpr{:Times})
-#    (mx,pos) = mulfirst!(mx,1)
-#    mx
-#end
-
-
 
 
 #sumfirst!(mx) = mx
@@ -303,7 +292,6 @@ numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 function canonexpr!(mx::Orderless)
     if true
         mx = loopnumsfirst!(mx)
-#        println("****finished: $mx")
         is_Number(mx) && return mx
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
@@ -318,7 +306,6 @@ function canonexpr!(mx::Orderless)
         end
     end
     setcanon(mx)
-#    setfixed(mx)
     mx
 end    
 canonexpr!(x) = x
