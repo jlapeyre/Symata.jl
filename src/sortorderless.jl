@@ -59,6 +59,7 @@ end
 
 ## FIXME jslexless.  simplify and economize this code.
 
+# For sorting, no name becomes a zero-length string.
 blankname(b) = length(b) == 0 ? "" : b[1]
 
 lessblanknoname(x::Mxpr{:Blank},y::Mxpr{:BlankSequence}) = true
@@ -100,17 +101,12 @@ for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     end        
 end
 
-
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
     jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))
 end
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Times}) = jslexless(x[end],y[end])
-#jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],base(y))
-
-## These get most of it
 jslexless(x::Mxpr{:Times}, y::Mxpr{:Power}) = jslexless(x[end],y)
 jslexless(x::Mxpr{:Power}, y::Mxpr{:Times}) = jslexless(x,y[end])
-
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr)
     if y == base(x)
@@ -130,12 +126,15 @@ function jslexless(x::Mxpr{:Power}, y::SJSym)
     end
     jslexless(base(x),y)
 end
+
 function jslexless(x::SJSym, y::Mxpr{:Power})
     if x == base(y)
         return is_type_less(expt(y),Real) && expt(y) > 1
     end
     jslexless(x,base(y))
 end
+
+# Last element in a sorted expression is most significant
 jslexless(x::Mxpr{:Times}, y::SJSym) = jslexless(x[end],y)
 jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
 
@@ -144,12 +143,16 @@ jslexless(x::SJSym, y::Mxpr{:Plus}) = jslexless(x,y[end])
 
 jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
+
 jslexless(x::SJSym, y::SJSym) = isless(x,y)
 jslexless(x::Number, y::SJSym) = true
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 
-# assume args of x and y are sorted
+# Assume args of x and y are sorted. Compare
+# last (most significant) element in expression,
+# then next-to-last, etc. If x is shorter than y
+# and equal to truncated y, then x is jslexless than y.
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -161,27 +164,21 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     n = min(lx,ly)
     eqterms_flag = true
     for i in 1:n
-#        println("cmp ", ax[ix], "  ", ay[iy])
         jslexless(ax[ix],ay[iy]) && return true
         if jslexless(ay[iy],ax[ix]) eqterms_flag = false end
         ix -= 1
         iy -= 1
     end
-#    println("Eqterms ", eqterms_flag)
     return eqterms_flag ? lx < ly : false
-#    return lx < ly
-    # for i in 1:min(lx,ly)
-    #     jslexless(ax[i],ay[i]) && return true
-    # end
-    # lx < ly && return true
-    # return false    
 end
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 jslexless(x::SJSym, y::Mxpr) = true
-# Following methods will only be called on non-Symbolic types.
+# Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
 _jslexless(x::DataType,y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
-jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y) 
+#jslexless{T}(x::T,y::T) = !(x === y) && _jslexless(x,y)  # x === y may or may not be efficient.
+jslexless{T}(x::T,y::T) =  _jslexless(x,y)
+# We have defined an order for different types
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
 # Order the args in orderless Mxpr.
