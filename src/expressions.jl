@@ -32,6 +32,8 @@ mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}, xs::Mxpr{:Plus}...) = muls
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
 # Assume a < b in canonical order
+# This is the only place we are testing meta data in Mxpr giving which
+# symbols it depends on.
 function expand_binomial(a,b,n::Integer)
     args = newargs(n+1)
     args[1] = a^n

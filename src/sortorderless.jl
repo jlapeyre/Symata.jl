@@ -246,7 +246,8 @@ function canonexpr!(mx::Orderless)
                 mx = collectordered!(mx)  # collect terms differing by numeric coefficients
                 if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
                 if is_type(mx,Orderless)
-                    mx = orderexpr!(mx)  # order again (is this needed)
+                    # no test, fails if we remove this. But maybe we forgot a test.
+                    #  mx = orderexpr!(mx)  # order again (is this needed ?)
                 end
             end
         end

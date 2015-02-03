@@ -1,10 +1,13 @@
 ## Pattern matching and rules
 
+# This is not called from meval, rather via code in pattern.jl
+
 typealias InExpr Mxpr   # annotation to input arguments
 typealias UExpr  Mxpr  # annotation for expressions in Unions
 
+# ?? why these are defined here ?
 head(ex) = ex.head
-margs(ex) = ex.args
+#margs(ex) = ex.args # already defined
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol,SJSym)

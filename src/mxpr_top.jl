@@ -1,4 +1,5 @@
 ## Things that can't be loaded twice.
+# Some instances of data structures
 
 ## Symbol correspondence/translation between Julia and SJulia
 

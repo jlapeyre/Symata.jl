@@ -6,6 +6,7 @@ macro mdebug(level, a...)
     end
 end
 
+# For use in ../test/
 macro testex(expr)
     mx = Expr(:macrocall, symbol("@ex"), expr)
     Expr(:macrocall,symbol("@test"),mx)

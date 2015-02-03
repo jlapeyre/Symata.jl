@@ -1,3 +1,7 @@
+## These are the 'builtin' symbols
+# They can by listed by giving `BuiltIn()'.
+# They all have the attribute `Protected'.
+
 for v in ( "Set", "Pattern", "SetJ" )
     @eval begin
         set_attribute(symbol($v),:HoldFirst)

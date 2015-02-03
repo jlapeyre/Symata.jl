@@ -1,3 +1,5 @@
+## Mostly meval, loopmeval, and code to translate Expr from cli to Mxpr.
+
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
 Base.base(p::Mxpr{:Power}) = p.args[1]
@@ -195,6 +197,7 @@ macro ex(ex)
     res = extomx(ex)
     reset_meval_count()
     mx = loopmeval(res)
+#    mx = meval(res)    
     if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
     sjset(getsym(:ans),mx)
     :(($(esc(mx))))
@@ -210,14 +213,9 @@ global const exitcounts = Int[0,0,0,0,0]
 function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
-    # if checkdirtysyms(mxin)
-    #     println("mxin is dirty, unsetting")
-    #     unsetfixed(mxin)
-    # end
     if checkdirtysyms(mxin)
 #        println("got dirty syms $mxin")
         unsetfixed(mxin)
-#        println("is fixed $mxin ? ", is_fixed(mxin))
     end
     if is_fixed(mxin)
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end

@@ -1,5 +1,5 @@
 # This is a hack into the older pattern matcher.
-# We will redesign this.
+# applrules call this code, which then calls older pattern matching code
 
 #function Pattern_to_PatternT(mx::Mxpr)
 
