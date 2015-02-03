@@ -87,8 +87,9 @@ function Base.hash(mx::Mxpr, h::UInt64)
     # hout
 end
 
+# Hmm almost works
 function Base.hash(mx::Mxpr)
-#    mx.key != 0 && return mx
+    mx.key != 0 && return mx.key
     hout = hash(mx.head)
     for a in mx.args
         hout = hash(a,hout)
@@ -111,6 +112,7 @@ global gotit = 0
 # Slows operations down by factor of, say, 2 to 5
 function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
+#    println("Computing hash for $mx")    
     k = hash(mx)
 #    println("h: $k, $mx")
     if haskey(EXPRDICT,k)

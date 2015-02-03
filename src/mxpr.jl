@@ -234,7 +234,7 @@ function loopmeval(mxin::Mxpr)
     mx = meval(mxin)
     if is_Mxpr(mx) && is_fixed(mx)  # Few exits here
         exitcounts[2] += 1
-        #pprintln("2 Returning ckh $mx")
+        pprintln("2 Returning ckh $mx")
         return lcheckhash(mx)
     end
 #    println("Check $mx == $mxin : ", mx == mxin)
@@ -242,7 +242,7 @@ function loopmeval(mxin::Mxpr)
         setfixed(mxin)
         setage(mxin)
         exitcounts[3] += 1
-        #pprintln("3 Returning ckh $mx")
+        pprintln("3 Returning ckh $mx")
         return lcheckhash(mxin)
     end
     local mx1    
@@ -265,13 +265,13 @@ function loopmeval(mxin::Mxpr)
 #        println("3 setting age of $mxin")
         setage(mxin)
         exitcounts[4] += 1
-        #pprintln("4 Returning ckh $mx")        
+        pprintln("4 Returning ckh $mx")        
         return mxin
     else
 #        println("3 not setting age of $mxin != $mx")
     end
     exitcounts[5] += 1
-    #pprintln("5 Returning ckh $mx")
+    pprintln("5 Returning ckh $mx")
     return lcheckhash(mx)
 end
 
