@@ -2,27 +2,26 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
-# There are three stages:
-# 1. Put the terms and factors in a canonical order.
-# 2. Evaluate all + and * between numbers and replace with result
-# 3. Combine terms with:
+# There are four (more or less) stages:
+# 1. Reduced sequences of numbers, leaving perhaps singletons. (We could get those as well)
+# 2. Put the terms and factors in a canonical order.
+# 3. Evaluate all + and * between singletons which have been sorted to beginning.
+# 4. Combine terms with:
 #    A. same numeric coefficient
 #    B. same numeric power
+# 4a.  Sort again
+
+# We try to follow the Mma order for Orderless.
 
 # Anything with a Blank is greater than anything without a Blank.
 # This is the natural order for pattern matching.
 # Blank, BlankSequence, BlankNullSequence are not less than one another
-
-# We are following the Mma order for Orderless.
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
 typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
 
 const _jstypeorder = Dict{DataType,Int}()
 #const _jsoporder = Dict{Symbol,Int}()  # maybe more efficient to use this rather than mult dispatch.
-
-#pprintln(x...) = println(x...)
-# pprintln(x...) = nothing  # splatting is slow
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
@@ -41,7 +40,7 @@ end
 
 _mklexorder()
 
-# interface: returns ordering precedence of Type, typ
+# returns ordering precedence of Type, typ
 function mxtypeorder(typ::DataType)
     ! haskey(_jstypeorder,typ)  && return 3  # Any
     return _jstypeorder[typ]
@@ -183,8 +182,8 @@ function orderexpr!(mx::Orderless)
     mx
 end
 
-# Add numbers in list before sorting
-# This only removes one consecutive run of numbers
+# Sum (multiply) sequence of numbers in expression before sorting.
+# This only removes one consecutive run of numbers.
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
     @eval begin    
         function ($name)(mx::Mxpr, n0::Int)
@@ -238,18 +237,19 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
+# We say 'sum', but this applies to Times as well
 function canonexpr!(mx::Orderless)
     if true
-        mx = loopnumsfirst!(mx)
+        mx = loopnumsfirst!(mx)  # remove sequences of numbers
         is_Number(mx) && return mx
-        orderexpr!(mx)
+        orderexpr!(mx)  # sort terms
         if is_type_less(mx,Mxpr)        
-            mx = compactsumlike!(mx)
+            mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
             if is_type_less(mx,Mxpr)
-                mx = collectordered!(mx)
-                if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end
+                mx = collectordered!(mx)  # collect terms differing by numeric coefficients
+                if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
                 if is_type(mx,Orderless)
-                    mx = orderexpr!(mx)
+                    mx = orderexpr!(mx)  # order again (is this needed)
                 end
             end
         end
@@ -259,41 +259,16 @@ function canonexpr!(mx::Orderless)
 end    
 canonexpr!(x) = x
 
+# Recursive descent is done by meval; not needed here.
 # function deepcanonexpr!(mx::Mxpr)
-#     @mdebug(5,"deepcanonexpr!: mx = $mx")
 #     for i = 1:length(mx)
-#         @mdebug(8,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
 #         if ! is_canon(mx) mx.args[i] = deepcanonexpr!(mx.args[i]) end
 #     end
 #     mx = canonexpr!(mx)
-#     ## FIXME following should be an assertion
-# #    is_rat_and_int(mx) && error("canonexpr!: returning integer rational $mx")
 #     return mx    
 # end
 # deepcanonexpr!(x) = x
 
-#needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
-
-# function order_if_orderless!(mx::Orderless)
-#     if needs_ordering(mx)
-#         orderexpr!(mx)
-#         mx = compactsumlike!(mx)
-#     end
-#     mx
-# end
-# order_if_orderless!(x) = x
-
-# # Check the dirty bits of all all orderless subexpressions
-# #deep_order_if_orderless!(x) = deepcanonexpr!(x)
-# function olddeep_order_if_orderless!(mx::Mxpr)
-#     for i = 1:length(mx)
-#         @mdebug(10,"deep_order_if_orderless!: loop: i=$i, mx[$i] = $i")
-#         @ma(mx,i) = deep_order_if_orderless!(@ma(mx,i))
-#     end
-#     mx = order_if_orderless!(mx)
-#     return mx
-# end
-#deep_order_if_orderless!(x) = x
 
 # TODO  'compact' not a good name for this function
 #################################################################
@@ -335,6 +310,7 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
     end
 end
 
+# Get numeric coefficient of expr. It is 1 if there is none.
 function numeric_coefficient(x::Mxpr{:Times})
     local c::Number
     c = is_type_less(x[1],Number) ? x[1] : 1
@@ -342,6 +318,7 @@ end
 numeric_coefficient(x::Number) = x
 numeric_coefficient(x) = 1
 
+# Get numeric exponent; may be 1 (zero never encountered, I hope)
 function numeric_expt(x::Mxpr{:Power})
     local c::Number
     c = is_type_less(expt(x),Number) ? expt(x) : 1
@@ -349,19 +326,15 @@ end
 numeric_expt(x::Number) = 1
 numeric_expt(x) = 1
 
-# TODO: decide whether to copy and propogate the !
-# Tests fail unless we copy. But, there may be a way around this
+# TODO: Tests fail unless we copy. But, there may be a way around this
 function _rest!(mx::Mxpr)
-#    println("rest copy $mx")
-    res=copy(mx)  # slow
+    res=copy(mx)  # could be slow
 #    res = mx
     shift!(margs(res))
     return length(res) == 1 ? @ma(res,1) : res
 end
 
-#getfac(mx::Mxpr{:Times}) = _rest(mx)
-#getfac(mx::Mxpr{:Power}) = base(mx)
-
+# split product n*expr into (n,expr) with numeric n. n may be 1
 function numeric_coefficient_and_factor(a)
     n = numeric_coefficient(a)
     res = n == 1 ? (n,a) : (n,_rest!(a))    
@@ -373,12 +346,16 @@ function numeric_expt_and_base(a)
     return n == 1 ? (n,a) : (n,base(a))
 end
 
+# name is too generic.
+# Test if two terms differ only by numeric coeffcient,
+# and return coefficient and common sub-expression
 function _matchterms(a,b)
     (na,a1) = numeric_coefficient_and_factor(a)
     (nb,b1) = numeric_coefficient_and_factor(b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
+# Same as above, but for products
 function _matchfacs(a,b)
     (na,a1) = numeric_expt_and_base(a)
     (nb,b1) = numeric_expt_and_base(b)
@@ -387,16 +364,15 @@ end
 
 # Not used. Done in apprules for Power
 # (x^n)^m --> x^(n*m)
-function mulpowers(mx::Mxpr{:Power})
-    (e,b) = numeric_expt_and_base(mx)
-    (e1,b1) = numeric_expt_and_base(base(mx))
-    e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
-    return mx
-end
+# function mulpowers(mx::Mxpr{:Power})
+#     (e,b) = numeric_expt_and_base(mx)
+#     (e1,b1) = numeric_expt_and_base(base(mx))
+#     e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
+#     return mx
+# end
+# mulpowers(x) = x
 
-mulpowers(x) = x
-
-#Replace n repeated terms x by n*x, and factors x by x^n
+# Replace n repeated terms x by n*x, and factors x by x^n
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)
