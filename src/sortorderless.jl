@@ -191,37 +191,6 @@ function orderexpr!(mx::Orderless)
     mx
 end
 
-for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
-    if op == :Times
-        fop = :mmul
-    else
-        fop = :mplus
-    end
-    @eval begin
-        function ($name)(mx::Mxpr)
-            @mdebug(2,"In ", $name)
-            length(mx) < 2 && return mx
-            @mdebug(3, $name, ": length(mx)>1")
-            a = margs(mx)
-            @mdebug(3, $name, ": got margs")
-            typeof(a[1]) <: Number || return mx
-            sum0 = a[1]
-            while length(a) > 1
-                shift!(a)
-                typeof(a[1]) <: Number || break
-                sum0 = ($fop)(sum0,a[1])
-            end
-            @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
-            (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
-            $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
-            sum0 != $id && unshift!(a,sum0)
-            length(a) == 1 && return a[1]
-            @mdebug(3, $name, ": returning at end")
-            return mx
-        end
-    end
-end
-
 # Add numbers in list before sorting
 # This only removes one consecutive run of numbers
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
@@ -230,7 +199,6 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             args = margs(mx)
             len = length(args)
             n = 0
-#            println("sumfirst n0:$n0,  $mx")
             for i in n0:len
                 if is_Number(args[i])
                     n = i
@@ -240,29 +208,28 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             n == 0 && return (mx,len)
             s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
             m = 0
-#            println("summing search from $n to $len")            
             for i in n:len
                 x = args[i]
-                #        println("$i: trying $x")
                 if is_Number(x)
                     s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
-                    #            println("$x $s")
                 else
-                    #            println("Not number")
                     m = i
                     break
                 end
             end
-            #    println("m=$m, n=$n")
             m == 0 && n == 1 &&  return (s,len)
             if m == 0 m = len + 1 end
             splice!(args,n:m-1,[s])
-#            println("mx: $mx, pos: $pos")
             return (mx,m)
         end
     end
 end
-    
+
+# Reduce all sequences of numbers in sums and products before sorting.
+# Summing numbers in sums before sorting makes a large (eg 1000x) difference
+# for large sums with many (or all) numbers.
+# Singleton sequences may remain and they are sorted and removed with
+# compactsumlike!. Probably could analyze sum and choose a strategy.
 function loopnumsfirst!(mx::Orderless)
     len = length(mx)
     m = 1
@@ -279,16 +246,6 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
-
-#sumfirst!(mx) = mx
-# Canonicalize expression
-# Sorting is often the slowest part. It is the only significant bottleneck in
-# Applying Plus to a big list of  numbers.
-# Pulling numbers out of factors and sums first would make a large (eg 1000x) difference
-# in cases where there are many numbers.
-# Also, we are ordering the numbers, which is a waste, because they will only be
-# multiplied or added before the evaluation is done.
-# We will not remove compactsumlike! when this is done
 function canonexpr!(mx::Orderless)
     if true
         mx = loopnumsfirst!(mx)
