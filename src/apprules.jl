@@ -92,6 +92,16 @@ function apprules(mx::Mxpr{:Part})
     arr[i]
 end
 
+## crude implementation.
+function apprules(mx::Mxpr{:SetPart})
+    a = mx.args
+    x = a[1]
+    ind = a[2]
+    val = a[3]
+    x[ind] = val
+end
+
+
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
 gethead(s::SJSym) = getsym(:Symbol)

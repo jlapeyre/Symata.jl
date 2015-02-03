@@ -226,20 +226,21 @@ end
 # This only removes one consecutive run of numbers
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
     @eval begin    
-        function ($name)(mx::Mxpr)
-            #    println("sumfirst on $mx")
+        function ($name)(mx::Mxpr, n0::Int)
             args = margs(mx)
             len = length(args)
             n = 0
-            for i in 1:len
+#            println("sumfirst n0:$n0,  $mx")
+            for i in n0:len
                 if is_Number(args[i])
                     n = i
                     break
                 end
             end
-            n == 0 && return mx
+            n == 0 && return (mx,len)
             s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
             m = 0
+#            println("summing search from $n to $len")            
             for i in n:len
                 x = args[i]
                 #        println("$i: trying $x")
@@ -253,20 +254,42 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
                 end
             end
             #    println("m=$m, n=$n")
-            m == 0 && n == 1 &&  return s
+            m == 0 && n == 1 &&  return (s,len)
             if m == 0 m = len + 1 end
             splice!(args,n:m-1,[s])
-            #    println("mx is $mx")
-            mx
+#            println("mx: $mx, pos: $pos")
+            return (mx,m)
         end
     end
 end
     
-numsfirst!(mx::Mxpr{:Plus}) = plusfirst!(mx)
-numsfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
+function numsfirst!(mx::Mxpr{:Plus})
+    len = length(mx)
+    m = 1
+    while true
+#        println("entering: $mx, $m")
+        (mx,m) =  plusfirst!(mx,m)
+#        println("returned: $mx,  $m")
+        
+#        println(" IS $m >= $len")
+        (is_Number(mx) || m >= len) && return mx
+        p = len - m
+        nlen = length(mx)
+        m = nlen - p
+        len = nlen
+#        println("new $mx,  $m")        
+    end
+end 
+
+function numsfirst!(mx::Mxpr{:Times})
+    (mx,pos) = mulfirst!(mx,1)
+    mx
+end
+
+
+
 
 #sumfirst!(mx) = mx
-
 # Canonicalize expression
 # Sorting is often the slowest part. It is the only significant bottleneck in
 # Applying Plus to a big list of  numbers.
@@ -278,6 +301,7 @@ numsfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
 function canonexpr!(mx::Orderless)
     if true
         mx = numsfirst!(mx)
+#        println("****finished: $mx")
         is_Number(mx) && return mx
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
