@@ -13,18 +13,13 @@
 # This is the natural order for pattern matching.
 # Blank, BlankSequence, BlankNullSequence are not less than one another
 
-# We should also compare to the same algorithms for other
-# available CAS's. But, Maxima uses a different order.
+# We are following the Mma order for Orderless.
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
 typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
 
-## compatibility with old code. fix this later
-#is_order_clean(x) = true
-set_order_clean!(x) = true
-
 const _jstypeorder = Dict{DataType,Int}()
-const _jsoporder = Dict{Symbol,Int}()
+#const _jsoporder = Dict{Symbol,Int}()  # maybe more efficient to use this rather than mult dispatch.
 
 #pprintln(x...) = println(x...)
 # pprintln(x...) = nothing  # splatting is slow
@@ -38,10 +33,10 @@ function _mklexorder()
         i += 1
     end
     i = 1
-    for op in (:Plus,:Times,:Power)
-        _jsoporder[op] = i
-        i += 1
-    end    
+    # for op in (:Plus,:Times,:Power)
+    #     _jsoporder[op] = i
+    #     i += 1
+    # end    
 end
 
 _mklexorder()
@@ -52,10 +47,10 @@ function mxtypeorder(typ::DataType)
     return _jstypeorder[typ]
 end
 
-function mxoporder(op::SJSym)
-    ! haskey(_jsoporder,op)  && return 4 # higher
-    return _jsoporder[op]
-end
+# function mxoporder(op::SJSym)
+#     ! haskey(_jsoporder,op)  && return 4 # higher
+#     return _jsoporder[op]
+# end
 
 ## FIXME jslexless.  simplify and economize this code.
 
