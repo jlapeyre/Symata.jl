@@ -191,9 +191,42 @@ function orderexpr!(mx::Orderless)
     mx
 end
 
+for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
+    if op == :Times
+        fop = :mmul
+    else
+        fop = :mplus
+    end
+    @eval begin
+        function ($name)(mx::Mxpr)
+            @mdebug(2,"In ", $name)
+            length(mx) < 2 && return mx
+            @mdebug(3, $name, ": length(mx)>1")
+            a = margs(mx)
+            @mdebug(3, $name, ": got margs")
+            typeof(a[1]) <: Number || return mx
+            sum0 = a[1]
+            while length(a) > 1
+                shift!(a)
+                typeof(a[1]) <: Number || break
+                sum0 = ($fop)(sum0,a[1])
+            end
+            @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
+            (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
+            $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
+            sum0 != $id && unshift!(a,sum0)
+            length(a) == 1 && return a[1]
+            @mdebug(3, $name, ": returning at end")
+            return mx
+        end
+    end
+end
+
 # Add numbers in list before sorting
 # This only removes one consecutive run of numbers
-function sumfirst!(mx::Mxpr{:Plus})
+for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
+    @eval begin    
+function ($name)(mx::Mxpr)
 #    println("sumfirst on $mx")
     args = margs(mx)
     len = length(args)
@@ -205,13 +238,13 @@ function sumfirst!(mx::Mxpr{:Plus})
         end
     end
     n == 0 && return mx
-    s = zero(args[n])
+    s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
     m = 0
     for i in n:len
         x = args[i]
 #        println("$i: trying $x")
         if is_Number(x)
-            s = mplus(s,x)
+            s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
 #            println("$x $s")
         else
 #            println("Not number")
@@ -226,8 +259,13 @@ function sumfirst!(mx::Mxpr{:Plus})
 #    println("mx is $mx")
     mx
 end
+    end
+    end
 
-sumfirst!(mx) = mx
+sumfirst!(mx::Mxpr{:Plus}) = plusfirst!(mx)
+sumfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
+
+#sumfirst!(mx) = mx
 
 # Canonicalize expression
 # Sorting is often the slowest part. It is the only significant bottleneck in
