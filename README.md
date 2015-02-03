@@ -1,18 +1,20 @@
 ## Symbolic manipulation code
 
-This is a partial implementation of a language for symbolic computation.
-It is based on pattern matching and an evaluation sequence closely modeled
-on Mathematica.
+This is a partial, experimental, implementation of a language for
+symbolic computation.  It is largely based on pattern matching and an
+evaluation sequence modeled on Mathematica, although this by no means
+a fixed decision.
 
 I am making it available to get feedback on design decisions.  The
 focus now is not on implementing specific mathematical computation,
-but rather on implementing core features. The most important of these
-features are pattern matching and the evaluation sequence.
+but rather on testing implmentations of core features. The most
+important of these features are pattern matching and the evaluation
+sequence.
 
 The main features implemented so far are: canonical ordering of sums
 and products; pattern matching based on structure, "Head", and
-"pattern test". Lexically scoped "function" bodies. The most important
-items not yet implemented are: conditions on the entire pattern,
+"pattern test". Controlling evaluation is not implemented uniformly.
+Some important items not yet implemented are: conditions on the entire pattern,
 matching of commutative and associative terms.
 
 
@@ -51,6 +53,8 @@ Symbols that are associated with some functionality can be listed with
 prompt.
 
 Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
+There are many more commands available, but mostly to support experimenting with
+evaluation.
 
 * `SetJ(x,val)` set a Julia variable
 * `Clear(), ClearAll()` clear a symbol's value, or all associated rules, too.
@@ -91,7 +95,7 @@ changed. Some of the things from the earlier experiments are ported, but not all
 
 #### Pattern matching.
 
-The most important missing feature is matching objects in a commutative (Orderless) expression.
+An important feature not yet implemented is matching objects in a commutative (Orderless) expression.
 Eg, `a + b` should match the terms in `a + c + b`, etc.
 
 Patterns are used in several places. Eg, you can make a replacement rule. Eg
@@ -130,7 +134,7 @@ come from Mma might be good (if this ultimately will look like Mma).
 
 #### Data and dispatch
 
-Big question, how to use best Julia features, (multiple dispatch, and
+Big question: how to use best Julia features, (multiple dispatch, and
 others) with this language ? There are of course numerous other
 questions.  Eg, how to handle integer overflow.
 
@@ -138,7 +142,7 @@ Another thing, Mma offers no way to write code except in Mma. It
 should be possible to write user or quasi-user level code *easily* in
 Julia.
 
-Symbols are currently done this way
+Symbols are currently done this way (this is a bit outdated)
 
 ```julia
 type SJSym{T}  <: AbstractSJSym

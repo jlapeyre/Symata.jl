@@ -1,6 +1,7 @@
-## Order downvalues by specificity, or canonical
+## Order downvalues by specificity, or canonically.
 # Probably impossible, in general. We start with
-# getting some common cases correct
+# getting some common cases correct.
+# But, we get many simple cases wrong.
 
 ## associating Julia data structues with downvalues would be
 # more efficient.
