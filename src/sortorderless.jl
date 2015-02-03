@@ -216,18 +216,18 @@ function canonexpr!(mx::Orderless)
 end    
 canonexpr!(x) = x
 
-function deepcanonexpr!(mx::Mxpr)
-    @mdebug(5,"deepcanonexpr!: mx = $mx")
-    for i = 1:length(mx)
-        @mdebug(8,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
-        if ! is_canon(mx) mx.args[i] = deepcanonexpr!(mx.args[i]) end
-    end
-    mx = canonexpr!(mx)
-    ## FIXME following should be an assertion
-#    is_rat_and_int(mx) && error("canonexpr!: returning integer rational $mx")
-    return mx    
-end
-deepcanonexpr!(x) = x
+# function deepcanonexpr!(mx::Mxpr)
+#     @mdebug(5,"deepcanonexpr!: mx = $mx")
+#     for i = 1:length(mx)
+#         @mdebug(8,"deepcanonexpr!: loop: i=$i, mx[$i] = $(mx[i])")
+#         if ! is_canon(mx) mx.args[i] = deepcanonexpr!(mx.args[i]) end
+#     end
+#     mx = canonexpr!(mx)
+#     ## FIXME following should be an assertion
+# #    is_rat_and_int(mx) && error("canonexpr!: returning integer rational $mx")
+#     return mx    
+# end
+# deepcanonexpr!(x) = x
 
 #needs_ordering(mx::Mxpr) = get_attribute(mx,:orderless) && ! is_order_clean(mx)
 

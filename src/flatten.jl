@@ -31,11 +31,11 @@ end
 # Here we do not
 flatten!(x) = x
 
-# only Flat, or Mxpr
-function deepflatten!(mx::Mxpr)
-    for i = 1:length(mx)
-        mx.args[i] = deepflatten!(mx.args[i])
-    end
-    mx = flatten!(mx)
-end
-deepflatten!(x) = x
+# # only Flat, or Mxpr
+# function deepflatten!(mx::Mxpr)
+#     for i = 1:length(mx)
+#         mx.args[i] = deepflatten!(mx.args[i])
+#     end
+#     mx = flatten!(mx)
+# end
+# deepflatten!(x) = x
