@@ -73,11 +73,37 @@ end
 # Important that we do not hash any meta data. We take the
 # cached version
 function Base.hash(mx::Mxpr, h::UInt64)
-    mx.key != 0 && return mx.key
-    hout = hash(mx.head,h)
-    hout = hash(mx.args,hout)
+    dohash(mx,h)
+#    if  mx.key != 0
+#        th = dohash(mx,
+#    mx.key != 0 && return mx.key  # causes bugs
+#    hout = hash(mx.head,h)
+#    if length(mx.args) > 0
+#        hout = hash(:Any,hout)  # wow, this causes weird bugs
+    # end
+    # for a in mx.args
+    #     hout = hash(a,hout)
+    # end
+    # hout
 end
 
+function Base.hash(mx::Mxpr)
+#    mx.key != 0 && return mx
+    hout = hash(mx.head)
+    for a in mx.args
+        hout = hash(a,hout)
+    end
+    hout    
+end
+
+function dohash(mx::Mxpr, h::UInt64)
+    hout = hash(mx.head,h)
+    for a in mx.args
+        hout = hash(a,hout)
+    end
+    hout
+end
+                  
 const EXPRDICT = Dict{UInt64,Mxpr}()
 
 global gotit = 0
@@ -86,8 +112,10 @@ global gotit = 0
 function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
     k = hash(mx)
+#    println("h: $k, $mx")
     if haskey(EXPRDICT,k)
-#        global gotit += 1
+        #        global gotit += 1
+#        println("Found already hash $k")
         return EXPRDICT[k]
     end
     mx.key = k

@@ -209,7 +209,8 @@ end
 global const exitcounts = Int[0,0,0,0,0]
 
 
-lcheckhash(x) = x
+lcheckhash(x) = checkhash(x)
+#lcheckhash(x) = x
 
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
@@ -227,11 +228,13 @@ function loopmeval(mxin::Mxpr)
     if is_fixed(mxin)
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
         exitcounts[1] += 1
+        pprintln("1 Returning ckh $mxin")
         return lcheckhash(mxin)
     end
     mx = meval(mxin)
     if is_Mxpr(mx) && is_fixed(mx)  # Few exits here
-        exitcounts[2] += 1        
+        exitcounts[2] += 1
+        #pprintln("2 Returning ckh $mx")
         return lcheckhash(mx)
     end
 #    println("Check $mx == $mxin : ", mx == mxin)
@@ -239,18 +242,9 @@ function loopmeval(mxin::Mxpr)
         setfixed(mxin)
         setage(mxin)
         exitcounts[3] += 1
+        #pprintln("3 Returning ckh $mx")
         return lcheckhash(mxin)
     end
-    # if !(is_fixed(mx)) && is_SJSym(mxin) &&  mx == symval(mxin)  # not working.
-    #     setfixed(mx)
-    #     println("1 setting age of $mx")
-    #     setage(mx)
-    #     return mx
-    # else
-    #     if is_Mxpr(mx)
-    #         println("Not fixing $mx != $mxin")
-    #     end
-    # end
     local mx1    
     while true
         mx1 = meval(mx)
@@ -270,12 +264,14 @@ function loopmeval(mxin::Mxpr)
         setfixed(mxin)
 #        println("3 setting age of $mxin")
         setage(mxin)
-        exitcounts[4] += 1        
+        exitcounts[4] += 1
+        #pprintln("4 Returning ckh $mx")        
         return mxin
     else
 #        println("3 not setting age of $mxin != $mx")
     end
-    exitcounts[5] += 1            
+    exitcounts[5] += 1
+    #pprintln("5 Returning ckh $mx")
     return lcheckhash(mx)
 end
 
@@ -317,7 +313,7 @@ function meval(mx::Mxpr)
         nargs = mxargs
         nargs[1] = loopmeval(nargs[1])
     else
-        changeflag = false
+        changeflag = false  # don't think this helps any
         for i in 1:length(mxargs)
             if mxargs == loopmeval(mxargs)
                 changeflag = true
@@ -341,7 +337,8 @@ function meval(mx::Mxpr)
         res = flatten!(res)        
         res = canonexpr!(res)
     end
-    res = applydownvalues(res)
+    # The conditional probably saves little time
+    if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
     return res
@@ -649,8 +646,8 @@ function apprules(mx::Mxpr{:Table})
     args = newargs(imax)
     for i in 1:imax
         sjset(getsym(isym),i)
-#        v = loopmeval(ex)
-        v = meval(ex)        
+        v = loopmeval(ex)
+#        v = meval(ex)        
         setfixed(v)
         args[i] = v
     end
