@@ -263,14 +263,13 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
     end
 end
     
-function numsfirst!(mx::Mxpr{:Plus})
+function loopnumsfirst!(mx::Orderless)
     len = length(mx)
     m = 1
     while true
 #        println("entering: $mx, $m")
-        (mx,m) =  plusfirst!(mx,m)
+        (mx,m) =  numsfirst!(mx,m)
 #        println("returned: $mx,  $m")
-        
 #        println(" IS $m >= $len")
         (is_Number(mx) || m >= len) && return mx
         p = len - m
@@ -281,10 +280,13 @@ function numsfirst!(mx::Mxpr{:Plus})
     end
 end 
 
-function numsfirst!(mx::Mxpr{:Times})
-    (mx,pos) = mulfirst!(mx,1)
-    mx
-end
+numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
+numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
+
+#function numsfirst!(mx::Mxpr{:Times})
+#    (mx,pos) = mulfirst!(mx,1)
+#    mx
+#end
 
 
 
@@ -300,7 +302,7 @@ end
 # We will not remove compactsumlike! when this is done
 function canonexpr!(mx::Orderless)
     if true
-        mx = numsfirst!(mx)
+        mx = loopnumsfirst!(mx)
 #        println("****finished: $mx")
         is_Number(mx) && return mx
         orderexpr!(mx)
