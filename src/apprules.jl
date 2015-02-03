@@ -135,11 +135,11 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 ## Comparison
 
-# Mma does not do it this way. Julia does, and mma4max does.
+# We do this the Julia- and mma4max way, not the Mma way.
 function apprules(mx::Mxpr{:Comparison})
     nargs1 = newargs()
     i = 1
-    while i <= length(mx)
+    while i <= length(mx)  # do all the != and ==
         if is_SJSym(mx[i])
             if symname(mx[i]) == :(==)
                 if mx[i-1] == mx[i+1]
@@ -163,7 +163,7 @@ function apprules(mx::Mxpr{:Comparison})
     end
     length(nargs1) == 1  && return true
     nargs = newargs()    
-    for x in nargs1
+    for x in nargs1   # Do numeric inequalities
         if is_Number(x)
             push!(nargs,x)
         elseif is_comparison_symbol(x)
@@ -177,8 +177,7 @@ end
 
 ## A few Number rules
 
-# We should probably remove these because they are done by
-# the canonicalizer
+# These may not all be necessary.
 
 apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
@@ -186,7 +185,6 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
-#apprules(mx::Mxpr{:Power}) = (println("dopower $mx $(mx[1]), $(mx[2])"); dopower(mx,mx[1],mx[2]))
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
 dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
@@ -194,6 +192,7 @@ dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), (exp*expt
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
 dopower(mx,b,e) = mx 
 
+## convert to BigInt or BigFloat. We cannot yet do this automatically
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint{T<:Number}(mx,x::T) = BigInt(x)
@@ -228,6 +227,7 @@ function apprules(mxt::Mxpr{:Timing})
 end
 
 # This does not work. Does not report correct time and allocation
+# We have to do Allocted and Timing separately
 function apprules(mxt::Mxpr{:Timing2})
     begin
         reset_meval_count()
@@ -255,12 +255,17 @@ function apprules(mx::Mxpr{:CompoundExpression})
     res
 end
 
+# Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::Symbol) = int(getage(s))
 do_getage(mx,s::Mxpr) = int(getage(symval(s)))
 do_getage(mx,x) = mx
 
+# Get fixed-point bit. Idea is to set it if expr evaluates to itself.
+# But, it seems this requires elaborate heuristic to manage elaborate
+# data structure to implement leaky abstraction.
 apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
+
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
@@ -268,7 +273,7 @@ apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 apprules(mx::Mxpr{:Module}) = localize_module(mx)
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 
-## Expand, only a bit implemented
+## Expand, only a bit is implemented
 
 function apprules(mx::Mxpr{:Expand})
     mx1 = mx[1]
@@ -295,7 +300,9 @@ do_expand_binomial(mx,a,b,n) = mx
 # From the command line, all the time evaluating Range(n) for n>10000 or so
 # is spent in the inner loop here. Mma v3 is about 4-6 times or so faster.
 # So this seems to be purely a Julia vs. low-level Mma difference.
+# This is used to test summing numbers.
 # Maxima is faster than Mma v3 at Apply(Plus,l) , where l is a big list of numbers
+# Maxima is about 10x faster than this code (SJulia).
 function apprules(mx::Mxpr{:Range})
     if length(mx) == 1
         n = mx[1]
@@ -349,6 +356,8 @@ function replsym(ex,os,ns)
 end
 
 # We only do Table(expr,[i,imax])
+# Our Table is rather slow. Slower than Maxima makelist.
+# Even if we cheat and only do a single evaluation, it is slower.
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]

@@ -316,3 +316,6 @@ end
     args = copy(mx.args)
     mxpr(mx.head,args)
 end
+
+typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
+typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})

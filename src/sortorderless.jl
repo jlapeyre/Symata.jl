@@ -17,9 +17,6 @@
 # This is the natural order for pattern matching.
 # Blank, BlankSequence, BlankNullSequence are not less than one another
 
-typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
-typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
-
 const _jstypeorder = Dict{DataType,Int}()
 #const _jsoporder = Dict{Symbol,Int}()  # maybe more efficient to use this rather than mult dispatch.
 

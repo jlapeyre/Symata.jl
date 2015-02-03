@@ -86,3 +86,20 @@ function apprules(mx::Mxpr{:Apply})
 end
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
 doapply(mx,x,y) = mx
+
+function Base.reverse(mx::Mxpr)
+    mx1 = copy(mx)
+    Base.reverse!(margs(mx1))
+    return mx1
+end
+
+function apprules(mx::Mxpr{:Reverse})
+    do_reverse(mx[1])
+end
+
+# they would only be resorted
+do_reverse(mx::Orderless) = mx
+
+function do_reverse(mx::Mxpr)
+    mxpr(mx.head,reverse(margs(mx)))
+end
