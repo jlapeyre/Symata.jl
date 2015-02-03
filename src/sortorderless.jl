@@ -27,7 +27,7 @@ const _jstypeorder = Dict{DataType,Int}()
 const _jsoporder = Dict{Symbol,Int}()
 
 #pprintln(x...) = println(x...)
-pprintln(x...) = nothing
+# pprintln(x...) = nothing  # splatting is slow
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
@@ -187,17 +187,60 @@ jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 # Order the args in orderless Mxpr.
 function orderexpr!(mx::Orderless)
     ar = mx.args
-    sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
-#    set_order_clean!(mx)    
+    sort!(ar,lt=jslexless)
     mx
 end
 
+# Add numbers in list before sorting
+# This only removes one consecutive run of numbers
+function sumfirst!(mx::Mxpr{:Plus})
+#    println("sumfirst on $mx")
+    args = margs(mx)
+    len = length(args)
+    n = 0
+    for i in 1:len
+        if is_Number(args[i])
+            n = i
+            break
+        end
+    end
+    n == 0 && return mx
+    s = zero(args[n])
+    m = 0
+    for i in n:len
+        x = args[i]
+#        println("$i: trying $x")
+        if is_Number(x)
+            s = mplus(s,x)
+#            println("$x $s")
+        else
+#            println("Not number")
+            m = i
+            break
+        end
+    end
+#    println("m=$m, n=$n")
+    m == 0 && n == 1 &&  return s
+    if m == 0 m = len + 1 end
+    splice!(args,n:m-1,[s])
+#    println("mx is $mx")
+    mx
+end
+
+sumfirst!(mx) = mx
+
 # Canonicalize expression
-needs_ordering(x) = true
-#needs_ordering(mx::Mxpr) = false
-#needs_ordering(mx::Orderless) = ! is_order_clean(mx)
+# Sorting is often the slowest part. It is the only significant bottleneck in
+# Applying Plus to a big list of  numbers.
+# Pulling numbers out of factors and sums first would make a large (eg 1000x) difference
+# in cases where there are many numbers.
+# Also, we are ordering the numbers, which is a waste, because they will only be
+# multiplied or added before the evaluation is done.
+# We will not remove compactsumlike! when this is done
 function canonexpr!(mx::Orderless)
     if true
+        mx = sumfirst!(mx)
+        is_Number(mx) && return mx
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
             mx = compactsumlike!(mx)

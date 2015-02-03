@@ -4,8 +4,10 @@ end
 
 const evalage = Evalage(0)
 
-increvalage() = evalage.t += 1
-getevalage() = evalage.t
+# These are probably all inlined anyway
+
+@inline increvalage() = evalage.t += 1
+@inline getevalage() = evalage.t
 
 typealias SJSym Symbol 
 
@@ -19,24 +21,24 @@ end
 
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
-ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
+@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 
-symname{T}(s::SSJSym{T}) = T
-symname(s::SJSym) = s
-symname(s::String) = symbol(s)
-symattr(s::SJSym) = getssym(s).attr
-getsym(s) = s
-symval(s::SJSym) = getssym(s).val
-symval(s::SSJSym) = s.val
-function setsymval(s::SJSym,val)
+@inline symname{T}(s::SSJSym{T}) = T
+@inline symname(s::SJSym) = s
+@inline symname(s::String) = symbol(s)
+@inline symattr(s::SJSym) = getssym(s).attr
+@inline getsym(s) = s
+@inline symval(s::SJSym) = getssym(s).val
+@inline symval(s::SSJSym) = s.val
+@inline function setsymval(s::SJSym,val)
     (getssym(s).val = val)
     getssym(s).age = increvalage()
 end
 
-sjset(s::SJSym,val) = setsymval(s,val)
+@inline sjset(s::SJSym,val) = setsymval(s,val)
 
-symage(s::SJSym) = getssym(s).age
-getage(s::SJSym) = symage(s)  # should only use one of these
+@inline symage(s::SJSym) = getssym(s).age
+@inline getage(s::SJSym) = symage(s)  # should only use one of these
 
 import Base:  ==
 
@@ -55,7 +57,7 @@ function push_downvalue(ins::SJSym,val)
     sort!(s.downvalues,lt=isless_patterns)
 end
     
-clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
+@inline clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
 typealias MxprArgs Array{Any,1}
 
@@ -97,7 +99,7 @@ function Base.hash(mx::Mxpr)
     hout    
 end
 
-function dohash(mx::Mxpr, h::UInt64)
+@inline function dohash(mx::Mxpr, h::UInt64)
     hout = hash(mx.head,h)
     for a in mx.args
         hout = hash(a,hout)
@@ -109,8 +111,8 @@ const EXPRDICT = Dict{UInt64,Mxpr}()
 
 global gotit = 0
 
-# Slows operations down by factor of, say, 2 to 5
-function checkhash(mx::Mxpr)
+# Slows operations down by factor of 2 to 5 or more or less
+@inline function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
 #    println("Computing hash for $mx")    
     k = hash(mx)
@@ -124,7 +126,7 @@ function checkhash(mx::Mxpr)
     EXPRDICT[k] = mx
     mx
 end
-checkhash(x) = x
+@inline checkhash(x) = x
 
 typealias Symbolic Union(Mxpr,SJSym)
 
@@ -137,7 +139,7 @@ function mxpr(s::SJSym,iargs...)
     mx
 end
 
-function mxpr(s::SJSym,args::MxprArgs)
+@inline function mxpr(s::SJSym,args::MxprArgs)
     mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0)
     setage(mx)
 #    checkhash(mx)    
@@ -145,7 +147,7 @@ function mxpr(s::SJSym,args::MxprArgs)
 end
 
 # set fixed point and clean bits
-function mxprcf(s::SJSym,iargs...)
+@inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
     mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
@@ -153,21 +155,20 @@ function mxprcf(s::SJSym,iargs...)
     mx
 end
 
-function mxprcf(s::SJSym,args::MxprArgs)
+@inline function mxprcf(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
 #    checkhash(mx)
     mx
 end
 
-setage(mx::Mxpr) = mx.age = increvalage()
-getage(mx::Mxpr) = mx.age
+@inline setage(mx::Mxpr) = mx.age = increvalage()
+@inline getage(mx::Mxpr) = mx.age
 
 # For Symbol. Better to avoid calling on Symbols. They should not be update
 # just for evaluating to themselves
 #setage(x) = true 
 
-# stack overflow
-margs(mx::Mxpr) = mx.args
+@inline margs(mx::Mxpr) = mx.args
 
 # record dependence of mx on symbols that a depends on
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
@@ -178,15 +179,15 @@ margs(mx::Mxpr) = mx.args
 end
 
 # record dependence of mx on symbol a
-function mergesyms(mx::Mxpr, a::SJSym)
+@inline function mergesyms(mx::Mxpr, a::SJSym)
     (mx.syms)[a] = true    
 end
 
 # should we detect type and not call these ?
-mergesyms(x,y) = true
-setfixed(x) = true
+@inline mergesyms(x,y) = true
+@inline setfixed(x) = true
 
-function checkdirtysyms(mx::Mxpr)
+@inline function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true    
     # if length(mx.syms) == 0
     #     if is_fixed(mx)
@@ -202,39 +203,39 @@ function checkdirtysyms(mx::Mxpr)
     end
     return false  # no symbols in mx have been set since mx was constructed
 end
-checkdirtysyms(x) = false
+@inline checkdirtysyms(x) = false
 
 #function setcleansyms(mx::Mxpr)
 #    for (sym,age) in mx.syms
 #end
 
-is_canon(mx::Mxpr) = mx.canon
-is_fixed(mx::Mxpr) = mx.fixed
+@inline is_canon(mx::Mxpr) = mx.canon
+@inline is_fixed(mx::Mxpr) = mx.fixed
 #is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
-setcanon(mx::Mxpr) = mx.canon = true
-setfixed(mx::Mxpr) = mx.fixed = true
-unsetcanon(mx::Mxpr) = mx.canon = false
-unsetfixed(mx::Mxpr) = mx.fixed = false
+@inline setcanon(mx::Mxpr) = mx.canon = true
+@inline setfixed(mx::Mxpr) = mx.fixed = true
+@inline unsetcanon(mx::Mxpr) = mx.canon = false
+@inline unsetfixed(mx::Mxpr) = mx.fixed = false
 
-is_canon(x) = false
-setcanon(x) = false
-unsetcanon(x) = false
+@inline is_canon(x) = false
+@inline setcanon(x) = false
+@inline unsetcanon(x) = false
 #is_fixed(x) = false
 #setfixed(x) = false
 #unsetfixed(x) = false
 
-newargs() = Array(Any,0)
-newargs(n::Integer) = Array(Any,n)
+@inline newargs() = Array(Any,0)
+@inline newargs(n::Integer) = Array(Any,n)
 
 #setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 # No, this should be fast
-setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
+@inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
 
-getindex(mx::Mxpr, k::Int) = margs(mx)[k]
-Base.length(mx::Mxpr) = length(margs(mx))
-Base.length(s::SJSym) = 0
-Base.endof(mx::Mxpr) = length(mx)
+@inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
+@inline Base.length(mx::Mxpr) = length(margs(mx))
+@inline Base.length(s::SJSym) = 0
+@inline Base.endof(mx::Mxpr) = length(mx)
 
 # We need to think about copying in the following. Support both refs and copies ?
 function getindex(mx::Mxpr, r::UnitRange)
@@ -267,7 +268,7 @@ listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 const SYMTAB = Dict{Symbol,SSJSym}()
 
 ## Retrieve or create new symbol
-function getssym(s::Symbol)
+@inline function getssym(s::Symbol)
     if haskey(SYMTAB,s)
         return SYMTAB[s]
     else
@@ -278,7 +279,7 @@ function getssym(s::Symbol)
         return ns
     end
 end
-getssym(ss::String) = getssym(symbol(ss))
+@inline getssym(ss::String) = getssym(symbol(ss))
 
 # refresh a copy that is not in the symbol table. how does this happen?
 #getsym(sjs::SJSym) = getsym(symname(sjs))
@@ -310,7 +311,7 @@ function unset_attribute(sj::SJSym, a::Symbol)
     getssym(sj).attr[a] = false
 end
 
-function Base.copy(mx::Mxpr)
+@inline function Base.copy(mx::Mxpr)
 #    println("copying $mx")
     args = copy(mx.args)
     mxpr(mx.head,args)
