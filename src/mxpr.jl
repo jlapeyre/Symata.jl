@@ -327,9 +327,10 @@ function meval(mx::Mxpr)
     res = apprules(nmx)
     res == nothing && return nothing
     if  ! is_canon(res)
-        res = deepflatten!(res)        
-        res = deepcanonexpr!(res)
-#        res = (print("dc "); @time(deepcanonexpr!(res))) # actually, this should be orderless only. others split off        
+        res = flatten!(res)        
+        res = canonexpr!(res)
+#        res = deepflatten!(res)        
+#        res = deepcanonexpr!(res)        
     end
     res = applydownvalues(res)
     is_meval_trace() && println(ind,">> " , res)
