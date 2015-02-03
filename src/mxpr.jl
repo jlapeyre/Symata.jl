@@ -303,24 +303,35 @@ function meval(mx::Mxpr)
     nhead = loopmeval(mx.head)
 #    nhead = mx.head
     local nargs
+    mxargs = mx.args
     start = 1
     if get_attribute(mx.head,:HoldFirst)
         nargs = newargs()
-        push!(nargs,mx.args[1])
-        for i in 2:length(mx.args)
-            push!(nargs,loopmeval(mx.args[i]))
+        push!(nargs,mxargs[1])
+        for i in 2:length(mxargs)
+            push!(nargs,loopmeval(mxargs[i]))
         end        
     elseif get_attribute(mx.head,:HoldAll)
-        nargs = mx.args
+        nargs = mxargs
     elseif get_attribute(mx.head,:HoldRest)
-        nargs = mx.args
+        nargs = mxargs
         nargs[1] = loopmeval(nargs[1])
     else
-#        println("Evaling each arg")
-        nargs = newargs()        
-        for i in 1:length(mx.args)
-            res1 = loopmeval(mx.args[i])
-            push!(nargs,res1)
+        changeflag = false
+        for i in 1:length(mxargs)
+            if mxargs == loopmeval(mxargs)
+                changeflag = true
+                break
+            end
+        end
+        if changeflag
+            nargs = newargs()        
+            for i in 1:length(mx.args)
+                res1 = loopmeval(mxargs[i])
+                push!(nargs,res1)
+            end
+        else
+            nargs = mxargs
         end
     end
     nmx = mxpr(nhead,nargs)
@@ -329,14 +340,10 @@ function meval(mx::Mxpr)
     if  ! is_canon(res)
         res = flatten!(res)        
         res = canonexpr!(res)
-#        res = deepflatten!(res)        
-#        res = deepcanonexpr!(res)        
     end
     res = applydownvalues(res)
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
-#    println("exiting eval dump")
-#    is_Mxpr(res) ? dump(res.syms) : nothing
     return res
 end
 
@@ -642,7 +649,8 @@ function apprules(mx::Mxpr{:Table})
     args = newargs(imax)
     for i in 1:imax
         sjset(getsym(isym),i)
-        v = loopmeval(ex)
+#        v = loopmeval(ex)
+        v = meval(ex)        
         setfixed(v)
         args[i] = v
     end
