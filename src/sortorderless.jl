@@ -226,44 +226,44 @@ end
 # This only removes one consecutive run of numbers
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
     @eval begin    
-function ($name)(mx::Mxpr)
-#    println("sumfirst on $mx")
-    args = margs(mx)
-    len = length(args)
-    n = 0
-    for i in 1:len
-        if is_Number(args[i])
-            n = i
-            break
+        function ($name)(mx::Mxpr)
+            #    println("sumfirst on $mx")
+            args = margs(mx)
+            len = length(args)
+            n = 0
+            for i in 1:len
+                if is_Number(args[i])
+                    n = i
+                    break
+                end
+            end
+            n == 0 && return mx
+            s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
+            m = 0
+            for i in n:len
+                x = args[i]
+                #        println("$i: trying $x")
+                if is_Number(x)
+                    s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
+                    #            println("$x $s")
+                else
+                    #            println("Not number")
+                    m = i
+                    break
+                end
+            end
+            #    println("m=$m, n=$n")
+            m == 0 && n == 1 &&  return s
+            if m == 0 m = len + 1 end
+            splice!(args,n:m-1,[s])
+            #    println("mx is $mx")
+            mx
         end
     end
-    n == 0 && return mx
-    s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
-    m = 0
-    for i in n:len
-        x = args[i]
-#        println("$i: trying $x")
-        if is_Number(x)
-            s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
-#            println("$x $s")
-        else
-#            println("Not number")
-            m = i
-            break
-        end
-    end
-#    println("m=$m, n=$n")
-    m == 0 && n == 1 &&  return s
-    if m == 0 m = len + 1 end
-    splice!(args,n:m-1,[s])
-#    println("mx is $mx")
-    mx
 end
-    end
-    end
-
-sumfirst!(mx::Mxpr{:Plus}) = plusfirst!(mx)
-sumfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
+    
+numsfirst!(mx::Mxpr{:Plus}) = plusfirst!(mx)
+numsfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
 
 #sumfirst!(mx) = mx
 
@@ -277,7 +277,7 @@ sumfirst!(mx::Mxpr{:Times}) = mulfirst!(mx)
 # We will not remove compactsumlike! when this is done
 function canonexpr!(mx::Orderless)
     if true
-        mx = sumfirst!(mx)
+        mx = numsfirst!(mx)
         is_Number(mx) && return mx
         orderexpr!(mx)
         if is_type_less(mx,Mxpr)        
