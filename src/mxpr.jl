@@ -195,7 +195,7 @@ macro ex(ex)
     res = extomx(ex)
     reset_meval_count()
     mx = loopmeval(res)
-    if is_SJSym(mx) mx = getssym(mx) end
+    if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
     sjset(getsym(:ans),mx)
     :(($(esc(mx))))
 end

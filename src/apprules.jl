@@ -1,5 +1,6 @@
 ##  Some 'apprules' definitions.
 # These evaluate expressions with builtin (protected) heads.
+# They are called from meval.
 
 # Would be nice to get something like this working to get
 # rid of boiler plate or allow changing how dispatch is done
@@ -340,6 +341,7 @@ end
 
 ## quickly hacked Table, just for testing other parts of evaluation
 
+# Create lexical scope for Table.
 # Replace symbol os with ns in ex
 function replsym(ex,os,ns)
     if is_Mxpr(ex)
@@ -357,7 +359,11 @@ end
 
 # We only do Table(expr,[i,imax])
 # Our Table is rather slow. Slower than Maxima makelist.
-# Even if we cheat and only do a single evaluation, it is slower.
+# Table(a(i),[i,10000]) is 2 to 3 x slower than makelist( i, i, 1, 10000)
+# If we cheat and only do a single evaluation,
+# and setfixed() then the speed is the same.
+# But, the 3rd party 'table' for Maxima is 4 times faster than makelist
+# in this example.
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
