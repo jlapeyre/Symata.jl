@@ -78,7 +78,6 @@ in the sense that nested calls to a Module are not supported.
          ("f(3)","4"),
          ("a","a"))
 
-
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
 
@@ -114,9 +113,12 @@ apprules(mx::Mxpr{:Jxpr}) = eval(mx[1])
 
 @sjdoc Unpack "
 Unpack(a) unpacks a Julia typed array into an SJulia List expression.
-For example Unpack( :(rand(3)) ) creates a List of three random Float64's.
 Only 1-d is supported.
 "
+
+@sjexamp( Unpack,
+         "This creates a List of three random Float64's.",
+         ("Unpack( :(rand(3)) )", "[0.5548766917324894,0.034964001133465095,0.9122052258982192]"))
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]
@@ -129,9 +131,15 @@ end
 
 @sjdoc Pack "
 Pack(mx) packs the args of the SJulia expression mx into a typed Julia array.
-The type of the array is the same as the first element in mx. For example
-Pack(f(1,2,3)) returns a Julia array of element type Int [1,2,3].
+The type of the array is the same as the first element in mx.
 "
+
+@sjexamp( Pack,
+         "This returns a Julia array of element type Int [1,2,3].",
+         ("ClearAll(f)",""),
+         ("Pack(f(1,2,3))","3-element Array{Int64,1}: [1,2,3]"))
+
+@sjseealso_group(Pack,Unpack)
 
 # 1-d unpack
 function apprules(mx::Mxpr{:Pack})
@@ -159,8 +167,10 @@ dosymbol(mx,x) = error("Symbol: expected a string")
 
 @sjdoc Clear "
 Clear(x,y,z) removes the values associated with x,y,z. It does not remove
-their DownValues. See ClearAll.
+their DownValues.
 "
+
+@sjseealso_group(Clear, ClearAll)
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
@@ -171,7 +181,7 @@ function apprules(mx::Mxpr{:Clear})
 end
 
 @sjdoc ClearAll "
-ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. See Clear.
+ClearAll(x,y,z) removes all values and DownValues associated with x,y,z.
 "
 
 # Remove all values associate with SJSym. values and DownValues
@@ -186,7 +196,7 @@ end
 
 @sjdoc Dump "
 Dump(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. See DumpHold.
+Julia `dump'.
 "
 
 @sjdoc DumpHold "
@@ -195,9 +205,10 @@ Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 "
 
+@sjseealso_group(Dump,DumpHold)
+
 # DumpHold does not evaluate args before dumping
 apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
-
 
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
@@ -214,7 +225,8 @@ symjlength(x) = length(x)
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 expr[n1][n2] returns the n2th part of the n1th part. To assign, you
-must use SetPart.
+must use SetPart. expr[n] also returns the nth element of instances of several
+Julia types such as Array and Dict.
 "
 
 # Get part of expression. Julia :ref is mapped to :Part
@@ -233,6 +245,8 @@ end
 SetPart(expr,n,val) sets the nth part of expr to val. Only one level of depth is supported
 at the moment.
 "
+
+@sjseealso_group(Set,SetPart)
 
 ## crude implementation.
 # We don't have syntax to set a part yet.
@@ -257,12 +271,45 @@ gethead(mx::Mxpr) = mx.head
 gethead(s::SJSym) = getsym(:Symbol)
 #gethead(s::Symbol) = getsym(:JuliaSymbol)  # out dated
 gethead(ex) = typeof(ex)
+
+@sjdoc JVar "
+JVar(x) returns the value of the Julia identifier x. This is
+identical to :(x).
+"
+@sjseealso_group(Jxpr,JVar)
 apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
+
+@sjdoc AtomQ "
+AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
+However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
+"
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
+
+@sjdoc Attributes "
+Attributes(s) returns attributes associated with symbol s. Builtin symbols have
+the attribute Protected, and may have others.
+"
 apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
+
+@sjdoc DownValues "
+DownValues(s) returns a List of DownValues associated with symbol s. These are values
+that are typically set with the declarative \"function definition\".
+"
+
+@sjexamp( DownValues,
+         ("ClearAll(f)",""),
+         ("f(x_) := x^2",""),
+         ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
 apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx.args[1])
 
-
+@sjdoc Example "
+Example(s) runs (evaluates) the first example for the symbol s, which is typically
+a BuiltIn symbol. The input, output, and comments are displayed. The input strings
+for the example are pushed onto the terminal history so they can be retrieved and 
+edited and re-evaluated. Example(s,n) runs the nth example for symbol s. When viewing
+documentation strings via ? SomeHead, the examples are printed along with the
+documentation string, but are not evaluated.
+"
 function apprules(mx::Mxpr{:Example})
     if length(mx) == 1
         do_example_n(mx[1],1)
@@ -271,19 +318,48 @@ function apprules(mx::Mxpr{:Example})
     end
 end
 
+@sjdoc Replace "
+Replace(expr,rule) replaces parts in expr according to Rule rule.
+"
+@sjseealso_group(Replace,ReplaceAll)
+@sjexamp(Replace,
+         ("Clear(a,b,c)",""),
+         ("Replace( Cos(a+b)^2 + Sin(a+c)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
+          "Cos(a + b)^2 + Sin(a + c)^2", "This expression does not match the pattern."),
+         ("Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
+          "1", "This expression does match the pattern."))
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
 doreplace(mx,expr,r::Mxpr{:Rule}) = replace(expr,Rule_to_PRule(r))
 doreplace(mx,a,b) = mx
 
+@sjdoc ReplaceAll "
+ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
+"
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
+@sjdoc MatchQ "
+MatchQ(expr,pattern) returns true if expr matches pattern.
+"
+@sjexamp( MatchQ,
+         ("MatchQ( 1, _Integer)", "true"),
+         ("ClearAll(gg,xx,b)",""),
+         ("MatchQ( gg(xx) , _gg)", "true"),
+         ("MatchQ( b^2, _^2)","true"))
 function apprules(mx::Mxpr{:MatchQ})
     (gotmatch,cap) = cmppat(mx[1],just_pattern(mx[2]))
     gotmatch
 end
 
+@sjdoc FullForm "
+FullForm(expr) prints expr and all sub-expressions as
+Head(arg1,arg2,...). Normal output may use infix notation instead.
+"
+@sjexamp( FullForm,
+         ("Clear(a,b)",""),
+         ("a+b","a+b"),
+         ("FullForm(a+b)","Plus(a,b)"))
 apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 ## Comparison

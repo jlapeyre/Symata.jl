@@ -78,6 +78,8 @@ macro sjseealso_group(syms...)
         if ! haskey(SJSEEALSO,src)
             na = Array(Any,0)
             SJSEEALSO[src] = na
+        else
+            na = SJSEEALSO[src]
         end
         for targ in syms
             if src == targ continue end
@@ -123,12 +125,21 @@ end
 # Each items in example is either an explanatory string,
 # or a 2-tuple of input and output.
 function format_sjexample(lines)
+    local ins, outs, expl
     for i in 1:length(lines)
         ln = lines[i]
         if is_type_less(ln,AbstractString)
             println(ln)
         else
-            (ins,outs) = ln
+            expl = ""
+            if length(ln) == 2
+                (ins,outs) = ln
+            else
+                (ins,outs,expl) = ln
+            end
+            if length(expl) > 0
+                println("# ",expl)
+            end
             println("sjulia> ", ins)
             if length(outs) > 0 println(outs) end
             if i < length(lines)
@@ -142,15 +153,25 @@ end
 # the history, so the user can modify the example.
 function do_example(lines)
     len = length(lines)
+    local ins, outs, expl    
     for i in 1:len
         ln = lines[i]
         if is_type_less(ln,AbstractString)
             println(ln)
         else
-            (ins,outs) = ln
+            expl = ""
+            if length(ln) == 2
+                (ins,outs) = ln
+            else
+                (ins,outs,expl) = ln
+            end
+            if length(expl) > 0
+                println("# ",expl)
+            end            
             println("sjulia> ", ins)
             ex = parse(ins)
-            println(eval(Expr(:macrocall,symbol("@ex"), ex)))
+            res = (eval(Expr(:macrocall,symbol("@ex"), ex)))
+            if res != nothing println(res) end
             sj_add_history(ins)
             if i < len
                 println()
