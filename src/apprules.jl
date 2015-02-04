@@ -13,7 +13,6 @@
 
 apprules(x) = x
 
-
 function checkprotect(s::SJSym)
     get_attribute(symname(s),:Protected) &&
     error("Symbol '",symname(s), "' is protected.")
@@ -67,6 +66,18 @@ function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     rule
     nothing
 end
+
+@sjdoc Module "
+Module creates a lexical scope block for variables. Warning, this is broken
+in the sense that nested calls to a Module are not supported.
+"
+
+@sjexamp( Module,
+         ("ClearAll(f,a)",""),
+         ("f(x_) := Module([a],(a=1, a+x))",""),
+         ("f(3)","4"),
+         ("a","a"))
+
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
