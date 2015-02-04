@@ -26,15 +26,16 @@ Set(a,b), a = b
 Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
 "
 
-@sjexamp( Set,
-         "Clear(a,b,c)","",
-         "b = a", "a",
-         "a = 1", "1",
-         "c = a", "1",
-         "a = 2", "2",
-         "b", "2",
-         "c", "1")
+@sjseealso_group( Set, SetDelayed )
 
+@sjexamp( Set,
+         ("Clear(a,b,c)",""),
+         ("b = a", "a"),
+         ("a = 1", "1"),
+         ("c = a", "1"),
+         ("a = 2", "2"),
+         ("b", "2"),
+         ("c", "1"))
 
 @sjdoc SetDelayed "
 SetDelayed(a,b), a := b
@@ -42,7 +43,6 @@ Whenever a is evaluated, b is evaluated and the result is assigned to a.
 So a is not set to the value of b at the time a := b is evaluated, but
 rather to the current value of b every time a is evaluated.
 "
-
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
@@ -71,6 +71,11 @@ end
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
 
+@sjdoc SetJ "
+SetJ(x,val) sets the Julia symbol x to val. Variables and functions in SJulia
+are separate from those in Julia, ie, their table of bindings to symbols are separate.
+"
+
 # Bind a Julia symbol to the rhs
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
@@ -78,10 +83,29 @@ function apprules(mx::Mxpr{:SetJ})
     eval(Expr(:(=),symname(lhs),rhs))
 end
 
+@sjdoc Jxpr "
+Jxpr allows embedding Julia expressions.
+A Jxpr is entered like this :( expr ) . expr is interpreted as a Julia expression and
+it is wrapped expression with head Jxpr, which is then evaluated when
+Jxpr is evaluated. You never see the head Jxpr. For example
+ m = :( [1:10] )  creates a Julia array and binds it to the SJulia symbol m
+"
+
+@sjexamp( Jxpr,
+         "This creates a Julia Array{Int,1} and \"binds\" it to the SJulia symbol m.",
+         ("m = :( [1:3] )",
+          "3-element Array{Int64,1}:\n 1\n 2\n 3"))
+
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
 # Mxpr with head Jxpr. It is evaluated here.
 # Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
 apprules(mx::Mxpr{:Jxpr}) = eval(mx[1])
+
+@sjdoc Unpack "
+Unpack(a) unpacks a Julia typed array into an SJulia List expression.
+For example Unpack( :(rand(3)) ) creates a List of three random Float64's.
+Only 1-d is supported.
+"
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]
@@ -91,6 +115,12 @@ function apprules(mx::Mxpr{:Unpack})
     end
     mxpr(:List,args)
 end
+
+@sjdoc Pack "
+Pack(mx) packs the args of the SJulia expression mx into a typed Julia array.
+The type of the array is the same as the first element in mx. For example
+Pack(f(1,2,3)) returns a Julia array of element type Int [1,2,3].
+"
 
 # 1-d unpack
 function apprules(mx::Mxpr{:Pack})
@@ -105,11 +135,21 @@ end
 
 set_and_setdelayed(mx,y,z) = mx
 
+@sjdoc Symbol "
+Symbol(str) converts the string str to a symbol. For example if a is 1,
+then Symbol(\"a\") returns 1.
+"
+
 function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
 dosymbol(mx,s::String) = getsym(symbol(s))
 dosymbol(mx,x) = error("Symbol: expected a string")
+
+@sjdoc Clear "
+Clear(x,y,z) removes the values associated with x,y,z. It does not remove
+their DownValues. See ClearAll.
+"
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
@@ -118,6 +158,10 @@ function apprules(mx::Mxpr{:Clear})
         setsymval(a,symname(a))
     end
 end
+
+@sjdoc ClearAll "
+ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. See Clear.
+"
 
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})
@@ -128,12 +172,39 @@ function apprules(mx::Mxpr{:ClearAll})
     end
 end
 
+
+@sjdoc Dump "
+Dump(expr) prints an internal representation of expr. This is similar to
+Julia `dump'. See DumpHold.
+"
+
+@sjdoc DumpHold "
+DumpHold(expr) prints an internal representation of expr. This is similar to
+Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
+representation is printed.
+"
+
 # DumpHold does not evaluate args before dumping
 apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
+
+
+@sjdoc Length "
+Length(expr) prints the length of SJulia expressions and Julia objects. For
+SJulia expressions, the length is the number or arguments. For scalar Julia
+types, the length is zero. For Array's and Dict's the length is the same as
+Julia `length'.
+"
 
 apprules(mx::Mxpr{:Length}) = symjlength(mx.args[1])
 symjlength(mx::Mxpr) = length(mx.args)
 symjlength(x) = length(x)
+
+
+@sjdoc Part "
+Part(expr,n) or expr[n], returns the nth element of expression expr.
+expr[n1][n2] returns the n2th part of the n1th part. To assign, you
+must use SetPart.
+"
 
 # Get part of expression. Julia :ref is mapped to :Part
 # This won't work for setting a part.
@@ -147,6 +218,11 @@ function apprules(mx::Mxpr{:Part})
     arr[i]
 end
 
+@sjdoc SetPart "
+SetPart(expr,n,val) sets the nth part of expr to val. Only one level of depth is supported
+at the moment.
+"
+
 ## crude implementation.
 # We don't have syntax to set a part yet.
 # This only works at one level.
@@ -158,6 +234,13 @@ function apprules(mx::Mxpr{:SetPart})
     x[ind] = val
 end
 
+@sjdoc Head "
+Head(expr) returns the head of expr, which may be an SJulia expression or object of any
+Julia type. The head of a Julia expression is Expr, eg.
+Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one level of
+a quoted Julia expression is evaluated so that we can embed Julia code.
+"
+
 apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
 gethead(mx::Mxpr) = mx.head
 gethead(s::SJSym) = getsym(:Symbol)
@@ -167,6 +250,15 @@ apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
 apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
 apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx.args[1])
+
+
+function apprules(mx::Mxpr{:Example})
+    if length(mx) == 1
+        do_example_n(mx[1],1)
+    else
+        do_example_n(mx[1],mx[2])
+    end
+end
 
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
 doreplace(mx,expr,r::Mxpr{:Rule}) = replace(expr,Rule_to_PRule(r))
