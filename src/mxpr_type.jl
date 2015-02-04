@@ -64,29 +64,21 @@ typealias MxprArgs Array{Any,1}
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
-    args::MxprArgs
+    args::MxprArgs # a little slower if this is type Any
     fixed::Bool
     canon::Bool
     syms::Dict{Symbol,Bool}
     age::UInt64
     key::UInt64
+    typ::DataType
 end
+
+mxprtype{T}(mx::Mxpr{T}) = T
 
 # Important that we do not hash any meta data. We take the
 # cached version
 function Base.hash(mx::Mxpr, h::UInt64)
     dohash(mx,h)
-#    if  mx.key != 0
-#        th = dohash(mx,
-#    mx.key != 0 && return mx.key  # causes bugs
-#    hout = hash(mx.head,h)
-#    if length(mx.args) > 0
-#        hout = hash(:Any,hout)  # wow, this causes weird bugs
-    # end
-    # for a in mx.args
-    #     hout = hash(a,hout)
-    # end
-    # hout
 end
 
 # Hmm almost works
@@ -133,14 +125,14 @@ typealias Symbolic Union(Mxpr,SJSym)
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0)
+    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0,Any)
     setage(mx)
 #    checkhash(mx)
     mx
 end
 
 @inline function mxpr(s::SJSym,args::MxprArgs)
-    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0)
+    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0,Any)
     setage(mx)
 #    checkhash(mx)    
     mx
@@ -150,13 +142,13 @@ end
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
+    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0,Any)
 #    checkhash(mx)
     mx
 end
 
 @inline function mxprcf(s::SJSym,args::MxprArgs)
-    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0)
+    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0,Any)
 #    checkhash(mx)
     mx
 end

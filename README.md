@@ -83,15 +83,11 @@ changed in this branch is REPL.jl. The only thing the new mode does is
 wrap input lines in a macro. Of course, a better thing would be to
 add a facility that works like: `newrepl(:name, :wrappermacro)`.
 
-### Latest experiment. Using type `Mxpr` and a symbol type `SJSym`
+#### Evaluation
 
-Mixing Julia and symbolic manipulation via patterns and term rewriting was problematic.
-So the next step amounts to writing another language. Symbols, and "functions" and
-"variables" in "SJulia" (I don't have a name) are completely separate
-from Julia symbols (But, I currently bind Julia symbols as well, as a hack, to get completion
-in the repl. This can be removed later.)  I am using Mathematica as a model in order to
-get something working and see how it interacts with Julia. But, the design could be
-changed. Some of the things from the earlier experiments are ported, but not all.
+There are lines at the top of the file `src/mxpr.jl` to control evaluation. You can
+choose infinite or single evaluation. The test suite relies on infinite evaluation being
+enabled. Hashing and caching of expressions can also be chosen here.
 
 #### Pattern matching.
 
@@ -139,7 +135,7 @@ others) with this language ? There are of course numerous other
 questions.  Eg, how to handle integer overflow.
 
 Another thing, Mma offers no way to write code except in Mma. It
-should be possible to write user or quasi-user level code *easily* in
+should be possible to write user or quasi-user level code easily in
 Julia.
 
 Symbols are currently done this way (this is a bit outdated)

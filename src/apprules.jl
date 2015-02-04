@@ -52,7 +52,11 @@ function apprules(mx::Mxpr{:SetJ})
     lhs = mx.args[1]
     rhs = mx.args[2]
     eval(Expr(:(=),symname(lhs),rhs))
-end 
+end
+
+function apprules(mx::Mxpr{:GetJ})
+    eval(mx[1])
+end
 
 set_and_setdelayed(mx,y,z) = mx
 
@@ -221,18 +225,21 @@ apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
 function apprules(mxt::Mxpr{:Timing})
     t = @elapsed begin
         reset_meval_count()
-        mx = loopmeval(mxt[1])
+        mx = doeval(mxt[1])
         sjset(getsym(:ans),mx)
     end
     mxpr(:List,t,mx)
 end
+
+apprules(mx::Mxpr{:TimeOn}) = MEVAL.timingon = true
+apprules(mx::Mxpr{:TimeOff}) = MEVAL.timingon = false
 
 # This does not work. Does not report correct time and allocation
 # We have to do Allocted and Timing separately
 function apprules(mxt::Mxpr{:Timing2})
     begin
         reset_meval_count()
-        mx = @time(loopmeval(mxt[1]))
+        mx = @time(doeval(mxt[1]))
         sjset(getsym(:ans),mx)
     end
     mx
@@ -242,7 +249,7 @@ function apprules(mxt::Mxpr{:Allocated})
     local mx
     a = @allocated begin
         reset_meval_count()
-        mx = loopmeval(mxt[1])
+        mx = doeval(mxt[1])
         sjset(getsym(:ans),mx)
     end
     mxpr(:List,a,mx)
@@ -251,7 +258,7 @@ end
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
         for i in 1:length(mx)
-            res = loopmeval(mx[i])
+            res = doeval(mx[i])
         end
     res
 end
@@ -278,24 +285,24 @@ apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 
 function apprules(mx::Mxpr{:Expand})
     mx1 = mx[1]
-    ! is_Mxpr(mx1) && return mx # TODO
-    doexpand(mx,mx1)
+    ! is_Mxpr(mx1) && return mx[1] # Are there other cases ?
+    doexpand(mx1)
 end
 
-doexpand(mx::Mxpr{:Expand}, p::Mxpr{:Power}) = do_expand_power(mx,base(p),expt(p))
-function doexpand(mx::Mxpr{:Expand}, prod::Mxpr{:Times})
+doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
+function doexpand(prod::Mxpr{:Times})
     mulsums(margs(prod)...)
 end
 
-doexpand(mx,n) = mx
+doexpand(mx1) = mx1
 
-do_expand_power(mx::Mxpr{:Expand}, b::Mxpr{:Plus}, n::Integer) =
-    length(b) != 2 ? mx : do_expand_binomial(mx,b[1],b[2],n)
-do_expand_power(mx,b,ex) = mx
+do_expand_power(p,b::Mxpr{:Plus}, n::Integer) =
+    length(b) != 2 ? p : do_expand_binomial(p,b[1],b[2],n)
+do_expand_power(b,ex) = mx
 
 #do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
-do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = expand_binomial(a,b,n)
-do_expand_binomial(mx,a,b,n) = mx
+do_expand_binomial(p,a, b, n::Integer) = expand_binomial(a,b,n)
+do_expand_binomial(a,b,n) = p
 
 # Only some of Range implemented for testing other things.
 # From the command line, all the time evaluating Range(n) for n>10000 or so
@@ -373,7 +380,7 @@ function apprules(mx::Mxpr{:Table})
     args = newargs(imax)
     for i in 1:imax
         sjset(getsym(isym),i)
-        v = loopmeval(ex)
+        v = doeval(ex)
 #        v = meval(ex)        
         setfixed(v)
         args[i] = v

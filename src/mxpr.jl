@@ -1,4 +1,19 @@
-## Mostly meval, loopmeval, and code to translate Expr from cli to Mxpr.
+## This file contains mostly meval, loopmeval, and code to translate Expr from cli to Mxpr.
+
+# Choose infinite or single evaluation.
+# The test suite assumes loopmeval is used.
+@inline doeval(x) = loopmeval(x)  # infinite evaluation
+#@inline doeval(x) = meval(x)   # single evaluation
+
+# Enable or disable hashing expressions here.
+# We hash expressions so that only unique copies are stored.
+# This slows code. It could be faster in some circumstances.
+# Eg. if we continue to store the dependent variables of an
+# expression as metadata, then we don't need to regenerate them,
+# if we find the cached copy of an expression.
+#
+#lcheckhash(x) = checkhash(x)  # compute hash and look for cached copy of expr
+@inline lcheckhash(x) = x      # do nothing
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
@@ -62,8 +77,9 @@ function extomx(s::Symbol)
     end
 end
 
-# Underscore is not allow in symbols. Instead,
-# they signify part of a pattern
+# Underscore is not allowed in symbols. Instead,
+# they signify part of a pattern. This follows Mma,
+# and we don't consume and Julia syntax to signify patterns.
 function parseblank(s::String)
     a = split(s,['_'], keep=true)
     length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
@@ -173,8 +189,9 @@ end
 type Meval
     entrycount::Int
     traceon::Bool
+    timingon::Bool
 end
-const MEVAL = Meval(0,false)
+const MEVAL = Meval(0,false,false)
 
 # TODO: get rid of the global
 global MEVAL_ENTRY_COUNT = 0
@@ -196,8 +213,11 @@ end
 macro ex(ex)
     res = extomx(ex)
     reset_meval_count()
-    mx = loopmeval(res)
-#    mx = meval(res)    
+    if MEVAL.timingon
+        mx = @time doeval(res)
+    else
+        mx = doeval(res)
+    end
     if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
     sjset(getsym(:ans),mx)
     :(($(esc(mx))))
@@ -205,9 +225,6 @@ end
 
 global const exitcounts = Int[0,0,0,0,0]
 
-
-#lcheckhash(x) = checkhash(x)
-@inline lcheckhash(x) = x
 
 # We use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
@@ -247,7 +264,7 @@ function loopmeval(mxin::Mxpr)
         neval += 1
         if neval > 100
             println(mx)
-            error("loopeval: Too many, $neval, evaluations. Expression still changing")
+            error("loopmeval: Too many, $neval, evaluations. Expression still changing")
         end
         mx = mx1
     end
@@ -288,7 +305,7 @@ function meval(mx::Mxpr)
         ind = " " ^ get_meval_count()
         println(ind,"<< " , mx)
     end
-    nhead = loopmeval(mx.head)
+    nhead = doeval(mx.head)
 #    nhead = mx.head
     local nargs
     mxargs = mx.args
@@ -297,17 +314,17 @@ function meval(mx::Mxpr)
         nargs = newargs()
         push!(nargs,mxargs[1])
         for i in 2:length(mxargs)
-            push!(nargs,loopmeval(mxargs[i]))
+            push!(nargs,doeval(mxargs[i]))
         end        
     elseif get_attribute(mx.head,:HoldAll)
         nargs = mxargs
     elseif get_attribute(mx.head,:HoldRest)
         nargs = mxargs
-        nargs[1] = loopmeval(nargs[1])
+        nargs[1] = doeval(nargs[1])
     else
         changeflag = false  # don't think this helps any
         for i in 1:length(mxargs)
-            if mxargs == loopmeval(mxargs)
+            if mxargs == doeval(mxargs)
                 changeflag = true
                 break
             end
@@ -315,7 +332,7 @@ function meval(mx::Mxpr)
         if changeflag
             nargs = newargs()        
             for i in 1:length(mx.args)
-                res1 = loopmeval(mxargs[i])
+                res1 = doeval(mxargs[i])
                 push!(nargs,res1)
             end
         else

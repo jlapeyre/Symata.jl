@@ -80,3 +80,15 @@ end
 #is_comparison_symbol(x::SJSym) = is_comparison_symbol(symname(x))
 is_comparison_symbol(x) = false
 
+const SYMTONUM  =
+    Dict(
+         :Plus => :mplus,
+         :Times => :mmul
+         );
+
+function symtonum(x::Symbol)
+    if haskey(SYMTONUM,x)
+        return SYMTONUM[x]
+    end
+    return x
+end

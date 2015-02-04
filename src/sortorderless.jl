@@ -154,7 +154,7 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     iy = ly
     n = min(lx,ly)
     eqterms_flag = true
-    for i in 1:n
+    @inbounds for i in 1:n
         jslexless(ax[ix],ay[iy]) && return true
         if jslexless(ay[iy],ax[ix]) eqterms_flag = false end
         ix -= 1
@@ -187,7 +187,7 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             args = margs(mx)
             len = length(args)
             n = 0
-            for i in n0:len
+            @inbounds for i in n0:len
                 if is_Number(args[i])
                     n = i
                     break
@@ -196,7 +196,7 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             n == 0 && return (mx,len)
             s = $(op == :Plus ? :(zero(args[n]))  :  :(one(args[n])))
             m = 0
-            for i in n:len
+            @inbounds for i in n:len
                 x = args[i]
                 if is_Number(x)
                     s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
@@ -256,6 +256,9 @@ function canonexpr!(mx::Orderless)
     mx
 end    
 canonexpr!(x) = x
+
+flatcanon!(x) = canonexpr!(flatten!(x))
+
 
 # Recursive descent is done by meval; not needed here.
 # function deepcanonexpr!(mx::Mxpr)
@@ -389,7 +392,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                 if success
                     count = 1
                     coeffcount = coeffsum
-                    for i in (n+1):(length(a)-1)
+                    @inbounds for i in (n+1):(length(a)-1)
                         (success1,coeffsum1,fac1) = ($matchf)(fac,a[i+1])
                         #                        if a[i] == a[i+1]
                         if success1

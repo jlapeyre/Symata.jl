@@ -3,19 +3,21 @@
 ## In test cases, this is fast. later, canonicalizing each term is
 # slowest thing.
 function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
+#    println("1:  $a,  $b")
     terms = newargs(length(a)*length(b))
     i = 0
     for ax in a.args
         for bx in b.args
             i += 1
-            t = mxpr(:Times, ax, bx)
+#            println("  1:  $ax,  $bx")
+            t = flatcanon!(mxpr(:Times, ax, bx))
             mergesyms(t,ax)
             mergesyms(t,bx)
             setfixed(t)
             terms[i] = t
         end
     end
-    mx = mxpr(:Plus,terms)
+    mx = flatcanon!(mxpr(:Plus,terms))
     for t in terms   # all these merging don't take time. s.t. else is slow:  orderexpr! is not slowest
         mergesyms(mx,t)
     end
@@ -23,11 +25,34 @@ function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
     mx
 end
 
-mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}) = mulsums(mulsums(a,b),c)
-mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}, xs::Mxpr{:Plus}...) = mulsums(mulsums(mulsums(a,b),c),xs...)
+# Not the right way to do this. We need to expand each term, as well.
+mulsums(a,b,c) = mulsums(mulsums(a,b),c)
+mulsums(a,b,c,xs...) = mulsums(mulsums(mulsums(a,b),c),xs...)
 
-#function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
-#end
+#mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}) = mulsums(mulsums(a,b),c)
+#mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus},c::Mxpr{:Plus}, xs::Mxpr{:Plus}...) = mulsums(mulsums(mulsums(a,b),c),xs...)
+
+function mulsums(a::Mxpr{:Plus},b)
+#    println("2:  $a,  $b")    
+    terms = newargs(length(a))
+    i = 0
+    for ax in a.args
+        i += 1
+        if is_Mxpr(ax) && mxprtype(ax) == :Times
+            facs = copy(margs(ax))
+            push!(facs,b)
+            terms[i] = mxpr(:Times,facs)
+        else
+            terms[i] = b * ax
+        end
+    end
+    mxpr(:Plus,terms)
+end
+
+function mulsums(a, b::Mxpr{:Plus})
+#    println("3:  $a,  $b")
+    mulsums(b,a)
+end
 
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
@@ -56,7 +81,7 @@ function expand_binomial(a,b,n::Integer)
         fac = n
         k = n
         l = one(n)
-        for j in 2:n-2
+        @inbounds for j in 2:n-2
             k = k - 1
             l = l + 1
             fac *= k
@@ -86,7 +111,7 @@ end
 function apprules(mx::Mxpr{:Apply})
     doapply(mx,mx[1],mx[2])
 end
-doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args)...)
+doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args))
 doapply(mx,x,y) = mx
 
 function Base.reverse(mx::Mxpr)
