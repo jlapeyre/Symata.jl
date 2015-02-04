@@ -214,6 +214,7 @@ macro exnoeval(ex)
 end
 
 macro ex(ex)
+    check_help_query(ex) && return nothing
     res = extomx(ex)
     reset_meval_count()
     if MEVAL.timingon

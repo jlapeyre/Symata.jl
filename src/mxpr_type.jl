@@ -268,7 +268,7 @@ const SYMTAB = Dict{Symbol,SSJSym}()
         ns = ssjsym(s)
         SYMTAB[s] = ns
         # pollute Julia just so we get repl completion. remove this later.        
-#        !isdefined(s) && eval(:($s = true))
+        !isdefined(s) && eval(:($s = true))
         return ns
     end
 end

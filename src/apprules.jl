@@ -13,12 +13,36 @@
 
 apprules(x) = x
 
+
 function checkprotect(s::SJSym)
     get_attribute(symname(s),:Protected) &&
     error("Symbol '",symname(s), "' is protected.")
 end
 
 checkprotect(mx::Mxpr) = checkprotect(mx.head)
+
+@sjdoc Set "
+Set(a,b), a = b
+Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
+"
+
+@sjexamp( Set,
+         "Clear(a,b,c)","",
+         "b = a", "a",
+         "a = 1", "1",
+         "c = a", "1",
+         "a = 2", "2",
+         "b", "2",
+         "c", "1")
+
+
+@sjdoc SetDelayed "
+SetDelayed(a,b), a := b
+Whenever a is evaluated, b is evaluated and the result is assigned to a.
+So a is not set to the value of b at the time a := b is evaluated, but
+rather to the current value of b every time a is evaluated.
+"
+
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
