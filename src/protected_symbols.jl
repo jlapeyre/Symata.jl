@@ -93,7 +93,7 @@ end
 for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "BuiltIns", "Symbol", "SetPart")
+          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end

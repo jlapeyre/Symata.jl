@@ -27,9 +27,10 @@ end
 @inline symname(s::SJSym) = s
 @inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
-@inline getsym(s) = s
+@inline getsym(s) = s  # careful, this is not getssym
 @inline symval(s::SJSym) = getssym(s).val
 @inline symval(s::SSJSym) = s.val
+sjval(s::SJSym) = getssym(s).val  # intended to be used from within Julia, or quoted julia
 @inline function setsymval(s::SJSym,val)
     (getssym(s).val = val)
     getssym(s).age = increvalage()
@@ -64,7 +65,7 @@ typealias MxprArgs Array{Any,1}
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
-    args::MxprArgs # a little slower if this is type Any
+    args::MxprArgs
     fixed::Bool
     canon::Bool
     syms::Dict{Symbol,Bool}

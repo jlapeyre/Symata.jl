@@ -112,6 +112,22 @@ function apprules(mx::Mxpr{:Apply})
     doapply(mx,mx[1],mx[2])
 end
 doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args))
+
+# Apply operation to a typed numeric array.
+# We can build these functions with a macro and
+# mapping from  :Times -> mmul
+# :Cos -> cos, etc.
+function doapply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
+    if h == :Plus
+        s = zero(T)
+        for i in 1:length(arr)
+            s += arr[i]
+        end
+        return s
+    end
+    return mx
+end
+
 doapply(mx,x,y) = mx
 
 function Base.reverse(mx::Mxpr)

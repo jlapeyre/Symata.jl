@@ -54,8 +54,29 @@ function apprules(mx::Mxpr{:SetJ})
     eval(Expr(:(=),symname(lhs),rhs))
 end
 
-function apprules(mx::Mxpr{:GetJ})
-    eval(mx[1])
+# quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
+# Mxpr with head Jxpr. It is evaluated here.
+# Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
+apprules(mx::Mxpr{:Jxpr}) = eval(mx[1])
+
+function apprules(mx::Mxpr{:Unpack})
+    obj = mx[1]
+    args = newargs(length(obj))
+    for i in 1:length(obj)
+        args[i] = obj[i]
+    end
+    mxpr(:List,args)
+end
+
+# 1-d unpack
+function apprules(mx::Mxpr{:Pack})
+    sjobj = margs(mx[1])
+    T = typeof(sjobj[1]) # hope one exists
+    args = Array(T,length(sjobj))
+    for i in 1:length(sjobj)
+        args[i] = sjobj[i]
+    end
+    return args
 end
 
 set_and_setdelayed(mx,y,z) = mx

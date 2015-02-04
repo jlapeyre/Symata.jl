@@ -140,6 +140,9 @@ function extomx(ex::Expr)
         else
             error("extomx: No translation for $ex")
         end
+    elseif ex.head == :quote
+        head = :Jxpr
+        push!(newa,eval(ex))
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
