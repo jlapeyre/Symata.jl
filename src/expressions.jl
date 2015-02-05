@@ -54,20 +54,20 @@ function mulsums(a, b::Mxpr{:Plus})
     mulsums(b,a)
 end
 
-## test annoting expt to be Number.
-# Some testing shows no difference.
-#function canonpower{T<:Number}(base,expt::T)
-#    canonexpr!(base^expt)
-#end
 
-#function canonpower(base,expt)
-#    base^expt
-#end
+function canonpower(base::SJSym,expt)
+    base^expt
+end
 
-function canonpower(base,expt)
+function canonpower{T<:Real}(base,expt::T)
     canonexpr!(base^expt)
 end
 
+function canonpower(base,expt)
+    base^expt
+end
+
+## 
 
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
@@ -85,7 +85,7 @@ function expand_binomial(a,b,n::Integer)
     if n == 2
         args[2] = mxpr(:Times,2,a,b)  # don't use 2 * a * b; it won't be flat
     else 
-        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
+        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b)) # TODO optimize for symbols a,b. No flatcanon.
         args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
         mergesyms(args[2],a)
         mergesyms(args[2],b)
@@ -106,6 +106,16 @@ function expand_binomial(a,b,n::Integer)
     mx
 end
 
+function _expand_mulpowers(fac,b1,e1,b2,e2)
+    m1 = canonpower(b1,e1)
+    m2 = canonpower(b2,e2)
+    setfixed(m1)
+    setfixed(m2)
+    mergesyms(m1,b1)
+    mergesyms(m2,b2)            
+    return flatcanon!(mxpr(:Times, fac, m1, m2))
+end
+
 # Does not seem to help efficiency
 function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2
@@ -113,13 +123,14 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
             l = l + 1
             fac *= k
             fac = div(fac,l)
-            m1 = canonpower(a,n-j) #   mxpr(:Power, a, (n-j))
-            m2 = canonpower(b,j) # mxpr(:Power,b,j)
-            setfixed(m1)
-            setfixed(m2)
-            mergesyms(m1,a)
-            mergesyms(m2,b)            
-            args[j+1] = flatcanon!(mxpr(:Times, fac, m1, m2))
+            # m1 = canonpower(a,n-j) #   mxpr(:Power, a, (n-j))
+            # m2 = canonpower(b,j) # mxpr(:Power,b,j)
+            # setfixed(m1)
+            # setfixed(m2)
+            # mergesyms(m1,a)
+            # mergesyms(m2,b)            
+            # args[j+1] = flatcanon!(mxpr(:Times, fac, m1, m2))
+            args[j+1] = _expand_mulpowers(fac,a,n-j,b,j)
             mergesyms(args[j+1],a)
             mergesyms(args[j+1],b)
             setfixed(args[j+1])
