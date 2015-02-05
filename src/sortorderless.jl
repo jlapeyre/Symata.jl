@@ -2,6 +2,8 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
+### !! This file has other canonicalizing code.: for Power
+
 # There are four (more or less) steps:
 # 1. Reduce sequences of numbers, leaving perhaps singletons. (We could choose to get singletons as well)
 #    Doing this first is much,much faster for sums and prods with lots of numbers. May slow down
@@ -277,7 +279,9 @@ function canonexpr!(mx::Orderless)
 end    
 
 function canonexpr!(mx::Mxpr{:Power})
-    do_canon_power!(mx,base(mx),expt(mx))
+    mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want ! here
+    setcanon(mx)
+    mx
 end
 
 # (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n
@@ -299,7 +303,7 @@ function do_canon_power!{T<:Number}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T
         setcanon(nargs[i])
     end
     mx = mxpr(:Times,nargs)
-    setcanon(mx)
+#    setcanon(mx)  done by caller
     return mx
 end
 

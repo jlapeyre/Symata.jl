@@ -54,6 +54,21 @@ function mulsums(a, b::Mxpr{:Plus})
     mulsums(b,a)
 end
 
+## test annoting expt to be Number.
+# Some testing shows no difference.
+#function canonpower{T<:Number}(base,expt::T)
+#    canonexpr!(base^expt)
+#end
+
+#function canonpower(base,expt)
+#    base^expt
+#end
+
+function canonpower(base,expt)
+    canonexpr!(base^expt)
+end
+
+
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
 # Assume a < b in canonical order
@@ -61,17 +76,17 @@ end
 # symbols it depends on.
 function expand_binomial(a,b,n::Integer)
     args = newargs(n+1)
-    args[1] = a^n
+    args[1] = canonpower(a,n)
     mergesyms(args[1],a)
     setfixed(args[1])
-    args[n+1] =  b^n
+    args[n+1] =  canonpower(b,n)
     mergesyms(args[n+1],b)
     setfixed(args[n+1])    
     if n == 2
         args[2] = mxpr(:Times,2,a,b)  # don't use 2 * a * b; it won't be flat
     else 
-        args[2] = mxpr(:Times,n,a^(n-1),b)
-        args[n] = mxpr(:Times,n,a,b^(n-1))
+        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
+        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
         mergesyms(args[2],a)
         mergesyms(args[2],b)
         mergesyms(args[n],a)
@@ -98,13 +113,13 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
             l = l + 1
             fac *= k
             fac = div(fac,l)
-            m1 = mxpr(:Power, a, (n-j))
-            m2 = mxpr(:Power,b,j)
+            m1 = canonpower(a,n-j) #   mxpr(:Power, a, (n-j))
+            m2 = canonpower(b,j) # mxpr(:Power,b,j)
             setfixed(m1)
             setfixed(m2)
             mergesyms(m1,a)
             mergesyms(m2,b)            
-            args[j+1] = mxpr(:Times, fac, m1, m2)
+            args[j+1] = flatcanon!(mxpr(:Times, fac, m1, m2))
             mergesyms(args[j+1],a)
             mergesyms(args[j+1],b)
             setfixed(args[j+1])
