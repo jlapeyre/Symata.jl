@@ -542,7 +542,7 @@ end
 
 @sjdoc Age "
 Age(s) returns the timestamp for the expression or symbol s.
-Using this timestamp to avoid unnecessary is a very partially
+Using this timestamp to avoid unnecessary evaluation is a very partially
 implemented feature.
 "
 @sjseealso_group(Age,Fixed)

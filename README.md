@@ -52,6 +52,14 @@ Symbols that are associated with some functionality can be listed with
 `BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
 prompt.
 
+Documentation for many BuiltIn symbols can be found by entering
+`?, SymName` at the `sjulia` prompt. Note the comma, which is
+neccessary because limitations in the provisional parsing method.
+If examples are printed with the documentation string, they can be
+evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
+prompt. The input strings from the examples are pushed to the history
+so that they can be recalled and edited and re-evaluated.
+
 Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
 There are many more commands available, but mostly to support experimenting with
 evaluation.

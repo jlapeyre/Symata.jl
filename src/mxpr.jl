@@ -33,7 +33,7 @@ function ==(ax::Mxpr, bx::Mxpr)
     b = bx.args
     (na,nb) = (length(a),length(b))
     na != nb && return false
-    for i in 1:na
+    @inbounds for i in 1:na
         a[i] != b[i] && return false
     end
     true
