@@ -627,36 +627,22 @@ Range(n1,n2,di) returns the List of integers from n1 through n2 in steps of di
 di may be negative. Range is only partially implemented. Eg, floats and symbols
 are not supported. However, you can get other SJulia lists, eg. floats, by
 using Unpack(:([1.0:10^5])). This uses emebedded Julia to create a typed Array
-and then unpacks it to a List. Range is rather slow for large lists compared to
-other CAS's. Tests show that this is because copying numbers into an Array{Any,1} is slow.
-The other CAS's are also using the equivalent of Array{Any,1}, but are much faster.
+and then unpacks it to a List.
 "
 function apprules(mx::Mxpr{:Range})
     if length(mx) == 1
         n = mx[1]
-        args = newargs(n);
-        for i in 1:n
-            args[i] = i
-        end
+        args = range_args1(n) # use function for optimization on type
     elseif length(mx) == 2
         n0 = mx[1] - 1
         n = mx[2]
-        args = newargs(n-n0);
-        for i in 1:n-n0
-            args[i] = i+n0
-        end
+        args = range_args2(n0,n)
     elseif length(mx) == 3
         n0 = mx[1]
         n = mx[2]
         di = mx[3]
         off = n > n0 ? 1 : -1
-        args = newargs(div(n-n0+off,di));
-        len = length(args)
-        s = n0
-        for i in 1:len
-            args[i] = s
-            s += di
-        end        
+        args = range_args3(n0,n,di,off)
     else
         return mx
     end
@@ -664,6 +650,35 @@ function apprules(mx::Mxpr{:Range})
     setfixed(r)
     setcanon(r)
     return r    
+end
+
+# separate functions are *essential* for type stability and efficiency.
+function range_args1(n)
+    args = newargs(n);
+    for i in one(1):n
+        args[i] = i
+    end
+    return args
+end
+
+function range_args2(n0,n)
+    nd = n - n0
+    args = newargs(nd);
+    for i in one(n0):nd
+        args[i] = i+n0
+    end
+    return args
+end
+
+function range_args3(n0,n,di,off)
+    args = newargs(div(n-n0+off,di));
+    len = length(args) # cheap
+    s = n0
+    for i in one(n0):len
+        args[i] = s
+        s += di
+    end
+    args
 end
 
 ## quickly hacked Table, just for testing other parts of evaluation
@@ -699,8 +714,15 @@ function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
     isym = gensym(string(iter[1]))
-    imax = iter[2]
+    imax = meval(iter[2])
     ex = replsym(deepcopy(expr),iter[1],isym)
+    args = do_table(imax,isym,ex)
+    mx = mxpr(:List,args)
+    setfixed(mx)
+    mx
+end
+
+function do_table(imax,isym,ex)
     args = newargs(imax)
     for i in 1:imax
         sjset(getsym(isym),i)
@@ -709,7 +731,5 @@ function apprules(mx::Mxpr{:Table})
         setfixed(v)
         args[i] = v
     end
-    mx = mxpr(:List,args)
-    setfixed(mx)
-    mx
+    return args
 end
