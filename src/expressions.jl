@@ -81,6 +81,18 @@ function expand_binomial(a,b,n::Integer)
         fac = n
         k = n
         l = one(n)
+        expand_binomial_aux(k,l,n,fac,a,b,args)
+    end
+    mx = mxprcf(:Plus,args)
+    mergesyms(mx,a)
+    mergesyms(mx,b)
+    setage(mx)
+    setfixed(mx)
+    mx
+end
+
+# Does not seem to help efficiency
+function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2
             k = k - 1
             l = l + 1
@@ -96,15 +108,7 @@ function expand_binomial(a,b,n::Integer)
             mergesyms(args[j+1],a)
             mergesyms(args[j+1],b)
             setfixed(args[j+1])
-#            args[j+1] = mxpr(:Times, fac , mxpr(:Power, a, (n-j)), mxpr(:Power,b,j))            
         end
-    end
-    mx = mxprcf(:Plus,args)
-    mergesyms(mx,a)
-    mergesyms(mx,b)
-    setage(mx)
-    setfixed(mx)
-    mx
 end
 
 @sjdoc Apply "

@@ -240,7 +240,7 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     res == false && return false # match failed
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
-    for (p,c) in capt
+    for (p,c) in capt  # type inferred? move to aux function ?
         storecapt(p,c,cd) # throw away condition information
     end
     nnpat = patsubst!(npat.ast,cd) # do replacement

@@ -111,11 +111,19 @@ Only 1-d is supported.
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]
+    args = do_unpack(obj)
+    mx = mxpr(:List,args)
+    setfixed(mx)
+    setcanon(mx)
+    return mx
+end
+
+function do_unpack(obj)
     args = newargs(length(obj))
-    for i in 1:length(obj)
+    @inbounds for i in 1:length(obj)
         args[i] = obj[i]
     end
-    mxpr(:List,args)
+    return args
 end
 
 @sjdoc Pack "
@@ -134,12 +142,18 @@ The type of the array is the same as the first element in mx.
 function apprules(mx::Mxpr{:Pack})
     sjobj = margs(mx[1])
     T = typeof(sjobj[1]) # hope one exists
+    args = do_pack(T,sjobj)
+    return args
+end
+
+function do_pack(T,sjobj)
     args = Array(T,length(sjobj))
-    for i in 1:length(sjobj)
+    @inbounds for i in 1:length(sjobj)
         args[i] = sjobj[i]
     end
     return args
 end
+
 
 set_and_setdelayed(mx,y,z) = mx
 
@@ -163,7 +177,7 @@ their DownValues.
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
-    for a in mx.args
+    @inbounds for a in mx.args  # makes sense here ?
         checkprotect(a)
         setsymval(a,symname(a))
     end
@@ -520,7 +534,7 @@ returns the result of only the final evaluation.
 "
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
-        for i in 1:length(mx)
+        @inbounds for i in 1:length(mx)
             res = doeval(mx[i])
         end
     res
@@ -655,7 +669,7 @@ end
 # separate functions are *essential* for type stability and efficiency.
 function range_args1(n)
     args = newargs(n);
-    for i in one(1):n
+    @inbounds for i in one(1):n
         args[i] = i
     end
     return args
@@ -664,7 +678,7 @@ end
 function range_args2(n0,n)
     nd = n - n0
     args = newargs(nd);
-    for i in one(n0):nd
+    @inbounds for i in one(n0):nd
         args[i] = i+n0
     end
     return args
@@ -674,7 +688,7 @@ function range_args3(n0,n,di,off)
     args = newargs(div(n-n0+off,di));
     len = length(args) # cheap
     s = n0
-    for i in one(n0):len
+    @inbounds for i in one(n0):len
         args[i] = s
         s += di
     end
@@ -688,7 +702,7 @@ end
 function replsym(ex,os,ns)
     if is_Mxpr(ex)
         args = margs(ex)
-        for i in 1:length(args)
+        @inbounds for i in 1:length(args)
             args[i] = replsym(args[i],os,ns)
         end
     end
@@ -724,7 +738,7 @@ end
 
 function do_table(imax,isym,ex)
     args = newargs(imax)
-    for i in 1:imax
+    @inbounds for i in 1:imax
         sjset(getsym(isym),i)
         v = doeval(ex)
 #        v = meval(ex)        
