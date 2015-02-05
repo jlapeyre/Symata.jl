@@ -116,6 +116,17 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     return flatcanon!(mxpr(:Times, fac, m1, m2))
 end
 
+# Big gain in effciency with this method
+function _expand_mulpowers(fac,b1::SJSym,e1,b2::SJSym,e2)
+    m1 = b1^e1
+    m2 = b2^e2
+    setfixed(m1)
+    setfixed(m2)
+    mergesyms(m1,b1)
+    mergesyms(m2,b2)            
+    return mxpr(:Times, fac, m1, m2)
+end
+
 # Does not seem to help efficiency
 function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2
@@ -123,13 +134,6 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
             l = l + 1
             fac *= k
             fac = div(fac,l)
-            # m1 = canonpower(a,n-j) #   mxpr(:Power, a, (n-j))
-            # m2 = canonpower(b,j) # mxpr(:Power,b,j)
-            # setfixed(m1)
-            # setfixed(m2)
-            # mergesyms(m1,a)
-            # mergesyms(m2,b)            
-            # args[j+1] = flatcanon!(mxpr(:Times, fac, m1, m2))
             args[j+1] = _expand_mulpowers(fac,a,n-j,b,j)
             mergesyms(args[j+1],a)
             mergesyms(args[j+1],b)
