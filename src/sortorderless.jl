@@ -40,8 +40,8 @@ const _jstypeorder = Dict{DataType,Int}()
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
 function _mklexorder()
-    i = 1
-    for typ in (Float64,Int,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr)
+    i = 1   ## CAREFULL! We use literal index of Any below
+    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr)
         _jstypeorder[typ] = i
         i += 1
     end
@@ -56,7 +56,7 @@ _mklexorder()
 
 # returns ordering precedence of Type, typ
 function mxtypeorder(typ::DataType)
-    ! haskey(_jstypeorder,typ)  && return 3  # Any
+    ! haskey(_jstypeorder,typ)  && return 5  # Any
     return _jstypeorder[typ]
 end
 
@@ -287,7 +287,7 @@ end
 # (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n
 # Assume the product prod has already been sorted;
 # the number, if present is first.
-function do_canon_power!{T<:Number}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
+function do_canon_power!{T<:Real}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
     len = length(prod)
     args = margs(prod)
     nargs = newargs(len) # is it faster to reuse existing args ?

@@ -43,5 +43,12 @@
 @testex Head(m) == Times
 @testex Apply(List,m) == List(8,a^3,b^3)
 
-#@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
+@ex m = Expand((2*a+2*b)^BI(4))
+@testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
 
+@ex m = Expand((2*a+2*b)^4)
+@testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
+
+@ex Clear(m)
+
+#@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
