@@ -37,5 +37,11 @@
 @testex Apply(List, _ + __) == List(_,__)
 @testex Apply(List, a + _x) == List(a,_x)
 
+## Test do_canon_power!
+@ex Clear(a,b,m)
+@ex m = (2*a*b)^3
+@testex Head(m) == Times
+@testex Apply(List,m) == List(8,a^3,b^3)
+
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
 

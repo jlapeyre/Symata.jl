@@ -2,16 +2,31 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
-# There are four (more or less) stages:
-# 1. Reduced sequences of numbers, leaving perhaps singletons. (We could get those as well)
-# 2. Put the terms and factors in a canonical order.
-# 3. Evaluate all + and * between singletons which have been sorted to beginning.
+# There are four (more or less) steps:
+# 1. Reduce sequences of numbers, leaving perhaps singletons. (We could choose to get singletons as well)
+#    Doing this first is much,much faster for sums and prods with lots of numbers. May slow down
+#    canoning other expressions.
+# 2. Sort the terms and factors into a canonical order.
+# 3. Evaluate all + and * between singleton numbers from 1., which have been sorted to beginning.
 # 4. Combine terms with:
 #    A. same numeric coefficient
 #    B. same numeric power
-# 4a.  Sort again
+# XXX  no, this is disabled:: 4a.  Sort again.
 
-# We try to follow the Mma order for Orderless.
+## Comparison functions for sorting expressions to canonical order.
+
+# Mathematica and Maxima sort terms and factors before evaluating-- it
+# is difficult or impossible to hold an expression in non-canonical
+# form (well, in SJulia and Maxima, you have the source code.) Maple
+# apparently does not sort expressions to canoncial order. But Maple
+# (so they say) essentially never stores multiple copies of
+# expressions that are the same: a hash key is computed for each
+# expression, and the key is looked-up in a data structure. If the
+# expression exists, a pointer to the original expression is used in
+# place of the new one. In Maple, the hash key for for AC expressions
+# is invariant under permutation of terms(factors).
+
+# We try to follow the Mma order for Orderless Heads, only Plus and Times here.
 
 # Anything with a Blank is greater than anything without a Blank.
 # This is the natural order for pattern matching.
@@ -172,6 +187,8 @@ jslexless{T}(x::T,y::T) =  _jslexless(x,y)
 # We have defined an order for different types
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
+## Step 2. Sort expression according to jslexless.
+
 # Order the args in orderless Mxpr.
 function orderexpr!(mx::Orderless)
     ar = mx.args
@@ -179,6 +196,8 @@ function orderexpr!(mx::Orderless)
     mx
 end
 
+
+# Step 1. Reduce sequences of explicit numbers.
 # Sum (multiply) sequence of numbers in expression before sorting.
 # This only removes one consecutive run of numbers.
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
@@ -234,6 +253,7 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
+## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function canonexpr!(mx::Orderless)
     if true
@@ -255,6 +275,37 @@ function canonexpr!(mx::Orderless)
     setcanon(mx)
     mx
 end    
+
+function canonexpr!(mx::Mxpr{:Power})
+    do_canon_power!(mx,base(mx),expt(mx))
+end
+
+# (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n
+# Assume the product prod has already been sorted;
+# the number, if present is first.
+function do_canon_power!{T<:Number}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
+    len = length(prod)
+    args = margs(prod)
+    nargs = newargs(len) # is it faster to reuse existing args ?
+    if is_Number(args[1])
+        nargs[1] = mpow(args[1],expt)
+    else
+        nargs[1] = mxpr(:Power,args[1],expt)
+    end
+    for i in 2:len
+        nargs[i] = mxpr(:Power,args[i],expt)
+    end
+    for i in 1:len
+        setcanon(nargs[i])
+    end
+    mx = mxpr(:Times,nargs)
+    setcanon(mx)
+    return mx
+end
+
+do_canon_power!(mx,base,expt) = mx
+
+## For expressions/objects that are not canonicalized
 canonexpr!(x) = x
 
 flatcanon!(x) = canonexpr!(flatten!(x))
@@ -271,6 +322,7 @@ flatcanon!(x) = canonexpr!(flatten!(x))
 # deepcanonexpr!(x) = x
 
 
+## Step 3.
 # TODO  'compact' not a good name for this function
 #################################################################
 ## Sum collected numerical args in :mplus, (or same for :Times)  #
@@ -347,9 +399,9 @@ function numeric_expt_and_base(a)
     return n == 1 ? (n,a) : (n,base(a))
 end
 
-# name is too generic.
 # Test if two terms differ only by numeric coeffcient,
-# and return coefficient and common sub-expression
+# and return coefficient and common sub-expression.
+# name is too generic.
 function _matchterms(a,b)
     (na,a1) = numeric_coefficient_and_factor(a)
     (nb,b1) = numeric_coefficient_and_factor(b)
@@ -363,7 +415,7 @@ function _matchfacs(a,b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
 
-# Is used in canonexpr!
+# Is used in canonexpr! , but nowhere else in this file
 # (x^n)^m --> x^(n*m)
 function mulpowers(mx::Mxpr{:Power})
     (e,b) = numeric_expt_and_base(mx)
@@ -373,7 +425,10 @@ function mulpowers(mx::Mxpr{:Power})
 end
 mulpowers(x) = x
 
-# Replace n repeated terms x by n*x, and factors x by x^n
+## Step 4.
+# Replace n repeated terms expr by expr*x, and factors expr by expr^n
+# This assumes that terms have been ordered so that collectable
+# terms are neighboring.
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)
