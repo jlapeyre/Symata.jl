@@ -107,7 +107,9 @@ function expand_binomial(a,b,n::Integer)
     mx
 end
 
-
+@sjdoc Apply "
+Apply(f,expr) replaces the Head of expr with f.
+"
 function apprules(mx::Mxpr{:Apply})
     doapply(mx,mx[1],mx[2])
 end
@@ -136,6 +138,9 @@ function Base.reverse(mx::Mxpr)
     return mx1
 end
 
+@sjdoc Reverse "
+Reverse(expr) reverses the order of the arguments in expr.    
+"
 function apprules(mx::Mxpr{:Reverse})
     do_reverse(mx[1])
 end

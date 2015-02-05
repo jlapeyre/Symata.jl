@@ -105,7 +105,7 @@ function format_see_alsos(sym)
         for i in 1:len-1
             print(string(sas[i]),", ")
         end
-        println("and ", string(sas[i]),".")
+        println("and ", string(sas[end]),".")
     end
 end
 

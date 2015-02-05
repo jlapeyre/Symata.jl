@@ -67,17 +67,6 @@ function set_and_setdelayed(mx,lhs::Mxpr, rhs)
     nothing
 end
 
-@sjdoc Module "
-Module creates a lexical scope block for variables. Warning, this is broken
-in the sense that nested calls to a Module are not supported.
-"
-
-@sjexamp( Module,
-         ("ClearAll(f,a)",""),
-         ("f(x_) := Module([a],(a=1, a+x))",""),
-         ("f(3)","4"),
-         ("a","a"))
-
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
 
@@ -364,6 +353,18 @@ apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
 
 ## Comparison
 
+@sjdoc Comparison "
+Comparison(expr1,c1,expr2,c2,expr3,...) performs or represents a
+chain of comparisons. Comparison expressions are usually input and
+displayed using infix notation.
+"
+@sjexamp(Comparison,
+         ("Clear(a,b,c)",""),
+         ("a == a","true"),
+         ("a == b","false"),
+         ("a < b <= c","a < b <= c"),
+         ("(a=1,b=2,c=2)","2"),
+         ("a < b <= c","true"))
 # We do this the Julia- and mma4max way, not the Mma way.
 function apprules(mx::Mxpr{:Comparison})
     nargs1 = newargs()
@@ -422,6 +423,15 @@ dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
 dopower(mx,b,e) = mx 
 
 ## convert to BigInt or BigFloat. We cannot yet do this automatically
+@sjdoc BI "
+BI(n) converts the number n to a BigInt. SJulia currently neither
+detects integer overflow, nor automatically promote integers to BigInts.
+"
+@sjseealso_group(BI,BF)
+@sjdoc BF "
+BF(n) converts the number n to a BigFloat. SJulia currently neither
+detects overflow, nor automatically promotes types from fixed to arbitrary precision.
+"
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint{T<:Number}(mx,x::T) = BigInt(x)
@@ -443,9 +453,21 @@ apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
 ## Tracing evaluation
 
+@sjdoc TraceOn "
+TraceOn() turns on the tracing of SJulia evaluation.
+"
+@sjdoc TraceOff "
+TraceOff() turns off the tracing of SJulia evaluation.
+"
+@sjseealso_group(TraceOn,TraceOff)
 apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
 
+@sjdoc Timing "
+Timing(expr) evaluates expr and returns a list of the elapsed CPU time
+and the result.
+"
+@sjseealso_group(Timing,Allocated,TimeOn,TimeOff)
 function apprules(mxt::Mxpr{:Timing})
     t = @elapsed begin
         reset_meval_count()
@@ -455,6 +477,15 @@ function apprules(mxt::Mxpr{:Timing})
     mxpr(:List,t,mx)
 end
 
+@sjdoc TimeOn "
+TimeOn() enables printing CPU time consumed and memory allocated
+after each evaluation of command line input.
+"
+
+@sjdoc TimeOff "
+TimeOff() disables printing CPU time consumed and memory allocated
+after each evaluation of command line input.
+"
 apprules(mx::Mxpr{:TimeOn}) = MEVAL.timingon = true
 apprules(mx::Mxpr{:TimeOff}) = MEVAL.timingon = false
 
@@ -469,6 +500,10 @@ function apprules(mxt::Mxpr{:Timing2})
     mx
 end
 
+@sjdoc Allocated "
+Allocated(expr) evaluates expr and returns a list of the memory allocated
+and the result of the evaluation.
+"
 function apprules(mxt::Mxpr{:Allocated})
     local mx
     a = @allocated begin
@@ -479,6 +514,10 @@ function apprules(mxt::Mxpr{:Allocated})
     mxpr(:List,a,mx)
 end
 
+@sjdoc CompoundExpression "
+CompoundExpression(expr1,expr2,...) or (expr1,expr2,...) evaluates each expression in turn and
+returns the result of only the final evaluation.
+"
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
         for i in 1:length(mx)
@@ -487,26 +526,71 @@ function apprules(mx::Mxpr{:CompoundExpression})
     res
 end
 
+@sjdoc Age "
+Age(s) returns the timestamp for the expression or symbol s.
+Using this timestamp to avoid unnecessary is a very partially
+implemented feature.
+"
+@sjseealso_group(Age,Fixed)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::Symbol) = int(getage(s))
 do_getage(mx,s::Mxpr) = int(getage(symval(s)))
 do_getage(mx,x) = mx
 
+@sjdoc Fixed "
+Fixed(expr) returns the status of the fixed point bit, which tells whether expr
+is expected to evaluate to itself in the current environment. This is very partially
+implemented. For instance it works with Expand((a+b)^10).
+"
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
 # But, it seems this requires elaborate heuristic to manage elaborate
 # data structure to implement leaky abstraction.
 apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
 
+@sjdoc BuiltIns "
+BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symbols that
+have the Protected attribute.
+"
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+@sjdoc EvenQ "
+EvenQ(expr) returns true if expr is an even integer.
+"
+@sjdoc OddQ "
+OddQ(expr) returns true if expr is an odd integer.
+"
+
+@sjseealso_group(AtomQ,EvenQ,OddQ)
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
+
+@sjdoc StringLength "
+StringLength(s) returns the length of the string s.
+"
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
+
+@sjdoc Module "
+Module creates a lexical scope block for variables. Warning, this is broken
+in the sense that nested calls to a Module are not supported.
+"
+@sjexamp( Module,
+         ("ClearAll(f,a)",""),
+         ("f(x_) := Module([a],(a=1, a+x))",""),
+         ("f(3)","4"),
+         ("a","a"))
 apprules(mx::Mxpr{:Module}) = localize_module(mx)
+
+@sjdoc Println "
+Println(expr1,expr2,...) prints the expressions and a newline.
+"
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 
 ## Expand, only a bit is implemented
 
+@sjdoc Expand "
+Expand(expr) expands products in expr. This is only partially implemented,
+mostly to test the efficiency of evaluation and evaluation control.
+"
 function apprules(mx::Mxpr{:Expand})
     mx1 = mx[1]
     ! is_Mxpr(mx1) && return mx[1] # Are there other cases ?
@@ -535,6 +619,18 @@ do_expand_binomial(a,b,n) = p
 # This is used to test summing numbers.
 # Maxima is faster than Mma v3 at Apply(Plus,l) , where l is a big list of numbers
 # Maxima is about 10x faster than this code (SJulia).
+
+@sjdoc Range "
+Range(n) returns the List of integers from 1 through n.
+Range(n1,n2) returns the List of integers from n1 through n2.
+Range(n1,n2,di) returns the List of integers from n1 through n2 in steps of di
+di may be negative. Range is only partially implemented. Eg, floats and symbols
+are not supported. However, you can get other SJulia lists, eg. floats, by
+using Unpack(:([1.0:10^5])). This uses emebedded Julia to create a typed Array
+and then unpacks it to a List. Range is rather slow for large lists compared to
+other CAS's. Tests show that this is because copying numbers into an Array{Any,1} is slow.
+The other CAS's are also using the equivalent of Array{Any,1}, but are much faster.
+"
 function apprules(mx::Mxpr{:Range})
     if length(mx) == 1
         n = mx[1]
@@ -588,6 +684,10 @@ function replsym(ex,os,ns)
     end
 end
 
+@sjdoc Table "
+Table(expr,[i,imax]) returns a list of expr evaluated imax times with
+i set successively to 1 through imax. Other Table features are not implemented.
+"
 # We only do Table(expr,[i,imax])
 # Our Table is rather slow. Slower than Maxima makelist.
 # Table(a(i),[i,10000]) is 2 to 3 x slower than makelist( i, i, 1, 10000)
