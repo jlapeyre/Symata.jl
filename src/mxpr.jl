@@ -229,8 +229,8 @@ end
 
 global const exitcounts = Int[0,0,0,0,0]
 
-
-# We use 'infinite' evaluation. Evaluate till expression does not change.
+# Note: lcheckhash is the identity (ie disabled)
+# doeval is loopmeval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
     neval = 0
@@ -263,6 +263,7 @@ function loopmeval(mxin::Mxpr)
         mx1 = meval(mx)
         if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx
             mx = mx1
+#            setfixed(mx) # don't think this is correct
             break
         end
         neval += 1
@@ -272,6 +273,7 @@ function loopmeval(mxin::Mxpr)
         end
         mx = mx1
     end
+    if is_Mxpr(mx) && mx == mxin  setfixed(mx) end
     # No test exits via this point
 #     if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin
 #         setfixed(mxin)

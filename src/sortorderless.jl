@@ -289,8 +289,8 @@ function canonexpr!(mx::Mxpr{:Power})
     for i in 1:length(mx)
         mergesyms(mx,mx[i])
     end
-#    mergesyms(mx,base(mx)) no longer Power if do_canon_power was applied
-#    mergesyms(mx,expt(mx))    
+    #    mergesyms(mx,base(mx)) no longer Power if do_canon_power was applied
+    #    mergesyms(mx,expt(mx))
     mx
 end
 
