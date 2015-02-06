@@ -571,8 +571,7 @@ function apprules(mx::Mxpr{:Syms})
 end
 
 do_syms(mx::Mxpr) = mxpr(:List,collect(keys(mx.syms))...)
-do_syms(s::SJSym) = mxpr(:List,)
-
+do_syms(s) = mxpr(:List,)
 
 @sjdoc BuiltIns "
 BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symbols that

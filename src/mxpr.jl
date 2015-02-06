@@ -347,6 +347,8 @@ function meval(mx::Mxpr)
         end
     end
     nmx = mxpr(nhead,nargs)
+    # Need following, but probably not the right way.    
+    nmx.syms = mx.syms 
     res = apprules(nmx)
     res == nothing && return nothing
     if  ! is_canon(res)
