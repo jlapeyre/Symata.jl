@@ -258,29 +258,27 @@ numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function canonexpr!(mx::Orderless)
-    if true
-        mx = loopnumsfirst!(mx)  # remove sequences of numbers
-        is_Number(mx) && return mx
-        orderexpr!(mx)  # sort terms
-        if is_type_less(mx,Mxpr)        
-            mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
-            if is_type_less(mx,Mxpr)
-                mx = collectordered!(mx)  # collect terms differing by numeric coefficients
-                if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
-                #if is_type(mx,Orderless)
-                    # no test, fails if we remove this. But maybe we forgot a test.
-                    #  mx = orderexpr!(mx)  # order again (is this needed ?)
-                #end
-            end
+    mx = loopnumsfirst!(mx)  # remove sequences of numbers
+    is_Number(mx) && return mx
+    orderexpr!(mx)  # sort terms
+    if is_type_less(mx,Mxpr)        
+        mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
+        if is_type_less(mx,Mxpr)
+            mx = collectordered!(mx)  # collect terms differing by numeric coefficients
+            if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
+            #if is_type(mx,Orderless)
+            # no test, fails if we remove this. But maybe we forgot a test.
+            #  mx = orderexpr!(mx)  # order again (is this needed ?)
+            #end
         end
     end
     setcanon(mx)
-    # for i in 1:length(mx)
-    #     println("Merging $mx: ", mx[i])
-    #     mergesyms(mx,mx[i])
-    # end
+    for i in 1:length(mx)
+#        println("Merging $mx: ", mx[i])
+        mergesyms(mx,mx[i])
+    end
     mx
-end    
+end 
 
 function canonexpr!(mx::Mxpr{:Power})
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want ! here
@@ -288,8 +286,8 @@ function canonexpr!(mx::Mxpr{:Power})
     # println("Doing canon")
     # println("Merging $mx: ", base(mx))
     # println("Merging $mx: ", expt(mx))    
-    # mergesyms(mx,base(mx))
-    # mergesyms(mx,expt(mx))    
+#    mergesyms(mx,base(mx))
+#   mergesyms(mx,expt(mx))    
     mx
 end
 
