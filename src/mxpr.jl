@@ -326,14 +326,14 @@ function meval(mx::Mxpr)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
     else
-        changeflag = false  # don't think this helps any
-        for i in 1:length(mxargs)
-#            println("Checking change in ", mxargs[i], " in expr ",mx)
-            if mxargs[i] != doeval(mxargs[i])
-                changeflag = true
-                break
-            end
-        end
+        changeflag = false  
+#         for i in 1:length(mxargs)  # need to test this code
+# #            println("Checking change in ", mxargs[i], " in expr ",mx)
+#             if mxargs[i] != doeval(mxargs[i])
+#                 changeflag = true
+#                 break
+#             end
+#         end
         changeflag = true
         if changeflag
             nargs = newargs()        
@@ -361,7 +361,7 @@ function meval(mx::Mxpr)
 #        println("Trying merge into $res")
         for i in 1:length(res)
 #            println(" Merging $res: ", res[i])            
-            mergesyms(res,res[i])
+#            mergesyms(res,res[i])
         end
     end
     return res
