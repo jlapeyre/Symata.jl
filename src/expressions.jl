@@ -165,14 +165,15 @@ function expand_binomial(a,b,n::Integer)
     mx
 end
 
+# Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
 function _expand_mulpowers(fac,b1,e1,b2,e2)
-    m1 = canonpower(b1,e1)
+    m1 = canonpower(b1,e1)  # adds 10-15% time  
     m2 = canonpower(b2,e2)
     setfixed(m1)
     setfixed(m2)
     mergesyms(m1,b1)
     mergesyms(m2,b2)            
-    return flatcanon!(mxpr(:Times, fac, m1, m2))    
+    return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
 end
 
 # Big gain in effciency by specializing for Symbols
@@ -185,6 +186,29 @@ function _expand_mulpowers(fac,b1::SJSym,e1,b2::SJSym,e2)
     mergesyms(m2,b2)            
     return mxpr(:Times, fac, m1, m2)
 end
+
+function _expand_mulpowers(fac,b1::SJSym,e1,b2,e2)
+    m1 = b1^e1
+#    m2 = b2^e2    
+    m2 = canonpower(b2,e2)
+    setfixed(m1)
+    setfixed(m2)
+    mergesyms(m1,b1)
+    mergesyms(m2,b2)
+    return flatcanon!(mxpr(:Times, fac, m1, m2))    
+end
+
+function _expand_mulpowers(fac,b1,e1,b2::SJSym,e2)
+    m1 = canonpower(b1,e1)
+#    m1 = b1^e1    
+    m2 = b2^e2    
+    setfixed(m1)
+    setfixed(m2)
+    mergesyms(m1,b1)
+    mergesyms(m2,b2)
+    return flatcanon!(mxpr(:Times, fac, m1, m2))    
+end
+
 
 function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2

@@ -266,10 +266,6 @@ function canonexpr!(mx::Orderless)
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
             if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
-            #if is_type(mx,Orderless)
-            # no test, fails if we remove this. But maybe we forgot a test.
-            #  mx = orderexpr!(mx)  # order again (is this needed ?)
-            #end
         end
     end
     setcanon(mx)
@@ -281,16 +277,8 @@ function canonexpr!(mx::Orderless)
 end 
 
 function canonexpr!(mx::Mxpr{:Power})
-    mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want ! here
+    mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
     setcanon(mx)
-    # println("Doing canon")
-    # println("Merging $mx: ", base(mx))
-    # println("Merging $mx: ", expt(mx))
-    for i in 1:length(mx)
-        mergesyms(mx,mx[i])
-    end
-    #    mergesyms(mx,base(mx)) no longer Power if do_canon_power was applied
-    #    mergesyms(mx,expt(mx))
     mx
 end
 
@@ -300,8 +288,8 @@ end
 function do_canon_power!{T<:Real}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
     len = length(prod)
     args = margs(prod)
-    nargs = newargs(len) # is it faster to reuse existing args ?
-    if is_Number(args[1])
+    nargs = newargs(len) # we must use new args.
+    if is_Number(args[1])  # No more than the first item will be a number
         nargs[1] = mpow(args[1],expt)
     else
         nargs[1] = mxpr(:Power,args[1],expt)
@@ -313,7 +301,6 @@ function do_canon_power!{T<:Real}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
         setcanon(nargs[i])
     end
     mx = mxpr(:Times,nargs)
-#    setcanon(mx)  done by caller
     return mx
 end
 
@@ -323,18 +310,9 @@ do_canon_power!(mx,base,expt) = mx
 canonexpr!(x) = x
 
 flatcanon!(x) = canonexpr!(flatten!(x))
-
-
-# Recursive descent is done by meval; not needed here.
-# function deepcanonexpr!(mx::Mxpr)
-#     for i = 1:length(mx)
-#         if ! is_canon(mx) mx.args[i] = deepcanonexpr!(mx.args[i]) end
-#     end
-#     mx = canonexpr!(mx)
-#     return mx    
-# end
-# deepcanonexpr!(x) = x
-
+#flatcanon!(x) = canonexpr!(x)  # These are for testing speed
+#flatcanon!(x) = flatten!(x)
+#flatcanon!(x) = x
 
 ## Step 3.
 # TODO  'compact' not a good name for this function
