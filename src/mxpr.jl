@@ -273,7 +273,7 @@ function loopmeval(mxin::Mxpr)
         end
         mx = mx1
     end
-    if is_Mxpr(mx) && mx == mxin  setfixed(mx) end
+    if is_Mxpr(mx) && mx == mxin  setfixed(mx) end  # why not set age here ?
     # No test exits via this point
 #     if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin
 #         setfixed(mxin)

@@ -179,20 +179,12 @@ end
 @inline setfixed(x) = true
 
 @inline function checkdirtysyms(mx::Mxpr)
-    length(mx.syms) == 0 && return true    
-    # if length(mx.syms) == 0
-    #     if is_fixed(mx)
-    #         return false
-    #     else
-    #         return true  # assume re-eval is necessary
-    #     end
-    # end
+    length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
     for (sym,age) in mx.syms
-#        symage(sym) > age && return true
         symage(sym) > mxage && return true        
     end
-    return false  # no symbols in mx have been set since mx was constructed
+    return false  # no symbols in mx have been set since mx age was updated
 end
 @inline checkdirtysyms(x) = false
 

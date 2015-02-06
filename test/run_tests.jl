@@ -1,4 +1,5 @@
 using Base.Test
+include("evaluation_test.jl")
 include("expressions_test.jl")
 include("arithmetic_test.jl")
 include("downvalues_test.jl")

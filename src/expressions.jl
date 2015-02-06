@@ -1,18 +1,68 @@
 ## Expand, Apply, Reverse
 
-## expand product of two sums
+doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
 
-## In test cases, this is fast. later, canonicalizing each term is
-# slowest thing.
+function doexpand(prod::Mxpr{:Times})
+    a = margs(prod)
+    len = length(a)
+    for i in 1:len
+        a[i] = doexpand(a[i])
+    end
+    have_sum = false
+    j = 0
+    for i in 1:len
+        j += 1
+        if is_Mxpr(a[i],:Plus)
+            have_sum = true
+            break
+        end
+    end
+    ! have_sum && return prod
+    nonsums = newargs()
+    for i in 1:j-1
+        push!(nonsums,a[i])
+    end
+    sums = newargs()
+    push!(sums,a[j])
+    for i in j+1:len
+        if is_Mxpr(a[i],:Plus)
+            push!(sums,a[i])
+        end
+    end
+    sumres = mulsums(sums...)
+    mulsums(mxpr(:Times,nonsums),sumres)
+#    mulsums(margs(prod)...)
+end
+
+doexpand(mx) = mx
+
+do_expand_power(p,b::Mxpr{:Plus}, n::Integer) =
+    length(b) != 2 ? p : do_expand_binomial(p,b[1],b[2],n)
+do_expand_power(p,b,ex) = p
+
+#do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
+do_expand_binomial(p,a, b, n::Integer) = expand_binomial(a,b,n)
+do_expand_binomial(a,b,n) = p
+
+function doexpand(s::Mxpr{:Plus})
+    args = margs(s)
+    for i in 1:length(args)
+        args[i] = doexpand(args[i])
+    end
+    return s
+end
+
+## expand product of two sums
+# a an b are the factors
+# In test cases, this is fast. later, canonicalizing each term is slowest thing.
 function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
-#    println("1:  $a,  $b")
     terms = newargs(length(a)*length(b))
     i = 0
     for ax in a.args
         for bx in b.args
             i += 1
 #            println("  1:  $ax,  $bx")
-            t = flatcanon!(mxpr(:Times, ax, bx))
+            t = flatcanon!(mxpr(:Times, ax, bx)) # TODO specialize for types of ax, bx
             mergesyms(t,ax)
             mergesyms(t,bx)
             setfixed(t)
@@ -49,10 +99,20 @@ function mulsums(a::Mxpr{:Plus},b)
 end
 
 function mulsums(a, b::Mxpr{:Plus})
-#    println("3:  $a,  $b")
+#   println("3:  $a,  $b")
     mulsums(b,a)
 end
 
+# factors are not sums, but other things!
+# This should not be called!
+# function mulsums(a::Number,b::Union(SJSym,Mxpr{:Power}))
+#     mx = mxpr(:Times,a,b)
+#     setfixed(mx)
+#     mergesyms(mx,b)
+#     mx
+# end
+
+# mulsums(a::SJSym,b::Number)
 
 ## construct Power. Decide whether to canonicalize according to types of args
 function canonpower{T<:Real}(base,expt::T)

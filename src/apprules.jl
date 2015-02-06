@@ -549,7 +549,7 @@ Age(s) returns the timestamp for the expression or symbol s.
 Using this timestamp to avoid unnecessary evaluation is a very partially
 implemented feature.
 "
-@sjseealso_group(Age,Fixed)
+@sjseealso_group(Age,Fixed,Syms)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::Symbol) = int(getage(s))
@@ -562,10 +562,12 @@ is expected to evaluate to itself in the current environment. This is very parti
 implemented. For instance it works with Expand((a+b)^10).
 "
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
-# But, it seems this requires elaborate heuristic to manage elaborate
-# data structure to implement leaky abstraction.
 apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
 
+@sjdoc Syms "
+Syms(m) returns a List of the symbols that the expression m 'depends' on.
+"
+    
 function apprules(mx::Mxpr{:Syms})
     do_syms(mx[1])
 end
@@ -616,26 +618,7 @@ apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 Expand(expr) expands products in expr. This is only partially implemented,
 mostly to test the efficiency of evaluation and evaluation control.
 "
-function apprules(mx::Mxpr{:Expand})
-    mx1 = mx[1]
-    ! is_Mxpr(mx1) && return mx[1] # Are there other cases ?
-    doexpand(mx1)
-end
-
-doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
-function doexpand(prod::Mxpr{:Times})
-    mulsums(margs(prod)...)
-end
-
-doexpand(mx1) = mx1
-
-do_expand_power(p,b::Mxpr{:Plus}, n::Integer) =
-    length(b) != 2 ? p : do_expand_binomial(p,b[1],b[2],n)
-do_expand_power(b,ex) = mx
-
-#do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
-do_expand_binomial(p,a, b, n::Integer) = expand_binomial(a,b,n)
-do_expand_binomial(a,b,n) = p
+apprules(mx::Mxpr{:Expand}) = doexpand(mx[1])
 
 # Only some of Range implemented for testing other things.
 # From the command line, all the time evaluating Range(n) for n>10000 or so

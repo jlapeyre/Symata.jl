@@ -12,6 +12,8 @@ is_SJSym(s::SJSym) = true
 is_SJSym(x) = false
 is_Mxpr{T<:Mxpr}(mx::T) = true
 is_Mxpr(x) = false
+is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
+is_Mxpr(x,s::Symbol) = false
 is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
 
