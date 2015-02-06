@@ -267,20 +267,29 @@ function canonexpr!(mx::Orderless)
             if is_type_less(mx,Mxpr)
                 mx = collectordered!(mx)  # collect terms differing by numeric coefficients
                 if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
-                if is_type(mx,Orderless)
+                #if is_type(mx,Orderless)
                     # no test, fails if we remove this. But maybe we forgot a test.
                     #  mx = orderexpr!(mx)  # order again (is this needed ?)
-                end
+                #end
             end
         end
     end
     setcanon(mx)
+    # for i in 1:length(mx)
+    #     println("Merging $mx: ", mx[i])
+    #     mergesyms(mx,mx[i])
+    # end
     mx
 end    
 
 function canonexpr!(mx::Mxpr{:Power})
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want ! here
     setcanon(mx)
+    # println("Doing canon")
+    # println("Merging $mx: ", base(mx))
+    # println("Merging $mx: ", expt(mx))    
+    # mergesyms(mx,base(mx))
+    # mergesyms(mx,expt(mx))    
     mx
 end
 

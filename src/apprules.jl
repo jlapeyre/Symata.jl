@@ -429,6 +429,9 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
+
+# Probably faster to handle this in
+# canonicalization code
 apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
 dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
 dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
@@ -453,6 +456,9 @@ apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
 
+# This might be faster if done by the canonicalizer.
+# Currently if this apprule is commented out, then
+# 0 + a == a, is false, although 0+a is simplified at a later stage 
 function apprules(mx::Mxpr{:Plus})
     if length(mx) == 2
         doplus(mx,mx[1],mx[2])
@@ -561,6 +567,14 @@ implemented. For instance it works with Expand((a+b)^10).
 # But, it seems this requires elaborate heuristic to manage elaborate
 # data structure to implement leaky abstraction.
 apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
+
+function apprules(mx::Mxpr{:Syms})
+    do_syms(mx[1])
+end
+
+do_syms(mx::Mxpr) = mxpr(:List,collect(keys(mx.syms))...)
+do_syms(s::SJSym) = mxpr(:List,)
+
 
 @sjdoc BuiltIns "
 BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symbols that

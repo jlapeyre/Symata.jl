@@ -107,12 +107,8 @@ global gotit = 0
 # Slows operations down by factor of 2 to 5 or more or less
 @inline function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
-#    println("Computing hash for $mx")    
     k = hash(mx)
-#    println("h: $k, $mx")
     if haskey(EXPRDICT,k)
-        #        global gotit += 1
-#        println("Found already hash $k")
         return EXPRDICT[k]
     end
     mx.key = k
@@ -166,7 +162,9 @@ end
 # record dependence of mx on symbols that a depends on
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
+#    println("INMERGE MXPR $mx: $a")
     for sym in keys(a.syms)
+#        println("** INMERGE MXPR $mx: $sym")
         mxs[sym] = true
     end
 end

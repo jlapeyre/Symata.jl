@@ -328,11 +328,13 @@ function meval(mx::Mxpr)
     else
         changeflag = false  # don't think this helps any
         for i in 1:length(mxargs)
-            if mxargs == doeval(mxargs)
+#            println("Checking change in ", mxargs[i], " in expr ",mx)
+            if mxargs[i] != doeval(mxargs[i])
                 changeflag = true
                 break
             end
         end
+        changeflag = true
         if changeflag
             nargs = newargs()        
             for i in 1:length(mx.args)
@@ -340,6 +342,7 @@ function meval(mx::Mxpr)
                 push!(nargs,res1)
             end
         else
+#            println("meval: No change in $mx")
             nargs = mxargs
         end
     end
@@ -354,5 +357,12 @@ function meval(mx::Mxpr)
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
+    if is_Mxpr(res)
+#        println("Trying merge into $res")
+        for i in 1:length(res)
+#            println(" Merging $res: ", res[i])            
+            mergesyms(res,res[i])
+        end
+    end
     return res
 end
