@@ -194,7 +194,7 @@ end
 
 @inline is_canon(mx::Mxpr) = mx.canon
 @inline is_fixed(mx::Mxpr) = mx.fixed
-#is_fixed(s::SJSym) = symval(s) == s
+is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
 @inline setcanon(mx::Mxpr) = mx.canon = true
 @inline setfixed(mx::Mxpr) = mx.fixed = true

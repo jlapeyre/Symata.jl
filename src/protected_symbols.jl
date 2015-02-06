@@ -10,7 +10,7 @@ for v in ( "Set", "Pattern", "SetJ" )
 end
 
 for v in ("Module","Clear", "ClearAll", "SetDelayed", "HoldPattern", "Hold", "DumpHold",
-          "DownValues", "Age", "Fixed", "Table") # Age, Fixed and others are not Mma
+          "DownValues", "Age", "Table") # Age, Fixed and others are not Mma
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -93,7 +93,7 @@ end
 for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack","Example")
+          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack","Example","Fixed")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end

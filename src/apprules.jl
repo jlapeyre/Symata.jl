@@ -562,7 +562,8 @@ is expected to evaluate to itself in the current environment. This is very parti
 implemented. For instance it works with Expand((a+b)^10).
 "
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
-apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
+#apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
+apprules(mx::Mxpr{:Fixed}) = is_fixed(mx[1])
 
 @sjdoc Syms "
 Syms(m) returns a List of the symbols that the expression m 'depends' on.
