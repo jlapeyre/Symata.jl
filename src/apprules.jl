@@ -549,7 +549,7 @@ Age(s) returns the timestamp for the expression or symbol s.
 Using this timestamp to avoid unnecessary evaluation is a very partially
 implemented feature.
 "
-@sjseealso_group(Age,Fixed,Syms)
+@sjseealso_group(Age,Fixed,Syms,DirtyQ)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::Symbol) = int(getage(s))
@@ -571,6 +571,12 @@ Syms(m) returns a List of the symbols that the expression m 'depends' on.
 function apprules(mx::Mxpr{:Syms})
     do_syms(mx[1])
 end
+
+@sjdoc DirtyQ "
+DirtyQ(m) returns true if the timestamp of any symbol that m depends on
+is more recent than the timestamp of m. This is for diagnostics.
+"
+apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
 
 do_syms(mx::Mxpr) = mxpr(:List,collect(keys(mx.syms))...)
 do_syms(s) = mxpr(:List,)
