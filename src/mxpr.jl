@@ -326,8 +326,8 @@ function meval(mx::Mxpr)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
     else
-        changeflag = false  
-#         for i in 1:length(mxargs)  # need to test this code
+#        changeflag = false  
+#         for i in 1:length(mxargs)  # need to see if this code is worth anything. It breaks somes things.
 # #            println("Checking change in ", mxargs[i], " in expr ",mx)
 #             if mxargs[i] != doeval(mxargs[i])
 #                 changeflag = true
@@ -358,11 +358,11 @@ function meval(mx::Mxpr)
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
     if is_Mxpr(res)
-#        println("Trying merge into $res")
-        for i in 1:length(res)
+#        println("Trying merge into $res")  This is very, very slow
+#        for i in 1:length(res)
 #            println(" Merging $res: ", res[i])            
 #            mergesyms(res,res[i])
-        end
+#        end
     end
     return res
 end

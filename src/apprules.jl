@@ -456,18 +456,16 @@ apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
 
-# This might be faster if done by the canonicalizer.
-# Currently if this apprule is commented out, then
-# 0 + a == a, is false, although 0+a is simplified at a later stage 
-function apprules(mx::Mxpr{:Plus})
-    if length(mx) == 2
-        doplus(mx,mx[1],mx[2])
-    else
-        mx
-    end
-end
-doplus(mx,a::Number,b::Number) = mplus(a,b)
-doplus(mx,b,e) = mx
+# This appears to be done by canonicalizer. So it is a waste of time.
+# function apprules(mx::Mxpr{:Plus})
+#     if length(mx) == 2
+#         doplus(mx,mx[1],mx[2])
+#     else
+#         mx
+#     end
+# end
+#doplus(mx,a::Number,b::Number) = mplus(a,b)
+#doplus(mx,b,e) = mx
 
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
