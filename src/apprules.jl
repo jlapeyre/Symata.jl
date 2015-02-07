@@ -446,10 +446,10 @@ end
 
 # These may not all be necessary.
 
-apprules(mx::Mxpr{://}) = makerat(mx,mx.args[1],mx.args[2])
+apprules(mx::Mxpr{://}) = makerat(mx,mx[1],mx[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
 makerat(mx,n,d) = mx
-apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx.args[1],mx.args[2])
+apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx[1],mx[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
 

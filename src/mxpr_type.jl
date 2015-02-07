@@ -225,10 +225,8 @@ is_fixed(s::SJSym) = symval(s) == s
 @inline newargs(n::Integer) = Array(Any,n)
 
 #setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
-# No, this should be fast
+# These should be fast. In the SJulia language, mx[0] gets the head, but not here.
 @inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
-# Following needs to be fixed. For speed, not used for head
-#getindex(x::Mxpr,k::Int) = return k == 0 ? mhead(x) : margs(x,k)
 @inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0
@@ -237,7 +235,7 @@ is_fixed(s::SJSym) = symval(s) == s
 # We need to think about copying in the following. Support both refs and copies ?
 function getindex(mx::Mxpr, r::UnitRange)
     if r.start == 0
-        return mxpr(mx[0],margs(mx)[1:r.stop]...)
+        return mxpr(mhead(mx),margs(mx)[1:r.stop]...)
     else
         return margs(mx)[r]
     end
@@ -245,9 +243,9 @@ end
 
 function getindex(mx::Mxpr, r::StepRange)
     if r.start == 0
-        return mxpr(mx[0],margs(mx)[0+r.step:r.step:r.stop]...)
+        return mxpr(mhead(mx),margs(mx)[0+r.step:r.step:r.stop]...)
     elseif r.stop == 0 && r.step < 0
-        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mx[0])
+        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mhead(mx))
     else
         return margs(mx)[r]
     end
