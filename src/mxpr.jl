@@ -38,7 +38,8 @@ function ==(ax::Mxpr, bx::Mxpr)
     true
 end
 
-getindex(mx::Mxpr, k::Int) = return k == 0 ? mx.head : mx.args[k]
+# Wht is this doing here!!
+#getindex(mx::Mxpr, k::Int) = return k == 0 ? mx.head : mx.args[k]
 Base.length(mx::Mxpr) = length(mx.args)
 
 ## Mxpr Display
@@ -52,7 +53,7 @@ const LISTR = ']'
 # Mma fullform returns the value and prints differently.
 # We only print the value.
 function fullform(io::IO, mx::Mxpr)
-    print(io,mx.head)
+    print(io,mhead(mx))
     print("(")
     if length(mx) > 0 fullform(io,mx[1]) end
     for i in 2:length(mx)
@@ -289,21 +290,22 @@ function loopmeval(mxin::Mxpr)
     return lcheckhash(mx)
 end
 
+# This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
-loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
+# loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
 
-function loopmeval(s::SJSym, ss::SSJSym)
-    return s == symval(ss) ? s : loopmeval(symval(ss))
-end
+# function loopmeval(s::SJSym, ss::SSJSym)
+#     return s == symval(ss) ? s : loopmeval(symval(ss))
+# end
 
-function loopmeval{T<:Number}(s::SJSym, ss::SSJSym{T})
-    return symval(ss)
-end
+# function loopmeval{T<:Number}(s::SJSym, ss::SSJSym{T})
+#     return symval(ss)
+# end
 
 function loopmeval(s::SJSym)
-    loopmeval(s,getssym(s))
-#    mx = meval(s)
-#    return mx == s ? s : loopmeval(mx)
+#    loopmeval(s,getssym(s))
+    mx = meval(s)
+    return mx == s ? s : loopmeval(mx)
 end
 
 loopmeval(x) = x
@@ -322,7 +324,7 @@ function meval(mx::Mxpr)
         ind = " " ^ get_meval_count()
         println(ind,"<< " , mx)
     end
-    nhead = doeval(mx.head)
+    nhead = doeval(mhead(mx))
 #    nhead = mx.head
     local nargs
     mxargs = mx.args
@@ -334,9 +336,9 @@ function meval(mx::Mxpr)
         for i in 2:length(mxargs)
             nargs[i] = doeval(mxargs[i])
         end        
-    elseif get_attribute(mx.head,:HoldAll)
+    elseif get_attribute(mhead(mx),:HoldAll)
         nargs = mxargs
-    elseif get_attribute(mx.head,:HoldRest)
+    elseif get_attribute(mhead(mx),:HoldRest)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
     else
@@ -362,9 +364,11 @@ function meval(mx::Mxpr)
     end
     nmx = mxpr(nhead,nargs)
     # Need following, but there is probably a better way to do this.
-    nmx.syms = mx.syms 
-    res = apprules(nmx)
-    res == nothing && return nothing
+    nmx.syms = mx.syms
+ #    if get_attribute(res, res = threadlistable(res)
+    # We apply the rules before doing the ordering. This differs from Mma.
+    res = apprules(nmx) 
+    res == nothing && return nothing    
     if  ! is_canon(res)
         res = flatten!(res)        
         res = canonexpr!(res)
@@ -374,9 +378,12 @@ function meval(mx::Mxpr)
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
     if is_Mxpr(res) && isempty(res.syms)
-        for i in 1:length(res)
+        for i in 1:length(res)  # This is costly if it is not already done.
             mergesyms(res,res[i])
         end
     end
     return res
 end
+
+#function threadlistable()
+#end

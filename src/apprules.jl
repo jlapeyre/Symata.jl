@@ -66,7 +66,8 @@ end
 
 function set_only(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
-    sjset(getsym(symname(lhs)),rhs)
+    setsymval(lhs,rhs)
+#    sjset(getsym(symname(lhs)),rhs)
     rhs
 end
 
@@ -531,8 +532,8 @@ after each evaluation of command line input.
 TimeOff() disables printing CPU time consumed and memory allocated
 after each evaluation of command line input.
 "
-apprules(mx::Mxpr{:TimeOn}) = MEVAL.timingon = true
-apprules(mx::Mxpr{:TimeOff}) = MEVAL.timingon = false
+apprules(mx::Mxpr{:TimeOn}) = (MEVAL.timingon = true ; nothing)
+apprules(mx::Mxpr{:TimeOff}) = (MEVAL.timingon = false; nothing)
 
 # This does not work. Does not report correct time and allocation
 # We have to do Allocted and Timing separately
@@ -766,9 +767,9 @@ function apprules(mx::Mxpr{:Table})
     iter = mx[2]
     isym = gensym(string(iter[1]))
     imax = meval(iter[2])
-    issym = createssym(isym,Int)  ## Trying out Typed variable
+#    issym = createssym(isym,Int)  ## Trying out Typed variable
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
-    args = do_table(imax,issym,ex) # creating a symbol is pretty slow
+    args = do_table(imax,isym,ex) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
     mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
@@ -780,7 +781,7 @@ function do_table(imax::Int,isym,ex)
     args = newargs(imax)
 #    dump(ex)
     @inbounds for i in 1:imax
-        isym.val = i # very slow if field 'val' is Any. very fast if it is Int
+        setsymval(isym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int
 #        v = i
         v = meval(ex)
 #        v = getssym(ex).val

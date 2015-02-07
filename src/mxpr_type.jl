@@ -36,13 +36,23 @@ ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),Dict{Symbol,Bool}(),Array(Any,
 @inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
 @inline getsym(s) = s  # careful, this is not getssym
+sjval(s::SJSym) = getssym(s).val  # intended to be used from within Julia, or quoted julia. not used anywhere in code
+
 @inline symval(s::SJSym) = getssym(s).val
 @inline symval(s::SSJSym) = s.val
-sjval(s::SJSym) = getssym(s).val  # intended to be used from within Julia, or quoted julia
 @inline function setsymval(s::SJSym,val)
     (getssym(s).val = val)
     getssym(s).age = increvalage()
 end
+
+# Try storing values in a Dict instead of a field. Not much difference.
+# @inline symval(s::SJSym) = return haskey(SYMVALTAB,s) ? SYMVALTAB[s] : s
+# @inline function setsymval(s::SJSym,val)
+# #     (getssym(s).val = val)        
+#      SYMVALTAB[s] = val
+#      getssym(s).age = increvalage()
+# end
+# #@inline symval(s::SSJSym) = s.val
 
 @inline sjset(s::SJSym,val) = setsymval(s,val)
 
@@ -256,6 +266,7 @@ downvalues(s::SJSym) = getssym(s).downvalues
 listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 
 const SYMTAB = Dict{Symbol,SSJSym}()
+const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)
@@ -284,9 +295,6 @@ end
 
 # refresh a copy that is not in the symbol table. how does this happen?
 #getsym(sjs::SJSym) = getsym(symname(sjs))
-
-# was never used
-#getsymval(s::Symbol) = getsym(s).val
 
 #get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
 #set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
