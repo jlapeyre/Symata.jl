@@ -730,15 +730,15 @@ i set successively to 1 through imax. Other Table features are not implemented.
 # and setfixed() then the speed is the same.
 # But, the 3rd party 'table' for Maxima is 4 times faster than makelist
 # in this example.
+# Hmmm, well Mma 3.0 is pretty slow, too.
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
     isym = gensym(string(iter[1]))
     imax = meval(iter[2])
-    ex = @time(replsym(deepcopy(expr),iter[1],isym)) # takes no time, for simple expression
-#    println("The expression is $ex: ", dump(ex) )
-    args = @time(do_table(imax,getssym(isym),ex)) # creating a symbol is pretty slow
-    mx1 = @time(mxpr(:List,args)) # takes no time
+    ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
+    args = do_table(imax,getssym(isym),ex) # creating a symbol is pretty slow
+    mx1 = mxpr(:List,args) # takes no time
     mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
@@ -748,23 +748,19 @@ end
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
     for i in 1:imax
-#        tablesetsym(isym,i)
         isym.val = i # this is incredibly, amazingly, slow, why ?
         v = doeval(ex)  # this is extremely slow, even when ex is a symbol
-#        v = 1
-#        v = meval(ex)        
-#        setfixed(v)
         args[i] = v
         setfixed(args[i])        
     end
     return args
 end
 
-#tablesetsym(isym,val) = isym.val = val
-
 # The speed penalty for Any instead of Int, is factor of 10^4.
+# Setting isym.val is by far the slowest step in Table(i,[i,10^6])
+# Much slower than Mma and SBCL
 type NSYM
-    val::Int
+    val::Any
 end
 
 function testset()
