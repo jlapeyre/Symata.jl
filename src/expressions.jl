@@ -228,10 +228,20 @@ end
 @sjdoc Apply "
 Apply(f,expr) replaces the Head of expr with f.
 "
-function apprules(mx::Mxpr{:Apply})
-    doapply(mx,mx[1],mx[2])
+apprules(mx::Mxpr{:Apply}) = doapply(mx,mx[1],mx[2])
+
+function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
+    mx = mxpr(h,margs(mxa))
+    if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers
+        mx = canonexpr!(mx)
+        setcanon(mx)
+    else
+        nothing
+    end
+    mx
 end
-doapply(mx::Mxpr,h::SJSym,mxa::Mxpr) = mxpr(h,(mxa.args))
+
+
 
 # Apply operation to a typed numeric array.
 # We can build these functions with a macro and

@@ -107,8 +107,10 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
 end
 
 function show_infix(io::IO, mx::Mxpr)
-    args = mx.args
+    args = margs(mx)
     np = false
+    sepsym = mtojsym(mhead(mx))
+    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     for i in 1:length(args)-1
         if needsparen(args[i])
             np = true
@@ -120,7 +122,7 @@ function show_infix(io::IO, mx::Mxpr)
         if np
             print(io,")")
         end
-        print(io, mtojsym(mx.head))
+        print(io, sepsym)
     end
     if ! isempty(args)
         if needsparen(args[end])

@@ -276,6 +276,7 @@ function canonexpr!(mx::Orderless)
     mx
 end 
 
+# We set fixed here, but not for orderless above. Which one is correct ?
 function canonexpr!(mx::Mxpr{:Power})
 #    mx = mulpowers(mx)  either do it here, or in apprules (ie dopower) but not both
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here

@@ -766,7 +766,7 @@ function apprules(mx::Mxpr{:Table})
     iter = mx[2]
     isym = gensym(string(iter[1]))
     imax = meval(iter[2])
-    issym = createssym(isym,Int)
+    issym = createssym(isym,Int)  ## Trying out Typed variable
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
     args = do_table(imax,issym,ex) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
@@ -779,8 +779,8 @@ end
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
 #    dump(ex)
-    for i in 1:imax
-        isym.val = i # very slow if field 'val' is any. very fast if it is Int
+    @inbounds for i in 1:imax
+        isym.val = i # very slow if field 'val' is Any. very fast if it is Int
 #        v = i
         v = meval(ex)
 #        v = getssym(ex).val
