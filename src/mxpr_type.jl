@@ -20,9 +20,6 @@ type SSJSym{T}  <: AbstractSJSym
     age::UInt64
 end
 
-#sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
-#sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
-
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
@@ -86,7 +83,12 @@ type Mxpr{T} <: AbstractMxpr
     typ::DataType
 end
 
+@inline margs(mx::Mxpr) = mx.args
+@inline margs(mx::Mxpr,n::Int) = mx.args[n]
+mhead(mx::Mxpr) = mx.head
 mxprtype{T}(mx::Mxpr{T}) = T
+
+getindex(x::Mxpr,k::Int) = return k == 0 ? mhead(x) : margs(x,k)
 
 # Important that we do not hash any meta data. We take the
 # cached version
@@ -97,23 +99,22 @@ end
 # Hmm almost works
 function Base.hash(mx::Mxpr)
     mx.key != 0 && return mx.key
-    hout = hash(mx.head)
-    for a in mx.args
+    hout = hash(mhead(mx))
+    for a in margs(mx)
         hout = hash(a,hout)
     end
     hout    
 end
 
 @inline function dohash(mx::Mxpr, h::UInt64)
-    hout = hash(mx.head,h)
-    for a in mx.args
+    hout = hash(mhead(mx),h)
+    for a in margs(mx)
         hout = hash(a,hout)
     end
     hout
 end
                   
 const EXPRDICT = Dict{UInt64,Mxpr}()
-
 global gotit = 0
 
 # Slows operations down by factor of 2 to 5 or more or less
@@ -169,8 +170,6 @@ end
 # just for evaluating to themselves
 #setage(x) = true 
 
-@inline margs(mx::Mxpr) = mx.args
-
 # record dependence of mx on symbols that a depends on.
 # Reject protected symbols ?
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
@@ -178,7 +177,7 @@ end
     for sym in keys(a.syms)
         mxs[sym] = true
     end
-    h = head(a)
+    h = mhead(a)
     if ! is_protected(h)
         mxs[h] = true
     end
@@ -199,7 +198,7 @@ end
     for (sym,age) in mx.syms
         symage(sym) > mxage && return true        
     end
-#    symage(head(mx)) > mxage && return true
+#    symage(mhead(mx)) > mxage && return true
     return false  # no symbols in mx have been set since mx age was updated
 end
 @inline checkdirtysyms(x) = false
@@ -255,12 +254,7 @@ function getindex(mx::Mxpr, r::StepRange)
     end
 end
 
-
 #downvalues(s::SJSym) = s.downvalues
-# FIXME!
-# We may have fixed this with change in getsymval.
-# We look up the orginal SJSym from the name
-# because altered, spurious, copies of downvalues were being used.
 downvalues(s::SJSym) = getssym(s).downvalues
 listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 
@@ -340,7 +334,7 @@ end
 @inline function Base.copy(mx::Mxpr)
 #    println("copying $mx")
     args = copy(mx.args)
-    mxpr(mx.head,args)
+    mxpr(mhead(mx),args)
 end
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})

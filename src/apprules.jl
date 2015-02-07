@@ -18,7 +18,7 @@ function checkprotect(s::SJSym)
     error("Symbol '",symname(s), "' is protected.")
 end
 
-checkprotect(mx::Mxpr) = checkprotect(mx.head)
+checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 @sjdoc Set "
 Set(a,b), a = b
@@ -75,7 +75,7 @@ end
 function setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    push_downvalue(lhs.head,rule) # push DownValue
+    push_downvalue(mhead(lhs),rule) # push DownValue
     rule
     nothing
 end
@@ -83,7 +83,7 @@ end
 function set_only(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    push_downvalue(lhs.head,rule) # push DownValue
+    push_downvalue(mhead(lhs),rule) # push DownValue
     rule
     nothing
 end
@@ -292,8 +292,8 @@ Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one lev
 a quoted Julia expression is evaluated so that we can embed Julia code.
 "
 
-apprules(mx::Mxpr{:Head}) = gethead(mx.args[1])
-gethead(mx::Mxpr) = mx.head
+apprules(mx::Mxpr{:Head}) = gethead(margs(mx,1))
+gethead(mx::Mxpr) = mhead(mx)
 gethead(s::SJSym) = getsym(:Symbol)
 #gethead(s::Symbol) = getsym(:JuliaSymbol)  # out dated
 gethead(ex) = typeof(ex)

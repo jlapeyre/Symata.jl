@@ -17,20 +17,19 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-Base.base(p::Mxpr{:Power}) = p.args[1]
-expt(p::Mxpr{:Power}) = p.args[2]
-
-getindex(x::Mxpr,k::Int) = return k == 0 ? x.head : x.args[k]
+## Not the right place for these
+Base.base(p::Mxpr{:Power}) = margs(p,1)
+expt(p::Mxpr{:Power}) = margs(p,2)
 
 function get_attributes(sj::SJSym)
     ks = sort!(collect(keys(symattr(sj))))
-    mxpr(:List,ks...)    
+    mxpr(:List,ks...) # need to splat because array ks is not of type Any
 end
 
 function ==(ax::Mxpr, bx::Mxpr)
-    ax.head != bx.head  && return false
-    a = ax.args
-    b = bx.args
+    mhead(ax) != mhead(bx)  && return false
+    a = margs(ax)
+    b = margs(bx)
     (na,nb) = (length(a),length(b))
     na != nb && return false
     @inbounds for i in 1:na
@@ -290,14 +289,15 @@ function loopmeval(mxin::Mxpr)
     return lcheckhash(mx)
 end
 
-loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; s.val)
+# never called
+loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
 
 function loopmeval(s::SJSym, ss::SSJSym)
-    return s == ss.val ? s : loopmeval(ss.val)
+    return s == symval(ss) ? s : loopmeval(symval(ss))
 end
 
 function loopmeval{T<:Number}(s::SJSym, ss::SSJSym{T})
-    return ss.val
+    return symval(ss)
 end
 
 function loopmeval(s::SJSym)

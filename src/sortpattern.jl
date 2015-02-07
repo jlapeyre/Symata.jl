@@ -19,7 +19,7 @@ function has_pattern{T}(mx::Mxpr{T})
         res[1] == true && return res
     end
 #    println("Head is '", symname(head(mx)), "'")
-    if symname(head(mx)) == :Pattern
+    if symname(mhead(mx)) == :Pattern
         return (true, mx[2])
     end
     return (false,false)
