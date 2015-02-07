@@ -213,8 +213,9 @@ ClearAll(x,y,z) removes all values and DownValues associated with x,y,z.
 function apprules(mx::Mxpr{:ClearAll})
     for a in mx.args
         checkprotect(a)
-        setsymval(a,symname(a))
-        clear_downvalues(a)
+        delete!(SYMTAB,a)
+#        setsymval(a,symname(a))
+#        clear_downvalues(a)
     end
 end
 
@@ -233,7 +234,7 @@ representation is printed.
 @sjseealso_group(Dump,DumpHold)
 
 # DumpHold does not evaluate args before dumping
-apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args dump(a) end
+apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
@@ -613,6 +614,13 @@ BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symb
 have the Protected attribute.
 "
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+
+@sjdoc UserSyms "
+UserSyms() returns a List of non-Protected symbols, which is approximately
+all user defined symbols.
+"
+apprules(mx::Mxpr{:UserSyms}) = usersymbols()
+
 @sjdoc EvenQ "
 EvenQ(expr) returns true if expr is an even integer.
 "
@@ -758,10 +766,11 @@ function apprules(mx::Mxpr{:Table})
     iter = mx[2]
     isym = gensym(string(iter[1]))
     imax = meval(iter[2])
+    issym = createssym(isym,Int)
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
-    args = do_table(imax,getssym(isym),ex) # creating a symbol is pretty slow
+    args = do_table(imax,issym,ex) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
-    #    mergesyms(mx1,:nothing) # not correct, but stops the merging
+    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
     return mx1
@@ -771,7 +780,8 @@ function do_table(imax::Int,isym,ex)
     args = newargs(imax)
     for i in 1:imax
         isym.val = i # this is incredibly, amazingly, slow, why ?
-        v = doeval(ex)  # this is extremely slow, even when ex is a symbol
+#        v = 1
+        v = doeval(ex)  # this is extremely slow, even when ex is only a symbol
         args[i] = v
         setfixed(args[i])        
     end

@@ -13,7 +13,8 @@ typealias SJSym Symbol
 
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
-    val::Any
+#    val::Any
+    val::T
     attr::Dict{Symbol,Bool}  # attributes
     downvalues::Array{Any,1}
     age::UInt64
@@ -21,9 +22,18 @@ end
 
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
-@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 
-@inline symname{T}(s::SSJSym{T}) = T
+# We have a choice to carry the symbol name in the type parameter or a a field
+# Form of these functions depend on whether the symbol name is a type parameter
+# or a field
+@inline ssjsym(s::Symbol) = SSJSym{Any}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
+#@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
+#@inline symname{T}(s::SSJSym{T}) = T
+@inline symname{T}(s::SSJSym{T}) = s.val
+
+## Typed SJ Symbols
+ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),Dict{Symbol,Bool}(),Array(Any,0),0)
+
 @inline symname(s::SJSym) = s
 @inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
@@ -269,6 +279,17 @@ const SYMTAB = Dict{Symbol,SSJSym}()
 end
 @inline getssym(ss::String) = getssym(symbol(ss))
 
+function createssym(s::Symbol,T::DataType)
+    ns = ssjsym(s,T)
+    SYMTAB[s] = ns
+    return ns
+end
+
+function removesym(s::Symbol)
+    delete!(SYMTAB,s)
+    nothing
+end
+
 # refresh a copy that is not in the symbol table. how does this happen?
 #getsym(sjs::SJSym) = getsym(symname(sjs))
 
@@ -284,8 +305,20 @@ function protectedsymbols()
     for s in keys(SYMTAB)
         if get_attribute(s,:Protected) push!(args,getsym(s)) end
     end
-    mxpr(:List, sort!(args)...)
+    mx = mxpr(:List, sort!(args)...)
 end
+
+function usersymbols()
+    args = newargs()
+    for s in keys(SYMTAB)
+        if ! get_attribute(s,:Protected) push!(args,getsym(s)) end
+    end
+    mx = mxpr(:List, sort!(args)...)
+    setcanon(mx)
+    setfixed(mx)
+    mx
+end
+
 
 function get_attribute(sj::SJSym, a::Symbol)
     get(getssym(sj).attr,a,false)

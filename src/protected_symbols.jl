@@ -83,6 +83,16 @@ for v in ("Plus", "Times")
     end
 end
 
+
+for v in ("Power")
+    @eval begin
+        set_attribute(symbol($v),:Listable)
+        set_attribute(symbol($v),:NumericFunction)
+        set_attribute(symbol($v),:OneIdentity)
+        set_attribute(symbol($v),:Protected)
+    end
+end
+
 for v in ("EvenQ","OddQ","Range")
     @eval begin
         set_attribute(symbol($v),:Listable)
@@ -93,7 +103,8 @@ end
 for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack","Example","Fixed")
+          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack","Example","Fixed",
+          "UserSyms", "List")
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end

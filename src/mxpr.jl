@@ -290,6 +290,8 @@ function loopmeval(mxin::Mxpr)
     return lcheckhash(mx)
 end
 
+loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; s.val)
+
 function loopmeval(s::SJSym)
     mx = meval(s)
     return mx == s ? s : loopmeval(mx)

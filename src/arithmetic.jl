@@ -47,6 +47,10 @@ end
 
 ## Not really arithmetic.
 
+# *{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mmul(a,b)
+# +{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mplus(a,b)
+# +{T<:Number}(a::SSJSym{T}, b::Number) = mplus(a,b)
+
 *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
 *(a::SJSym,b::Number) = mxpr(:Times,b,a)
 *(a::Number,b::SJSym) = mxpr(:Times,a,b)
