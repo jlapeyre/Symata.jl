@@ -292,9 +292,14 @@ end
 
 loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; s.val)
 
+function loopmeval(s::SJSym, ss::SSJSym)
+    return s == ss.val ? s : loopmeval(ss.val)
+end
+
 function loopmeval(s::SJSym)
-    mx = meval(s)
-    return mx == s ? s : loopmeval(mx)
+    loopmeval(s,getssym(s))
+#    mx = meval(s)
+#    return mx == s ? s : loopmeval(mx)
 end
 
 loopmeval(x) = x

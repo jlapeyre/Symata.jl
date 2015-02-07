@@ -778,6 +778,7 @@ end
 
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
+    dump(ex)
     for i in 1:imax
         isym.val = i # this is incredibly, amazingly, slow, why ?
 #        v = 1

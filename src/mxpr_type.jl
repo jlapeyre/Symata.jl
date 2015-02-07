@@ -23,7 +23,8 @@ end
 #sjsym(s::Symbol) = SJSym{s}(s,s,Dict{Symbol,Bool}(),Array(Any,0))
 #sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),Dict{Symbol,UInt64}())
 
-# We have a choice to carry the symbol name in the type parameter or a a field
+# We have a choice to carry the symbol name in the type parameter or a a field,
+# in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
 @inline ssjsym(s::Symbol) = SSJSym{Any}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
