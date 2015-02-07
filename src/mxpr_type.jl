@@ -159,12 +159,11 @@ end
 
 @inline margs(mx::Mxpr) = mx.args
 
-# record dependence of mx on symbols that a depends on
+# record dependence of mx on symbols that a depends on.
+# Reject protected symbols ?
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
-#    println("INMERGE MXPR $mx: $a")
     for sym in keys(a.syms)
-#        println("** INMERGE MXPR $mx: $sym")
         mxs[sym] = true
     end
 end

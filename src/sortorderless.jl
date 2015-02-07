@@ -273,7 +273,7 @@ function canonexpr!(mx::Orderless)
         end
     end
     setcanon(mx)
-#    setfixed(mx)
+#    setfixed(mx) 
     mx
 end 
 

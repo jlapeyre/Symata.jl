@@ -45,13 +45,26 @@ rather to the current value of b every time a is evaluated.
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
-function apprules(mx::Union(Mxpr{:Set},Mxpr{:SetDelayed}))
-    set_and_setdelayed(mx,mx.args[1],mx.args[2])
+function apprules(mx::Mxpr{:Set})
+    set_only(mx,mx.args[1],mx.args[2])
+end
+
+function apprules(mx::Mxpr{:SetDelayed})
+    setdelayed(mx,mx.args[1],mx.args[2])
 end
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
 # so we look up the original in the table
-function set_and_setdelayed(mx,lhs::SJSym, rhs)
+# SetDelayed is not correct. rhs is also evaluated because
+# lhs is evaluated twice in order to find fixed point.
+# we have treat this specially somehow, not ordinary evaluation.
+function setdelayed(mx,lhs::SJSym, rhs)
+    checkprotect(lhs)
+    sjset(getsym(symname(lhs)),rhs)
+    nothing
+end
+
+function set_only(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
     sjset(getsym(symname(lhs)),rhs)
     rhs
@@ -59,7 +72,15 @@ end
 
 # Create DownValue. "function" definition
 # eg f(x_) := x  defines a DownValue for the SJSym f
-function set_and_setdelayed(mx,lhs::Mxpr, rhs)
+function setdelayed(mx,lhs::Mxpr, rhs)
+    checkprotect(lhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    push_downvalue(lhs.head,rule) # push DownValue
+    rule
+    nothing
+end
+
+function set_only(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     push_downvalue(lhs.head,rule) # push DownValue
@@ -68,7 +89,8 @@ function set_and_setdelayed(mx,lhs::Mxpr, rhs)
 end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
-set_and_setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
+setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
+set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
 
 @sjdoc SetJ "
 SetJ(x,val) sets the Julia symbol x to val. Variables and functions in SJulia
@@ -739,7 +761,7 @@ function apprules(mx::Mxpr{:Table})
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
     args = do_table(imax,getssym(isym),ex) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
-    mergesyms(mx1,:nothing) # not correct, but stops the merging
+    #    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
     return mx1
