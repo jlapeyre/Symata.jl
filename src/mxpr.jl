@@ -296,6 +296,10 @@ function loopmeval(s::SJSym, ss::SSJSym)
     return s == ss.val ? s : loopmeval(ss.val)
 end
 
+function loopmeval{T<:Number}(s::SJSym, ss::SSJSym{T})
+    return ss.val
+end
+
 function loopmeval(s::SJSym)
     loopmeval(s,getssym(s))
 #    mx = meval(s)
@@ -322,12 +326,13 @@ function meval(mx::Mxpr)
 #    nhead = mx.head
     local nargs
     mxargs = mx.args
+    len = length(mxargs)
     start = 1
     if get_attribute(mx.head,:HoldFirst)
-        nargs = newargs()
-        push!(nargs,mxargs[1])
+        nargs = newargs(len)
+        nargs[1] = mxargs[1]
         for i in 2:length(mxargs)
-            push!(nargs,doeval(mxargs[i]))
+            nargs[i] = doeval(mxargs[i])
         end        
     elseif get_attribute(mx.head,:HoldAll)
         nargs = mxargs
@@ -345,13 +350,13 @@ function meval(mx::Mxpr)
 #         end
         changeflag = true
         if changeflag
-            nargs = newargs()        
-            for i in 1:length(mx.args)
+            nargs = newargs(len)
+            for i in 1:len
                 res1 = doeval(mxargs[i])
-                push!(nargs,res1)
+                nargs[i] = res1
             end
+
         else
-#            println("meval: No change in $mx")
             nargs = mxargs
         end
     end

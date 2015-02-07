@@ -778,11 +778,13 @@ end
 
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
-    dump(ex)
+#    dump(ex)
     for i in 1:imax
-        isym.val = i # this is incredibly, amazingly, slow, why ?
-#        v = 1
-        v = doeval(ex)  # this is extremely slow, even when ex is only a symbol
+        isym.val = i # very slow if field 'val' is any. very fast if it is Int
+#        v = i
+        v = meval(ex)
+#        v = getssym(ex).val
+#        v = doeval(ex)  # this is extremely slow, even when ex is only a symbol
         args[i] = v
         setfixed(args[i])        
     end
