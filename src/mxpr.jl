@@ -349,7 +349,7 @@ function meval(mx::Mxpr)
         end
     end
     nmx = mxpr(nhead,nargs)
-    # Need following, but probably not the right way.    
+    # Need following, but there is probably a better way to do this.
     nmx.syms = mx.syms 
     res = apprules(nmx)
     res == nothing && return nothing
@@ -361,12 +361,10 @@ function meval(mx::Mxpr)
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
-    if is_Mxpr(res)
-#        println("Trying merge into $res")  This is very, very slow
-#        for i in 1:length(res)
-#            println(" Merging $res: ", res[i])            
-#            mergesyms(res,res[i])
-#        end
+    if is_Mxpr(res) && isempty(res.syms)
+        for i in 1:length(res)
+            mergesyms(res,res[i])
+        end
     end
     return res
 end

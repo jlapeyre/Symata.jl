@@ -165,7 +165,7 @@ function expand_binomial(a,b,n::Integer)
     mx
 end
 
-# Big increase in efficiency for both these types
+# Big increase in efficiency (> 10x) for both these types
 typealias ExpNoCanon Union(SJSym,Number)
 
 # Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
@@ -179,7 +179,6 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
 end
 
-# Big gain in effciency by specializing for Symbols
 function _expand_mulpowers(fac,b1::ExpNoCanon,e1,b2::ExpNoCanon,e2)
     m1 = b1^e1
     m2 = b2^e2

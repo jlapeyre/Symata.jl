@@ -265,20 +265,23 @@ function canonexpr!(mx::Orderless)
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
-            if is_type(mx,Mxpr{:Power}) mx = mulpowers(mx) end  # add numeric exponents when base is same
+            # does the following have any effect ?
+            if is_Mxpr(mx,:Power)
+#                println("Doing mulpower")
+                mx = mulpowers(mx)
+            end  # add numeric exponents when base is same
         end
     end
     setcanon(mx)
-    for i in 1:length(mx)
-#        println("Merging $mx: ", mx[i])
-        mergesyms(mx,mx[i])
-    end
+#    setfixed(mx)
     mx
 end 
 
 function canonexpr!(mx::Mxpr{:Power})
+#    mx = mulpowers(mx)  either do it here, or in apprules (ie dopower) but not both
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
     setcanon(mx)
+    setfixed(mx) # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do this
     mx
 end
 
@@ -408,7 +411,8 @@ function _matchfacs(a,b)
 end
 
 # Is used in canonexpr! , but nowhere else in this file
-# (x^n)^m --> x^(n*m)
+# (x^n)^m --> x^(n*m) , only for real n,m
+# This works, but not as called
 function mulpowers(mx::Mxpr{:Power})
     (e,b) = numeric_expt_and_base(mx)
     (e1,b1) = numeric_expt_and_base(base(mx))

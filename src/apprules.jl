@@ -432,12 +432,16 @@ makecomplex(mx,n,d) = mx
 
 # Probably faster to handle this in
 # canonicalization code
-apprules(mx::Mxpr{:Power}) = dopower(mx,mx[1],mx[2])
+function apprules(mx::Mxpr{:Power})
+    dopower(mx,mx[1],mx[2])
+end
+    
 dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
 dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), (exp*expt(b)))
-dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = mpow(base(b), (exp*expt(b)))
-dopower(mx,b,e) = mx 
+dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), (exp*expt(b)))
+dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), (expt(b)*exp)) : mx
+dopower(mx,b,e) = mx
 
 ## convert to BigInt or BigFloat. We cannot yet do this automatically
 @sjdoc BI "
@@ -664,6 +668,7 @@ function apprules(mx::Mxpr{:Range})
     r = mxpr(:List,args)
     setfixed(r)
     setcanon(r)
+    mergesyms(r,:nothing)
     return r    
 end
 
@@ -730,21 +735,44 @@ function apprules(mx::Mxpr{:Table})
     iter = mx[2]
     isym = gensym(string(iter[1]))
     imax = meval(iter[2])
-    ex = replsym(deepcopy(expr),iter[1],isym)
-    args = do_table(imax,isym,ex)
-    mx = mxpr(:List,args)
-    setfixed(mx)
-    mx
+    ex = @time(replsym(deepcopy(expr),iter[1],isym)) # takes no time, for simple expression
+#    println("The expression is $ex: ", dump(ex) )
+    args = @time(do_table(imax,getssym(isym),ex)) # creating a symbol is pretty slow
+    mx1 = @time(mxpr(:List,args)) # takes no time
+    mergesyms(mx1,:nothing) # not correct, but stops the merging
+    setcanon(mx1)
+    setfixed(mx1)
+    return mx1
 end
 
-function do_table(imax,isym,ex)
+function do_table(imax::Int,isym,ex)
     args = newargs(imax)
-    @inbounds for i in 1:imax
-        sjset(getsym(isym),i)
-        v = doeval(ex)
+    for i in 1:imax
+#        tablesetsym(isym,i)
+        isym.val = i # this is incredibly, amazingly, slow, why ?
+        v = doeval(ex)  # this is extremely slow, even when ex is a symbol
+#        v = 1
 #        v = meval(ex)        
-        setfixed(v)
+#        setfixed(v)
         args[i] = v
+        setfixed(args[i])        
     end
     return args
+end
+
+#tablesetsym(isym,val) = isym.val = val
+
+# The speed penalty for Any instead of Int, is factor of 10^4.
+type NSYM
+    val::Int
+end
+
+function testset()
+    ss = NSYM(0)
+    sum0 = 0
+    for i in 1:10^6
+        ss.val = i
+        sum0 += ss.val
+    end
+    sum0
 end
