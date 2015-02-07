@@ -265,9 +265,8 @@ function canonexpr!(mx::Orderless)
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
-            # does the following have any effect ?
+            # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
-#                println("Doing mulpower")
                 mx = mulpowers(mx)
             end  # add numeric exponents when base is same
         end

@@ -56,6 +56,7 @@ function push_downvalue(ins::SJSym,val)
     end
     isnewrule && push!(s.downvalues,val)
     sort!(s.downvalues,lt=isless_patterns)
+    s.age = increvalage()    
 end
     
 @inline clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
@@ -166,6 +167,10 @@ end
     for sym in keys(a.syms)
         mxs[sym] = true
     end
+    h = head(a)
+    if ! is_protected(h)
+        mxs[h] = true
+    end
 end
 
 # record dependence of mx on symbol a
@@ -183,6 +188,7 @@ end
     for (sym,age) in mx.syms
         symage(sym) > mxage && return true        
     end
+#    symage(head(mx)) > mxage && return true
     return false  # no symbols in mx have been set since mx age was updated
 end
 @inline checkdirtysyms(x) = false
@@ -285,6 +291,10 @@ function get_attribute(sj::SJSym, a::Symbol)
     get(getssym(sj).attr,a,false)
 end
 
+function is_protected(sj::SJSym)
+    get(getssym(sj).attr,:Protected,false)
+end 
+    
 function set_attribute(sj::SJSym, a::Symbol)
     getssym(sj).attr[a] = true
 end
