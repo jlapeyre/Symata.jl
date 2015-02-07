@@ -88,8 +88,6 @@ end
 mhead(mx::Mxpr) = mx.head
 mxprtype{T}(mx::Mxpr{T}) = T
 
-getindex(x::Mxpr,k::Int) = return k == 0 ? mhead(x) : margs(x,k)
-
 # Important that we do not hash any meta data. We take the
 # cached version
 function Base.hash(mx::Mxpr, h::UInt64)
@@ -229,7 +227,8 @@ is_fixed(s::SJSym) = symval(s) == s
 #setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 # No, this should be fast
 @inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
-
+# Following needs to be fixed. For speed, not used for head
+#getindex(x::Mxpr,k::Int) = return k == 0 ? mhead(x) : margs(x,k)
 @inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0

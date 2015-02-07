@@ -46,11 +46,11 @@ rather to the current value of b every time a is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 function apprules(mx::Mxpr{:Set})
-    set_only(mx,mx.args[1],mx.args[2])
+    set_only(mx,margs(mx,1),margs(mx,2))
 end
 
 function apprules(mx::Mxpr{:SetDelayed})
-    setdelayed(mx,mx.args[1],mx.args[2])
+    setdelayed(mx,margs(mx,1),margs(mx,2))
 end
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
@@ -99,8 +99,8 @@ are separate from those in Julia, ie, their table of bindings to symbols are sep
 
 # Bind a Julia symbol to the rhs
 function apprules(mx::Mxpr{:SetJ})
-    lhs = mx.args[1]
-    rhs = mx.args[2]
+    lhs = margs(mx,1)
+    rhs = margs(mx,2)
     eval(Expr(:(=),symname(lhs),rhs))
 end
 
@@ -162,7 +162,7 @@ The type of the array is the same as the first element in mx.
 
 # 1-d unpack
 function apprules(mx::Mxpr{:Pack})
-    sjobj = margs(mx[1])
+    sjobj = margs(margs(mx,1))
     T = typeof(sjobj[1]) # hope one exists
     args = do_pack(T,sjobj)
     return args
@@ -199,7 +199,7 @@ their DownValues.
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})
-    @inbounds for a in mx.args  # makes sense here ?
+    @inbounds for a in margs(mx)  # makes sense here ?
         checkprotect(a)
         setsymval(a,symname(a))
     end
@@ -211,7 +211,7 @@ ClearAll(x,y,z) removes all values and DownValues associated with x,y,z.
 
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})
-    for a in mx.args
+    for a in margs(mx)
         checkprotect(a)
         delete!(SYMTAB,a)
 #        setsymval(a,symname(a))
@@ -234,7 +234,7 @@ representation is printed.
 @sjseealso_group(Dump,DumpHold)
 
 # DumpHold does not evaluate args before dumping
-apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in mx.args is_SJSym(a) ? dump(getssym(a)) : dump(a) end
+apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
@@ -243,8 +243,8 @@ types, the length is zero. For Array's and Dict's the length is the same as
 Julia `length'.
 "
 
-apprules(mx::Mxpr{:Length}) = symjlength(mx.args[1])
-symjlength(mx::Mxpr) = length(mx.args)
+apprules(mx::Mxpr{:Length}) = symjlength(margs(mx,1))
+symjlength(mx::Mxpr) = length(margs(mx))
 symjlength(x) = length(x)
 
 
@@ -260,7 +260,7 @@ Julia types such as Array and Dict.
 # You must nest this to go down more than one level.
 # a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
 function apprules(mx::Mxpr{:Part})
-    a = mx.args
+    a = margs(mx)
     arr = a[1]
     i = a[2]
     i = i < 0 ? length(arr)+i+1 : i
@@ -278,7 +278,7 @@ at the moment.
 # We don't have syntax to set a part yet.
 # This only works at one level.
 function apprules(mx::Mxpr{:SetPart})
-    a = mx.args
+    a = margs(mx)
     x = a[1]
     ind = a[2]
     val = a[3]
@@ -303,7 +303,7 @@ JVar(x) returns the value of the Julia identifier x. This is
 identical to :(x).
 "
 @sjseealso_group(Jxpr,JVar)
-apprules(mx::Mxpr{:JVar}) = eval(symname(mx.args[1]))
+apprules(mx::Mxpr{:JVar}) = eval(symname(margs(mx,1)))
 
 @sjdoc AtomQ "
 AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
@@ -315,7 +315,7 @@ apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
 Attributes(s) returns attributes associated with symbol s. Builtin symbols have
 the attribute Protected, and may have others.
 "
-apprules(mx::Mxpr{:Attributes}) = get_attributes(mx.args[1])
+apprules(mx::Mxpr{:Attributes}) = get_attributes(margs(mx,1))
 
 @sjdoc DownValues "
 DownValues(s) returns a List of DownValues associated with symbol s. These are values
@@ -326,7 +326,7 @@ that are typically set with the declarative \"function definition\".
          ("ClearAll(f)",""),
          ("f(x_) := x^2",""),
          ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx.args[1])
+apprules(mx::Mxpr{:DownValues}) = listdownvalues(margs(mx,1))
 
 @sjdoc Example "
 Example(s) runs (evaluates) the first example for the symbol s, which is typically

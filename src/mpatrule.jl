@@ -315,7 +315,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     ex1 = ex
     if isexpr(ex)
         ex1 = mxpr(mhead(ex), margs(ex,1),
-             map((x)->replaceall(x,rules),ex.args[2:end])...)
+             map((x)->replaceall(x,rules),margs(ex)[2:end])...)
     end
     local res
     for r in rules
