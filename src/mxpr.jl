@@ -288,6 +288,30 @@ loopmeval(x) = x
 meval(x) = x
 meval(s::SJSym) = symval(s)
 
+# move this to mxpr_type
+function revisesyms(mx::Mxpr)
+    s = mx.syms
+#    println("DUMPING syums")
+#    dump(s)
+#    println("DONE DUMPING syums")    
+#    age = getage(mx)
+    nsyms = newsymsdict()
+    for sym in keys(s)
+#        println("#################starting")        
+#        println("#################Looking at $sym")        
+        if getage(sym) > a
+            mergesyms(nsyms,symval(sym))
+        else
+            mergesyms(nsyms,sym)
+        end
+#        println("Merged $sym")
+    end
+#    println("*******Done revising")
+    return nsyms
+end
+
+#revisesyms(x) = x
+
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
@@ -336,7 +360,11 @@ function meval(mx::Mxpr)
     end
     nmx = mxpr(nhead,nargs)
     # Need following, but there is probably a better way to do this.
-    nmx.syms = mx.syms
+#    dump(mx.syms)
+#    revisesyms(mx);
+#    dump(revisesyms(mx))
+#    nmx.syms = revisesyms(mx)
+    nmx.syms = mx.syms # This is wrong, too. Dependent symbols can change.
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx)
@@ -349,7 +377,8 @@ function meval(mx::Mxpr)
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
     is_meval_trace() && println(ind,">> " , res)
     decrement_meval_count()
-    if is_Mxpr(res) && isempty(res.syms)
+    if is_Mxpr(res)  && isempty(res.syms)
+#        clearsyms(res)  Clearing is bad.
         for i in 1:length(res)  # This is costly if it is not already done.
             mergesyms(res,res[i])
         end

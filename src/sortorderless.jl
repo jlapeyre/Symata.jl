@@ -279,7 +279,8 @@ function canonexpr!(mx::Orderless)
     end
 #    println("7 canonexpr")
     setcanon(mx)
-#    setfixed(mx) 
+#    mergeargs(mx)
+#    setfixed(mx) # need to try to enable this.
     mx
 end 
 

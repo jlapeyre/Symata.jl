@@ -140,17 +140,19 @@ end
 
 typealias Symbolic Union(Mxpr,SJSym)
 
+newsymsdict() = Dict{Symbol,Bool}()
+
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0,Any)
+    mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
 #    checkhash(mx)
     mx
 end
 
 @inline function mxpr(s::SJSym,args::MxprArgs)
-    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,UInt64}(),0,0,Any)
+    mx =Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
 #    checkhash(mx)    
     mx
@@ -160,13 +162,13 @@ end
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0,Any)
+    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
 #    checkhash(mx)
     mx
 end
 
 @inline function mxprcf(s::SJSym,args::MxprArgs)
-    mx = Mxpr{symname(s)}(s,args,true,true,Dict{Symbol,UInt64}(),0,0,Any)
+    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
 #    checkhash(mx)
     mx
 end
@@ -191,6 +193,18 @@ end
     end
 end
 
+#
+function mergesyms(mxs::Dict, a::Mxpr)
+    for sym in keys(a.syms)
+        mxs[sym] = true
+    end
+    h = mhead(a)
+    if ! is_protected(h)
+        mxs[h] = true
+    end
+end
+
+# Copy contents of symlists of mx[i] to symlist of mx
 function mergeargs(mx::Mxpr)
     for i in 1:length(mx)
 #        println(listsyms(mx[i]))
@@ -203,6 +217,10 @@ mergeargs(x) = nothing
 # record dependence of mx on symbol a
 @inline function mergesyms(mx::Mxpr, a::SJSym)
     (mx.syms)[a] = true    
+end
+
+function clearsyms(mx::Mxpr)
+    mx.syms = newsymsdict()
 end
 
 # should we detect type and not call these ?

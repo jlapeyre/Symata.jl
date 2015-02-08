@@ -31,14 +31,14 @@ function doexpand(prod::Mxpr{:Times})
             push!(nonsums,a[i])
         end
     end
-    sumres = length(sums) == 1 ? sums[1] : mulsums(sums...)
+    sumres = length(sums) == 1 ? sums[1] : mulfacs(sums...)
     nlen = length(nonsums)
     if nlen == 0
         mxout = sumres
     elseif nlen == 1
-        mxout = mulsums(nonsums[1],sumres)
+        mxout = mulfacs(nonsums[1],sumres)
     else
-        mxout = mulsums(mxpr(:Times,nonsums),sumres)
+        mxout = mulfacs(mxpr(:Times,nonsums),sumres)
     end
     setfixed(mxout)
     return mxout
@@ -65,7 +65,7 @@ end
 ## expand product of two sums
 # a an b are the factors
 # In test cases, this is fast. later, canonicalizing each term is slowest thing.
-function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
+function mulfacs(a::Mxpr{:Plus},b::Mxpr{:Plus})
     terms = newargs(length(a)*length(b))
     i = 0
     for ax in a.args
@@ -88,11 +88,11 @@ function mulsums(a::Mxpr{:Plus},b::Mxpr{:Plus})
 end
 
 # Not the right way to do this. We need to expand each term, as well.
-mulsums(a,b,c) = mulsums(mulsums(a,b),c)
-mulsums(a,b,c,xs...) = mulsums(mulsums(mulsums(a,b),c),xs...)
+mulfacs(a,b,c) = mulfacs(mulfacs(a,b),c)
+mulfacs(a,b,c,xs...) = mulfacs(mulfacs(mulfacs(a,b),c),xs...)
 
 # Should probably write this
-#function mulsums(a::Mxpr{:Plus}, b::SJSym)
+#function mulfacs(a::Mxpr{:Plus}, b::SJSym)
 #end
 
 function _pushfacs!(facs,mx::Mxpr{:Times})
@@ -104,7 +104,7 @@ function _pushfacs!(facs,b)
     push!(facs,b)    
 end
 
-function mulsums(a::Mxpr{:Plus},b)
+function mulfacs(a::Mxpr{:Plus},b)
 #    println("2:  $a,  $b")    
     terms = newargs(length(a))
     i = 0
@@ -119,27 +119,28 @@ function mulsums(a::Mxpr{:Plus},b)
         end
         canonexpr!(terms[i]) 
         mergeargs(terms[i])
+#        setfixed(terms[i])
     end
     mx = mxpr(:Plus,terms)
     mergeargs(mx)
     mx
 end
 
-function mulsums(a, b::Mxpr{:Plus})
+function mulfacs(a, b::Mxpr{:Plus})
 #   println("3:  $a,  $b")
-    mulsums(b,a)
+    mulfacs(b,a)
 end
 
 # factors are not sums, but other things!
 # This should not be called!
-# function mulsums(a::Number,b::Union(SJSym,Mxpr{:Power}))
+# function mulfacs(a::Number,b::Union(SJSym,Mxpr{:Power}))
 #     mx = mxpr(:Times,a,b)
 #     setfixed(mx)
 #     mergesyms(mx,b)
 #     mx
 # end
 
-# mulsums(a::SJSym,b::Number)
+# mulfacs(a::SJSym,b::Number)
 
 ## construct Power. Decide whether to canonicalize according to types of args
 function canonpower{T<:Real}(base,expt::T)
