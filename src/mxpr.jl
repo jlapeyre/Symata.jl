@@ -38,33 +38,6 @@ function ==(ax::Mxpr, bx::Mxpr)
     true
 end
 
-# Wht is this doing here!!
-#getindex(mx::Mxpr, k::Int) = return k == 0 ? mx.head : mx.args[k]
-Base.length(mx::Mxpr) = length(mx.args)
-
-## Mxpr Display
-
-# Julia-like syntax
-const FUNCL = '('
-const FUNCR = ')'
-const LISTL = '['
-const LISTR = ']'
-
-# Mma fullform returns the value and prints differently.
-# We only print the value.
-function fullform(io::IO, mx::Mxpr)
-    print(io,mhead(mx))
-    print("(")
-    if length(mx) > 0 fullform(io,mx[1]) end
-    for i in 2:length(mx)
-        print(io,",")        
-        fullform(io,mx[i])
-    end
-    print(")")
-end
-fullform(io::IO,x) = show(io,x)
-fullform(x) = fullform(STDOUT,x)
-
 ## Translate Expr to Mxpr
 
 extomx(x) = x

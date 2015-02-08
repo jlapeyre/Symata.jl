@@ -387,7 +387,7 @@ Head(arg1,arg2,...). Normal output may use infix notation instead.
          ("Clear(a,b)",""),
          ("a+b","a+b"),
          ("FullForm(a+b)","Plus(a,b)"))
-apprules(mx::Mxpr{:FullForm}) = fullform(STDOUT,mx[1])
+# FullForm is handled in io.jl
 
 ## Comparison
 

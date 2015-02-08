@@ -3,7 +3,6 @@
 doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
 
 function doexpand(prod::Mxpr{:Times})
-#    println("in doexpand prod $prod")
     a = margs(prod)
     len = length(a)
     for i in 1:len
@@ -18,13 +17,11 @@ function doexpand(prod::Mxpr{:Times})
             break
         end
     end
-#    println(" 2 in doexpand prod $prod")    
     ! have_sum && return prod
     nonsums = newargs()
     for i in 1:j-1  # none of these are sums
         push!(nonsums,a[i])
     end
-#    println(" 3 in doexpand prod $prod")        
     sums = newargs()
     push!(sums,a[j]) # already know its a sum
     for i in j+1:len   # push more sums, if there are any
@@ -34,14 +31,9 @@ function doexpand(prod::Mxpr{:Times})
             # should push non sums, but
         end
     end
-#    println(" 4 in doexpand prod $prod")    
     sumres = mulsums(sums...)
-#    println(" 5 in doexpand prod $prod")
-#    println(" Len non ", length(nonsums), " sumres ", length(sumres))
     mxout = isempty(nonsums) ? sumres : mulsums(mxpr(:Times,nonsums),sumres)
-#    println(" 6 in doexpand prod $mxout")
     return mxout
-#    mulsums(margs(prod)...)
 end
 
 doexpand(mx) = mx

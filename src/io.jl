@@ -1,9 +1,27 @@
-type IOFlags
-    fullform::Bool
-    inputform::Bool    
-end
+module SJuliaIO
 
-const IOFLAGS = IOFlags(false,true)
+import Main: Mxpr, SJSym, SSJSym, is_Mxpr, getsym,
+       symname, mhead, margs, is_type, getoptype,
+       mtojsym
+
+# Julia-like syntax
+const FUNCL = '('
+const FUNCR = ')'
+const LISTL = '['
+const LISTR = ']'
+
+function fullform(io::IO, mx::Mxpr)
+    print(io,mhead(mx))
+    print("(")
+    if length(mx) > 0 fullform(io,mx[1]) end
+    for i in 2:length(mx)
+        print(io,",")        
+        fullform(io,mx[i])
+    end
+    print(")")
+end
+fullform(io::IO,x) = show(io,x)
+fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
 needsparen(x::Rational) = true
@@ -26,10 +44,12 @@ function Base.show(io::IO, s::SSJSym)
     Base.show_unquoted(io,symbol(ss))
 end
 
+Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
+
 function Base.show(io::IO, s::Mxpr)
-    if getoptype(s.head) == :binary  
+    if getoptype(mhead(s)) == :binary  
         return show_binary(io,s)
-    elseif getoptype(s.head) == :infix
+    elseif getoptype(mhead(s)) == :infix
         return show_infix(io,s)
     end
     show_prefix_function(io,s)
@@ -45,9 +65,9 @@ function Base.show(io::IO, mx::Mxpr{:Comparison})
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    mx.head == getsym(:List) ? nothing : print(io,mtojsym(mx.head))
+    is_Mxpr(mx,:List) ? nothing : print(io,mtojsym(mhead(mx)))
     args = mx.args
-    print(io,mx.head == getsym(:List) ? LISTL : FUNCL)
+    print(io,mhead(mx) == getsym(:List) ? LISTL : FUNCL)
     wantparens = true
     if mhead(mx) == :List wantparens = false end    
     for i in 1:length(args)-1
@@ -177,3 +197,5 @@ function Base.show(io::IO, mx::Mxpr{:Pattern})
     show(io,mx[1])
     show(io,mx[2])    
 end
+
+end # module SJuliaIO
