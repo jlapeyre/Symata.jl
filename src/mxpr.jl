@@ -365,7 +365,7 @@ function meval(mx::Mxpr)
     nmx = mxpr(nhead,nargs)
     # Need following, but there is probably a better way to do this.
     nmx.syms = mx.syms
- #    if get_attribute(res, res = threadlistable(res)
+    if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx) 
     res == nothing && return nothing    
@@ -385,5 +385,45 @@ function meval(mx::Mxpr)
     return res
 end
 
-#function threadlistable()
-#end
+function threadlistable(mx::Mxpr)
+    pos = Array(Int,0) # should avoid this
+    lenmx = length(mx)
+    lenlist = -1
+    h = mhead(mx)
+    for i in 1:lenmx
+        if is_Mxpr(mx[i],:List)
+            nlen = length(mx[i])
+            if lenlist >= 0 && nlen != lenlist
+                error("Trying to thread over lists of different lengths.")
+            end
+            lenlist = nlen
+            push!(pos,i)
+        end
+    end
+    lenp = length(pos)
+    lenp == 0 && return mx
+    largs = newargs(lenlist)
+#    println("lenp=$lenp, lenlist=$lenlist")
+    for i in 1:lenlist
+        nargs = newargs(lenmx)
+        p = 1
+        for j in 1:lenmx
+            if p <= lenp && pos[p] == j
+#                println("got pos $p, at j=$j")
+                nargs[j] = mx[j][i]
+#                println("and set")
+                p += 1
+            else
+ #               println("setting scalar")                
+                nargs[j] = mx[j]
+#                println("set scalar")
+            end
+        end
+#        println("Pushing list $i")
+        largs[i] = mxpr(h,nargs)
+    end
+    nmx = mxpr(:List,largs)
+#    println("$largs")    
+#    println("Done")
+    return nmx
+end

@@ -324,6 +324,10 @@ function get_attribute(sj::SJSym, a::Symbol)
     get(getssym(sj).attr,a,false)
 end
 
+function get_attribute{T}(mx::Mxpr{T}, a::Symbol)
+    get_attribute(T,a)
+end
+
 function is_protected(sj::SJSym)
     get(getssym(sj).attr,:Protected,false)
 end 

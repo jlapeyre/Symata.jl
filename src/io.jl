@@ -41,12 +41,14 @@ function show_prefix_function(io::IO, mx::Mxpr)
     mx.head == getsym(:List) ? nothing : print(io,mtojsym(mx.head))
     args = mx.args
     print(io,mx.head == getsym(:List) ? LISTL : FUNCL)
+    wantparens = true
+    if mhead(mx) == :List wantparens = false end    
     for i in 1:length(args)-1
-        if needsparen(args[i])
+        if needsparen(args[i]) && wantparens
             print(io,"(")
         end
         show(io,args[i])
-        if needsparen(args[i])
+        if needsparen(args[i]) && wantparens
             print(io,")")
         end        
         print(io,",")
@@ -111,8 +113,10 @@ function show_infix(io::IO, mx::Mxpr)
     np = false
     sepsym = mtojsym(mhead(mx))
     if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
+#    wantparens = true
+#    if mhead(mx) == :List wantparens = false end
     for i in 1:length(args)-1
-        if needsparen(args[i])
+        if needsparen(args[i]) # && wantparens
             np = true
             print(io,"(")
         else
@@ -125,7 +129,7 @@ function show_infix(io::IO, mx::Mxpr)
         print(io, sepsym)
     end
     if ! isempty(args)
-        if needsparen(args[end])
+        if needsparen(args[end]) #  && wantparens
             np = true
             print(io,"(")
         else

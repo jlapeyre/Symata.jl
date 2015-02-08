@@ -199,7 +199,7 @@ their DownValues.
 @sjseealso_group(Clear, ClearAll)
 
 # 'Clear' a value. ie. set symbol's value to its name
-function apprules(mx::Mxpr{:Clear})
+function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
     @inbounds for a in margs(mx)  # makes sense here ?
         checkprotect(a)
         setsymval(a,symname(a))
@@ -211,7 +211,7 @@ ClearAll(x,y,z) removes all values and DownValues associated with x,y,z.
 "
 
 # Remove all values associate with SJSym. values and DownValues
-function apprules(mx::Mxpr{:ClearAll})
+function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
         checkprotect(a)
         delete!(SYMTAB,a)
