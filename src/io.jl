@@ -1,3 +1,10 @@
+type IOFlags
+    fullform::Bool
+    inputform::Bool    
+end
+
+const IOFLAGS = IOFlags(false,true)
+
 needsparen(x::Mxpr) = length(x) > 1
 needsparen(x::Rational) = true
 needsparen(x::Complex) = true
