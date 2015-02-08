@@ -46,7 +46,7 @@ rather to the current value of b every time a is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 function apprules(mx::Mxpr{:Set})
-    set_only(mx,margs(mx,1),margs(mx,2))
+    set_only(mx,mx[1],mx[2])
 end
 
 function apprules(mx::Mxpr{:SetDelayed})
@@ -594,11 +594,13 @@ implemented. For instance it works with Expand((a+b)^10).
 apprules(mx::Mxpr{:Fixed}) = is_fixed(mx[1])
 
 @sjdoc Syms "
-Syms(m) returns a List of the symbols that the expression m 'depends' on.
+Syms(m) returns a List of the symbols that the expression m 'depends' on. The
+list is wrapped in HoldForm in order to prevent evaluation of the symbols.
 "
-    
+
+# Syms has HoldAll
 function apprules(mx::Mxpr{:Syms})
-    do_syms(mx[1])
+    mxpr(:HoldForm,do_syms(mx[1]))
 end
 
 @sjdoc DirtyQ "
@@ -606,7 +608,6 @@ DirtyQ(m) returns true if the timestamp of any symbol that m depends on
 is more recent than the timestamp of m. This is for diagnostics.
 "
 apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
-
 do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
 do_syms(s) = mxpr(:List,)
 

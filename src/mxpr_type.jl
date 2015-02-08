@@ -196,6 +196,7 @@ end
 #
 function mergesyms(mxs::Dict, a::Mxpr)
     for sym in keys(a.syms)
+#        println("m1: $sym")
         mxs[sym] = true
     end
     h = mhead(a)
@@ -205,15 +206,16 @@ function mergesyms(mxs::Dict, a::Mxpr)
 end
 
 function mergesyms(mxs::Dict, a::SJSym)
+#    println("m2: $a")    
     mxs[a] = true
 end
 
-
+mergesyms(x,y) = nothing
 
 # Copy contents of symlists of mx[i] to symlist of mx
 function mergeargs(mx::Mxpr)
     for i in 1:length(mx)
-#        println(listsyms(mx[i]))
+#        println("mergeargs $i: ", listsyms(mx[i]))
         mergesyms(mx,mx[i])
     end
 end
@@ -230,7 +232,7 @@ function clearsyms(mx::Mxpr)
 end
 
 # should we detect type and not call these ?
-@inline mergesyms(x,y) = true
+
 @inline setfixed(x) = true
 
 @inline function checkdirtysyms(mx::Mxpr)
@@ -244,12 +246,12 @@ end
 end
 @inline checkdirtysyms(x) = false
 
-function checkemptysyms(mx::Mxpr)
+function add_nothing_if_no_syms(mx::Mxpr)
     if isempty(mx.syms) mx.syms[:nothing] = true end
 end
 checkemptysyms(x) = nothing
 
-listsyms(mx::Mxpr) = collect(keys(mx.syms))
+listsyms(mx::Mxpr) = sort!(collect(keys(mx.syms)))
 listsyms(x) = nothing
 
 #function setcleansyms(mx::Mxpr)
@@ -261,7 +263,7 @@ listsyms(x) = nothing
 is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
 @inline setcanon(mx::Mxpr) = mx.canon = true
-@inline setfixed(mx::Mxpr) = mx.fixed = true
+@inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx))
 @inline unsetcanon(mx::Mxpr) = mx.canon = false
 @inline unsetfixed(mx::Mxpr) = mx.fixed = false
 

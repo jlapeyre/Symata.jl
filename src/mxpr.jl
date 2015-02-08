@@ -97,6 +97,9 @@ function extomx(ex::Expr)
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
         extomxarr(a,newa)
+    elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
+        head = :Set
+        extomxarr(a,newa)        
     elseif ex.head == :(:)
         if length(a) == 2
             if is_type(a[1], Symbol) && is_type(a[2], Expr) &&
@@ -206,6 +209,7 @@ global const exitcounts = Int[0,0,0,0,0]
 # doeval is loopmeval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
+#    println("loopmeval ", mxin)
     neval = 0
     if checkdirtysyms(mxin)
 #        println("got dirty syms $mxin")
@@ -214,25 +218,26 @@ function loopmeval(mxin::Mxpr)
     if is_fixed(mxin)
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
         exitcounts[1] += 1
-        #pprintln("1 Returning ckh $mxin")
+#        println("1 Returning ckh $mxin")
         return lcheckhash(mxin)
     end
     mx = meval(mxin)
     if is_Mxpr(mx) && is_fixed(mx)  # Few exits here
         exitcounts[2] += 1
-        #pprintln("2 Returning ckh $mx")
+#        println("2 Returning ckh $mx")
         return lcheckhash(mx)
     end
 #    println("Check $mx == $mxin : ", mx == mxin)
-    if is_Mxpr(mx) && mx == mxin
-        setfixed(mxin)
-        setage(mxin)
+    if is_Mxpr(mx) && mx == mxin   ##  Return mx. They are equal but symlist is set in mx !!
+        setfixed(mx)
+        setage(mx)
         exitcounts[3] += 1
-        #pprintln("3 Returning ckh $mx")
-        return lcheckhash(mxin)
+#        println("3 Returning ckh $mx")
+        return lcheckhash(mx)
     end
     local mx1    
     while true
+#        println("##### Looping")
         mx1 = meval(mx)
         if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx
             mx = mx1
@@ -246,7 +251,13 @@ function loopmeval(mxin::Mxpr)
         end
         mx = mx1
     end
-    if is_Mxpr(mx) && mx == mxin  setfixed(mx) end  # why not set age here ?
+    if is_Mxpr(mx) && mx == mxin
+#        println(" mx == mxin , setting fixed ")
+        setfixed(mxin)
+    else
+#        println(" mx != mxin , $mx != $mxin")
+    end
+#    if is_Mxpr(mx) && mx == mxin setfixed(mx) end  # why not set age here ? ## MAY CAUSE PROBLEM !
     # No test exits via this point
 #     if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin
 #         setfixed(mxin)
@@ -259,7 +270,7 @@ function loopmeval(mxin::Mxpr)
 # #        println("3 not setting age of $mxin != $mx")
 #     end
     exitcounts[5] += 1
-    #pprintln("5 Returning ckh $mx")
+#    println("5 Returning ckh $mx")
     return lcheckhash(mx)
 end
 
@@ -291,25 +302,19 @@ meval(s::SJSym) = symval(s)
 # move this to mxpr_type
 function revisesyms(mx::Mxpr)
     s = mx.syms
-#    println("DUMPING syums")
-#    dump(s)
-#    println("DONE DUMPING syums")    
-    age = getage(mx)
+#    println("revising $mx:  $s")
+    mxage = getage(mx)
     nsyms = newsymsdict()
-    for sym in keys(s)
-#        println("#################starting")        
-        #        println("#################Looking at $sym")
-#        println("Cmp sym '$sym'  a '$a'")
-        if getage(sym) > age
+    for sym in keys(s)  # effiency. Don't allocate if we don't have to
+        # check age not working, new Mxpr derived from old: mx1 = mx, will be younger than all symbols
+        mergesyms(nsyms,symval(sym))
+#        if getage(sym) > mxage
 #            println("Merging Changed $sym")
-            mergesyms(nsyms,symval(sym))
-        else
+#            mergesyms(nsyms,symval(sym))
+#        else
 #            println("Merged unchanged $sym")
-            mergesyms(nsyms,sym)
-        end
-#        println("Merged $sym")
+#            mergesyms(nsyms,sym)
     end
-#    println("*******Done revising")
     return nsyms
 end
 
@@ -320,12 +325,14 @@ function meval(mx::Mxpr)
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
     end
+    local ind = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ get_meval_count()
-        println(ind,"<< " , mx)
+        println(ind,"<<", get_meval_count(), " " , mx)
     end
     nhead = doeval(mhead(mx))
     local nargs
+#    println("1. meval $mx: ", listsyms(mx))
     mxargs = mx.args
     len = length(mxargs)
     start = 1
@@ -334,12 +341,17 @@ function meval(mx::Mxpr)
         nargs[1] = mxargs[1]
         for i in 2:length(mxargs)
             nargs[i] = doeval(mxargs[i])
-        end        
+#            println("HoldFirst loop $i ",nargs[i], " : ", listsyms(nargs[i])) 
+        end
+#        println("HoldFirst Leaving")
     elseif get_attribute(mhead(mx),:HoldAll)
+#        println("************************************** HoldAll")
         nargs = mxargs
+#        println("HoldAll Leaving")
     elseif get_attribute(mhead(mx),:HoldRest)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
+#        println("HoldRest Leaving")        
     else
 #        changeflag = false  
 #         for i in 1:length(mxargs)  # need to see if this code is worth anything. It breaks somes things.
@@ -354,39 +366,45 @@ function meval(mx::Mxpr)
             nargs = newargs(len)
             for i in 1:len
                 res1 = doeval(mxargs[i])
+#                println(" *** Meval inner $res1")
                 nargs[i] = res1
             end
 
         else
             nargs = mxargs
         end
+#        println("NoHold Leaving")        
     end
     nmx = mxpr(nhead,nargs)
     # Need following, but there is probably a better way to do this.
-#    dump(mx.syms)
-#    revisesyms(mx);
-#    dump(revisesyms(mx))
     nmx.syms = revisesyms(mx)
-    nmx.syms = mx.syms # This is wrong, too. Dependent symbols can change.
+#    mergeargs(nmx)
+#    nmx.syms = mx.syms # This is wrong, too. Dependent symbols can change.
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx)
-    res == nothing && return nothing    
+    if res == nothing
+        is_meval_trace()  && println(ind,">> " , res)
+        return nothing
+    end
     if  ! is_canon(res)
+#        println("Entering fl ca $res: ", listsyms(res))
         res = flatten!(res)
         res = canonexpr!(res)
+#        println("Exiting fl ca $res: ", listsyms(res))
     end
     # The conditional probably saves little time
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
-    is_meval_trace() && println(ind,">> " , res)
+    is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
     decrement_meval_count()
     if is_Mxpr(res)  && isempty(res.syms)
 #        clearsyms(res)  Clearing is bad.
         for i in 1:length(res)  # This is costly if it is not already done.
             mergesyms(res,res[i])
         end
-        checkemptysyms(res)
+        add_nothing_if_no_syms(res)
     end
+#    println("Exiting meval: $res: ", listsyms(res))
     return res
 end
 

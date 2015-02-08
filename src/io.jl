@@ -46,6 +46,12 @@ end
 
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
 
+# Arguments are not evaluated, like Hold.
+# But Holdform is not printed
+function Base.show(io::IO, s::Mxpr{:HoldForm})
+    Base.show(io,s[1])
+end
+
 function Base.show(io::IO, s::Mxpr)
     if getoptype(mhead(s)) == :binary  
         return show_binary(io,s)

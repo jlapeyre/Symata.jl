@@ -277,9 +277,14 @@ function canonexpr!(mx::Orderless)
             end  # add numeric exponents when base is same
         end
     end
-#    println("7 canonexpr")
-    setcanon(mx)
-#    mergeargs(mx)
+#    println("7 canonexpr $mx")
+#    for i in 1:length(mx)
+#        dump(mx[i].syms)
+#    end
+    mergeargs(mx)  # We keep adding and removing this when the evaluation code changes!
+#    dump(mx.syms)
+#    println("done")
+    setcanon(mx)    
 #    setfixed(mx) # need to try to enable this.
     mx
 end 
@@ -289,6 +294,7 @@ function canonexpr!(mx::Mxpr{:Power})
 #    mx = mulpowers(mx)  either do it here, or in apprules (ie dopower) but not both
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
     setcanon(mx)
+#    mergeargs(mx)
     setfixed(mx) # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do this
     mx
 end

@@ -169,7 +169,7 @@ function expand_binomial(a,b,n::Integer)
     mergesyms(args[n+1],b)
     setfixed(args[n+1])    
     if n == 2
-        args[2] = mxpr(:Times,2,a,b)  # don't use 2 * a * b; it won't be flat
+        args[2] = flatcanon!(mxpr(:Times,2,a,b))  # we have to flatcanon
     else
         # TODO optimize for symbols a,b, as in general case below. No flatcanon.
         args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b)) 

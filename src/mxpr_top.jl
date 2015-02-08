@@ -46,7 +46,7 @@ end
 # For printing only
 const OPTYPE  = Dict{Symbol,Symbol}()
 
-for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power )
+for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :Set, :SetDelayed ) # need :Set here
     OPTYPE[op] = :binary
 end
 

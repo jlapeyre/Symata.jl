@@ -4,8 +4,10 @@
 # m, requires evaluating neither m nor m1, but merely retrieving m[1].
 
 @ex Clear(m,a,b,c,d)
-@ex m = Expand( (a*c + b*d)^10)
-@testex Syms(m) == [b,c,a,d]
+@ex m = Expand((a+b)^2)
+@testex Syms(m) == HoldForm([a,b])
+@ex m = Expand((a*c + b*d)^2)
+@testex Syms(m) == HoldForm([a,b,c,d])
 @testex Fixed(m)
 @ex a = 1
 @ex Length(m)
