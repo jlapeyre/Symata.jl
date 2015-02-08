@@ -10,5 +10,6 @@ using Base.Test
 @ex Clear(a)
 @ex mx
 @testex Fixed(mx) == true
-@ex Clear(a,b)
+@ex Clear(a,b,c,d)
 @ex Expand((a+1)^3)
+@testex Expand((a+b)*(c+d)) == a*c + b*c + a*d + b*d

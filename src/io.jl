@@ -115,9 +115,9 @@ function show_infix(io::IO, mx::Mxpr)
     args = margs(mx)
     np = false
     sepsym = mtojsym(mhead(mx))
-    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
-#    wantparens = true
-#    if mhead(mx) == :List wantparens = false end
+    # uncomment following to print space for multiplication. But, I want "InputForm" for now,
+    # so we can copy output to input.
+#    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     for i in 1:length(args)-1
         if needsparen(args[i]) # && wantparens
             np = true

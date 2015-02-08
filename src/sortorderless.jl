@@ -259,18 +259,25 @@ numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 # We say 'sum', but this applies to Times as well
 function canonexpr!(mx::Orderless)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
+#    println("1 canonexpr")
     is_Number(mx) && return mx
+#    println("** 2 canonexpr, ordering $mx")
     orderexpr!(mx)  # sort terms
+#    println("  *** output $mx")
     if is_type_less(mx,Mxpr)        
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
+#        println("4 canonexpr")
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
+#            println("5 canonexpr")
             # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
                 mx = mulpowers(mx)
+#                println("6 canonexpr")
             end  # add numeric exponents when base is same
         end
     end
+#    println("7 canonexpr")
     setcanon(mx)
 #    setfixed(mx) 
     mx

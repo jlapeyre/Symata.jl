@@ -3,6 +3,7 @@
 doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
 
 function doexpand(prod::Mxpr{:Times})
+#    println("in doexpand prod $prod")
     a = margs(prod)
     len = length(a)
     for i in 1:len
@@ -10,27 +11,36 @@ function doexpand(prod::Mxpr{:Times})
     end
     have_sum = false
     j = 0
-    for i in 1:len
+    for i in 1:len # check if we have anything to do
         j += 1
         if is_Mxpr(a[i],:Plus)
             have_sum = true
             break
         end
     end
+#    println(" 2 in doexpand prod $prod")    
     ! have_sum && return prod
     nonsums = newargs()
-    for i in 1:j-1
+    for i in 1:j-1  # none of these are sums
         push!(nonsums,a[i])
     end
+#    println(" 3 in doexpand prod $prod")        
     sums = newargs()
-    push!(sums,a[j])
-    for i in j+1:len
+    push!(sums,a[j]) # already know its a sum
+    for i in j+1:len   # push more sums, if there are any
         if is_Mxpr(a[i],:Plus)
             push!(sums,a[i])
+        else
+            # should push non sums, but
         end
     end
+#    println(" 4 in doexpand prod $prod")    
     sumres = mulsums(sums...)
-    mulsums(mxpr(:Times,nonsums),sumres)
+#    println(" 5 in doexpand prod $prod")
+#    println(" Len non ", length(nonsums), " sumres ", length(sumres))
+    mxout = isempty(nonsums) ? sumres : mulsums(mxpr(:Times,nonsums),sumres)
+#    println(" 6 in doexpand prod $mxout")
+    return mxout
 #    mulsums(margs(prod)...)
 end
 
@@ -238,10 +248,9 @@ function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
     else
         mx = mxpr(h,margs(mxa))        
     end
-    length(mx) == 0 && return 0  # maybe zero(something) ?
+    length(mx) == 0 && return 0  # maybe return zero(something) ?
     mx
 end
-
 
 
 # Apply operation to a typed numeric array.

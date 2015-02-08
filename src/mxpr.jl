@@ -325,7 +325,6 @@ function meval(mx::Mxpr)
         println(ind,"<< " , mx)
     end
     nhead = doeval(mhead(mx))
-#    nhead = mx.head
     local nargs
     mxargs = mx.args
     len = length(mxargs)
@@ -367,10 +366,10 @@ function meval(mx::Mxpr)
     nmx.syms = mx.syms
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
-    res = apprules(nmx) 
+    res = apprules(nmx)
     res == nothing && return nothing    
     if  ! is_canon(res)
-        res = flatten!(res)        
+        res = flatten!(res)
         res = canonexpr!(res)
     end
     # The conditional probably saves little time
