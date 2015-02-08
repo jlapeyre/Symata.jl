@@ -28,11 +28,19 @@ function doexpand(prod::Mxpr{:Times})
         if is_Mxpr(a[i],:Plus)
             push!(sums,a[i])
         else
-            # should push non sums, but
+            push!(nonsums,a[i])
         end
     end
-    sumres = mulsums(sums...)
-    mxout = isempty(nonsums) ? sumres : mulsums(mxpr(:Times,nonsums),sumres)
+    sumres = length(sums) == 1 ? sums[1] : mulsums(sums...)
+    nlen = length(nonsums)
+    if nlen == 0
+        mxout = sumres
+    elseif nlen == 1
+        mxout = mulsums(nonsums[1],sumres)
+    else
+        mxout = mulsums(mxpr(:Times,nonsums),sumres)
+    end
+    setfixed(mxout)
     return mxout
 end
 
@@ -83,6 +91,19 @@ end
 mulsums(a,b,c) = mulsums(mulsums(a,b),c)
 mulsums(a,b,c,xs...) = mulsums(mulsums(mulsums(a,b),c),xs...)
 
+# Should probably write this
+#function mulsums(a::Mxpr{:Plus}, b::SJSym)
+#end
+
+function _pushfacs!(facs,mx::Mxpr{:Times})
+    append!(facs,margs(mx))
+end
+
+# Make this more efficient. numbers, symbols, etc.
+function _pushfacs!(facs,b)
+    push!(facs,b)    
+end
+
 function mulsums(a::Mxpr{:Plus},b)
 #    println("2:  $a,  $b")    
     terms = newargs(length(a))
@@ -91,13 +112,17 @@ function mulsums(a::Mxpr{:Plus},b)
         i += 1
         if is_Mxpr(ax) && mxprtype(ax) == :Times
             facs = copy(margs(ax))
-            push!(facs,b)
+            _pushfacs!(facs,b)  # I hope type inference optimizes this.
             terms[i] = mxpr(:Times,facs)
         else
             terms[i] = b * ax
         end
+        canonexpr!(terms[i]) 
+        mergeargs(terms[i])
     end
-    mxpr(:Plus,terms)
+    mx = mxpr(:Plus,terms)
+    mergeargs(mx)
+    mx
 end
 
 function mulsums(a, b::Mxpr{:Plus})

@@ -607,7 +607,7 @@ is more recent than the timestamp of m. This is for diagnostics.
 "
 apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
 
-do_syms(mx::Mxpr) = mxpr(:List,collect(keys(mx.syms))...)
+do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
 do_syms(s) = mxpr(:List,)
 
 @sjdoc BuiltIns "

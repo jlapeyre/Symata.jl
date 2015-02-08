@@ -191,6 +191,15 @@ end
     end
 end
 
+function mergeargs(mx::Mxpr)
+    for i in 1:length(mx)
+#        println(listsyms(mx[i]))
+        mergesyms(mx,mx[i])
+    end
+end
+
+mergeargs(x) = nothing
+
 # record dependence of mx on symbol a
 @inline function mergesyms(mx::Mxpr, a::SJSym)
     (mx.syms)[a] = true    
@@ -215,6 +224,9 @@ function checkemptysyms(mx::Mxpr)
     if isempty(mx.syms) mx.syms[:nothing] = true end
 end
 checkemptysyms(x) = nothing
+
+listsyms(mx::Mxpr) = collect(keys(mx.syms))
+listsyms(x) = nothing
 
 #function setcleansyms(mx::Mxpr)
 #    for (sym,age) in mx.syms
