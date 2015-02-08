@@ -211,6 +211,11 @@ end
 end
 @inline checkdirtysyms(x) = false
 
+function checkemptysyms(mx::Mxpr)
+    if isempty(mx.syms) mx.syms[:nothing] = true end
+end
+checkemptysyms(x) = nothing
+
 #function setcleansyms(mx::Mxpr)
 #    for (sym,age) in mx.syms
 #end

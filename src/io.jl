@@ -96,6 +96,9 @@ end
 
 function Base.show(io::IO, mx::Mxpr{:Plus})
     args = mx.args
+    if length(args) < 1
+        error("show: can't show Plus with no args.")
+    end
     show(io,args[1])    
     for i in 2:length(args)
         if is_type(args[i],Mxpr{:Minus})

@@ -231,13 +231,14 @@ Apply(f,expr) replaces the Head of expr with f.
 apprules(mx::Mxpr{:Apply}) = doapply(mx,mx[1],mx[2])
 
 function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
-    mx = mxpr(h,margs(mxa))
-    if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers
+    if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
+        mx = mxpr(h,copy(margs(mxa)))
         mx = canonexpr!(mx)
         setcanon(mx)
     else
-        nothing
+        mx = mxpr(h,margs(mxa))        
     end
+    length(mx) == 0 && return 0  # maybe zero(something) ?
     mx
 end
 

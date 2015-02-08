@@ -381,6 +381,7 @@ function meval(mx::Mxpr)
         for i in 1:length(res)  # This is costly if it is not already done.
             mergesyms(res,res[i])
         end
+        checkemptysyms(res)
     end
     return res
 end
