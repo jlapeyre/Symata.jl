@@ -294,14 +294,17 @@ function revisesyms(mx::Mxpr)
 #    println("DUMPING syums")
 #    dump(s)
 #    println("DONE DUMPING syums")    
-#    age = getage(mx)
+    age = getage(mx)
     nsyms = newsymsdict()
     for sym in keys(s)
 #        println("#################starting")        
-#        println("#################Looking at $sym")        
-        if getage(sym) > a
+        #        println("#################Looking at $sym")
+#        println("Cmp sym '$sym'  a '$a'")
+        if getage(sym) > age
+#            println("Merging Changed $sym")
             mergesyms(nsyms,symval(sym))
         else
+#            println("Merged unchanged $sym")
             mergesyms(nsyms,sym)
         end
 #        println("Merged $sym")
@@ -363,7 +366,7 @@ function meval(mx::Mxpr)
 #    dump(mx.syms)
 #    revisesyms(mx);
 #    dump(revisesyms(mx))
-#    nmx.syms = revisesyms(mx)
+    nmx.syms = revisesyms(mx)
     nmx.syms = mx.syms # This is wrong, too. Dependent symbols can change.
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.

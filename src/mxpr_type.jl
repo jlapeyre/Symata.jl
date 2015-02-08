@@ -204,6 +204,12 @@ function mergesyms(mxs::Dict, a::Mxpr)
     end
 end
 
+function mergesyms(mxs::Dict, a::SJSym)
+    mxs[a] = true
+end
+
+
+
 # Copy contents of symlists of mx[i] to symlist of mx
 function mergeargs(mx::Mxpr)
     for i in 1:length(mx)
