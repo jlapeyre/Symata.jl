@@ -84,7 +84,7 @@ for v in ("Plus", "Times")
 end
 
 
-for v in ("Power")
+for v in ("Power",)
     @eval begin
         set_attribute(symbol($v),:Listable)
         set_attribute(symbol($v),:NumericFunction)

@@ -23,13 +23,22 @@ function mpow{T<:Integer}(x::T,y::Rational)
     newfacs = newargs()
     for (fac,mul) in facs
         (q,r) = divrem(mul,y.den)
-        push!(newfacs,fac^q)
+        nf = fac^q
+        nf != 1 ? push!(newfacs,nf) : nothing
         newexp = mmul(r,y)
         newexp != 0 ? push!(newfacs,mxpr(:Power,fac,newexp)) : nothing
     end
+    length(newfacs) == 1 && return newfacs[1]
     mxpr(:Times,newfacs...)
 end
+
+function mpow(x::Rational, y::Rational)
+    mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
+#    Rational(mpow(x.num,y),mpow(y.den,y))
+end
+
 mpow(x,y) = x^y
+
 
 ## copied from base/operators, a great trick
 for op = (:mplus, :mmul)

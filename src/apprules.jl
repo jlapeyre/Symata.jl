@@ -704,10 +704,19 @@ function apprules(mx::Mxpr{:Range})
 end
 
 # separate functions are *essential* for type stability and efficiency.
-function range_args1(n)
+function range_args1{T<:Integer}(n::T)
     args = newargs(n);
-    @inbounds for i in one(1):n
+    @inbounds for i in one(n):n
         args[i] = i
+    end
+    return args
+end
+
+function range_args1{T<:FloatingPoint}(n::T)
+    ni = floor(Int,n)
+    args = newargs(ni);
+    @inbounds for i in 1:ni
+        args[i] = convert(T,i)
     end
     return args
 end
