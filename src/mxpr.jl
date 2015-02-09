@@ -201,7 +201,7 @@ macro ex(ex)
 end
 
 # Diagnostic. Count number of exits from points in loopeval
-global const exitcounts = Int[0,0,0,0,0]
+global const exitcounts = Int[0,0,0,0]
 
 # We use infinite or fixed point evaluation: the Mxpr is evaled repeatedly until it does
 # not change. Actually Mma, and SJulia try to detect and avoid more evaluations.
@@ -229,13 +229,13 @@ function loopmeval(mxin::Mxpr)
     if is_Mxpr(mx)
         if is_fixed(mx)         # The first meval may have set the fixed point flag. 
             exitcounts[2] += 1  # Eg, an Mxpr with only numbers, does not need another eval.
-            #        println("2 Returning ckh $mx")
+#            println("2 Returning ckh $mx")
             return lcheckhash(mx)  # Only a few exits here
         elseif mx == mxin  # meval did not set fixed flag, but we see that it is at fixed point.
             setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
             setfixed(mxin)  # Do we need to do this to both ?
             exitcounts[3] += 1
-            #        println("3 Returning ckh $mx")
+#            println("3 Returning ckh $mx")
             return lcheckhash(mx)
         end
     end
@@ -257,8 +257,8 @@ function loopmeval(mxin::Mxpr)
         setfixed(mxin)
         setfixed(mx)
     end
-    exitcounts[5] += 1
-#    println("5 Returning ckh $mx")
+    exitcounts[4] += 1
+#    println("4 Returning ckh $mx")
     return lcheckhash(mx)  # checking hash code is disbled.
 end
 
