@@ -2,10 +2,10 @@
 
 # eg   (a + b + (c + d)) --> (a + b + c + d)
 
-typealias Flat Union(Mxpr{:Plus},Mxpr{:Times})
+typealias FlatT Union(Mxpr{:Plus},Mxpr{:Times})
 
 # Here we copy
-function flatten!{T<:Flat}(mx::T)
+function flatten!{T<:FlatT}(mx::T)
     needsflat = false
     for x in margs(mx)
         if is_type(x,T)

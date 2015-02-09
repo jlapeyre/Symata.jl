@@ -64,7 +64,7 @@ for v in ("Part",)
     end
 end
 
-for v in ("Cos","Sin","Tan","Cosh","Sinh","Log")  # etc.
+for v in ("Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus")  # etc.
     @eval begin    
         set_attribute(symbol($v),:Listable)
         set_attribute(symbol($v),:NumericFunction)
@@ -104,7 +104,9 @@ for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Jxpr", "Pack", "Unpack","Example","Fixed",
-          "UserSyms", "List","Syms")
+          "UserSyms", "List","Syms",
+          "Comparison", "DirtyQ", "Flat", "Listable", "Head"
+    )
     @eval begin
         set_attribute(symbol($v),:Protected)        
     end

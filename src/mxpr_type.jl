@@ -1,11 +1,13 @@
+## Types SSJSym and Mxpr
+# SSJSym are SJulia symbols
+# Mxpr are SJulia expressions
+
+## Counter for timestamps ("age") of instances of SSJSym and Mxpr
 type Evalage
     t::UInt64
 end
-
 const evalage = Evalage(0)
-
 # These are probably all inlined anyway
-
 @inline increvalage() = evalage.t += 1
 @inline getevalage() = evalage.t
 
