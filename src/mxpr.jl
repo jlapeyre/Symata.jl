@@ -17,6 +17,7 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
+# putting this in mxpr_type is better.
 function ==(ax::Mxpr, bx::Mxpr)
     mhead(ax) != mhead(bx)  && return false
     a = margs(ax)
@@ -34,16 +35,17 @@ end
 extomx(x) = x
 function extomx(s::Symbol)
     ss = string(s)
-    if contains(ss,"_")
+    if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)
     else
-        return getsym(jtomsym(s))
+        return getsym(jtomsym(s)) # Maybe translate the symbol
     end
 end
 
 # Underscore is not allowed in symbols. Instead,
 # they signify part of a pattern. This follows Mma,
 # and we don't consume and Julia syntax to signify patterns.
+# We don't yet parse three blanks in a row.
 function parseblank(s::String)
     a = split(s,['_'], keep=true)
     length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
@@ -77,13 +79,13 @@ function extomx(ex::Expr)
     newa = newargs()
     local head::Symbol
     ex = rewrite_expr(ex)
-    a = ex.args    
+    a = ex.args
+    # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
         head = jtomsym(a[1])
         for i in 2:length(a) push!(newa,extomx(a[i])) end
-#        println("got coll")
     elseif ex.head == :block
-        mx = extomx(a[2])
+        mx = extomx(a[2]) # Can't remember, I think this is Expr with head :call
         return mx
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
@@ -91,7 +93,7 @@ function extomx(ex::Expr)
     elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
         head = :Set
         extomxarr(a,newa)        
-    elseif ex.head == :(:)
+    elseif ex.head == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
             if is_type(a[1], Symbol) && is_type(a[2], Expr) &&
                 (a[2].args)[1] == :(?)
@@ -107,22 +109,23 @@ function extomx(ex::Expr)
         else
             error("extomx: No translation for $ex")
         end
-    elseif ex.head == :quote
-        head = :Jxpr
+    elseif ex.head == :quote  # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
+        head = :Jxpr          # This allows running Julia code from within SJulia.
         push!(newa,eval(ex))
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
-#    println("Making mxpr")
-    mx = mxpr(head,newa)
-#    println("done Making mxpr")
+    mx = mxpr(head,newa)  # Create the Mxpr
     return mx
 end
 
 is_call(ex::Expr) = ex.head == :call
+# is ex a call with operator op ?
 is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
+# is ex a call with operator op and len args (including the op) ?
 is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+# is ex a call with len args (including the op) ?
 is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 
 # We check for :call repeatedly. We can optimize this later.
@@ -131,15 +134,20 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :/,3)  
 is_power(ex::Expr) = is_call(ex, :^)
 
-
+# In extomx, we first rewrite some Math to canonical forms
+# a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
+# a / b -->  a * b^(-1)
 rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
-rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
-rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
+
+# Not used
+#rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
+#rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
 
 # There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
+# Other rewrites needed, but not done.
 function rewrite_expr(ex::Expr)
     if is_binary_minus(ex)  #  a - b --> a + -b.
         ex = rewrite_binary_minus(ex)
@@ -157,14 +165,11 @@ end
 ## Macro for translation and evaluation, at repl or from file
 
 type Meval
-    entrycount::Int
-    traceon::Bool
-    timingon::Bool
+    entrycount::Int  # For trace
+    traceon::Bool    # TraceOn()
+    timingon::Bool   # TimeOn() does @time on every user input
 end
 const MEVAL = Meval(0,false,false)
-
-# TODO: get rid of the global
-global MEVAL_ENTRY_COUNT = 0
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -174,64 +179,72 @@ set_meval_trace() = MEVAL.traceon = true
 unset_meval_trace() = MEVAL.traceon = false
 is_meval_trace() = MEVAL.traceon
 
-## Don't evaluate the expression
+# Read a line of user input, translate Expr to Mxpr, but don't evaluate result
 macro exnoeval(ex)
     mx = extomx(ex)
     :(($(esc(mx))))
 end
 
+# ex is called by the repl on each user input line.
 macro ex(ex)
-    check_help_query(ex) && return nothing
-    res = extomx(ex)
+    check_help_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
+    res = extomx(ex)  # Translate to Mxpr
     reset_meval_count()
     if MEVAL.timingon
-        mx = @time doeval(res)
+        mx = @time doeval(res) # doeval just calls loopeval. But we can change it to get single eval.
     else
         mx = doeval(res)
     end
-    if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
-    setsymval(:ans,mx)
-    :(($(esc(mx))))
+    if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
+    setsymval(:ans,mx)  # Like Julia and matlab, not Mma
+    :(($(esc(mx))))  # Let the repl display the result
 end
 
+# Diagnostic. Count number of exits from points in loopeval
 global const exitcounts = Int[0,0,0,0,0]
 
+# We use infinite or fixed point evaluation: the Mxpr is evaled repeatedly until it does
+# not change. Actually Mma, and SJulia try to detect and avoid more evaluations.
+# Also try to detect if the expression is simplified, (fixed or canonical).
+# This is also complicated by infinite evaluation because whether an expression is
+# simplified depends on the current environment. We try to solve this with lists of 'free' symbols.
 # Note: lcheckhash is the identity (ie disabled)
 # doeval is loopmeval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
 function loopmeval(mxin::Mxpr)
     @mdebug(2, "loopmeval ", mxin)
 #    println("loopmeval ", mxin)
-    neval = 0
-    if checkdirtysyms(mxin)
+    neval = 0  # We cut off infinite eval at 100. This would probably only be a bug in SJulia.
+    if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than on mxin ?
 #        println("got dirty syms $mxin")
-        unsetfixed(mxin)
-    end
-    if is_fixed(mxin)
+        unsetfixed(mxin) # flag mxin as not being at its fixed point in this environment.
+                         # we should check first if *any* user symbol has changed. this can be a single flag.
+    end                  # This might be good for iterating over list of args in Mxpr.
+    if is_fixed(mxin)  # If mxin was already fixed and none of its free vars changed, just return.
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
         exitcounts[1] += 1
 #        println("1 Returning ckh $mxin")
         return lcheckhash(mxin)
     end
-    mx = meval(mxin)
-    if is_Mxpr(mx) && is_fixed(mx)  # Few exits here
-        exitcounts[2] += 1
+    mx = meval(mxin) # Do the first evaluation
+    if is_Mxpr(mx) && is_fixed(mx)  # The first meval may have set the fixed point flag. 
+        exitcounts[2] += 1          # Eg, an Mxpr with only numbers, does not need another eval.
 #        println("2 Returning ckh $mx")
-        return lcheckhash(mx)
+        return lcheckhash(mx)  # Only a few exits here
     end
 #    println("Check $mx == $mxin : ", mx == mxin)
-    if is_Mxpr(mx) && mx == mxin   ##  Return mx. They are equal but symlist is set in mx !!
-        setfixed(mx)
-        setfixed(mxin)  # which one ?
+    if is_Mxpr(mx) && mx == mxin  # Might be faster to combine this conditional with above
+        setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
+        setfixed(mxin)  # Do we need to do this to both ?
 #        setage(mx)
         exitcounts[3] += 1
 #        println("3 Returning ckh $mx")
-        return lcheckhash(mx)
+        return lcheckhash(mx) 
     end
     local mx1    
-    while true
+    while true # After 1 eval fixed bit is not set and input not equal to result of first eval
 #        println("##### Looping")
-        mx1 = meval(mx)
-        if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx
+        mx1 = meval(mx)  # So, we do another eval.
+        if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx  # The most recent eval was enough, we are done
             mx = mx1
 #            setfixed(mx) # don't think this is correct
             break
