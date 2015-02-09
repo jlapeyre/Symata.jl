@@ -307,15 +307,16 @@ function revisesyms(mx::Mxpr)
 #    println("revising $mx:  $s")
     mxage = getage(mx)
     nsyms = newsymsdict()
-    for sym in keys(s)  # effiency. Don't allocate if we don't have to
+    for sym in keys(s)  # TODO effiency. Don't allocate if we don't have to
         # check age not working, new Mxpr derived from old: mx1 = mx, will be younger than all symbols
-        mergesyms(nsyms,symval(sym))
-#        if getage(sym) > mxage
+#        mergesyms(nsyms,symval(sym))
+        if getage(sym) > mxage
 #            println("Merging Changed $sym")
-#            mergesyms(nsyms,symval(sym))
-#        else
+            mergesyms(nsyms,symval(sym))
+        else
 #            println("Merged unchanged $sym")
-#            mergesyms(nsyms,sym)
+            mergesyms(nsyms,sym)
+        end
     end
     return nsyms
 end
