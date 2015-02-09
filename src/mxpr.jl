@@ -17,11 +17,6 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-function get_attributes(sj::SJSym)
-    ks = sort!(collect(keys(symattr(sj))))
-    mxpr(:List,ks...) # need to splat because array ks is not of type Any
-end
-
 function ==(ax::Mxpr, bx::Mxpr)
     mhead(ax) != mhead(bx)  && return false
     a = margs(ax)

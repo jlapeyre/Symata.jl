@@ -334,6 +334,11 @@ the attribute Protected, and may have others.
 "
 apprules(mx::Mxpr{:Attributes}) = get_attributes(margs(mx,1))
 
+function get_attributes(sj::SJSym)
+    ks = sort!(collect(keys(symattr(sj))))
+    mxpr(:List,ks...) # need to splat because array ks is not of type Any
+end
+
 @sjdoc DownValues "
 DownValues(s) returns a List of DownValues associated with symbol s. These are values
 that are typically set with the declarative \"function definition\".
