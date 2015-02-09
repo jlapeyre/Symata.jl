@@ -243,7 +243,7 @@ function loopmeval(mxin::Mxpr)
     while true # After 1 eval fixed bit is not set and input not equal to result of first eval
         mx1 = meval(mx)  # So, we do another eval.
         if (is_Mxpr(mx1) && is_fixed(mx1))  || mx1 == mx  # The most recent eval was enough, we are done
-            #            setfixed(mx) # Not correct. Why ?
+            #  setfixed(mx) # Not correct. Why ?
             mx = mx1        
             break
         end
@@ -281,6 +281,7 @@ function loopmeval(s::SJSym)
     return mx == s ? s : loopmeval(mx)
 end
 
+# Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 loopmeval(x) = x
 
 ## Evaluation of Mxpr
@@ -288,6 +289,12 @@ loopmeval(x) = x
 meval(x) = x
 meval(s::SJSym) = symval(s)
 
+# Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
+# That input has been mevaled at least once and the result is mx, the argument
+# to revisesyms. Here, we make a free-symbol list for mx. We look at its current
+# free symbol list, which is inherited, and identify those that are no longer
+# free. Eg. the environment changed. E.g The user set a = 1. Or a may no
+# evaluate to an expression with other symbols.
 # move this to mxpr_type
 function revisesyms(mx::Mxpr)
     s = mx.syms
