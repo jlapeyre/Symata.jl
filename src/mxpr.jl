@@ -245,7 +245,7 @@ function loopmeval(mxin::Mxpr)
         mx1 = meval(mx)  # So, we do another eval.
         if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx  # The most recent eval was enough, we are done
             mx = mx1
-#            setfixed(mx) # don't think this is correct
+#            setfixed(mx) # Not correct. Why ?
             break
         end
         neval += 1
@@ -256,27 +256,12 @@ function loopmeval(mxin::Mxpr)
         mx = mx1
     end
     if is_Mxpr(mx) && mx == mxin
-#        println(" mx == mxin , setting fixed ")
         setfixed(mxin)
         setfixed(mx)
-    else
-#        println(" mx != mxin , $mx != $mxin")
     end
-#    if is_Mxpr(mx) && mx == mxin setfixed(mx) end  # why not set age here ? ## MAY CAUSE PROBLEM !
-    # No test exits via this point
-#     if is_Mxpr(mx) && !(is_fixed(mx)) && mx == mxin
-#         setfixed(mxin)
-# #        println("3 setting age of $mxin")
-#         setage(mxin)
-#         exitcounts[4] += 1
-#         #pprintln("4 Returning ckh $mx")        
-#         return mxin
-#     else
-# #        println("3 not setting age of $mxin != $mx")
-#     end
     exitcounts[5] += 1
 #    println("5 Returning ckh $mx")
-    return lcheckhash(mx)
+    return lcheckhash(mx)  # checking hash code is disbled.
 end
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
