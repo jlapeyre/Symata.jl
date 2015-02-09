@@ -315,7 +315,6 @@ function revisesyms(mx::Mxpr)
     end
     nochange == true && return s
     nsyms = newsymsdict()
-    # TODO effiency. Don't allocate if we don't have to. But how to do this ?    
     for sym in keys(s)  
  #        mergesyms(nsyms,symval(sym))
         if symage(sym) > mxage

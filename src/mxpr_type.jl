@@ -100,11 +100,41 @@ end
     
 @inline clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
+downvalues(s::SJSym) = getssym(s).downvalues
+listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
+
+## Retrieve or create new symbol
+@inline function getssym(s::Symbol)
+    if haskey(SYMTAB,s)
+        return SYMTAB[s]
+    else
+        ns = ssjsym(s)
+        SYMTAB[s] = ns
+        # pollute Julia just so we get repl completion. remove this later.        
+        !isdefined(s) && eval(:($s = true))
+        return ns
+    end
+end
+@inline getssym(ss::String) = getssym(symbol(ss))
+
+function createssym(s::Symbol,T::DataType)
+    ns = ssjsym(s,T)
+    SYMTAB[s] = ns
+    return ns
+end
+
+function removesym(s::Symbol)
+    delete!(SYMTAB,s)
+    nothing
+end
+
 ##################################################################
 # Mxpr                                                           #
 # all SJulia expressions are represented by instances of Mxpr    #
 ##################################################################
 typealias MxprArgs Array{Any,1}
+typealias FreeSyms Dict{Symbol,Bool}
+
 
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
@@ -112,7 +142,7 @@ type Mxpr{T} <: AbstractMxpr
     args::MxprArgs
     fixed::Bool
     canon::Bool
-    syms::Dict{Symbol,Bool}
+    syms::FreeSyms
     age::UInt64
     key::UInt64
     typ::DataType
@@ -120,7 +150,7 @@ end
 typealias Symbolic Union(Mxpr,SJSym)
 newargs() = Array(Any,0)
 newargs(n::Integer) = Array(Any,n)
-newsymsdict() = Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
+newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 mhead(mx::Mxpr) = mx.head
 margs(mx::Mxpr) = mx.args
 margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
@@ -128,6 +158,7 @@ margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, se
 @inline getage(mx::Mxpr) = mx.age
 
 # These should be fast: In the SJulia language, mx[0] gets the head, but not here.
+# TODO: iterator for mx that iterates over args would be useful
 @inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
 @inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
@@ -139,6 +170,12 @@ mxprtype{T}(mx::Mxpr{T}) = T
 # Not using this at the moment.
 const EXPRDICT = Dict{UInt64,Mxpr}()
 global gotit = 0   # non constant global, only for testing
+
+@inline function Base.copy(mx::Mxpr)
+#    println("copying $mx")
+    args = copy(mx.args)
+    mxpr(mhead(mx),args)
+end
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find
@@ -168,7 +205,11 @@ function dohash(mx::Mxpr, h::UInt64)
     hout
 end
 
-# Slows operations down by factor of 2 to 5 or more or less
+# Input is Mxpr, output is the unique "copy" (can't really be a copy if it is unique)
+# 1. Check if mx already has a hash key, then it is good one, return
+# 2. Compute hash code of mx, look it up. Return unique copy, or make mx unique copy
+#  if none exists.
+# Slows down some code by factor of 2 to 5 or more or less
 @inline function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
     k = hash(mx)
@@ -181,6 +222,7 @@ end
 end
 @inline checkhash(x) = x
 
+# Create a new Mxpr from list of args
 function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
@@ -190,6 +232,7 @@ function mxpr(s::SJSym,iargs...)
     mx
 end
 
+# Create a new Mxpr from Array of args
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx =Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
@@ -198,6 +241,7 @@ end
 end
 
 # set fixed point and clean bits
+# not used much
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
@@ -212,15 +256,12 @@ end
     mx
 end
 
-# For Symbol. Better to avoid calling on Symbols. They should not be update
-# just for evaluating to themselves
-#setage(x) = true 
+######  Manage lists of free symbols
 
-# record dependence of mx on symbols that a depends on.
-# Reject protected symbols ?
+# Copy list of free (bound to self) symbols in a to free symbols in mx.
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
-    for sym in keys(a.syms)
+    for sym in keys(a.syms) # mxs is a Dict
         mxs[sym] = true
     end
     h = mhead(a)
@@ -229,8 +270,8 @@ end
     end
 end
 
-#
-function mergesyms(mxs::Dict, a::Mxpr)
+# Copy list of free (bound to self) symbols in a to a collection (Dict) of free symbols
+function mergesyms(mxs::FreeSyms, a::Mxpr)
     for sym in keys(a.syms)
 #        println("m1: $sym")
         mxs[sym] = true
@@ -241,14 +282,21 @@ function mergesyms(mxs::Dict, a::Mxpr)
     end
 end
 
-function mergesyms(mxs::Dict, a::SJSym)
+# Add Symbol a to list of free symbols syms
+function mergesyms(syms::FreeSyms, a::SJSym)
 #    println("m2: $a")    
-    mxs[a] = true
+    syms[a] = true
+end
+
+# Add Symbol a to list of free symbols in mx
+@inline function mergesyms(mx::Mxpr, a::SJSym)
+    (mx.syms)[a] = true    
 end
 
 mergesyms(x,y) = nothing
 
-# Copy contents of symlists of mx[i] to symlist of mx
+# Copy lists of free symbols in subexpressions of mx to
+# list of free symbols of mx. Only descend one level.
 function mergeargs(mx::Mxpr)
     for i in 1:length(mx)
 #        println("mergeargs $i: ", listsyms(mx[i]))
@@ -258,19 +306,13 @@ end
 
 mergeargs(x) = nothing
 
-# record dependence of mx on symbol a
-@inline function mergesyms(mx::Mxpr, a::SJSym)
-    (mx.syms)[a] = true    
-end
-
+## clear list of free symbols in mx.
+# is it cheaper to delete keys, or throw it away ?
 function clearsyms(mx::Mxpr)
     mx.syms = newsymsdict()
 end
 
-# should we detect type and not call these ?
-
-@inline setfixed(x) = true
-
+# return true if a free symbol in mx has a more recent timestamp than mx
 @inline function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
@@ -282,6 +324,9 @@ end
 end
 @inline checkdirtysyms(x) = false
 
+
+# If mx has an empty list of free symbols, put :nothing in the list.
+# Prevents calling mergeargs if the list is empty. Eg when args to mx are numbers.
 function add_nothing_if_no_syms(mx::Mxpr)
     if isempty(mx.syms) mx.syms[:nothing] = true end
 end
@@ -290,9 +335,7 @@ checkemptysyms(x) = nothing
 listsyms(mx::Mxpr) = sort!(collect(keys(mx.syms)))
 listsyms(x) = nothing
 
-#function setcleansyms(mx::Mxpr)
-#    for (sym,age) in mx.syms
-#end
+## Check, set, and unset fixed point status and canonicalized status of Mxpr
 
 @inline is_canon(mx::Mxpr) = mx.canon
 @inline is_fixed(mx::Mxpr) = mx.fixed
@@ -300,6 +343,7 @@ is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
 @inline setcanon(mx::Mxpr) = mx.canon = true
 @inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx))
+@inline setfixed(x) = true
 @inline unsetcanon(mx::Mxpr) = mx.canon = false
 @inline unsetfixed(mx::Mxpr) = mx.fixed = false
 
@@ -311,6 +355,7 @@ is_fixed(s::SJSym) = symval(s) == s
 #unsetfixed(x) = false
 
 # We need to think about copying in the following. Support both refs and copies ?
+# where is this used ?
 function getindex(mx::Mxpr, r::UnitRange)
     if r.start == 0
         return mxpr(mhead(mx),margs(mx)[1:r.stop]...)
@@ -329,34 +374,6 @@ function getindex(mx::Mxpr, r::StepRange)
     end
 end
 
-#downvalues(s::SJSym) = s.downvalues
-downvalues(s::SJSym) = getssym(s).downvalues
-listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
-
-## Retrieve or create new symbol
-@inline function getssym(s::Symbol)
-    if haskey(SYMTAB,s)
-        return SYMTAB[s]
-    else
-        ns = ssjsym(s)
-        SYMTAB[s] = ns
-        # pollute Julia just so we get repl completion. remove this later.        
-        !isdefined(s) && eval(:($s = true))
-        return ns
-    end
-end
-@inline getssym(ss::String) = getssym(symbol(ss))
-
-function createssym(s::Symbol,T::DataType)
-    ns = ssjsym(s,T)
-    SYMTAB[s] = ns
-    return ns
-end
-
-function removesym(s::Symbol)
-    delete!(SYMTAB,s)
-    nothing
-end
 
 # refresh a copy that is not in the symbol table. how does this happen?
 #getsym(sjs::SJSym) = getsym(symname(sjs))
@@ -384,7 +401,6 @@ function usersymbols()
     mx
 end
 
-
 function get_attribute(sj::SJSym, a::Symbol)
     get(getssym(sj).attr,a,false)
 end
@@ -405,11 +421,8 @@ function unset_attribute(sj::SJSym, a::Symbol)
     getssym(sj).attr[a] = false
 end
 
-@inline function Base.copy(mx::Mxpr)
-#    println("copying $mx")
-    args = copy(mx.args)
-    mxpr(mhead(mx),args)
-end
+
+## Some types of Heads of Mxpr's
 
 typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
 typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
