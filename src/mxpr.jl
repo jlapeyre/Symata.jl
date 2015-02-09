@@ -199,7 +199,8 @@ macro ex(ex)
         mx = doeval(res)
     end
     if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
-    sjset(getsym(:ans),mx)
+    setsymval(:ans,mx)
+#    sjset(getsym(:ans),mx)
     :(($(esc(mx))))
 end
 

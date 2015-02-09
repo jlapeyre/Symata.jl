@@ -71,8 +71,7 @@ end
 # end
 # #@inline symval(s::SSJSym) = s.val
 
-@inline sjset(s::SJSym,val) = setsymval(s,val)
-
+#@inline sjset(s::SJSym,val) = setsymval(s,val)
 @inline symage(s::SJSym) = getssym(s).age
 @inline getage(s::SJSym) = symage(s)  # should only use one of these
 

@@ -60,7 +60,8 @@ end
 # we have treat this specially somehow, not ordinary evaluation.
 function setdelayed(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
-    sjset(getsym(symname(lhs)),rhs)
+    setsymval(lhs,rhs)
+#    sjset(getsym(symname(lhs)),rhs)
     nothing
 end
 
@@ -518,7 +519,8 @@ function apprules(mxt::Mxpr{:Timing})
     t = @elapsed begin
         reset_meval_count()
         mx = doeval(mxt[1])
-        sjset(getsym(:ans),mx)
+        setsymval(:ans,mx)
+#        sjset(getsym(:ans),mx)
     end
     mxpr(:List,t,mx)
 end
@@ -541,7 +543,8 @@ function apprules(mxt::Mxpr{:Timing2})
     begin
         reset_meval_count()
         mx = @time(doeval(mxt[1]))
-        sjset(getsym(:ans),mx)
+        setsymval(:ans,mx)
+#        sjset(getsym(:ans),mx)
     end
     mx
 end
@@ -555,7 +558,8 @@ function apprules(mxt::Mxpr{:Allocated})
     a = @allocated begin
         reset_meval_count()
         mx = doeval(mxt[1])
-        sjset(getsym(:ans),mx)
+        setsymval(:ans,mx)  ## why here ?
+#        sjset(getsym(:ans),mx)
     end
     mxpr(:List,a,mx)
 end
