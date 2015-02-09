@@ -230,7 +230,8 @@ function loopmeval(mxin::Mxpr)
 #    println("Check $mx == $mxin : ", mx == mxin)
     if is_Mxpr(mx) && mx == mxin   ##  Return mx. They are equal but symlist is set in mx !!
         setfixed(mx)
-        setage(mx)
+        setfixed(mxin)  # which one ?
+#        setage(mx)
         exitcounts[3] += 1
 #        println("3 Returning ckh $mx")
         return lcheckhash(mx)
@@ -254,6 +255,7 @@ function loopmeval(mxin::Mxpr)
     if is_Mxpr(mx) && mx == mxin
 #        println(" mx == mxin , setting fixed ")
         setfixed(mxin)
+        setfixed(mx)
     else
 #        println(" mx != mxin , $mx != $mxin")
     end
