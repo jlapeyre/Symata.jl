@@ -281,7 +281,7 @@ function canonexpr!(mx::Orderless)
 #    for i in 1:length(mx)
 #        dump(mx[i].syms)
 #    end
-    mergeargs(mx)  # We keep adding and removing this when the evaluation code changes!
+#    mergeargs(mx)  # We keep adding and removing this when the evaluation code changes!
 #    dump(mx.syms)
 #    println("done")
     setcanon(mx)    
