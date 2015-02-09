@@ -72,7 +72,9 @@ end
 # #@inline symval(s::SSJSym) = s.val
 
 @inline symage(s::SJSym) = getssym(s).age
-@inline getage(s::SJSym) = symage(s)  # should only use one of these
+# Julia way is use getage for both SJSym and Mxpr
+# But symage better signals intent.
+#@inline getage(s::SJSym) = symage(s)  # should only use one of these
 
 ## symbol table for SJulia symbols
 const SYMTAB = Dict{Symbol,SSJSym}()

@@ -308,7 +308,7 @@ function revisesyms(mx::Mxpr)
     mxage = getage(mx)
     nochange = true
     for sym in keys(s)  # Don't know if this saves or wastes time ?
-        if getage(sym) > mxage
+        if symage(sym) > mxage
             nochange = false
             break
         end
@@ -318,7 +318,7 @@ function revisesyms(mx::Mxpr)
     # TODO effiency. Don't allocate if we don't have to. But how to do this ?    
     for sym in keys(s)  
  #        mergesyms(nsyms,symval(sym))
-        if getage(sym) > mxage
+        if symage(sym) > mxage
 #            println("Merging Changed $sym")
             mergesyms(nsyms,symval(sym))
         else

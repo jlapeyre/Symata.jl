@@ -579,7 +579,7 @@ implemented feature.
 @sjseealso_group(Age,Fixed,Syms,DirtyQ)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
-do_getage(mx,s::Symbol) = int(getage(s))
+do_getage(mx,s::Symbol) = int(symage(s))
 do_getage(mx,s::Mxpr) = int(getage(symval(s)))
 do_getage(mx,x) = mx
 
