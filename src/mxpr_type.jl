@@ -9,8 +9,20 @@ const evalage = Evalage(0)
 @inline increvalage() = evalage.t += 1
 @inline getevalage() = evalage.t
 
+#####################################################################
+# SSJSym                                                            #
+# data associated with SJulia symbols are instances of type SSJSym  #
+# SJSym is just Symbol. It is an older abstraction                  #
+# Implementing SJulia symbols is still in flux                      #
+#####################################################################
 typealias SJSym Symbol 
 
+# Almost all symbols use Any for parameter T.
+# We experiented a bit with a value of Int for some symbols
+# It may be better to have no parameter, or that it means
+# something else.
+# The name of the SJulia symbol is a Symbol. The symbol
+# table maps Symbol to SSJSym.
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
 #    val::Any
@@ -20,17 +32,22 @@ type SSJSym{T}  <: AbstractSJSym
     age::UInt64
 end
 
+newattributes() = Dict{Symbol,Bool}()
+newdownvalues() = Array(Any,0)
+
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
-@inline ssjsym(s::Symbol) = SSJSym{Any}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
+@inline ssjsym(s::Symbol) = SSJSym{Any}(s,newattributes(),newdownvalues(),0)
 #@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 #@inline symname{T}(s::SSJSym{T}) = T
-@inline symname{T}(s::SSJSym{T}) = s.val
 
-## Typed SJ Symbols
-ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),Dict{Symbol,Bool}(),Array(Any,0),0)
+# not for current implementation
+#@inline symname{T}(s::SSJSym{T}) = s.val
+
+## Typed SJ Symbols. Only experimental
+ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)
 
 @inline symname(s::SJSym) = s
 @inline symname(s::String) = symbol(s)
@@ -59,6 +76,10 @@ end
 @inline symage(s::SJSym) = getssym(s).age
 @inline getage(s::SJSym) = symage(s)  # should only use one of these
 
+## symbol table for SJulia symbols
+const SYMTAB = Dict{Symbol,SSJSym}()
+const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
+
 import Base:  ==
 
 function push_downvalue(ins::SJSym,val)
@@ -79,6 +100,10 @@ end
     
 @inline clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
+##################################################################
+# Mxpr                                                           #
+# all SJulia expressions are represented by instances of Mxpr    #
+##################################################################
 typealias MxprArgs Array{Any,1}
 
 abstract AbstractMxpr
@@ -92,22 +117,35 @@ type Mxpr{T} <: AbstractMxpr
     key::UInt64
     typ::DataType
 end
+typealias Symbolic Union(Mxpr,SJSym)
+newargs() = Array(Any,0)
+newargs(n::Integer) = Array(Any,n)
+newsymsdict() = Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
+mhead(mx::Mxpr) = mx.head
+margs(mx::Mxpr) = mx.args
+margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
+@inline setage(mx::Mxpr) = mx.age = increvalage()
+@inline getage(mx::Mxpr) = mx.age
 
-@inline margs(mx::Mxpr) = mx.args
-@inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
-#setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
-# These should be fast. In the SJulia language, mx[0] gets the head, but not here.
+# These should be fast: In the SJulia language, mx[0] gets the head, but not here.
 @inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
 @inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0
 @inline Base.endof(mx::Mxpr) = length(mx)
-
-mhead(mx::Mxpr) = mx.head
 mxprtype{T}(mx::Mxpr{T}) = T
 
-# Important that we do not hash any meta data. We take the
-# cached version
+# Table for storing Mxpr indexed by hash code.
+# Not using this at the moment.
+const EXPRDICT = Dict{UInt64,Mxpr}()
+global gotit = 0   # non constant global, only for testing
+
+# hash function for expressions.
+# Mma and Maple claim to use hash functions for all expressions. But, we find
+# this this is very expensive.
+#
+# Important that we do not hash any meta data, eg two expressions with
+# different timestamps, that are otherwise the same should map to the same key.
 function Base.hash(mx::Mxpr, h::UInt64)
     dohash(mx,h)
 end
@@ -122,16 +160,13 @@ function Base.hash(mx::Mxpr)
     hout    
 end
 
-@inline function dohash(mx::Mxpr, h::UInt64)
+function dohash(mx::Mxpr, h::UInt64)
     hout = hash(mhead(mx),h)
     for a in margs(mx)
         hout = hash(a,hout)
     end
     hout
 end
-                  
-const EXPRDICT = Dict{UInt64,Mxpr}()
-global gotit = 0
 
 # Slows operations down by factor of 2 to 5 or more or less
 @inline function checkhash(mx::Mxpr)
@@ -145,10 +180,6 @@ global gotit = 0
     mx
 end
 @inline checkhash(x) = x
-
-typealias Symbolic Union(Mxpr,SJSym)
-
-newsymsdict() = Dict{Symbol,Bool}()
 
 function mxpr(s::SJSym,iargs...)
     args = newargs()
@@ -180,9 +211,6 @@ end
 #    checkhash(mx)
     mx
 end
-
-@inline setage(mx::Mxpr) = mx.age = increvalage()
-@inline getage(mx::Mxpr) = mx.age
 
 # For Symbol. Better to avoid calling on Symbols. They should not be update
 # just for evaluating to themselves
@@ -282,9 +310,6 @@ is_fixed(s::SJSym) = symval(s) == s
 #setfixed(x) = false
 #unsetfixed(x) = false
 
-@inline newargs() = Array(Any,0)
-@inline newargs(n::Integer) = Array(Any,n)
-
 # We need to think about copying in the following. Support both refs and copies ?
 function getindex(mx::Mxpr, r::UnitRange)
     if r.start == 0
@@ -307,9 +332,6 @@ end
 #downvalues(s::SJSym) = s.downvalues
 downvalues(s::SJSym) = getssym(s).downvalues
 listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
-
-const SYMTAB = Dict{Symbol,SSJSym}()
-const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)
