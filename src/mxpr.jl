@@ -200,7 +200,6 @@ macro ex(ex)
     end
     if is_SJSym(mx) mx = getssym(mx) end # otherwise Julia symbol is returned
     setsymval(:ans,mx)
-#    sjset(getsym(:ans),mx)
     :(($(esc(mx))))
 end
 

@@ -61,14 +61,12 @@ end
 function setdelayed(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
-#    sjset(getsym(symname(lhs)),rhs)
     nothing
 end
 
 function set_only(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
-#    sjset(getsym(symname(lhs)),rhs)
     rhs
 end
 
@@ -520,7 +518,6 @@ function apprules(mxt::Mxpr{:Timing})
         reset_meval_count()
         mx = doeval(mxt[1])
         setsymval(:ans,mx)
-#        sjset(getsym(:ans),mx)
     end
     mxpr(:List,t,mx)
 end
@@ -544,7 +541,6 @@ function apprules(mxt::Mxpr{:Timing2})
         reset_meval_count()
         mx = @time(doeval(mxt[1]))
         setsymval(:ans,mx)
-#        sjset(getsym(:ans),mx)
     end
     mx
 end
@@ -559,7 +555,6 @@ function apprules(mxt::Mxpr{:Allocated})
         reset_meval_count()
         mx = doeval(mxt[1])
         setsymval(:ans,mx)  ## why here ?
-#        sjset(getsym(:ans),mx)
     end
     mxpr(:List,a,mx)
 end
