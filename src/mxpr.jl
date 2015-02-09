@@ -17,10 +17,6 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-## Not the right place for these
-Base.base(p::Mxpr{:Power}) = margs(p,1)
-expt(p::Mxpr{:Power}) = margs(p,2)
-
 function get_attributes(sj::SJSym)
     ks = sort!(collect(keys(symattr(sj))))
     mxpr(:List,ks...) # need to splat because array ks is not of type Any

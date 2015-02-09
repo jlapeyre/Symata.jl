@@ -466,6 +466,10 @@ dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), (exp*expt(b)
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), (expt(b)*exp)) : mx
 dopower(mx,b,e) = mx
 
+## Not sure where to put this kind of thing. Make reading code easier.
+Base.base(p::Mxpr{:Power}) = p[1]
+expt(p::Mxpr{:Power}) = p[2]
+
 ## convert to BigInt or BigFloat. We cannot yet do this automatically
 @sjdoc BI "
 BI(n) converts the number n to a BigInt. SJulia currently neither
