@@ -226,19 +226,18 @@ function loopmeval(mxin::Mxpr)
         return lcheckhash(mxin)
     end
     mx = meval(mxin) # Do the first evaluation
-    if is_Mxpr(mx) && is_fixed(mx)  # The first meval may have set the fixed point flag. 
-        exitcounts[2] += 1          # Eg, an Mxpr with only numbers, does not need another eval.
-#        println("2 Returning ckh $mx")
-        return lcheckhash(mx)  # Only a few exits here
-    end
-#    println("Check $mx == $mxin : ", mx == mxin)
-    if is_Mxpr(mx) && mx == mxin  # Might be faster to combine this conditional with above
-        setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
-        setfixed(mxin)  # Do we need to do this to both ?
-#        setage(mx)
-        exitcounts[3] += 1
-#        println("3 Returning ckh $mx")
-        return lcheckhash(mx) 
+    if is_Mxpr(mx)
+        if is_fixed(mx)         # The first meval may have set the fixed point flag. 
+            exitcounts[2] += 1  # Eg, an Mxpr with only numbers, does not need another eval.
+            #        println("2 Returning ckh $mx")
+            return lcheckhash(mx)  # Only a few exits here
+        elseif mx == mxin  # meval did not set fixed flag, but we see that it is at fixed point.
+            setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
+            setfixed(mxin)  # Do we need to do this to both ?
+            exitcounts[3] += 1
+            #        println("3 Returning ckh $mx")
+            return lcheckhash(mx)
+        end
     end
     local mx1    
     while true # After 1 eval fixed bit is not set and input not equal to result of first eval
