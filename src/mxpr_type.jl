@@ -166,6 +166,10 @@ margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, se
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0
 @inline Base.endof(mx::Mxpr) = length(mx)
+# Using this iterator is probably less efficient than iterating directly over the args
+# Base.start(mx::Mxpr) = margs(mx)[1] # could use start here too
+# Base.next(mx::Mxpr,state) = (state,next(state,margs(mx)))
+# Base.done(mx::Mxpr,state) = done(margs(mx),state)
 mxprtype{T}(mx::Mxpr{T}) = T
 
 # Table for storing Mxpr indexed by hash code.

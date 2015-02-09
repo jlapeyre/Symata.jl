@@ -2,6 +2,7 @@
 
 # eg   (a + b + (c + d)) --> (a + b + c + d)
 
+# FlatT because Flat is already a symbol
 typealias FlatT Union(Mxpr{:Plus},Mxpr{:Times})
 
 # Here we copy
@@ -24,8 +25,7 @@ function flatten!{T<:FlatT}(mx::T)
             push!(na,x)
         end
     end
-    nmx = mxpr(mhead(mx),na)
-    nmx
+    return mxpr(mhead(mx),na)
 end
 
 # Here we do not
