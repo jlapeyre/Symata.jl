@@ -50,7 +50,7 @@ newdownvalues() = Array(Any,0)
 ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)
 
 @inline symname(s::SJSym) = s
-@inline symname(s::String) = symbol(s)
+#@inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
 @inline getsym(s) = s  # careful, this is not getssym
 sjval(s::SJSym) = getssym(s).val  # intended to be used from within Julia, or quoted julia. not used anywhere in code
