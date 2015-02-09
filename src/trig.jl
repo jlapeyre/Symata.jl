@@ -5,7 +5,7 @@ apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,mx.args[1]) : mx
 Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
 
 ## Making these constant does save a bit of time
-# We could do this in an organized way.
+# We could do this in an more organized way.
 const _moosq2 = mmul(-1,mpow(2,-1//2))
 const _oosq2 = mpow(2,-1//2)
 mergesyms(_moosq2,:nothing)
@@ -19,7 +19,6 @@ function Cos_pi_coeff(mx::Mxpr{:Cos},c::Rational)
     n = c.num
     d = c.den
     d == 2 && return zero(d)
-#    local nmx
     if d == 4
         md = mod(n,8)
         if (md == 3 || md == 5)
@@ -27,8 +26,6 @@ function Cos_pi_coeff(mx::Mxpr{:Cos},c::Rational)
         else
             nmx = _oosq2
         end
-#        setfixed(nmx)
-#        setcanon(nmx)
         return nmx
     end
     return mx

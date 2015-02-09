@@ -94,7 +94,15 @@ type Mxpr{T} <: AbstractMxpr
 end
 
 @inline margs(mx::Mxpr) = mx.args
-@inline margs(mx::Mxpr,n::Int) = mx.args[n]
+@inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
+#setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
+# These should be fast. In the SJulia language, mx[0] gets the head, but not here.
+@inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
+@inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
+@inline Base.length(mx::Mxpr) = length(margs(mx))
+@inline Base.length(s::SJSym) = 0
+@inline Base.endof(mx::Mxpr) = length(mx)
+
 mhead(mx::Mxpr) = mx.head
 mxprtype{T}(mx::Mxpr{T}) = T
 
@@ -276,14 +284,6 @@ is_fixed(s::SJSym) = symval(s) == s
 
 @inline newargs() = Array(Any,0)
 @inline newargs(n::Integer) = Array(Any,n)
-
-#setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
-# These should be fast. In the SJulia language, mx[0] gets the head, but not here.
-@inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
-@inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
-@inline Base.length(mx::Mxpr) = length(margs(mx))
-@inline Base.length(s::SJSym) = 0
-@inline Base.endof(mx::Mxpr) = length(mx)
 
 # We need to think about copying in the following. Support both refs and copies ?
 function getindex(mx::Mxpr, r::UnitRange)
