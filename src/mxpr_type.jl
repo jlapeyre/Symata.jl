@@ -401,24 +401,26 @@ function usersymbols()
     mx
 end
 
-function get_attribute(sj::SJSym, a::Symbol)
-    get(getssym(sj).attr,a,false)
+# Return true if sj has attribute attr
+function get_attribute(sj::SJSym, attr::Symbol)
+    get(getssym(sj).attr,attr,false)
 end
 
-function get_attribute{T}(mx::Mxpr{T}, a::Symbol)
-    get_attribute(T,a)
+# Return true if head of mx has attribute attr
+function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
+    get_attribute(T,attr)
 end
 
 function is_protected(sj::SJSym)
     get(getssym(sj).attr,:Protected,false)
 end 
     
-function set_attribute(sj::SJSym, a::Symbol)
-    getssym(sj).attr[a] = true
+function set_attribute(sj::SJSym, attr::Symbol)
+    getssym(sj).attr[attr] = true
 end
 
-function unset_attribute(sj::SJSym, a::Symbol)
-    getssym(sj).attr[a] = false
+function unset_attribute(sj::SJSym, attr::Symbol)
+    getssym(sj).attr[attr] = false
 end
 
 
