@@ -19,3 +19,8 @@ using Base.Test
 @testex MatchQ(f(b^2), f(x_^2)) == true
 @testex MatchQ( gg(xx) , _gg)
 @ex Clear(a)
+
+@ex ClearAll(f,a,x)
+@ex f(x_) := Module([a],(a=1,x+a))
+@testex  f(3) == 4
+@ex ClearAll(f,a,x)

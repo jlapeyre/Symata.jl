@@ -4,6 +4,7 @@
 
 # Would be nice to get something like this working to get
 # rid of boiler plate or allow changing how dispatch is done
+# And checking number of args.
 #macro apphead(sym,body...)
 #    name = :apprules
 #    :(function $(esc(name))(mx::Mxpr{$sym}) $body end)
@@ -11,13 +12,16 @@
 
 ## Application of Rules for many heads of Mxpr
 
+## Head with no builtin or user defined evaluation code.
+# That is, no user defined Julia level code. There may be SJulia rules for x.
 apprules(x) = x
+
+#### Set and SetDelayed
 
 function checkprotect(s::SJSym)
     get_attribute(symname(s),:Protected) &&
     error("Symbol '",symname(s), "' is protected.")
 end
-
 checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 @sjdoc Set "
@@ -89,20 +93,29 @@ function set_only(mx,lhs::Mxpr, rhs)
 end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
-setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
-set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_and_setdelayed(mx,lhs,localize_module(rhs))
+setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module(rhs))
+set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_only(mx,lhs,localize_module(rhs))
+
+# We renamed stuff and the Module code above calls the old things. We need to fix this.
+set_and_setdelayed(mx,y,z) = mx
+
+#### SetJ
 
 @sjdoc SetJ "
 SetJ(x,val) sets the Julia symbol x to val. Variables and functions in SJulia
 are separate from those in Julia, ie, their table of bindings to symbols are separate.
 "
 
+# This can also be done with a Jxpr
 # Bind a Julia symbol to the rhs
 function apprules(mx::Mxpr{:SetJ})
     lhs = margs(mx,1)
     rhs = margs(mx,2)
     eval(Expr(:(=),symname(lhs),rhs))
 end
+
+
+#### Jxpr
 
 @sjdoc Jxpr "
 Jxpr allows embedding Julia expressions.
@@ -121,6 +134,8 @@ Jxpr is evaluated. You never see the head Jxpr. For example
 # Mxpr with head Jxpr. It is evaluated here.
 # Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
 apprules(mx::Mxpr{:Jxpr}) = eval(mx[1])
+
+#### Unpack
 
 @sjdoc Unpack "
 Unpack(a) unpacks a Julia typed array into an SJulia List expression.
@@ -147,6 +162,8 @@ function do_unpack(obj)
     end
     return args
 end
+
+#### Pack
 
 @sjdoc Pack "
 Pack(mx) packs the args of the SJulia expression mx into a typed Julia array.
@@ -177,7 +194,7 @@ function do_pack(T,sjobj)
 end
 
 
-set_and_setdelayed(mx,y,z) = mx
+#### Symbol
 
 @sjdoc Symbol "
 Symbol(str) converts the string str to a symbol. For example if a is 1,
