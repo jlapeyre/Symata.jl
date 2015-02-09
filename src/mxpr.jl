@@ -242,9 +242,9 @@ function loopmeval(mxin::Mxpr)
     local mx1    
     while true # After 1 eval fixed bit is not set and input not equal to result of first eval
         mx1 = meval(mx)  # So, we do another eval.
-        mx = mx1        
-        if (is_Mxpr(mx1) && is_fixed(mx1)) || mx1 == mx  # The most recent eval was enough, we are done
-#            setfixed(mx) # Not correct. Why ?
+        if (is_Mxpr(mx1) && is_fixed(mx1))  || mx1 == mx  # The most recent eval was enough, we are done
+            #            setfixed(mx) # Not correct. Why ?
+            mx = mx1        
             break
         end
         neval += 1
@@ -252,6 +252,7 @@ function loopmeval(mxin::Mxpr)
             println(mx)
             error("loopmeval: Too many, $neval, evaluations. Expression still changing")
         end
+        mx = mx1        
     end
     if is_Mxpr(mx) && mx == mxin
         setfixed(mxin)
