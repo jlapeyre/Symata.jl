@@ -1,8 +1,8 @@
-## This file contains mostly meval, loopmeval, and code to translate Expr from cli to Mxpr.
+## This file contains mostly meval, infseval, and code to translate Expr from cli to Mxpr.
 
 # Choose infinite or single evaluation.
-# The test suite assumes loopmeval is used.
-@inline doeval(x) = loopmeval(x)  # infinite evaluation
+# The test suite assumes infseval is used.
+@inline doeval(x) = infseval(x)  # infinite evaluation
 #@inline doeval(x) = meval(x)   # single evaluation
 
 # Enable or disable hashing expressions here.
@@ -210,10 +210,10 @@ global const exitcounts = Int[0,0,0,0]
 # This is also complicated by infinite evaluation because whether an expression is
 # simplified depends on the current environment. We try to solve this with lists of 'free' symbols.
 # Note: lcheckhash is the identity (ie disabled)
-# doeval is loopmeval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
-function loopmeval(mxin::Mxpr)
-    @mdebug(2, "loopmeval ", mxin)
-#    println("loopmeval ", mxin)
+# doeval is infseval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
+function infseval(mxin::Mxpr)
+    @mdebug(2, "infseval ", mxin)
+#    println("infseval ", mxin)
     neval = 0  # We cut off infinite eval at 100. This would probably only be a bug in SJulia.
     if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than on mxin ?
 #        println("got dirty syms $mxin")
@@ -251,7 +251,7 @@ function loopmeval(mxin::Mxpr)
         neval += 1
         if neval > 100
             println(mx)
-            error("loopmeval: Too many, $neval, evaluations. Expression still changing")
+            error("infseval: Too many, $neval, evaluations. Expression still changing")
         end
         mx = mx1        
     end
@@ -266,24 +266,24 @@ end
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
-# loopmeval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
+# infseval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
 
-# function loopmeval(s::SJSym, ss::SSJSym)
-#     return s == symval(ss) ? s : loopmeval(symval(ss))
+# function infseval(s::SJSym, ss::SSJSym)
+#     return s == symval(ss) ? s : infseval(symval(ss))
 # end
 
-# function loopmeval{T<:Number}(s::SJSym, ss::SSJSym{T})
+# function infseval{T<:Number}(s::SJSym, ss::SSJSym{T})
 #     return symval(ss)
 # end
 
-function loopmeval(s::SJSym)
-#    loopmeval(s,getssym(s))
+function infseval(s::SJSym)
+#    infseval(s,getssym(s))
     mx = meval(s)
-    return mx == s ? s : loopmeval(mx)
+    return mx == s ? s : infseval(mx)
 end
 
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
-loopmeval(x) = x
+infseval(x) = x
 
 ## Evaluation of Mxpr
 

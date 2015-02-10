@@ -192,7 +192,7 @@ function matchpat(cvar,ex)
     is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")
     if cc != :None
         testmx = mxpr(cc,ex)
-        ptestmatch = (loopmeval(testmx) == true)
+        ptestmatch = (infseval(testmx) == true)
     else
         ptestmatch = true
     end
