@@ -111,7 +111,7 @@ function extomx(ex::Expr)
         end
     elseif ex.head == :quote  # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
         head = :Jxpr          # This allows running Julia code from within SJulia.
-        push!(newa,eval(ex))
+        push!(newa,eval(ex))  # Note that these are evaluated immediately
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
