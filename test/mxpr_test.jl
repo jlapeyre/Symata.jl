@@ -103,5 +103,10 @@ using Base.Test
 @testex f("dog") == "dog"
 @ex ClearAll(f,x)
 
+## While
 
-
+@ex ClearAll(i)
+@ex i = 0
+@ex While(i < 5, i = i + 1)
+@testex i == 5
+@ex ClearAll(i)

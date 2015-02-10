@@ -30,3 +30,15 @@ function apprules(mx::Mxpr{:If})
     tres = doeval(test) == true
     tres ? doeval(tbranch) : doeval(fbranch)
 end
+
+@sjdoc While "
+While(test,body) evaluates test then body in a loop until test does not return true.
+"
+
+function apprules(mx::Mxpr{:While})
+    (test,body)= (mx[1],mx[2])
+    while doeval(test) == true
+        doeval(body)
+    end
+end
+        
