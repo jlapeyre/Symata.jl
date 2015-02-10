@@ -346,9 +346,9 @@ function meval(mx::Mxpr)
         for i in 2:length(mxargs)
             nargs[i] = doeval(mxargs[i])
         end
-    elseif get_attribute(mhead(mx),:HoldAll)
+    elseif get_attribute(nhead,:HoldAll)
         nargs = mxargs
-    elseif get_attribute(mhead(mx),:HoldRest)
+    elseif get_attribute(nhead,:HoldRest)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
     else
