@@ -69,6 +69,12 @@ using Base.Test
 @testex Cos(ACos(x)) == x
 @testex Attributes(Plus)  == [Flat,Listable,NumericFunction,OneIdentity,Orderless,Protected]
 
+## Orderless
+
+@ex ClearAll(f,a,c,z)
+@testex Apply(List,f(z,c,a)) == [z,c,a]
+@ex ClearAll(f,a,c,z)
+
 ## Listable
 
 @ex ClearAll(a,b,c,d,e,f,g,y,z)

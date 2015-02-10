@@ -192,7 +192,7 @@ jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 ## Step 2. Sort expression according to jslexless.
 
 # Order the args in orderless Mxpr.
-function orderexpr!(mx::Orderless)
+function orderexpr!(mx::Mxpr)
     ar = mx.args
     sort!(ar,lt=jslexless)
     mx
@@ -256,6 +256,13 @@ numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
 canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
+
+function canonexpr!(mx::Mxpr)
+    if get_attribute(mx,:Orderless)
+        orderexpr!(mx)
+    end
+    mx
+end
 
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
