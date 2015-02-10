@@ -293,14 +293,15 @@ meval(s::SJSym) = symval(s)
 # That input has been mevaled at least once and the result is mx, the argument
 # to revisesyms. Here, we make a free-symbol list for mx. We look at its current
 # free symbol list, which is inherited, and identify those that are no longer
-# free. Eg. the environment changed. E.g The user set a = 1. Or a may no
+# free. Eg. the environment changed. E.g The user set a = 1. Or 'a' may
 # evaluate to an expression with other symbols.
+#
 # move this to mxpr_type
 function revisesyms(mx::Mxpr)
     s = mx.syms
 #    println("revising $mx:  $s")
     mxage = getage(mx)
-    nochange = true
+    nochange = true     # Don't create a new symbol list if nothing changed
     for sym in keys(s)  # Don't know if this saves or wastes time ?
         if symage(sym) > mxage
             nochange = false
@@ -316,7 +317,7 @@ function revisesyms(mx::Mxpr)
             mergesyms(nsyms,symval(sym))
         else
 #            println("Merged unchanged $sym")
-            mergesyms(nsyms,sym)
+            mergesyms(nsyms,sym)  # just copying from the old symbol list
         end
     end
     return nsyms
@@ -337,7 +338,6 @@ function meval(mx::Mxpr)
 #    println("1. meval $mx: ", listsyms(mx))
     mxargs = mx.args
     len = length(mxargs)
-    start = 1
     if get_attribute(mx.head,:HoldFirst)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
