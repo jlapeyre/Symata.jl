@@ -6,7 +6,10 @@
 # not traversed each time and replace new symbols on each call.
 # Or, push values onto a stack on entry and pop on exit.
 
-function localize_module(mx::Mxpr{:Module})
+# This strips the head 'Module' and creates the local vars and returns just the compound
+# expression. Instead, 'Module' should be preserved and when pattern matching and evaluation
+# is done, the local variables should be cleared.
+function localize_module!(mx::Mxpr{:Module})
     length(mx) != 2 && error("Module: Module called with ", length(mx), " arguments, 2 arguments are expected")
     (locvars,body) = (mx[1],mx[2])
     (is_Mxpr(locvars) && symname(mhead(locvars)) == :List) ||
@@ -19,9 +22,12 @@ function localize_module(mx::Mxpr{:Module})
         lvtab[vn] = getsym(gensym(string(vn)))
     end
     body = substlocalvars!(mx[2],lvtab)
-    unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # reset local vars on entry
-    body
+    unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # remove existing local vars 
+    body                                                             # from the symbol table.
 end    
+
+# We currently have no mechanism for removing the last set of gensymed local variables from the symbol table.
+# They also print without the chars added by gensym.
 
 substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
      is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el

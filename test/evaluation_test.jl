@@ -24,3 +24,5 @@
 @ex m = Cos(3*a)
 @ex a = Pi
 @testex m == -1
+
+@ex ClearAll(a,b,c,d,m)

@@ -41,6 +41,8 @@ using Base.Test
 # Match at every level
 @testex ReplaceAll( g(Cos(a+b)^2 + Sin(a+b)^2), cossinrule) == g(1)
 
+@ex ClearAll(cossinrule)
+
 @testex Replace( a , a => 1) == 1
 @testex Replace( b , a => 1) == b
 #@ex ClearAll(a,b)
@@ -55,6 +57,7 @@ using Base.Test
 @ex res = ( a = 3, 4)
 @testex a == 3
 @testex res == 4
+@ex Clear(a,res)
 
 @ex ClearAll(f,a,b)
 @ex f(x_) := ( a = 1, x + 1 )
@@ -65,3 +68,17 @@ using Base.Test
 
 @testex Cos(ACos(x)) == x
 @testex Attributes(Plus)  == [Flat,Listable,NumericFunction,OneIdentity,Orderless,Protected]
+
+## Listable
+
+@ex ClearAll(a,b,c,d,e,f,g,y,z)
+@ex SetAttributes(f,Listable)
+@testex f([a,b,c])  == [f(a),f(b),f(c)]
+@testex f([a,b,c],d) == [f(a,d),f(b,d),f(c,d)]
+@testex f(z,[a,b,c],d) == [f(z,a,d),f(z,b,d),f(z,c,d)]
+@testex f([a,b,c],[d,e,f]) == [f(a,d),f(b,e),f(c,f)]
+@testex f([a,b,c],[d,e,f],g) == [f(a,d,g),f(b,e,g),f(c,f,g)]
+@testex f([a,b,c],z,[d,e,f]) == [f(a,z,d),f(b,z,e),f(c,z,f)]
+@testex f(y,[a,b,c],z,[d,e,f]) == [f(y,a,z,d),f(y,b,z,e),f(y,c,z,f)]
+@ex ClearAll(f,a,b,c,d,e,f,g,x,y,z,res)
+

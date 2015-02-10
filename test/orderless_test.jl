@@ -51,6 +51,6 @@
 @ex m = Expand((2*a+2*b)^4)
 @testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
 
-@ex Clear(m)
+@ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y)
 
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented

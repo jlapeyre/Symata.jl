@@ -93,8 +93,8 @@ function set_only(mx,lhs::Mxpr, rhs)
 end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
-setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module(rhs))
-set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_only(mx,lhs,localize_module(rhs))
+setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
+set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_only(mx,lhs,localize_module!(rhs))
 
 # We renamed stuff and the Module code above calls the old things. We need to fix this.
 set_and_setdelayed(mx,y,z) = mx
@@ -242,16 +242,18 @@ function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
 end
 
 @sjdoc ClearAll "
-ClearAll(x,y,z) removes all values and DownValues associated with x,y,z.
+ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. The
+symbols are removed from the symbol table and will not appear in the list returned
+by UserSyms().
 "
 
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
         checkprotect(a)
+#        if is_type_less(a,String)  TODO implement globing, etc.
+#        else
         delete!(SYMTAB,a)
-#        setsymval(a,symname(a))
-#        clear_downvalues(a)
     end
 end
 
@@ -692,7 +694,10 @@ in the sense that nested calls to a Module are not supported.
          ("f(x_) := Module([a],(a=1, a+x))",""),
          ("f(3)","4"),
          ("a","a"))
-apprules(mx::Mxpr{:Module}) = localize_module(mx)
+
+# localizing is done above during setting the rule.
+# But handling Module needs to be done differently .
+#apprules(mx::Mxpr{:Module}) = localize_module!(mx)
 
 @sjdoc Println "
 Println(expr1,expr2,...) prints the expressions and a newline.

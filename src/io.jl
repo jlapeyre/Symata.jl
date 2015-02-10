@@ -28,19 +28,27 @@ needsparen(x::Rational) = true
 needsparen(x::Complex) = true
 needsparen(x) = false
 
+function degensym(str::String)
+    if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
+        return split(str,['#'],keep=false)[1]
+    else
+        return str
+    end
+end
+
 function Base.show(io::IO, s::SJSym)
     ss = string(symname(s))
-    if ss[1] == '#' && ss[2] == '#'  # De-gensym local variables for display
-        ss = split(ss,['#'],keep=false)[1]
-    end
+    ss = degensym(ss)
     Base.show_unquoted(io,symbol(ss))
 end
 
+# This may break. It will only work if the value of s
+# is the symbol name in the symbol table that is associated
+# with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
+# This is only stored as the key to the symbol table.
 function Base.show(io::IO, s::SSJSym)
     ss = string(symname(s))
-    if ss[1] == '#' && ss[2] == '#'  # De-gensym local variables for display
-        ss = split(ss,['#'],keep=false)[1]
-    end
+    ss = degensym(ss)
     Base.show_unquoted(io,symbol(ss))
 end
 

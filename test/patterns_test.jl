@@ -23,4 +23,4 @@ using Base.Test
 @ex ClearAll(f,a,x)
 @ex f(x_) := Module([a],(a=1,x+a))
 @testex  f(3) == 4
-@ex ClearAll(f,a,x)
+@ex ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)

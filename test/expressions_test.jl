@@ -23,3 +23,4 @@ using Base.Test
 @testex Expand((a+1)^3) == 1 + 3*a + 3*(a^2) + a^3
 @testex Expand((a+b)*(c+d)) == a*c + b*c + a*d + b*d
 @testex Apply(List,Expand(z*a*(c+d)*(a+b))) == [(a^2)*c*z,a*b*c*z,(a^2)*d*z,a*b*d*z]
+@ex ClearAll(a,b,c,d,z,mx)

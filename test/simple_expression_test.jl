@@ -3,3 +3,4 @@
 @testex  b^1 == b
 @testex  b*1 == b
 @testex  1*b == b
+@ex ClearAll(b)

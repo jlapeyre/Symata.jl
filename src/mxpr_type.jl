@@ -45,8 +45,8 @@ newdownvalues() = Array(Any,0)
 #@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 #@inline symname{T}(s::SSJSym{T}) = T
 
-# not for current implementation
-#@inline symname{T}(s::SSJSym{T}) = s.val
+# Hmm. Careful, this only is the name if the symbol evaluates to itself
+@inline symname{T}(s::SSJSym{T}) = s.val
 
 ## Typed SJ Symbols. Only experimental
 ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)

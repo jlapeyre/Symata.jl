@@ -52,4 +52,4 @@ using Base.Test
 @testex  Head(g(5)) == g
 @testex  Head(g("cat")) == g
 @testex  g("zebra") == "Greater than 4"
-@ex      ClearAll(stringgt4,g,gt5)
+@ex      ClearAll(a,b,stringgt4,g,gt5)

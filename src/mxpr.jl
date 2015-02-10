@@ -402,7 +402,7 @@ function threadlistable(mx::Mxpr)
         if is_Mxpr(mx[i],:List)
             nlen = length(mx[i])
             if lenlist >= 0 && nlen != lenlist
-                error("Trying to thread over lists of different lengths.")
+                error("Can't thread over lists of different lengths.")
             end
             lenlist = nlen
             push!(pos,i)
@@ -411,27 +411,19 @@ function threadlistable(mx::Mxpr)
     lenp = length(pos)
     lenp == 0 && return mx
     largs = newargs(lenlist)
-#    println("lenp=$lenp, lenlist=$lenlist")
     for i in 1:lenlist
         nargs = newargs(lenmx)
         p = 1
         for j in 1:lenmx
             if p <= lenp && pos[p] == j
-#                println("got pos $p, at j=$j")
                 nargs[j] = mx[j][i]
-#                println("and set")
                 p += 1
             else
- #               println("setting scalar")                
                 nargs[j] = mx[j]
-#                println("set scalar")
             end
         end
-#        println("Pushing list $i")
         largs[i] = mxpr(h,nargs)
     end
     nmx = mxpr(:List,largs)
-#    println("$largs")    
-#    println("Done")
     return nmx
 end
