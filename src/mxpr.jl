@@ -323,6 +323,8 @@ function revisesyms(mx::Mxpr)
     return nsyms
 end
 
+# main evaluation routine. Call doeval (which is loopeval) on head
+# and some of the arguments. Then apply rules and other things on the result.
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
@@ -338,22 +340,17 @@ function meval(mx::Mxpr)
 #    println("1. meval $mx: ", listsyms(mx))
     mxargs = mx.args
     len = length(mxargs)
-    if get_attribute(mx.head,:HoldFirst)
+    if get_attribute(nhead,:HoldFirst)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
         for i in 2:length(mxargs)
             nargs[i] = doeval(mxargs[i])
-#            println("HoldFirst loop $i ",nargs[i], " : ", listsyms(nargs[i])) 
         end
-#        println("HoldFirst Leaving")
     elseif get_attribute(mhead(mx),:HoldAll)
-#        println("************************************** HoldAll")
         nargs = mxargs
-#        println("HoldAll Leaving")
     elseif get_attribute(mhead(mx),:HoldRest)
         nargs = mxargs
         nargs[1] = doeval(nargs[1])
-#        println("HoldRest Leaving")        
     else
 #        changeflag = false  
 #         for i in 1:length(mxargs)  # need to see if this code is worth anything. It breaks somes things.
