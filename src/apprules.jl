@@ -152,7 +152,18 @@ Jxpr is evaluated. You never see the head Jxpr. For example
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
 # Mxpr with head Jxpr. It is evaluated here.
 # Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
-apprules(mx::Mxpr{:Jxpr}) = eval(mx[1])
+function apprules(mx::Mxpr{:Jxpr})
+    do_jxpr(mx,mx[1])
+end
+
+function do_jxpr(mx::Mxpr{:Jxpr}, ex::Expr)
+    return eval(ex)
+end
+
+function do_jxpr(mx::Mxpr{:Jxpr}, x)
+    error("Can't execute Julia code of type ", typeof(x))
+end
+
 
 #### Unpack
 
