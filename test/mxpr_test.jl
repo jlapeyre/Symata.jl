@@ -84,7 +84,7 @@ using Base.Test
 
 ## For
 @ex m = Range(3)
-@ex For(i=1, i <= 3, i = i + 1, SetPart(m,i,i+1))
+@ex For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
 @ex res = [2,3,4] == m
 @test symval(:res) == true
 @ex ClearAll(m,i,res)

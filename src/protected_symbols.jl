@@ -2,14 +2,14 @@
 # They can by listed by giving `BuiltIn()'.
 # They all have the attribute `Protected'.
 
-for v in ( "Set", "Pattern", "SetJ", "SetAttributes")
+for v in ("Pattern", "SetJ", "SetAttributes") #  "HPart", "HSetPart")
     @eval begin
         set_attribute(symbol($v),:HoldFirst)
         set_attribute(symbol($v),:Protected)        
     end
 end
 
-for v in ("Module","Clear", "ClearAll", "SetDelayed", "HoldPattern", "HoldForm", "Hold", "DumpHold",
+for v in ("Module","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
           "DownValues", "Age", "Table", "For", "If", "Jxpr") # Age, Fixed and others are not Mma
     @eval begin
         set_attribute(symbol($v),:HoldAll)
@@ -32,6 +32,14 @@ for v in ("Rule",)
     end
 end
 
+for v in ("Set",)
+    @eval begin
+        set_attribute(symbol($v),:HoldFirst)        
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:SequenceHold)        
+    end
+end
+
 for v in ("RuleDelayed","PatternTest")
     @eval begin
         set_attribute(symbol($v),:HoldRest)
@@ -40,7 +48,7 @@ for v in ("RuleDelayed","PatternTest")
     end
 end
 
-for v in ("Timing","Allocated")
+for v in ("Timing","Allocated","SetDelayed")
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -107,10 +115,10 @@ for v in ("EvenQ","OddQ","Range")
     end
 end
 
-for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
+for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",  # "SetPart"
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "BuiltIns", "Symbol", "SetPart", "Pack", "Unpack","Example","Fixed",
+          "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
           "UserSyms", "List","Syms",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",

@@ -50,7 +50,7 @@ rather to the current value of b every time a is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 function apprules(mx::Mxpr{:Set})
-    set_only(mx,mx[1],mx[2])
+    do_set(mx,mx[1],mx[2])
 end
 
 function apprules(mx::Mxpr{:SetDelayed})
@@ -68,7 +68,7 @@ function setdelayed(mx,lhs::SJSym, rhs)
     nothing
 end
 
-function set_only(mx,lhs::SJSym, rhs)
+function do_set(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
     rhs
@@ -84,7 +84,21 @@ function setdelayed(mx,lhs::Mxpr, rhs)
     nothing
 end
 
-function set_only(mx,lhs::Mxpr, rhs)
+function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
+    error("$mx is unimplemented")
+end
+
+function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
+    ex = meval(lhs[1])  # Mma is not clear but seems to do this. We should document it if it stays this way
+    ind = doeval(lhs[2])
+    val = doeval(rhs)
+    ex[ind] = val
+    unsetfixed(ex) # maybe we can optimize this
+    val
+end
+
+# we are assuming this is a "function" definition
+function do_set(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     push_downvalue(mhead(lhs),rule) # push DownValue
@@ -94,7 +108,7 @@ end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
-set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_only(mx,lhs,localize_module!(rhs))
+do_set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_set(mx,lhs,localize_module!(rhs))
 
 # We renamed stuff and the Module code above calls the old things. We need to fix this.
 set_and_setdelayed(mx,y,z) = mx
@@ -109,7 +123,7 @@ function do_set_attributes(lhs::SJSym, rhs::SJSym)
     nothing
 end
     
-function set_only(mx,lhs::Mxpr, rhs)
+function do_set(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     push_downvalue(mhead(lhs),rule) # push DownValue
@@ -156,12 +170,12 @@ function apprules(mx::Mxpr{:Jxpr})
     do_jxpr(mx,mx[1])
 end
 
-function do_jxpr(mx::Mxpr{:Jxpr}, ex::Expr)
+function do_jxpr(mx::Mxpr{:Jxpr}, ex::Union(Expr,Symbol))
     return eval(ex)
 end
 
 function do_jxpr(mx::Mxpr{:Jxpr}, x)
-    error("Can't execute Julia code of type ", typeof(x))
+    error("Jxpr: Can't execute Julia code of type ", typeof(x))
 end
 
 
@@ -299,8 +313,10 @@ symjlength(x) = length(x)
 
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
-expr[n1][n2] returns the n2th part of the n1th part. To assign, you
-must use SetPart. expr[n] also returns the nth element of instances of several
+expr[n1][n2] returns the n2th part of the n1th part.
+expr[n] = val sets the nth part of expr to val. n and val are evaluated
+normally. expr is evaluated once.
+expr[n] also returns the nth element of instances of several
 Julia types such as Array and Dict.
 "
 
@@ -316,23 +332,54 @@ function apprules(mx::Mxpr{:Part})
     arr[i]
 end
 
-@sjdoc SetPart "
-SetPart(expr,n,val) sets the nth part of expr to val. Only one level of depth is supported
-at the moment.
-"
+# @sjdoc SetPart "
+# SetPart(expr,n,val) sets the nth part of expr to val. Only one level of depth is supported
+# at the moment.
+# "
 
-@sjseealso_group(Set,SetPart)
+#@sjseealso_group(Set)
 
 ## crude implementation.
 # We don't have syntax to set a part yet.
 # This only works at one level.
-function apprules(mx::Mxpr{:SetPart})
-    a = margs(mx)
-    x = a[1]
-    ind = a[2]
-    val = a[3]
-    x[ind] = val
-end
+# function apprules(mx::Mxpr{:SetPart})
+#     a = margs(mx)
+#     x = a[1]
+#     ind = a[2]
+#     val = a[3]
+#     x[ind] = val
+# end
+
+# Rethink all of this since we got rid of SetPart, etc.
+
+# @sjdoc HPart "
+# HPart(m,i) is like Part, but the first argument is only evaluated once.
+# This means that, if m is a symbol, only the referenced part of the
+# expression that m evaluates to is evaluated. For an expression with,
+# with 1000 parts, HPart might be 1000 times faster than Part. The result
+# may be very different. For example, if m evaluates to a sum, then Part
+# will evaluated the entire expression, perhaps collecting terms, and
+# then return the ith part of the result. HPart, will not evaluate the
+# other summands and thus, will not collect terms. However, Part also
+# will not evaluate other arguments if it believes that they are already
+# at a fixed point.
+# "
+
+# function apprules(mx::Mxpr{:HPart})
+#     a = margs(mx)
+#     arr = meval(a[1])
+#     i = a[2]
+#     i = i < 0 ? length(arr)+i+1 : i
+#     arr[i]
+# end
+
+# function apprules(mx::Mxpr{:HSetPart})
+#     a = margs(mx)
+#     x = meval(a[1])
+#     ind = a[2]
+#     val = a[3]
+#     x[ind] = val
+# end
 
 @sjdoc Head "
 Head(expr) returns the head of expr, which may be an SJulia expression or object of any
@@ -348,11 +395,14 @@ gethead(s::SJSym) = getsym(:Symbol)
 gethead(ex) = typeof(ex)
 
 @sjdoc JVar "
-JVar(x) returns the value of the Julia identifier x. This is
-identical to :(x).
+JVar(x) returns the Julia value of the Symbol that x evaluates to. For example,
+if a = 1 in Julia and b = a in SJulia, then JVar(b) evaluates to 1.
 "
+
 @sjseealso_group(Jxpr,JVar)
-apprules(mx::Mxpr{:JVar}) = eval(symname(margs(mx,1)))
+apprules(mx::Mxpr{:JVar}) = eval(symname(mx[1]))
+
+
 
 @sjdoc AtomQ "
 AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
