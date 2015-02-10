@@ -88,7 +88,7 @@ function push_downvalue(ins::SJSym,val)
     s = getssym(ins)
     dv = s.downvalues
     isnewrule = true
-    for i in 1:length(dv)
+    @inbounds for i in 1:length(dv)
         if val[1] == dv[i][1]
             dv[i] = val
             isnewrule = false
@@ -304,7 +304,7 @@ mergesyms(x,y) = nothing
 # Copy lists of free symbols in subexpressions of mx to
 # list of free symbols of mx. Only descend one level.
 function mergeargs(mx::Mxpr)
-    for i in 1:length(mx)
+    @inbounds for i in 1:length(mx)
 #        println("mergeargs $i: ", listsyms(mx[i]))
         mergesyms(mx,mx[i])
     end

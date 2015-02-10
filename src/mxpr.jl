@@ -83,7 +83,7 @@ function extomx(ex::Expr)
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
         head = jtomsym(a[1])
-        for i in 2:length(a) push!(newa,extomx(a[i])) end
+        @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif ex.head == :block
         mx = extomx(a[2]) # Can't remember, I think this is Expr with head :call
         return mx
@@ -303,7 +303,7 @@ function revisesyms(mx::Mxpr)
 #    println("revising $mx:  $s")
     mxage = getage(mx)
     nochange = true     # Don't create a new symbol list if nothing changed
-    for sym in keys(s)  # Don't know if this saves or wastes time ?
+    for sym in keys(s)  # Check if changes. Does this save or waste time ?
         if symage(sym) > mxage
             nochange = false
             break
@@ -311,7 +311,7 @@ function revisesyms(mx::Mxpr)
     end
     nochange == true && return s
     nsyms = newsymsdict()
-    for sym in keys(s)  
+    for sym in keys(s)
  #        mergesyms(nsyms,symval(sym))
         if symage(sym) > mxage
 #            println("Merging Changed $sym")
@@ -344,7 +344,7 @@ function meval(mx::Mxpr)
     if get_attribute(nhead,:HoldFirst)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
-        for i in 2:length(mxargs)
+        @inbounds for i in 2:length(mxargs)
             nargs[i] = doeval(mxargs[i])
         end
     elseif get_attribute(nhead,:HoldAll)
@@ -362,7 +362,7 @@ function meval(mx::Mxpr)
 #             end
 #         end
         nargs = newargs(len)
-        for i in 1:len
+        @inbounds for i in 1:len
             res1 = doeval(mxargs[i])
             nargs[i] = res1
         end
@@ -399,7 +399,7 @@ function threadlistable(mx::Mxpr)
     lenmx = length(mx)
     lenlist = -1
     h = mhead(mx)
-    for i in 1:lenmx
+    @inbounds for i in 1:lenmx
         if is_Mxpr(mx[i],:List)
             nlen = length(mx[i])
             if lenlist >= 0 && nlen != lenlist
@@ -412,10 +412,10 @@ function threadlistable(mx::Mxpr)
     lenp = length(pos)
     lenp == 0 && return mx
     largs = newargs(lenlist)
-    for i in 1:lenlist
+    @inbounds for i in 1:lenlist
         nargs = newargs(lenmx)
         p = 1
-        for j in 1:lenmx
+        @inbounds for j in 1:lenmx
             if p <= lenp && pos[p] == j
                 nargs[j] = mx[j][i]
                 p += 1

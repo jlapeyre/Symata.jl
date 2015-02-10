@@ -220,7 +220,7 @@ function _cmppat(mx,pat,captures)
     end
     # match and capture subexpressions. false propagates to the top node
     # retracing all steps. This is inefficient if we are not AC matching
-    for i in 1:length(mx)
+    @inbounds for i in 1:length(mx)
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
     return true
@@ -294,7 +294,7 @@ end
 function patsubst!(pat,cd)
     if (isexpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
         pa = margs(pat)
-        for i in 1:length(pa)
+        @inbounds for i in 1:length(pa)
             if havecapt(pa[i],cd)
                 pa[i] =  retrievecapt(pa[i],cd)
             elseif isexpr(pa[i])

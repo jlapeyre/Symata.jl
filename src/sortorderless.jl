@@ -320,10 +320,10 @@ function do_canon_power!{T<:Real}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
     else
         nargs[1] = mxpr(:Power,args[1],expt)
     end
-    for i in 2:len
+    @inbounds for i in 2:len
         nargs[i] = mxpr(:Power,args[i],expt)
     end
-    for i in 1:len
+    @inbounds for i in 1:len
         setcanon(nargs[i])
     end
     mx = mxpr(:Times,nargs)
