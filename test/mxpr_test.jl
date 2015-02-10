@@ -88,3 +88,14 @@ using Base.Test
 @ex res = [2,3,4] == m
 @test symval(:res) == true
 @ex ClearAll(m,i,res)
+
+@ex ClearAll(f)
+@ex f(x_) := Module([], (If(x < 10, x*f(x+1), x),))
+@testex f(1) == 3628800
+@testex f(9) == 90
+@testex f(10) == 10
+@testex f("dog") == "dog"
+@ex ClearAll(f,x)
+
+
+

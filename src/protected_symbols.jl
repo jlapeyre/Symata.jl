@@ -122,7 +122,7 @@ for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence", 
           "UserSyms", "List","Syms",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
-          "String", "StringLength","Protected"
+          "String", "StringLength","Protected", "TimeOn", "TimeOff"
     )
     @eval begin
         set_attribute(symbol($v),:Protected)        
