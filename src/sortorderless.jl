@@ -255,9 +255,11 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
+canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
+
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
-function canonexpr!(mx::Orderless)
+function canonexpr_orderless!(mx)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
 #    println("1 canonexpr")
     is_Number(mx) && return mx
