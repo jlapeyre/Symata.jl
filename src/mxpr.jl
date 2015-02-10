@@ -338,7 +338,7 @@ function meval(mx::Mxpr)
     nhead = doeval(mhead(mx))
     local nargs
 #    println("1. meval $mx: ", listsyms(mx))
-    mxargs = mx.args
+    mxargs = margs(mx)
     len = length(mxargs)
     if get_attribute(nhead,:HoldFirst)
         nargs = newargs(len)
@@ -347,11 +347,11 @@ function meval(mx::Mxpr)
             nargs[i] = doeval(mxargs[i])
         end
     elseif get_attribute(nhead,:HoldAll)
-        nargs = mxargs
+        nargs = copy(mxargs) # need to copy these, I think!
     elseif get_attribute(nhead,:HoldRest)
-        nargs = mxargs
+        nargs = copy(mxargs) # need to copy these, I think!
         nargs[1] = doeval(nargs[1])
-    else
+    else  # Evaluate all arguments
 #        changeflag = false  
 #         for i in 1:length(mxargs)  # need to see if this code is worth anything. It breaks somes things.
 # #            println("Checking change in ", mxargs[i], " in expr ",mx)
@@ -360,25 +360,14 @@ function meval(mx::Mxpr)
 #                 break
 #             end
 #         end
-        changeflag = true
-        if changeflag
-            nargs = newargs(len)
-            for i in 1:len
-                res1 = doeval(mxargs[i])
-#                println(" *** Meval inner $res1")
-                nargs[i] = res1
-            end
-
-        else
-            nargs = mxargs
+        nargs = newargs(len)
+        for i in 1:len
+            res1 = doeval(mxargs[i])
+            nargs[i] = res1
         end
-#        println("NoHold Leaving")        
     end
-    nmx = mxpr(nhead,nargs)
-    # Need following, but there is probably a better way to do this.
-    nmx.syms = revisesyms(mx)
-#    mergeargs(nmx)
-#    nmx.syms = mx.syms # This is wrong, too. Dependent symbols can change.
+    nmx = mxpr(nhead,nargs)   # new expression with evaled args
+    nmx.syms = revisesyms(mx) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx)
@@ -387,26 +376,23 @@ function meval(mx::Mxpr)
         return nothing
     end
     if  ! is_canon(res)
-#        println("Entering fl ca $res: ", listsyms(res))
         res = flatten!(res)
         res = canonexpr!(res)
-#        println("Exiting fl ca $res: ", listsyms(res))
     end
     # The conditional probably saves little time
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
+    if is_Mxpr(res)  && isempty(res.syms) # get free symbol lists from arguments
+        mergeargs(res) # This is costly if it is not already done.
+        add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.
+    end
     is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
     decrement_meval_count()
-    if is_Mxpr(res)  && isempty(res.syms)
-#        clearsyms(res)  Clearing is bad.
-        for i in 1:length(res)  # This is costly if it is not already done.
-            mergesyms(res,res[i])
-        end
-        add_nothing_if_no_syms(res)
-    end
-#    println("Exiting meval: $res: ", listsyms(res))
     return res
 end
 
+# If any arguments to mx are lists, thread over them. If there are more than one list,
+# they must be of the same length.
+# Eg.  f([a,b,c],d) -> [f(a,d),f(b,d),f(c,d)]
 function threadlistable(mx::Mxpr)
     pos = Array(Int,0) # should avoid this
     lenmx = length(mx)

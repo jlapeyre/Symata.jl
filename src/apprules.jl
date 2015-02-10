@@ -99,6 +99,25 @@ set_only(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = set_only(mx,lhs,localize_module(rhs
 # We renamed stuff and the Module code above calls the old things. We need to fix this.
 set_and_setdelayed(mx,y,z) = mx
 
+#### SetAttributes
+
+apprules(mx::Mxpr{:SetAttributes}) = do_set_attributes(mx[1],mx[2])
+
+function do_set_attributes(lhs::SJSym, rhs::SJSym)
+    checkprotect(lhs)
+    set_attribute(lhs,rhs)
+    nothing
+end
+    
+function set_only(mx,lhs::Mxpr, rhs)
+    checkprotect(lhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    push_downvalue(mhead(lhs),rule) # push DownValue
+    rule
+    nothing
+end
+
+
 #### SetJ
 
 @sjdoc SetJ "

@@ -2,7 +2,7 @@
 # They can by listed by giving `BuiltIn()'.
 # They all have the attribute `Protected'.
 
-for v in ( "Set", "Pattern", "SetJ" )
+for v in ( "Set", "Pattern", "SetJ", "SetAttributes")
     @eval begin
         set_attribute(symbol($v),:HoldFirst)
         set_attribute(symbol($v),:Protected)        
