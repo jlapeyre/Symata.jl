@@ -42,6 +42,12 @@ function apprules(mx::Mxpr{:While})
     end
 end
 
+@sjdoc Do "
+Do(expr,[imax]) evaluates expr imax times.
+Do(expr,[i,imax]) evaluates expr imax times with i localized taking values from 1 through
+  imax in increments of 1.
+"
+
 function apprules(mx::Mxpr{:Do})
     expr = mx[1]
     iter = make_sjiter(mx[2])
@@ -49,14 +55,81 @@ function apprules(mx::Mxpr{:Do})
 end
 
 function do_doloop(expr,iter::SJIter1)
-    for i in 1:iter.imax
+    do_doloop_kern(expr,iter.imax)
+end
+
+function do_doloop_kern1(expr,imax)
+    start = one(imax)
+    for i in start:imax
         doeval(expr)
     end
 end
 
-function do_doloop2(expr,incr)
-    incr = one(incr)
+function do_doloop(expr,iter::SJIter2)
+    isym = gensym(string(iter.i))
+    ex = replsym(deepcopy(expr),iter.i,isym)
+    for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
+        setsymval(isym,i)
+        doeval(ex)
+    end
 end
 
-#    isym = gensym(string(iter.imax))
-#    ex = replsym(deepcopy(expr),iter.imax,isym)
+function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
+    isym = gensym(string(iter.i))
+    ex = replsym(deepcopy(expr),iter.i,isym)
+    for i in iter.imin:iter.imax  # mma makes i type of one of these
+        setsymval(isym,i)
+        doeval(ex)
+    end        
+end
+
+function do_doloop(expr,iter::SJIter3)
+    isym = gensym(string(iter.i))
+    ex = replsym(deepcopy(expr),iter.i,isym)
+    setsymval(isym,iter.imin)    
+    for i in 1:(iter.loopmax)
+        doeval(ex)
+        setsymval(isym,doeval(mxpr(:Plus,isym,1)))
+    end        
+end
+
+# TODO model these on code above for SJIter3, which works.
+# function do_doloop{T<:Real,V<:Real,W:<:Real}(expr,iter::SJIter4{T,V,W})
+#     isym = gensym(string(iter.i))
+#     ex = replsym(deepcopy(expr),iter.i,isym)
+#     for i in iter.imin:iter.imax  # mma makes i type of one of these
+#         setsymval(isym,i)
+#         doeval(ex)
+#     end        
+# end
+
+# function do_doloop(expr,iter::SJIter3)
+#     isym = gensym(string(iter.i))
+#     ex = replsym(deepcopy(expr),iter.i,isym)
+#     setsymval(isym,iter.imin)    
+#     for i in 1:(iter.loopmax)
+#         doeval(ex)
+#         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
+#     end        
+# end
+
+
+
+
+
+
+function do_doloop(expr,iter::SJIter4)
+    do_doloop_kern4(expr,iter.i,iter.imin,iter.imax, iter.di)
+end
+
+# Same here. don't need this kernel
+function do_doloop_kern4{T<:Real,V<:Real,W<:Real}(expr,i,imin::T,imax::V,di::W)
+    isym = gensym(string(i))
+    ex = replsym(deepcopy(expr),i,isym)
+    for i in imin:di:imax
+        setsymval(isym,i)
+        doeval(ex)
+    end    
+end
+
+do_doloop_kern4(expr,i,imin,imax,di) = error("Not implemented yet.")
