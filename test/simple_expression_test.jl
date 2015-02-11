@@ -5,4 +5,4 @@
 @testex  1*b == b
 @testex  -(a+b) == -a - b  # lhs is expanded
 @testex  -1*(a+b) == -a - b
-@ex ClearAll(b)
+@ex ClearAll(a,b)

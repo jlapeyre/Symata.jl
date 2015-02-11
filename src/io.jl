@@ -1,6 +1,6 @@
 module SJuliaIO
 
-import Main: Mxpr, SJSym, SSJSym, is_Mxpr, getsym,
+import Main: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
        symname, mhead, margs, is_type, getoptype,
        mtojsym
 
@@ -125,7 +125,7 @@ end
 # unary minus
 function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
-    if is_Number(arg) || is_SJSym(arg)
+    if is_Number(arg) || is_SJSym(arg)        
         print(io,"-")
         show(io,arg)
     else
