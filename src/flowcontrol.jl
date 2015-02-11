@@ -96,14 +96,15 @@ function do_doloop(expr,iter::SJIter3)
 end
 
 # TODO model these on code above for SJIter3, which works.
-# function do_doloop{T<:Real,V<:Real,W:<:Real}(expr,iter::SJIter4{T,V,W})
-#     isym = gensym(string(iter.i))
-#     ex = replsym(deepcopy(expr),iter.i,isym)
-#     for i in iter.imin:iter.imax  # mma makes i type of one of these
-#         setsymval(isym,i)
-#         doeval(ex)
-#     end        
-# end
+function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
+    println("in 4")
+    isym = gensym(string(iter.i))
+    ex = replsym(deepcopy(expr),iter.i,isym)
+    for i in (iter.imin):(iter.di):(iter.imax)
+        setsymval(isym,i)
+        doeval(ex)
+    end        
+end
 
 # function do_doloop(expr,iter::SJIter3)
 #     isym = gensym(string(iter.i))
@@ -114,11 +115,6 @@ end
 #         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
 #     end        
 # end
-
-
-
-
-
 
 function do_doloop(expr,iter::SJIter4)
     do_doloop_kern4(expr,iter.i,iter.imin,iter.imax, iter.di)

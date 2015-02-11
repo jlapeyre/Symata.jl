@@ -163,7 +163,6 @@ function apprules(mx::Mxpr{:SetJ})
     eval(Expr(:(=),symname(lhs),rhs))
 end
 
-
 #### Jxpr
 
 @sjdoc Jxpr "
@@ -350,55 +349,6 @@ function apprules(mx::Mxpr{:Part})
     end
     return texpr
 end
-
-# @sjdoc SetPart "
-# SetPart(expr,n,val) sets the nth part of expr to val. Only one level of depth is supported
-# at the moment.
-# "
-
-#@sjseealso_group(Set)
-
-## crude implementation.
-# We don't have syntax to set a part yet.
-# This only works at one level.
-# function apprules(mx::Mxpr{:SetPart})
-#     a = margs(mx)
-#     x = a[1]
-#     ind = a[2]
-#     val = a[3]
-#     x[ind] = val
-# end
-
-# Rethink all of this since we got rid of SetPart, etc.
-
-# @sjdoc HPart "
-# HPart(m,i) is like Part, but the first argument is only evaluated once.
-# This means that, if m is a symbol, only the referenced part of the
-# expression that m evaluates to is evaluated. For an expression with,
-# with 1000 parts, HPart might be 1000 times faster than Part. The result
-# may be very different. For example, if m evaluates to a sum, then Part
-# will evaluated the entire expression, perhaps collecting terms, and
-# then return the ith part of the result. HPart, will not evaluate the
-# other summands and thus, will not collect terms. However, Part also
-# will not evaluate other arguments if it believes that they are already
-# at a fixed point.
-# "
-
-# function apprules(mx::Mxpr{:HPart})
-#     a = margs(mx)
-#     arr = meval(a[1])
-#     i = a[2]
-#     i = i < 0 ? length(arr)+i+1 : i
-#     arr[i]
-# end
-
-# function apprules(mx::Mxpr{:HSetPart})
-#     a = margs(mx)
-#     x = meval(a[1])
-#     ind = a[2]
-#     val = a[3]
-#     x[ind] = val
-# end
 
 @sjdoc Head "
 Head(expr) returns the head of expr, which may be an SJulia expression or object of any
