@@ -103,6 +103,7 @@ function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     end
     val = doeval(rhs)
     ind = tinds[end]
+    ind = ind < 0 ? length(ex)+ind+1 : ind    
     if ind == 0
         ex.head = val  #  TODO violation of abstraction
     else

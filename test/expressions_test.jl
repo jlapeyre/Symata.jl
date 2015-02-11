@@ -34,4 +34,7 @@ using Base.Test
 @testex m == ["cat",2,[3,4,5,f(6,7)]]
 @ex m[3,4,0] = g
 @testex m == ["cat",2,[3,4,5,g(6,7)]]
+@ex m[-2] = 88
+@testex m == ["cat",88,[3,4,5,g(6,7)]]
+@testex m[-1,-1] == g(6,7)
 @ex ClearAll(m,f,g)
