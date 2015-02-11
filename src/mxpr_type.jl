@@ -28,7 +28,7 @@ typealias SJSym Symbol
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
 #    val::Any
-    val::T
+    val::Array{T,1}
     attr::Dict{Symbol,Bool}  # attributes
     downvalues::Array{Any,1}
     age::UInt64
@@ -41,12 +41,12 @@ newdownvalues() = Array(Any,0)
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
-@inline ssjsym(s::Symbol) = SSJSym{Any}(s,newattributes(),newdownvalues(),0)
+@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),0)
 #@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 #@inline symname{T}(s::SSJSym{T}) = T
 
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
-@inline symname{T}(s::SSJSym{T}) = s.val
+@inline symname{T}(s::SSJSym{T}) = s.val[1]
 
 ## Typed SJ Symbols. Only experimental
 ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)
@@ -55,12 +55,12 @@ ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(
 #@inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
 @inline getsym(s) = s  # careful, this is not getssym
-sjval(s::SJSym) = getssym(s).val  # intended to be used from within Julia, or quoted julia. not used anywhere in code
+sjval(s::SJSym) = getssym(s).val[1]  # intended to be used from within Julia, or quoted julia. not used anywhere in code
 
-@inline symval(s::SJSym) = getssym(s).val
-@inline symval(s::SSJSym) = s.val
+@inline symval(s::SJSym) = getssym(s).val[1]
+@inline symval(s::SSJSym) = s.val[1]
 @inline function setsymval(s::SJSym,val)
-    (getssym(s).val = val)
+    (getssym(s).val[1] = val)
     getssym(s).age = increvalage()
 end
 
