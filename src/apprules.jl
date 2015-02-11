@@ -91,11 +91,24 @@ end
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
 function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
-    ex = meval(lhs[1])  
-    ind::Int = doeval(lhs[2])
+#    ex = meval(lhs[1])
+    ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
+    tinds = inds(lhs)
+    #    ind::Int = doeval(lhs[2])
+    ex = ex0
+    for j in 1:length(tinds)-1
+        ind::Int = doeval(tinds[j])
+        ind = ind < 0 ? length(ex)+ind+1 : ind
+        ex = ind == 0 ? mhead(ex) : ex[ind]
+    end
     val = doeval(rhs)
-    ex[ind] = val
-    unsetfixed(ex) # maybe we can optimize this
+    ind = tinds[end]
+    if ind == 0
+        ex.head = val  #  TODO violation of abstraction
+    else
+        ex[ind] = val
+    end
+    unsetfixed(ex0) # maybe we can optimize this
     val
 end
 

@@ -24,3 +24,14 @@ using Base.Test
 @testex Expand((a+b)*(c+d)) == a*c + b*c + a*d + b*d
 @testex Apply(List,Expand(z*a*(c+d)*(a+b))) == [(a^2)*c*z,a*b*c*z,(a^2)*d*z,a*b*d*z]
 @ex ClearAll(a,b,c,d,z,mx)
+
+@ex ClearAll(m,f,g)
+@ex m = [1,2,[3,4,5,f(6,7)]]
+@testex m[2] == 2
+@testex m[0] == List
+@testex m[3] == [3,4,5,f(6,7)]
+@ex m[1] = "cat"
+@testex m == ["cat",2,[3,4,5,f(6,7)]]
+@ex m[3,4,0] = g
+@testex m == ["cat",2,[3,4,5,g(6,7)]]
+@ex ClearAll(m,f,g)
