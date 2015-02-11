@@ -89,7 +89,7 @@ using Base.Test
 @ex ClearAll(f,a,b,c,d,e,f,g,x,y,z,res)
 
 ## For
-@ex m = Range(3)
+@ex m = [0,0,0]
 @ex For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
 @ex res = ([2,3,4] == m)
 @test symval(:res) == true

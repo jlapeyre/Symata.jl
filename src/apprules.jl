@@ -91,10 +91,8 @@ end
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
 function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
-#    ex = meval(lhs[1])
     ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
     tinds = inds(lhs)
-    #    ind::Int = doeval(lhs[2])
     ex = ex0
     for j in 1:length(tinds)-1
         ind::Int = doeval(tinds[j])
@@ -102,8 +100,8 @@ function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
         ex = ind == 0 ? mhead(ex) : ex[ind]
     end
     val = doeval(rhs)
-    ind = tinds[end]
-    ind = ind < 0 ? length(ex)+ind+1 : ind    
+    ind = doeval(tinds[end])
+    ind = ind < 0 ? length(ex)+ind+1 : ind
     if ind == 0
         ex.head = val  #  TODO violation of abstraction
     else
@@ -847,7 +845,12 @@ i set successively to 1 through imax. Other Table features are not implemented.
 # But, the 3rd party 'table' for Maxima is 4 times faster than makelist
 # in this example.
 # Hmmm, well Mma 3.0 is pretty slow, too.
-# 
+
+# At commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
+# Table(a(i),[i,10000]) takes bout 0.45--0.49 s, makelist reports 0.503.
+# 3rd party Maxima table( z(i), [i, 1, 100000]) takes 0.1
+# Mma 3, 0.05 s 
+
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
@@ -863,10 +866,22 @@ function apprules(mx::Mxpr{:Table})
     return mx1
 end
 
+# commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
+# Testing Table(a(i),[i,10^5])
+# changes                   Time
+# normal                    0.49
+# disable setsymval         0.35
+# 
+
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
-#    dump(ex)
+    #    dump(ex)
+#    sisym = getssym(isym)
+#    vvar = Any[1]
     @inbounds for i in 1:imax
+#        vvar = "a"
+#        vvar[1] = i
+#        sisym.val = i  # same thing as next line, but cut some out.
         setsymval(isym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int
 #        v = i
         v = meval(ex)
@@ -882,15 +897,16 @@ end
 # Setting isym.val is by far the slowest step in Table(i,[i,10^6])
 # Much slower than Mma and SBCL
 type NSYM
-    val::Any
+#    val::Int
+    val::Array{Any,1}
 end
 
 function testset()
-    ss = NSYM(0)
+    ss = NSYM(Any[0])
     sum0 = 0
     for i in 1:10^6
-        ss.val = i
-        sum0 += ss.val
+        ss.val[1] = i
+        sum0 += ss.val[1]
     end
     sum0
 end
