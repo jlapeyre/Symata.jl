@@ -46,6 +46,8 @@ end
 Do(expr,[imax]) evaluates expr imax times.
 Do(expr,[i,imax]) evaluates expr imax times with i localized taking values from 1 through
   imax in increments of 1.
+Do(expr,[i,imin,imax]) evaluates expr with i taking values from imin to imax with increment 1.
+  imin and imax may be symbolic.
 "
 
 function apprules(mx::Mxpr{:Do})
