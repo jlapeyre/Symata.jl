@@ -122,6 +122,18 @@ function show_binary(io::IO, mx::Mxpr)
     end
 end
 
+function Base.show(io::IO, mx::Mxpr{:Part})
+    args = margs(mx)
+    show(io,args[1])
+    print(io,"[")
+    show(io,args[2])
+    for i in 3:length(args)
+        print(io,",")
+        show(io,args[i])
+    end
+    print(io,"]")    
+end
+
 # unary minus
 function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]

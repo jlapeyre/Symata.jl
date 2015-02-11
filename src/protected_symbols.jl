@@ -65,7 +65,7 @@ for v in ("Pi","E")
     end
 end
 
-for v in ("CompoundExpression",)
+for v in ("CompoundExpression","Sum")
     @eval begin
         set_attribute(symbol($v),:Protected)
         set_attribute(symbol($v),:ReadProtected)
