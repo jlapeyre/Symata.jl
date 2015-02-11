@@ -875,18 +875,11 @@ end
 
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
-    #    dump(ex)
-#    sisym = getssym(isym)
-#    vvar = Any[1]
+    sisym = getssym(isym)
     @inbounds for i in 1:imax
-#        vvar = "a"
-#        vvar[1] = i
-#        sisym.val = i  # same thing as next line, but cut some out.
-        setsymval(isym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int
-#        v = i
+#        fastsetsymval(isym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int
+        setsymval(sisym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int        
         v = meval(ex)
-#        v = getssym(ex).val
-#        v = doeval(ex)  # this is extremely slow, even when ex is only a symbol
         args[i] = v
         setfixed(args[i])  # no difference ?
     end
