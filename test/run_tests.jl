@@ -1,4 +1,5 @@
 using Base.Test
+include("flowcontrol_test.jl")
 include("evaluation_test.jl")
 include("expressions_test.jl")
 include("arithmetic_test.jl")

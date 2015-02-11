@@ -1,4 +1,4 @@
-# Not super-fast.
+## For
 
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, i = i + 1 , Println(i))
@@ -17,6 +17,8 @@ function apprules(mx::Mxpr{:For})
     end
 end
 
+## If
+
 @sjdoc If "
 If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch
 "
@@ -31,6 +33,8 @@ function apprules(mx::Mxpr{:If})
     tres ? doeval(tbranch) : doeval(fbranch)
 end
 
+## While
+
 @sjdoc While "
 While(test,body) evaluates test then body in a loop until test does not return true.
 "
@@ -42,6 +46,8 @@ function apprules(mx::Mxpr{:While})
     end
 end
 
+## Do
+
 @sjdoc Do "
 Do(expr,[imax]) evaluates expr imax times.
 Do(expr,[i,imax]) evaluates expr imax times with i localized taking values from 1 through
@@ -50,6 +56,7 @@ Do(expr,[i,imin,imax]) evaluates expr with i taking values from imin to imax wit
   imin and imax may be symbolic.
 Do(expr,[i,imin,imax,di]) evaluates expr with i taking values from imin to imax with increment di.
   imin, imax, and di may be symbolic.
+Do(expr,[i,[i1,i2,...]) evaluates expr with i taking values from a list.
 "
 
 function apprules(mx::Mxpr{:Do})
@@ -63,7 +70,7 @@ function do_doloop(expr,iter::SJIter1)
 end
 
 # TODO: prbly don't need to use kernel
-function do_doloop_kern1(expr,imax)
+function do_doloop_kern(expr,imax)
     start = one(imax)
     for i in start:imax
         doeval(expr)
@@ -100,7 +107,6 @@ function do_doloop(expr,iter::SJIter3)
 end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
-    println("in 4")
     isym = gensym(string(iter.i))
     ex = replsym(deepcopy(expr),iter.i,isym)
     for i in (iter.imin):(iter.di):(iter.imax)
@@ -114,8 +120,17 @@ function do_doloop(expr,iter::SJIter4)
     isym = gensym(string(iter.i))
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)    
-    for i in 1:(iter.loopmax)
+    for i in 1:(iter.num_iters)
         doeval(ex)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
+    end        
+end
+
+function do_doloop(expr,iter::SJIterList)
+    isym = gensym(string(iter.i))
+    ex = replsym(deepcopy(expr),iter.i,isym)
+    for i in 1:(length(iter.list))
+        setsymval(isym,iter.list[i])      
+        doeval(ex)
     end        
 end

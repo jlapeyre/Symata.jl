@@ -21,7 +21,7 @@ type SJIter4{T,V,W} <: AbstractSJIter
     imin::T
     imax::V
     di::W
-    loopmax::Int
+    num_iters::Int
 end
 
 type SJIterList <: AbstractSJIter
@@ -37,6 +37,7 @@ make_sjiter(x) = itererror(x)
 function make_sjiter(mx::Mxpr{:List})
     args = margs(mx)
     len = length(args)
+    len < 1 && itererror(mx)
     if len == 1
         imax = doeval(args[1])
         if is_type_less(imax,Real)
@@ -49,7 +50,7 @@ function make_sjiter(mx::Mxpr{:List})
     else
         if  len ==  2
             if is_Mxpr(args[2],:List)
-                return SJIterList(args[1],args[2])
+                return SJIterList(args[1],margs(args[2]))
             elseif is_type_less(args[2],Real)
                 return SJIter2(args[1],args[2])
             else
@@ -73,10 +74,9 @@ function make_sjiter(mx::Mxpr{:List})
 #            tst = extomx(:( ($(args[3]) - $(args[2])) / $(args[4]))) # This works, but is slow. need Expand, too.
 #            tst = @exnoeval(:( ((args[3]) - (args[2])) / (args[4]))) # this is wrong
 #            println(mxpr(:FullForm,tst))
-            loopmax = doeval(tst)
-#            println(res)
-            if is_type_less(loopmax, Number)
-                return SJIter4(args...,floor(Int,loopmax))
+            num_iters = doeval(tst)
+            if is_type_less(num_iters, Number)
+                return SJIter4(args...,floor(Int,num_iters)+1)
             else
                 itererror(mx)
             end

@@ -753,6 +753,7 @@ are not supported. However, you can get other SJulia lists, eg. floats, by
 using Unpack(:([1.0:10^5])). This uses emebedded Julia to create a typed Array
 and then unpacks it to a List.
 "
+
 function apprules(mx::Mxpr{:Range})
     if length(mx) == 1
         n = mx[1]
@@ -872,13 +873,16 @@ end
 # normal                    0.49
 # disable setsymval         0.35
 # 
+# commit 0d2332b17eb7e5c518a86b1b3044b691fddb5b87
+# setsymval is now much faster because we changed data structure in SSJSym
+# Testing Table(a(i),[i,10^5])
+# normal                    0.36
 
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
     @inbounds for i in 1:imax
-#        fastsetsymval(isym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int
-        setsymval(sisym,i) #  = i # very slow if field 'val' is Any. very fast if it is Int        
+        setsymval(sisym,i)
         v = meval(ex)
         args[i] = v
         setfixed(args[i])  # no difference ?
@@ -886,9 +890,11 @@ function do_table(imax::Int,isym,ex)
     return args
 end
 
-# The speed penalty for Any instead of Int, is factor of 10^4.
+# The speed penalty for val::Any instead of val::Int, is factor of 10^4.
 # Setting isym.val is by far the slowest step in Table(i,[i,10^6])
 # Much slower than Mma and SBCL
+# If we us val::Array{Any,1}, the speed penalty is better by a couple
+# orders of magnitude
 type NSYM
 #    val::Int
     val::Array{Any,1}

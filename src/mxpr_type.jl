@@ -44,16 +44,13 @@ newdownvalues() = Array(Any,0)
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
 @inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),0)
-#@inline ssjsym(s::Symbol) = SSJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0),0)
 #@inline symname{T}(s::SSJSym{T}) = T
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
 ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)
-
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 sjval(s::SJSym) = getssym(s).val[1]  
-
 @inline symval(s::SJSym) = getssym(s).val[1]
 @inline symval(s::SSJSym) = s.val[1]
 
@@ -69,12 +66,10 @@ end
 
 @inline function fastsetsymval(s::SJSym,val)
     getssym(s).val[1] = val
-#    getssym(s).age = increvalage()
 end
 
 @inline function fastsetsymval(s::SSJSym,val)
     s.val[1] = val
-#    getssym(s).age = increvalage()
 end
 
 # Any and all direct access to the val field in SSJSym occurs above this line.
@@ -85,7 +80,6 @@ end
 #@inline symname(s::String) = symbol(s)
 @inline symattr(s::SJSym) = getssym(s).attr
 @inline getsym(s) = s  # careful, this is not getssym
-
 
 # Try storing values in a Dict instead of a field. Not much difference.
 # @inline symval(s::SJSym) = return haskey(SYMVALTAB,s) ? SYMVALTAB[s] : s
