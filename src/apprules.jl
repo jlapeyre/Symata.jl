@@ -847,6 +847,7 @@ i set successively to 1 through imax. Other Table features are not implemented.
 # But, the 3rd party 'table' for Maxima is 4 times faster than makelist
 # in this example.
 # Hmmm, well Mma 3.0 is pretty slow, too.
+# 
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
@@ -872,7 +873,7 @@ function do_table(imax::Int,isym,ex)
 #        v = getssym(ex).val
 #        v = doeval(ex)  # this is extremely slow, even when ex is only a symbol
         args[i] = v
-        setfixed(args[i])        
+        setfixed(args[i])  # no difference ?
     end
     return args
 end
