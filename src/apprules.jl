@@ -90,7 +90,7 @@ end
 
 function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     ex = meval(lhs[1])  # Mma is not clear but seems to do this. We should document it if it stays this way
-    ind = doeval(lhs[2])
+    ind::Int = doeval(lhs[2])
     val = doeval(rhs)
     ex[ind] = val
     unsetfixed(ex) # maybe we can optimize this
@@ -260,7 +260,7 @@ their DownValues.
 
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
-    @inbounds for a in margs(mx)  # makes sense here ?
+    @inbounds for a in margs(mx)  # no inbounds does not work here
         checkprotect(a)
         setsymval(a,symname(a))
     end

@@ -9,8 +9,9 @@ for v in ("Pattern", "SetJ", "SetAttributes") #  "HPart", "HSetPart")
     end
 end
 
+# Age, Fixed and others are not Mma
 for v in ("Module","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
-          "DownValues", "Age", "Table", "For", "If", "While", "Jxpr") # Age, Fixed and others are not Mma
+          "DownValues", "Age", "Table", "For", "If", "While", "Do", "Jxpr") 
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)

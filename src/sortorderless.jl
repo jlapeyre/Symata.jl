@@ -201,7 +201,7 @@ end
 
 # Step 1. Reduce sequences of explicit numbers.
 # Sum (multiply) sequence of numbers in expression before sorting.
-# This only removes one consecutive run of numbers.
+# This only removes one consecutive run of numbers, but we repeat.
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
     @eval begin    
         function ($name)(mx::Mxpr, n0::Int)
@@ -255,6 +255,37 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
+# (x^n)^m --> x^(n*m) , only for real n,m
+# This works, but not as called
+function mulpowers(mx::Mxpr{:Power})
+    (e,b) = numeric_expt_and_base(mx)
+    (e1,b1) = numeric_expt_and_base(base(mx))
+    e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
+    return mx
+end
+mulpowers(x) = x
+
+function distribute_minus_one_a!(n,terms)
+    @inbounds for i in 1:length(terms)
+        terms[i] = mxpr(:Times,n,terms[i])
+    end
+    return terms
+end
+
+function distribute_minus_one!(mx::Mxpr{:Times})
+    len = length(mx)
+    len != 2 && return mx
+    n = mx[1]
+    is_type_less(n,Integer) || return mx
+    n == -1 || return mx
+    sum0 = mx[2]
+    is_Mxpr(sum0,:Plus) || return mx
+    distribute_minus_one_a!(n,margs(sum0))
+    return sum0
+end
+
+distribute_minus_one!(x) = x
+
 canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
 
 function canonexpr!(mx::Mxpr)
@@ -270,6 +301,7 @@ function canonexpr_orderless!(mx)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
 #    println("1 canonexpr")
     is_Number(mx) && return mx
+    mx = distribute_minus_one!(mx)
 #    println("** 2 canonexpr, ordering $mx")
     orderexpr!(mx)  # sort terms
 #    println("  *** output $mx")
@@ -432,17 +464,6 @@ function _matchfacs(a,b)
     (nb,b1) = numeric_expt_and_base(b)
     return a1 == b1 ? (true,na+nb,a1) : (false,0,a1)
 end
-
-# Is used in canonexpr! , but nowhere else in this file
-# (x^n)^m --> x^(n*m) , only for real n,m
-# This works, but not as called
-function mulpowers(mx::Mxpr{:Power})
-    (e,b) = numeric_expt_and_base(mx)
-    (e1,b1) = numeric_expt_and_base(base(mx))
-    e != 1 && e1 != 1 && return mxpr(:Power,b1,mmul(e,e1))
-    return mx
-end
-mulpowers(x) = x
 
 ## Step 4.
 # Replace n repeated terms expr by expr*x, and factors expr by expr^n
