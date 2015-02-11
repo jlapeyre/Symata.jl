@@ -88,8 +88,10 @@ function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
     error("$mx is unimplemented")
 end
 
+# Mma is not clear but seems to evaluate the first arg to the lhs (the expression
+# whose part we want) exactly once. We should document what we do.
 function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
-    ex = meval(lhs[1])  # Mma is not clear but seems to do this. We should document it if it stays this way
+    ex = meval(lhs[1])  
     ind::Int = doeval(lhs[2])
     val = doeval(rhs)
     ex[ind] = val
@@ -313,7 +315,8 @@ symjlength(x) = length(x)
 
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
-expr[n1][n2] returns the n2th part of the n1th part.
+Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
+The same can be acheived less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
@@ -321,15 +324,17 @@ Julia types such as Array and Dict.
 "
 
 # Get part of expression. Julia :ref is mapped to :Part
-# This won't work for setting a part.
-# You must nest this to go down more than one level.
 # a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
+# a[i,j] parses to Part(a,i,j).
 function apprules(mx::Mxpr{:Part})
-    a = margs(mx)
-    arr = a[1]
-    i = a[2]
-    i = i < 0 ? length(arr)+i+1 : i
-    arr[i]
+    texpr = expr(mx)
+    tinds = inds(mx)
+    for j in 1:length(tinds)
+        ind::Int = tinds[j]
+        ind = ind < 0 ? length(texpr)+ind+1 : ind
+        texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+    end
+    return texpr
 end
 
 # @sjdoc SetPart "
@@ -569,10 +574,6 @@ dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), (exp*expt
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), (exp*expt(b)))
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), (expt(b)*exp)) : mx
 dopower(mx,b,e) = mx
-
-## Not sure where to put this kind of thing. Make reading code easier.
-Base.base(p::Mxpr{:Power}) = p[1]
-expt(p::Mxpr{:Power}) = p[2]
 
 ## convert to BigInt or BigFloat. We cannot yet do this automatically
 @sjdoc BI "
