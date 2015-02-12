@@ -26,7 +26,7 @@ In fact, the only file changed in this branch is base/REPL.jl.  To use
 this mode. Download the branch and build it and install it somewhere
 as, say, sjulia. You enter and exit the SJulia mode with '.' Working
 from this mode is similar to working from Mathematica or Maxima or
-Maple. For the most part, the SJulia code wraps input in the macro
+Maple. For the most part, the SJulia mode just wraps input in the macro
 `ex`. So you can get the same thing by typing
 
 ```julia
@@ -57,7 +57,7 @@ a + b
 
 Using the SJulia mode or the `@ex` macro is essentially using a language distinct
 from Julia. In particular, the evaluation sequence, and binding of symbols to
-objects is separate from Julia. But there is also some work done on allowing
+storage is separate from Julia. But there is also some work done on allowing
 use of SJulia direclty from Julia. For instance, these
 
 ```julia
@@ -76,7 +76,7 @@ prompt.
 Documentation for many BuiltIn symbols can be found by entering
 `?, SymName` at the `sjulia` prompt. Note the comma, which is
 neccessary because limitations in the provisional parsing method.
-`Help(Symname)` prints the same documentations. This allows you
+`Help(Symname)` prints the same documentation. This allows you
 to type `@ex Help(SymName)` from Julia.
 If examples are printed with the documentation string, they can be
 evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
@@ -118,8 +118,13 @@ useful at the moment.
 Patterns are used in several places. Eg, you can make a replacement rule. Eg
 
 ```julia
-sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1
-sjulia> Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule) == Cos(a+b)^2 + Sin(a+c)^2
+sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1;
+
+sjulia> Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)
+(a+b)^2 + Sin(a+c)^2
+
+sjulia> Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)
+1
 ```
 
 A replacement rule is associated with the symbol `f` like this
