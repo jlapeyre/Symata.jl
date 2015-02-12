@@ -123,6 +123,7 @@ for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSeque
           "UserSyms", "List","Syms",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
+          "<", "<=","nothing",
           "String", "StringLength","Protected", "TimeOn", "TimeOff"
     )
     @eval begin

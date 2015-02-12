@@ -84,6 +84,7 @@ function do_doloop(expr,iter::SJIter2)
         setsymval(isym,i)
         doeval(ex)
     end
+
 end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})

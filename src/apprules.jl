@@ -290,8 +290,9 @@ function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
         checkprotect(a)
 #        if is_type_less(a,String)  TODO implement globing, etc.
-#        else
-        delete!(SYMTAB,a)
+        #        else
+        removesym(a)
+#        delete!(SYMTAB,a)
     end
 end
 
