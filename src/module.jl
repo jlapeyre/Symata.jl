@@ -23,9 +23,10 @@ function localize_module!(mx::Mxpr{:Module})
     end
     body = substlocalvars!(mx[2],lvtab)
     unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # remove existing local vars
-    body                                                             # from the symbol table.
+    return mxpr(:LModule, body)
 end    
 
+# We can't use this anyway because it blocks the exit.
 #    push!(margs(body), mxpr(:ClearAll,collect(values(lvtab))...))
 # Note, the ClearAll above is a stop gap to remove gensyms from the
 # symbol table. There may be other exits from the Module

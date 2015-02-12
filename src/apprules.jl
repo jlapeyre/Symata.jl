@@ -738,8 +738,24 @@ in the sense that nested calls to a Module are not supported.
          ("a","a"))
 
 # localizing is done above during setting the rule.
-# But handling Module needs to be done differently .
-#apprules(mx::Mxpr{:Module}) = localize_module!(mx)
+# LModule is "localized module"
+# This is a quick way to implement Modules
+# The localization happens when they are set and they are
+# transformed into LModules. The LModule is evaluated here
+# and local syms are removed afterwards.
+#
+# TODO: Its probably better to have and apprule for Module which
+# does the conversion to LModule, this is more robust than doing
+# it during Set and SetDelay.
+function apprules(mx::Mxpr{:LModule})
+    body = mx[1]
+    vars = margs(body[1])
+    res = doeval(body)
+    for v in vars
+        removesym(v)
+    end
+    return res
+end
 
 @sjdoc Println "
 Println(expr1,expr2,...) prints the expressions and a newline.
