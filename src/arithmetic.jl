@@ -53,21 +53,3 @@ for op = (:mplus, :mmul)
         # definitions down to avoid losing type information.
     end
 end
-
-## Not really arithmetic.
-
-# *{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mmul(a,b)
-# +{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mplus(a,b)
-# +{T<:Number}(a::SSJSym{T}, b::Number) = mplus(a,b)
-
-*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
-*(a::SJSym,b::Number) = mxpr(:Times,b,a)
-*(a::Number,b::SJSym) = mxpr(:Times,a,b)
-*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
-*(a::Mxpr,b) = mxpr(:Times,a,b)
-*(a,b::Mxpr) = mxpr(:Times,a,b)
--(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
-^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
-^(base::Mxpr,expt) = mxpr(:Power,base,expt)
-^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
-^(base::SJSym,expt) = mxpr(:Power,base,expt)

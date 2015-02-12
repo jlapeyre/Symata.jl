@@ -188,7 +188,7 @@ end
 
 # ex is called by the repl on each user input line.
 macro ex(ex)
-    check_help_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
+    check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
     res = extomx(ex)  # Translate to Mxpr
     reset_meval_count()
     if MEVAL.timingon

@@ -35,20 +35,24 @@ end
 
 # Called from the macro @ex which parses cli input to see if we have a help query
 # or an expression.
-function check_help_query(ex)
+function check_doc_query(ex)
     if is_type(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
         q = ex.args[2]
-        if haskey(SJDOCS,q)
-            print(SJDOCS[q])
-            format_see_alsos(q)
-            format_sjexamples(q)
-        else
-            println("No documentation for '", string(q),"'.")
-        end
+        print_doc(q)
         return true
     else
         return false
     end
+end
+
+function print_doc(q)
+    if haskey(SJDOCS,q)
+        print(SJDOCS[q])
+        format_see_alsos(q)
+        format_sjexamples(q)
+    else
+        println("No documentation for '", string(q),"'.")
+    end    
 end
 
 # use in source files to define examples for a symbol (representing a Head)

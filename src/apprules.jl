@@ -693,6 +693,15 @@ all user defined symbols.
 "
 apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 
+@sjdoc Help "
+Help(sym) prints documentation for the symbol sym. Eg: Help(Expand)
+"
+
+function apprules(mx::Mxpr{:Help})
+    print_doc(mx[1])
+end
+
+
 @sjdoc EvenQ "
 EvenQ(expr) returns true if expr is an even integer.
 "
