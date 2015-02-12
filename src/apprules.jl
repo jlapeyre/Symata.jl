@@ -292,7 +292,6 @@ function apprules(mx::Mxpr{:ClearAll})  # already threaded
 #        if is_type_less(a,String)  TODO implement globing, etc.
         #        else
         removesym(a)
-#        delete!(SYMTAB,a)
     end
 end
 

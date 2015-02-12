@@ -84,7 +84,7 @@ function do_doloop(expr,iter::SJIter2)
         setsymval(isym,i)
         doeval(ex)
     end
-
+    removesym(isym)
 end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
@@ -93,7 +93,8 @@ function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
         doeval(ex)
-    end        
+    end
+    removesym(isym)
 end
 
 # fields of iter may be symbolic
@@ -104,7 +105,8 @@ function do_doloop(expr,iter::SJIter3)
     for i in 1:(iter.loopmax)
         doeval(ex)
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
-    end        
+    end
+    removesym(isym)
 end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
@@ -113,7 +115,8 @@ function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
         doeval(ex)
-    end        
+    end
+    removesym(isym)
 end
 
 # fields of iter may be symbolic
@@ -124,7 +127,8 @@ function do_doloop(expr,iter::SJIter4)
     for i in 1:(iter.num_iters)
         doeval(ex)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
-    end        
+    end
+    removesym(isym)
 end
 
 function do_doloop(expr,iter::SJIterList)
@@ -133,5 +137,6 @@ function do_doloop(expr,iter::SJIterList)
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])      
         doeval(ex)
-    end        
+    end
+    removesym(isym)
 end
