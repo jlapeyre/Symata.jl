@@ -17,6 +17,10 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
+function get_localized_symbol(s::Symbol)
+    return gensym(string(s))
+end
+
 # putting this in mxpr_type is better.
 function ==(ax::Mxpr, bx::Mxpr)
     mhead(ax) != mhead(bx)  && return false
@@ -214,7 +218,7 @@ global const exitcounts = Int[0,0,0,0]
 function infseval(mxin::Mxpr)
     @mdebug(2, "infseval ", mxin)
 #    println("infseval ", mxin)
-    neval = 0  # We cut off infinite eval at 100. This would probably only be a bug in SJulia.
+    neval = 0  # We cut off infinite eval at 100. Probably our bug, or bad user input.
     if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than on mxin ?
 #        println("got dirty syms $mxin")
         unsetfixed(mxin) # flag mxin as not being at its fixed point in this environment.

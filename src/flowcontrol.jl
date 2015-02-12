@@ -78,7 +78,7 @@ function do_doloop_kern(expr,imax)
 end
 
 function do_doloop(expr,iter::SJIter2)
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
@@ -87,7 +87,7 @@ function do_doloop(expr,iter::SJIter2)
 end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
@@ -97,7 +97,7 @@ end
 
 # fields of iter may be symbolic
 function do_doloop(expr,iter::SJIter3)
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)    
     for i in 1:(iter.loopmax)
@@ -107,7 +107,7 @@ function do_doloop(expr,iter::SJIter3)
 end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
@@ -117,7 +117,7 @@ end
 
 # fields of iter may be symbolic
 function do_doloop(expr,iter::SJIter4)
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)    
     for i in 1:(iter.num_iters)
@@ -127,7 +127,7 @@ function do_doloop(expr,iter::SJIter4)
 end
 
 function do_doloop(expr,iter::SJIterList)
-    isym = gensym(string(iter.i))
+    isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])      

@@ -998,7 +998,7 @@ i set successively to 1 through imax. Other Table features are not implemented.
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
-    isym = gensym(string(iter[1]))
+    isym = get_localized_symbol(iter[1])
     imax = meval(iter[2])
 #    issym = createssym(isym,Int)  ## Trying out Typed variable
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
@@ -1022,6 +1022,9 @@ end
 # setsymval is now much faster because we changed data structure in SSJSym
 # Testing Table(a(i),[i,10^5])
 # normal                    0.36
+# *sigh* Cannot reproduce the performance in the previous line. Even if
+# I return to that commit. Time is closer to 0.5 than 0.35
+# setsymval still seems to be an expensive operation
 
 function do_table(imax::Int,isym,ex)
     args = newargs(imax)
