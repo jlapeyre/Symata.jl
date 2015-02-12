@@ -1,7 +1,8 @@
 module SJulia
 
 # why cant import apprules ?
-import Main: Mxpr, apprules, mxpr
+#import Main: apprules
+import Main: Mxpr, mxpr
 export Expand
 
 function Expand(mx::Mxpr)
@@ -15,4 +16,3 @@ end   # Module
 #############################
 
 import SJulia.Expand
-

@@ -5,18 +5,12 @@ symbolic computation.  It is largely based on pattern matching and an
 evaluation sequence modeled on Mathematica, although this by no means
 a fixed decision.
 
-I am making it available to get feedback on design decisions.  The
-focus now is not on implementing specific mathematical computation,
-but rather on testing implmentations of core features. The most
-important of these features are pattern matching and the evaluation
-sequence.
+The focus now is not on implementing specific mathematical
+computation, but rather on testing implmentations of core features and
+subsystems. Some important features are pattern matching and the
+evaluation sequence and data structures that support it.
 
-The main features implemented so far are: canonical ordering of sums
-and products; pattern matching based on structure, "Head", and
-"pattern test". Controlling evaluation is not implemented uniformly.
-Some important items not yet implemented are: conditions on the entire pattern,
-matching of commutative and associative terms.
-
+You can load and test SJulia like this
 
 ```julia
 include("src/SJulia.jl")
@@ -24,11 +18,24 @@ include("src/run_tests.jl")
 ```
 
 I added a mode to the Julia repl to support this code (but it is not necessary)
+in this branch of a fork of Julia
 
 https://github.com/jlapeyre/julia/tree/jl/symrepl
 
-You enter and exit the sjulia mode with '.'
-Here are some examples. See the test directory for others
+In fact, the only file changed in this branch is base/REPL.jl.  To use
+this mode. Download the branch and build it and install it somewhere
+as, say, sjulia. You enter and exit the SJulia mode with '.' Working
+from this mode is similar to working from Mathematica or Maxima or
+Maple. For the most part, the SJulia code wraps input in the macro
+`ex`. So you can get the same thing by typing
+
+```julia
+julia> @ex some SJulia expression
+julia> @ex(some expression that may look like two expressions)
+```
+
+Here are some examples of the SJulia mode. There are many more examples
+in the test directory.
 
 ```julia
 sjulia> ClearAll(fib)
@@ -48,6 +55,20 @@ sjulia> h((a+b)^2)
 a + b
 ```
 
+Using the SJulia mode or the `@ex` macro is essentially using a language distinct
+from Julia. In particular, the evaluation sequence, and binding of symbols to
+objects is separate from Julia. But there is also some work done on allowing
+use of SJulia direclty from Julia. For instance, these
+
+```julia
+julia> ex = :x + 1
+1 + x
+julia> m = Expand((:a+:b)*(:x+1)^2)
+a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
+````
+
+make Julia bindings of SJulia expressions to the symbols ex and m.
+
 Symbols that are associated with some functionality can be listed with
 `BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
 prompt.
@@ -55,14 +76,16 @@ prompt.
 Documentation for many BuiltIn symbols can be found by entering
 `?, SymName` at the `sjulia` prompt. Note the comma, which is
 neccessary because limitations in the provisional parsing method.
+`Help(Symname)` prints the same documentations. This allows you
+to type `@ex Help(SymName)` from Julia.
 If examples are printed with the documentation string, they can be
 evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
 prompt. The input strings from the examples are pushed to the history
 so that they can be recalled and edited and re-evaluated.
 
 Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
-There are many more commands available, but mostly to support experimenting with
-evaluation.
+There are many more commands available, mostly to support experimenting with
+design of SJulia.
 
 * `SetJ(x,val)` set a Julia variable
 * `Clear(), ClearAll()` clear a symbol's value, or all associated rules, too.
@@ -79,28 +102,18 @@ evaluation.
 * `a := b` delayed assignment
 * `f(x_) := x` delayed rule assignment
 
-There are also two older versions, or experiments. Each one has test files
-that run and serve as examples. The instructions for loading
-the code and running the tests, are in the subdirs. They have some
-examples of rules that have not yet been ported to the latest version.
-
-Expressions can be entered at the Julia repl. For the two most recent
-versions, there is also a repl mode "sjulia" in my Julia fork in the branch
-jl/symrepl.  You enter and exit the mode with ".". The only file
-changed in this branch is REPL.jl. The only thing the new mode does is
-wrap input lines in a macro. Of course, a better thing would be to
-add a facility that works like: `newrepl(:name, :wrappermacro)`.
+There are also two older experiments in this distribution. Each one
+has test files that run and serve as examples. The instructions for
+loading the code and running the tests, are in the subdirs.
 
 #### Evaluation
 
 There are lines at the top of the file `src/mxpr.jl` to control evaluation. You can
 choose infinite or single evaluation. The test suite relies on infinite evaluation being
-enabled. Hashing and caching of expressions can also be chosen here.
+enabled. Hashing and caching of expressions can also be chosen here, but it is not very
+useful at the moment.
 
 #### Pattern matching.
-
-An important feature not yet implemented is matching objects in a commutative (Orderless) expression.
-Eg, `a + b` should match the terms in `a + c + b`, etc.
 
 Patterns are used in several places. Eg, you can make a replacement rule. Eg
 
@@ -123,7 +136,7 @@ tried. The first that succeeds makes the transformation and that round of evalua
 is done. You should also be able to  associate automatic rules with `f` like this
 `g(f(x_)) ^= x^2`. But, this is not done yet.
 
-You can see the evaluation sequence in `loopmeval` and `meval` in the code.
+You can see the evaluation sequence in `infseval` and `meval` in the code.
 
 #### Parsing
 
@@ -149,14 +162,12 @@ Julia.
 Symbols are currently done this way (this is a bit outdated)
 
 ```julia
-type SJSym{T}  <: AbstractSJSym
-    val::Any
-    attr::Dict{Symbol,Bool}
-    downvalues::Array{Any,1}
+type SSJSym{T}  <: AbstractSJSym
+    val::Array{T,1}
+    attr::Dict{Symbol,Bool}    # attributes associated with the symbol
+    downvalues::Array{Any,1}  # These are transformation rules for the symbol
+    age::UInt64             # Time stamp, last time assignment or other changes were made
 end
-
-symname{T}(s::SJSym{T}) = T
-sjsym(s::Symbol) = SJSym{s}(s,Dict{Symbol,Bool}(),Array(Any,0))
 ```
 
 Of course the attributes should probably be a bit field, or stored somewhere
@@ -168,12 +179,20 @@ Expressions are done like this
 ```julia
 type Mxpr{T} <: AbstractMxpr
     head::SJSym
-    args::Array{Any,1}
+    args::MxprArgs
+    fixed::Bool    # Does Mxpr evaluate to itself in current environment ?
+    canon::Bool    # Is Mxpr in canonical form ?
+    syms::FreeSyms # List of free symbols, whose timestamps we check
+    age::UInt64    # Timestamp of this Mxpr
+    key::UInt64    # Hash code
+    typ::DataType  # Not used
 end
 ```
 
-There are `Protected` (reserved) symbols, like `Cos`,
-and `RuleDelayed`. Evaluation of these is dispatched by the subtype.
+At the moment, the field `head` and the parameter T are the same. Evaluation of
+expressions is dispatched by functions with type annotations for each head, such
+as `Mxpr{:Power}`.
+
 
 <!--  LocalWords:  julia src sjulia repl ClearAll SetJ DownValues jl
  -->
@@ -183,7 +202,7 @@ and `RuleDelayed`. Evaluation of these is dispatched by the subtype.
  -->
 <!--  LocalWords:  matcher replaceall Mxpr oldmxpr SJSym SJulia meval
  -->
-<!--  LocalWords:  canonicalizer Orderless cossinrule loopmeval Mma
+<!--  LocalWords:  canonicalizer Orderless cossinrule  Mma
  -->
 <!--  LocalWords:  Fateman IIRC OTOOH else's matlab AbstractSJSym
  -->

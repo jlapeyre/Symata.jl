@@ -642,17 +642,26 @@ function apprules(mx::Mxpr{:CompoundExpression})
     res
 end
 
-@sjdoc Age "
-Age(s) returns the timestamp for the expression or symbol s.
-Using this timestamp to avoid unnecessary evaluation is a very partially
+@sjdoc HAge "
+HAge(s) returns the timestamp for the expression or symbol s.
+Using this timestamp to avoid unnecessary evaluation is a partially
 implemented feature.
 "
-@sjseealso_group(Age,Fixed,Syms,DirtyQ)
+@sjseealso_group(HAge,Fixed,Syms,DirtyQ)
 # Get the last-altered timestamp of an expression or symbol
+apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
+hdo_getage(mx,s::Symbol) = int(symage(s))
+hdo_getage(mx,s::Mxpr) = int(getage(s))
+#do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
+hdo_getage(mx,x) = mx
+
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::Symbol) = int(symage(s))
-do_getage(mx,s::Mxpr) = int(getage(symval(s)))
+do_getage(mx,s::Mxpr) = int(getage(s))
+#do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
+
+
 
 @sjdoc Fixed "
 Fixed(expr) returns the status of the fixed point bit, which tells whether expr

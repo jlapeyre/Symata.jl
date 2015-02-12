@@ -11,7 +11,7 @@ end
 
 # Age, Fixed and others are not Mma
 for v in ("Module","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
-          "DownValues", "Age", "Table", "For", "If", "While", "Do", "Jxpr") 
+          "DownValues", "HAge", "Table", "For", "If", "While", "Do", "Jxpr") 
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -116,7 +116,7 @@ for v in ("EvenQ","OddQ","Range")
     end
 end
 
-for v in ("Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",  # "SetPart"
+for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",  # "SetPart"
           "JVar", "MatchQ", "AtomQ", "Println",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",

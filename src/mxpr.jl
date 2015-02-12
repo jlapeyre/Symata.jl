@@ -384,6 +384,7 @@ function meval(mx::Mxpr)
     # The conditional probably saves little time
     if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
     if is_Mxpr(res)  && isempty(res.syms) # get free symbol lists from arguments
+#        println("Merging in meval $res")
         mergeargs(res) # This is costly if it is not already done.
         add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.
     end

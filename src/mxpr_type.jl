@@ -300,6 +300,7 @@ function mergesyms(mxs::FreeSyms, a::Mxpr)
         mxs[sym] = true
     end
     h = mhead(a)
+#    println("Checking head $h")    
     if ! is_protected(h)
         mxs[h] = true
     end
@@ -320,7 +321,13 @@ mergesyms(x,y) = nothing
 
 # Copy lists of free symbols in subexpressions of mx to
 # list of free symbols of mx. Only descend one level.
+# We also merge the head of mx. Maybe its better to
+# separate this function. Maybe not.
 function mergeargs(mx::Mxpr)
+    h = mhead(mx)
+    if ! is_protected(h)
+        mergesyms(mx,h)
+    end    
     @inbounds for i in 1:length(mx)
 #        println("mergeargs $i: ", listsyms(mx[i]))
         mergesyms(mx,mx[i])
