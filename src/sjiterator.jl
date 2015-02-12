@@ -1,3 +1,10 @@
+# There are at least two kinds of "standard" iterators that
+# require different Julia types.
+# We have AbstractSJIter and AbstractSJIterA.
+# Do is a prototype for the former, and Range for the latter.
+
+## Standard iterator used, for instance, by Do
+
 abstract AbstractSJIter
 
 type SJIter1{T<:Real} <: AbstractSJIter
@@ -35,7 +42,11 @@ itererror(mx) = error(mx, " does not have the form of an iterator.")
 make_sjiter(x) = itererror(x)
 
 function make_sjiter(mx::Mxpr{:List})
-    args = margs(mx)
+    make_sjiter(margs(mx))
+end
+
+function make_sjiter{T}(args::Array{T,1})
+#    args = margs(mx)
     len = length(args)
     len < 1 && itererror(mx)
     if len == 1
@@ -85,3 +96,68 @@ function make_sjiter(mx::Mxpr{:List})
         end
     end
 end
+
+## Iterators used by Range
+
+abstract AbstractSJIterA
+
+type SJIterA1{T<:Real} <: AbstractSJIterA
+    imax::T
+    num_iters::Int    
+end
+
+type SJIterA2{T,V} <: AbstractSJIterA
+    imin::T
+    imax::V
+    num_iters::Int
+end
+
+type SJIterA3{T,V,W} <: AbstractSJIterA
+    imin::T
+    imax::V
+    di::W
+    num_iters::Int
+end
+
+itererrora(a::Array) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator.")
+itererrora(mx::Mxpr) = error(mx, " does not have the form of a (single variable) iterator.")
+
+make_sjitera(x) = itererrora(x)
+
+function make_sjitera(mx::Mxpr{:List})
+    make_sjiter(margs(mx))
+end
+
+function make_sjitera{T}(args::Array{T,1})
+    len = length(args)
+    len < 1 && itererrora(args)
+    if len == 1
+        imax = doeval(args[1])
+        if is_type_less(imax,Real)
+            return SJIterA1(imax,floor(Int,imax))
+        else
+            itererrora(args)
+        end
+    elseif len ==  2
+        nargs = deepcopy(args)
+        num_iters = doeval(mxpr(:Plus, nargs[2], -1 * nargs[1]))
+        if is_type_less(num_iters, Real) # args2 - args1
+            return SJIterA2(args[1],args[2],floor(Int,num_iters)+1)
+        else
+            itererrora(args)
+        end
+    elseif len == 3
+        nargs = deepcopy(args) # needed if we do the computation below
+        (imin,imax,di) = (nargs[1],nargs[2],nargs[3])
+        tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
+        num_iters = doeval(tst)
+        if is_type_less(num_iters, Real)
+            return SJIterA3(args...,floor(Int,num_iters)+1)
+        else
+            itererrora(args)
+        end
+    else
+        itererrora(args)
+    end
+end
+

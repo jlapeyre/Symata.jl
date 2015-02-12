@@ -251,6 +251,7 @@ function infseval(mxin::Mxpr)
         neval += 1
         if neval > 100
             println(mx)
+            println(meval(mx))
             error("infseval: Too many, $neval, evaluations. Expression still changing")
         end
         mx = mx1        

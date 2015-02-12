@@ -736,25 +736,150 @@ mostly to test the efficiency of evaluation and evaluation control.
 "
 apprules(mx::Mxpr{:Expand}) = doexpand(mx[1])
 
-# Only some of Range implemented for testing other things.
-# From the command line, all the time evaluating Range(n) for n>10000 or so
-# is spent in the inner loop here. Mma v3 is about 4-6 times or so faster.
-# So this seems to be purely a Julia vs. low-level Mma difference.
-# This is used to test summing numbers.
-# Maxima is faster than Mma v3 at Apply(Plus,l) , where l is a big list of numbers
-# Maxima is about 10x faster than this code (SJulia).
-
 @sjdoc Range "
 Range(n) returns the List of integers from 1 through n.
-Range(n1,n2) returns the List of integers from n1 through n2.
-Range(n1,n2,di) returns the List of integers from n1 through n2 in steps of di
-di may be negative. Range is only partially implemented. Eg, floats and symbols
-are not supported. However, you can get other SJulia lists, eg. floats, by
-using Unpack(:([1.0:10^5])). This uses emebedded Julia to create a typed Array
-and then unpacks it to a List.
+Range(n1,n2) returns the List of numbers from n1 through n2.
+Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
+di may be negative. Floats and some symbolic arguments are supported.
+You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
+This uses emebedded Julia to create a typed Array and then unpacks it to a List.
 "
 
 function apprules(mx::Mxpr{:Range})
+    iter = make_sjitera(margs(mx))
+    args = do_range(iter)
+    r = mxpr(:List,args)
+    setfixed(r)
+    setcanon(r)
+    mergesyms(r,:nothing)
+    return r
+end
+
+function do_range(iter::SJIterA1)  # iter is parameterized, so we hope type of n is inferred.
+    n = iter.num_iters
+    args = newargs(n);
+    j = one(iter.imax)
+    @inbounds for i in 1:n
+        args[i] = j
+        j += 1
+    end
+    return args    
+end
+
+# Fails for rationals. nd counting is wrong
+function do_range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
+    nd = mplus(iter.imax,-iter.imin) + 1
+    if nd > 1
+#        args = newargs(abs(nd))
+        args = newargs(iter.num_iters)
+        for i in zero(iter.imin):nd-1
+            args[i+1] = mplus(i,iter.imin)
+        end
+    else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1
+        nd = -nd + 2
+        args = newargs(iters.num_iters)
+        for i in zero(iter.imin):(nd - 1)
+            args[i+1] = mplus(iter.imin, -i)
+        end
+    end
+    return args
+end
+
+# symbolic types
+# This is about as fast as Mma 3 (running on a somewhat slower cpu)
+function do_range(iter::SJIterA2)
+    args = newargs(iter.num_iters)
+    imin = iter.imin
+    args[1] = imin
+    s = imin
+    if is_Mxpr(imin,:Plus)
+        if is_Number(imin[1])  # number is always first in canon order.
+            b = imin[1]  # extract number
+            r = imin[2:end]  # the rest of the sum
+            for i in 2:iter.num_iters
+                args[i] = mxpr(:Plus,b+i-1,r...) # only a little slower than Mma if disable gc
+                setfixed(args[i])
+            end
+        else  # imin is a sum with no numbers, so we put a number in front
+            sargs = margs(s)
+            for i in 2:iter.num_iters
+                args[i] = mxpr(:Plus,i-1,sargs...)
+                setfixed(args[i])
+            end
+        end
+    else
+        for i in 2:iter.num_iters
+            args[i] = mxpr(:Plus,i,s)
+            setfixed(args[i])
+        end
+    end
+    #  we don't handle counting down case.
+    return args
+end    
+
+# seems to be little penalty for mplus instead of +
+function do_range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
+    n = iter.num_iters
+    args = newargs(n)
+    j = iter.imin
+    for i in 1:n
+        args[i] = j
+        j = mplus(j,iter.di)
+    end
+    return args
+end
+
+function do_range(iter::SJIterA3)
+    args = newargs(iter.num_iters)
+    imin = iter.imin
+    args[1] = imin
+    s = imin
+    if is_Number(iter.di)
+        if true
+            if is_Mxpr(imin,:Plus)
+                if is_Number(imin[1])  # number is always first in canon order.
+                    b = imin[1]        # extract number
+                    r = imin[2:end]    # the rest of the sum
+                    for i in 2:iter.num_iters
+                        b = b + iter.di
+                        if b == 0  # more efficient to move this branch out
+                            if length(r) == 1
+                                args[i] = r[1]
+                            else
+                                args[i] = mxpr(:Plus,r...)
+                            end
+                        else
+                            args[i] = mxpr(:Plus,b,r...)
+                        end
+                        setfixed(args[i])
+                    end
+                else  # imin is a sum with no numbers, so we put a number in front
+                    sargs = margs(s)
+                    j = zero(iter.di)
+                    for i in 2:iter.num_iters
+                        j += iter.di
+                        args[i] = mxpr(:Plus,j,sargs...)
+                        setfixed(args[i])
+                    end
+                end
+            else # imin is not a sum, so just create one
+                j = zero(iter.di)
+                for i in 2:iter.num_iters
+                    j += iter.di
+                    args[i] = mxpr(:Plus,j,s)
+                    setfixed(args[i])
+                end
+            end
+        else  #  iter.di < 0
+            error("unimplemented")
+        end
+    else # di is not a number
+        error("unimplemented")
+    end
+    return args
+end    
+
+function apprules(mx::Mxpr{:OldRange})
     if length(mx) == 1
         n = mx[1]
         args = range_args1(n) # use function for optimization on type
@@ -867,6 +992,8 @@ function apprules(mx::Mxpr{:Table})
     return mx1
 end
 
+# These tests concern not Table per se, but the efficiency
+# of evaluation, in particular assigning values to symbols.
 # commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
 # Testing Table(a(i),[i,10^5])
 # changes                   Time
