@@ -51,6 +51,11 @@
 @ex m = Expand((2*a+2*b)^4)
 @testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
 
+# bug through commit e9c6803de51dab446a1f3e9bcc8d1e8cf19941d3
+# Causes infinite evaluation loop, due to ill-defined order.
+@ex m = (Expand((x+1)^2))^2
+@ex m * (m+1)
+
 @ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y)
 
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented

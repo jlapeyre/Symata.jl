@@ -158,9 +158,13 @@ jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 
 # Assume args of x and y are sorted. Compare
-# last (most significant) element in expression,
-# then next-to-last, etc. If x is shorter than y
-# and equal to truncated y, then x is jslexless than y.
+# last (most significant) element in expressions,
+# x[i], y[j] (i and j are in general different becuase
+# x and y are of different lengths)
+# If x[i] != y[j], return true or false.
+# Otherwise repeat, comparing next-to-last elements, etc.
+# If all terms compared are equal, the shorter of
+# x and y is the least.
 function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     x === y && return false
     ax = margs(x)
@@ -170,15 +174,17 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     ix = lx
     iy = ly
     n = min(lx,ly)
-    eqterms_flag = true
     @inbounds for i in 1:n
         jslexless(ax[ix],ay[iy]) && return true
-        if jslexless(ay[iy],ax[ix]) eqterms_flag = false end
+        if jslexless(ay[iy],ax[ix])
+            return false
+        end
         ix -= 1
         iy -= 1
     end
-    return eqterms_flag ? lx < ly : false
+    return lx < ly
 end
+
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 jslexless(x::SJSym, y::Mxpr) = true
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
