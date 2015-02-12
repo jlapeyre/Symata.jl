@@ -22,9 +22,14 @@ function localize_module!(mx::Mxpr{:Module})
         lvtab[vn] = getsym(gensym(string(vn)))
     end
     body = substlocalvars!(mx[2],lvtab)
-    unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # remove existing local vars 
+    unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # remove existing local vars
     body                                                             # from the symbol table.
 end    
+
+#    push!(margs(body), mxpr(:ClearAll,collect(values(lvtab))...))
+# Note, the ClearAll above is a stop gap to remove gensyms from the
+# symbol table. There may be other exits from the Module
+# than at the end.
 
 # We currently have no mechanism for removing the last set of gensymed local variables from the symbol table.
 # They also print without the chars added by gensym.
