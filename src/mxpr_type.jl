@@ -382,7 +382,7 @@ is_fixed(s::SJSym) = symval(s) == s
 @inline unsetcanon(x) = false
 #is_fixed(x) = false
 #setfixed(x) = false
-#unsetfixed(x) = false
+unsetfixed(x) = false  # sometimes we have a Julia object
 
 # We need to think about copying in the following. Support both refs and copies ?
 # where is this used ?

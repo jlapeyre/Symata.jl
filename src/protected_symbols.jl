@@ -2,12 +2,24 @@
 # They can by listed by giving `BuiltIn()'.
 # They all have the attribute `Protected'.
 
-for v in ("Pattern", "SetJ", "SetAttributes") #  "HPart", "HSetPart")
-    @eval begin
-        set_attribute(symbol($v),:HoldFirst)
-        set_attribute(symbol($v),:Protected)        
+# This file is loaded last because we are polluting Julia symbol table
+# with symbols in order to get completion at the repl.  Each of these
+# symbols will be bound in Julia to true, unless already bound.  We
+# want to allow that they be bound to functions, instead, in files
+# loaded before this one.
+
+function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
+    for s in syms
+        for a in attrs
+            set_attribute(symbol(s),a)
+        end
+        set_attribute(symbol(s),:Protected)  # They all are Protected
     end
 end
+
+set_pattributes(["Pattern", "SetJ", "SetAttributes"],
+               [:HoldFirst])
+
 
 # Age, Fixed and others are not Mma
 for v in ("Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
@@ -57,7 +69,7 @@ for v in ("Timing","Allocated","SetDelayed")
     end
 end
 
-for v in ("Pi","E","I")
+for v in ("Pi","E")
     @eval begin
         set_attribute(symbol($v),:Protected)
         set_attribute(symbol($v),:ReadProtected)
@@ -132,19 +144,18 @@ for v in ("EvenQ","OddQ","Range")
     end
 end
 
-for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",  # "SetPart"
-          "JVar", "MatchQ", "AtomQ", "Println",
+# Of course, these need to be organized
+for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
+          "JVar", "MatchQ", "AtomQ", "Println","Keys",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
           "UserSyms", "List","Syms",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
-          "<", "<=","nothing",
+          "<", "<=","nothing","N",
           "String", "StringLength","Protected", "TimeOn", "TimeOff"
-    )
-    @eval begin
-        set_attribute(symbol($v),:Protected)        
-    end
+          )
+    set_attribute(symbol(v),:Protected)
 end
 
 @sjdoc I "

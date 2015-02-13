@@ -19,3 +19,6 @@ is_Number(x) = false
 
 atomq(x::Mxpr) = false
 atomq(x) = true
+
+function is_indexable(x)
+end

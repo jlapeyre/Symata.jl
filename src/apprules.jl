@@ -27,6 +27,8 @@ checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 @sjdoc Set "
 Set(a,b), a = b
 Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
+obj[i,j,...] = val sets a part of obj to val. obj can be an SJulia expression
+or a Julia object, such as an Array or Dict.
 "
 
 @sjseealso_group( Set, SetDelayed )
@@ -90,19 +92,20 @@ end
 
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
+# We check is_Number several times, because we may have a Dict.
 function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
     tinds = inds(lhs)
     ex = ex0
     for j in 1:length(tinds)-1
-        ind::Int = doeval(tinds[j])
-        ind = ind < 0 ? length(ex)+ind+1 : ind
-        ex = ind == 0 ? mhead(ex) : ex[ind]
+        ind = doeval(tinds[j])
+        ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
+        ex = is_Number(ind) && ind == 0 ? mhead(ex) : ex[ind]
     end
     val = doeval(rhs)
     ind = doeval(tinds[end])
-    ind = ind < 0 ? length(ex)+ind+1 : ind
-    if ind == 0
+    ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
+    if is_Number(ind) && ind == 0
         ex.head = val  #  TODO violation of abstraction
     else
         ex[ind] = val
@@ -140,8 +143,14 @@ end
 
 #### Unprotect
 
+@sjdoc Unprotect "
+Unprotect(z1,z2,...) removes the Protected attribute from the symbols z1, z2, ...
+"
+
 function apprules(mx::Mxpr{:Unprotect})
-    do_unprotect(mx,mx[1])
+    for i in 1:length(mx)
+        do_unprotect(mx,mx[i])
+    end
 end
 do_unprotect(mx,a::Symbol) = (unset_attribute(a,:Protected) ; nothing)
 do_unprotect(mx,a) = error("Can't unprotect $mx")
@@ -205,7 +214,8 @@ end
 
 @sjdoc Unpack "
 Unpack(a) unpacks a Julia typed array into an SJulia List expression.
-Only 1-d is supported.
+Only 1-d is supported. If a is a Julia Dict, then a list of lists of
+key,value pairs is returned.
 "
 
 @sjexamp( Unpack,
@@ -225,6 +235,16 @@ function do_unpack(obj)
     args = newargs(length(obj))
     @inbounds for i in 1:length(obj)
         args[i] = obj[i]
+    end
+    return args
+end
+
+function do_unpack(dict::Dict)
+    args = newargs(length(dict))
+    i = 0
+    for (k,v) in dict
+        i += 1
+        args[i] = mxpr(:List,k,v)
     end
     return args
 end
@@ -260,6 +280,14 @@ function do_pack(T,sjobj)
 end
 
 
+@sjdoc Keys "
+Keys(d) returns a list of the keys in Dict d
+"
+apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
+do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d)))
+do_keys(mx,x) = (warn("Can't return keys of $mx"); mx)
+
+
 #### Symbol
 
 @sjdoc Symbol "
@@ -271,7 +299,7 @@ function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
 dosymbol(mx,s::String) = getsym(symbol(s))
-dosymbol(mx,x) = error("Symbol: expected a string")
+dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
 
 @sjdoc Clear "
 Clear(x,y,z) removes the values associated with x,y,z. It does not remove
