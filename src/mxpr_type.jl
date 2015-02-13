@@ -129,7 +129,10 @@ listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
     else
         ns = ssjsym(s)
         SYMTAB[s] = ns
-        # pollute Julia just so we get repl completion. remove this later.        
+        # pollute Julia just so we get repl completion. remove this later.
+        # Note, this may slow things like pattern matching. Because
+        # Julia bindings of symbols are sometimes checked and then evaluated.
+        # But, the pattern test file shows no difference in speed.
         !isdefined(s) && eval(:($s = true))
         return ns
     end

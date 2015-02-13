@@ -171,7 +171,7 @@ function matchpat(cvar,ex)
             hhe = eval(hh)
             if is_type(hhe,DataType)
                 isdatatype = true
-                if typeof(ex) <: hhe
+                if is_type_less(ex,hhe)
                     headmatch = true
                 else
                     headmatch = false
@@ -179,7 +179,7 @@ function matchpat(cvar,ex)
             end
         end
         if ! isdatatype
-            if hh == :All || (is_Mxpr(ex) && symname(mhead(ex)) == hh)
+            if hh == :All || is_Mxpr(ex,hh) #  (is_Mxpr(ex) && symname(mhead(ex)) == hh)
                 headmatch = true
             else
                 headmatch = false
