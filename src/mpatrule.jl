@@ -11,7 +11,7 @@ typealias ExSym Union(UExpr,Symbol,SJSym)
 # or just make this Any
 typealias CondT Union(UExpr,Symbol,SJSym,DataType,Function)
 
-isexpr(x) = (typeof(x) <: AbstractMxpr)
+#isexpr(x) = (typeof(x) <: AbstractMxpr)
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -179,7 +179,7 @@ function matchpat(cvar,ex)
             end
         end
         if ! isdatatype
-            if hh == :All || is_Mxpr(ex,hh) #  (is_Mxpr(ex) && symname(mhead(ex)) == hh)
+            if hh == :All || is_Mxpr(ex,hh)
                 headmatch = true
             else
                 headmatch = false
@@ -211,11 +211,11 @@ function _cmppat(mx,pat,captures)
     if ispvar(pat) && matchpat(pat,mx)
         return capturepvar(captures,pat,mx)  # false means contradicts previous capture
     end
-    if !isexpr(mx)
+    if !is_Mxpr(mx)
         res = mx == pat # 'leaf' on the tree. Must match exactly.
         return res
     end
-    if !isexpr(pat) || mhead(pat) != mhead(mx) ||
+    if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
         length(pat) != length(mx)
         return false
     end
@@ -258,7 +258,7 @@ replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
 
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
-    if isexpr(ex)
+    if is_Mxpr(ex)
         ex = mxpr(mhead(ex),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
@@ -276,7 +276,7 @@ end
 # Apply an array of rules. each subexpression is tested.
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
-    if isexpr(ex)
+    if is_Mxpr(ex)
         ex = mxpr(mhead(ex),
                     map((x)->replaceall(x,rules),margs(ex))...)
     end
@@ -293,12 +293,12 @@ end
 # Subsitute the pattern vars in pat with the vals from cd.
 # Version for new pattern matching format:  x_ => x^2
 function patsubst!(pat,cd)
-    if (isexpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
+    if (is_Mxpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
         pa = margs(pat)
         @inbounds for i in 1:length(pa)
             if havecapt(pa[i],cd)
                 pa[i] =  retrievecapt(pa[i],cd)
-            elseif isexpr(pa[i])
+            elseif is_Mxpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
@@ -318,7 +318,7 @@ replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
-    if isexpr(ex)
+    if is_Mxpr(ex)
         ex1 = mxpr(mhead(ex), #  margs(ex,1),  # careful, we changed this and it is not well tested
               map((x)->replacerepeated(x,rules),margs(ex)[1:end])...)
     end
