@@ -58,7 +58,13 @@ using Base.Test
 @ex m = (Expand((x+1)^2))^2
 @ex m * (m+1)
 
-@ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y)
+@ex ClearAll(a,A,Z,z)
+
+@testex Apply(List,a*Z) == [a,Z]
+@testex Apply(List,A*z) == [A,z]
+@testex Apply(List,A*a) == [a,A]
+
+@ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y,z,A,Z)
 
 ## BROKEN
 #  a should come first in both of these

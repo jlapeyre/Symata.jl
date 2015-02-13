@@ -158,7 +158,8 @@ jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 # Mma does case insensitive ordering of symbols
 casecmp(a::Symbol, b::Symbol) = int(sign(ccall(:strcasecmp, Int32, (Ptr{UInt8}, Ptr{UInt8}), a, b)))
 # Same as isless(a,b) for symbols, but we do case insensitive comparison first
-jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) < 0 : r < 0)
+# *and* we invert order of upper to lower case.  we want  a < A.
+jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) > 0 : r < 0)
 jslexless(x::SJSym, y::SJSym) = jsisless(x,y)
 jslexless(x::Number, y::SJSym) = true
 jslexless(x::SJSym, y::Mxpr) = true
