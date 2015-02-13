@@ -65,4 +65,10 @@ cos_one_arg(mx::Mxpr{:Cos},x) = mx
 
 ####
 
-# Try using downvalues
+# Example of using down value
+
+# With the present implmentation, this is slower than
+# writing an apprule directly in Julia. Patterns are not optimized
+unset_attribute(:Sin,:Protected)
+@ex( Sin(-1*x_) := -1 * Sin(x) )
+set_attribute(:Sin,:Protected)

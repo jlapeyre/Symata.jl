@@ -338,12 +338,17 @@ end
 
 # We set fixed here, but not for orderless above. Which one is correct ?
 function canonexpr!(mx::Mxpr{:Power})
-#    mx = mulpowers(mx)  either do it here, or in apprules (ie dopower) but not both
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
+    if is_Mxpr(mx,:Times)
+        mx = canonexpr!(mx)
+    end
     setcanon(mx)
-#    mergeargs(mx)
-    setfixed(mx) # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do this
-    mx
+    #  setfixed(mx) # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do this
+    if ! is_Mxpr(mx,:Power)  # but some Power mxprs are not evaled completely.
+        setfixed(mx)
+    end
+    return mx
+    #    mergeargs(mx)
 end
 
 # (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n
