@@ -1,3 +1,5 @@
+using Base.Test
+
 @testex 0 == 0
 @testex -0  == 0
 @testex 1  == 1
@@ -57,5 +59,14 @@
 @ex m * (m+1)
 
 @ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y)
+
+## BROKEN
+#  a should come first in both of these
+# sjulia> a * Power(g,2)
+#   a*(g^2)
+# sjulia> a * Power(G,2)
+#   (G^2)*a
+
+
 
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented

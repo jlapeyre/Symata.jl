@@ -74,7 +74,7 @@ unset_attribute(:Tan,:Protected)
 unset_attribute(:Cos,:Protected)
 
 # Some are not evaled far enough.
-# Unfix is a workaround for bug
+# Unfix is a workaround for bugs that prevent evaluation
 @ex  Sin(-1*x_) := -1 * Sin(x)   # These won't work right until AC matching.
 @ex  Tan(-1*x_) := -1 * Tan(x)
 @ex  Tan(ACos(x_)) := Unfix(Sqrt(1-x^2)/x)

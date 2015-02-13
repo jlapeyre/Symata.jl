@@ -59,7 +59,7 @@ set_pattributes(["EvenQ","OddQ","Range"],[:Listable])
 # Of course, these need to be organized!
 set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println","Keys",
-          "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
+          "Replace", "ReplaceAll", "ReplaceRepeated", "TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
           "UserSyms", "List","Syms",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",

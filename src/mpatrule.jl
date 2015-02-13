@@ -311,11 +311,13 @@ replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
 replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 
 function _replacerepeated(ex, rules::Array{PRule,1},n)
+    println("** Entering $ex, $rules, $n")    
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
     if isexpr(ex)
-        ex1 = mxpr(mhead(ex), margs(ex,1),
-             map((x)->replaceall(x,rules),margs(ex)[2:end])...)
+        println("Mapping down $ex")
+        ex1 = mxpr(mhead(ex), #  margs(ex,1),  # careful, we changed this and it is not well tested
+              map((x)->replacerepeated(x,rules),margs(ex)[1:end])...)
     end
     local res
     for r in rules

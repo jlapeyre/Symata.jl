@@ -473,6 +473,11 @@ apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
+apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
+doreplacerepeated(mx,expr,r::Mxpr{:Rule}) = replacerepeated(expr,Rule_to_PRule(r))
+doreplacerepeated(mx,a,b) = mx
+
+
 @sjdoc MatchQ "
 MatchQ(expr,pattern) returns true if expr matches pattern.
 "

@@ -128,6 +128,7 @@ function jslexless(x::Mxpr, y::Mxpr{:Power})
     end
     jslexless(x,base(y))
 end
+
 function jslexless(x::Mxpr{:Power}, y::SJSym)
     if y == base(x)
         return is_type_less(expt(x),Real) && expt(x) < 0
@@ -152,7 +153,13 @@ jslexless(x::SJSym, y::Mxpr{:Plus}) = jslexless(x,y[end])
 jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 
-jslexless(x::SJSym, y::SJSym) = isless(x,y)
+# TODO: do we need to define casecmp differently for MSWin ?
+# cmp(a::Symbol, b::Symbol) is in base/string.jl
+# Mma does case insensitive ordering of symbols
+casecmp(a::Symbol, b::Symbol) = int(sign(ccall(:strcasecmp, Int32, (Ptr{UInt8}, Ptr{UInt8}), a, b)))
+# Same as isless(a,b) for symbols, but we do case insensitive comparison first
+jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) < 0 : r < 0)
+jslexless(x::SJSym, y::SJSym) = jsisless(x,y)
 jslexless(x::Number, y::SJSym) = true
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
