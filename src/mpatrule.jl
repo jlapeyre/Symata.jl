@@ -188,6 +188,7 @@ function matchpat(cvar,ex)
     else
         error("matchpat: Head to match is not a symbol")
     end
+    headmatch || return false
     cc = getpvarptest(cvar)
     is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")
     if cc != :None
@@ -196,7 +197,7 @@ function matchpat(cvar,ex)
     else
         ptestmatch = true
     end
-    return ptestmatch && headmatch
+    return ptestmatch
 end
 
 # Descend expression tree. If there is no pattern var in
@@ -307,15 +308,17 @@ function patsubst!(pat,cd)
     return pat
 end
 
+## ReplaceRepeated
+
+# This applies the rules to all sub-expressions, and the expression
+
 replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
 replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 
 function _replacerepeated(ex, rules::Array{PRule,1},n)
-#    println("** Entering $ex, $rules, $n")    
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
     if isexpr(ex)
-#        println("Mapping down $ex")
         ex1 = mxpr(mhead(ex), #  margs(ex,1),  # careful, we changed this and it is not well tested
               map((x)->replacerepeated(x,rules),margs(ex)[1:end])...)
     end
