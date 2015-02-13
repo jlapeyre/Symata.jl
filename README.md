@@ -34,6 +34,20 @@ julia> @ex some SJulia expression
 julia> @ex(some expression that may look like two expressions)
 ```
 
+Symbols that are associated with some functionality can be listed with
+`BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
+prompt.
+
+Documentation for many BuiltIn symbols can be found by entering
+`?, SymName` at the `sjulia` prompt. Note the comma, which is
+neccessary because limitations in the provisional parsing method.
+`Help(Symname)` prints the same documentation. This allows you
+to type `@ex Help(SymName)` from Julia.
+If examples are printed with the documentation string, they can be
+evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
+prompt. The input strings from the examples are pushed to the history
+so that they can be recalled and edited and re-evaluated.
+
 Here are some examples of the SJulia mode. There are many more examples
 in the test directory.
 
@@ -68,20 +82,6 @@ a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 ````
 
 make Julia bindings of SJulia expressions to the symbols ex and m.
-
-Symbols that are associated with some functionality can be listed with
-`BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
-prompt.
-
-Documentation for many BuiltIn symbols can be found by entering
-`?, SymName` at the `sjulia` prompt. Note the comma, which is
-neccessary because limitations in the provisional parsing method.
-`Help(Symname)` prints the same documentation. This allows you
-to type `@ex Help(SymName)` from Julia.
-If examples are printed with the documentation string, they can be
-evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
-prompt. The input strings from the examples are pushed to the history
-so that they can be recalled and edited and re-evaluated.
 
 Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
 There are many more commands available, mostly to support experimenting with
