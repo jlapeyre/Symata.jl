@@ -10,6 +10,8 @@ computation, but rather on testing implmentations of core features and
 subsystems. Some important features are pattern matching and the
 evaluation sequence and data structures that support it.
 
+### Installing
+
 You can load and test SJulia like this
 
 ```julia
@@ -34,6 +36,8 @@ julia> @ex some SJulia expression
 julia> @ex(some expression that may look like two expressions)
 ```
 
+### Finding Help and Examples
+
 Symbols that are associated with some functionality can be listed with
 `BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
 prompt.
@@ -48,8 +52,11 @@ evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
 prompt. The input strings from the examples are pushed to the history
 so that they can be recalled and edited and re-evaluated.
 
-Here are some examples of the SJulia mode. There are many more examples
-in the test directory.
+There are many examples in the test directory.
+
+### A few examples
+
+Here are some examples of the SJulia mode.
 
 ```julia
 sjulia> ClearAll(fib)
