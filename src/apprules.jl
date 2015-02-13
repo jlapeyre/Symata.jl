@@ -746,7 +746,8 @@ in the sense that nested calls to a Module are not supported.
 #
 # TODO: Its probably better to have and apprule for Module which
 # does the conversion to LModule, this is more robust than doing
-# it during Set and SetDelay.
+# it during Set and SetDelay... and then later, an even better
+# implementation.
 function apprules(mx::Mxpr{:LModule})
     body = mx[1]
     vars = margs(body[1])
@@ -768,7 +769,7 @@ apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 Expand(expr) expands products in expr. This is only partially implemented,
 mostly to test the efficiency of evaluation and evaluation control.
 "
-apprules(mx::Mxpr{:Expand}) = doexpand(mx[1])
+apprules(mx::Mxpr{:Expand}) = _doexpand(mx[1])
 
 @sjdoc Range "
 Range(n) returns the List of integers from 1 through n.

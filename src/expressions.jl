@@ -1,5 +1,16 @@
 ## Expand, Apply, Reverse
 
+function _doexpand(x)
+    ! is_Mxpr(x) && return x
+    n = length(x)
+    args = margs(x)
+    nargs = newargs(n)
+    for i in 1:n
+        nargs[i] = doexpand(args[i])
+    end
+    return doexpand(mxpr(mhead(x),nargs))
+end
+
 doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
 
 function doexpand(prod::Mxpr{:Times})

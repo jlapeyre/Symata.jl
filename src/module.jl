@@ -19,21 +19,12 @@ function localize_module!(mx::Mxpr{:Module})
     lvtab = Dict{Symbol,SJSym}()
     for v in margs(locvars)
         vn = symname(v)
-        lvtab[vn] = getsym(gensym(string(vn)))
+        lvtab[vn] = getsym(get_localized_symbol(vn)) # getsym is now identity
     end
     body = substlocalvars!(mx[2],lvtab)
     unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # remove existing local vars
     return mxpr(:LModule, body)
 end    
-
-# We can't use this anyway because it blocks the exit.
-#    push!(margs(body), mxpr(:ClearAll,collect(values(lvtab))...))
-# Note, the ClearAll above is a stop gap to remove gensyms from the
-# symbol table. There may be other exits from the Module
-# than at the end.
-
-# We currently have no mechanism for removing the last set of gensymed local variables from the symbol table.
-# They also print without the chars added by gensym.
 
 substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
      is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el

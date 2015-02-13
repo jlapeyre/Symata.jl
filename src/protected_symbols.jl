@@ -57,10 +57,26 @@ for v in ("Timing","Allocated","SetDelayed")
     end
 end
 
-for v in ("Pi","E")
+for v in ("Pi","E","I")
     @eval begin
         set_attribute(symbol($v),:Protected)
         set_attribute(symbol($v),:ReadProtected)
+        set_attribute(symbol($v),:Constant)
+    end
+end
+
+for v in ("I")
+    @eval begin
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:ReadProtected)
+        set_attribute(symbol($v),:Locked)
+    end
+end
+
+for v in ("Pi","E")
+    @eval begin
+        set_attribute(symbol($v),:Protected)
+        set_attribute(symbol($v),:ReadProtected)  # In Mma E is not ReadProtected
         set_attribute(symbol($v),:Constant)
     end
 end

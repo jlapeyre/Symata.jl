@@ -38,6 +38,7 @@ end
 
 extomx(x) = x
 function extomx(s::Symbol)
+    s == :I && return complex(0,1)
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)
