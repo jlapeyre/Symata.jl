@@ -567,7 +567,6 @@ function apprules(mx::Mxpr{:Power})
     dopower(mx,mx[1],mx[2])
 end
 
-
 # TODO: Make sure Rationals are simplified
 dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
 dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
@@ -744,7 +743,7 @@ HAge(s) returns the timestamp for the expression or symbol s.
 Using this timestamp to avoid unnecessary evaluation is a partially
 implemented feature.
 "
-@sjseealso_group(HAge,Fixed,Syms,DirtyQ)
+@sjseealso_group(HAge,Age,Fixed,Syms,DirtyQ,Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
 hdo_getage(mx,s::Symbol) = int(symage(s))
@@ -758,16 +757,24 @@ do_getage(mx,s::Mxpr) = int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
 
-
-
 @sjdoc Fixed "
 Fixed(expr) returns the status of the fixed point bit, which tells whether expr
-is expected to evaluate to itself in the current environment. This is very partially
-implemented. For instance it works with Expand((a+b)^10).
+is expected to evaluate to itself in the current environment. This is partially
+implemented.
 "
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
 #apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
 apprules(mx::Mxpr{:Fixed}) = is_fixed(mx[1])
+
+@sjdoc Unfix "
+Unfix(expr) unsets the fixed flag on expr, causing it to be evaluated.
+This is a workaround for bugs that cause an expression to be marked fixed
+before it is completely evaluated.
+"
+function apprules(mx::Mxpr{:Unfix})
+    unsetfixed(mx[1])
+    mx[1]
+end
 
 @sjdoc Syms "
 Syms(m) returns a List of the symbols that the expression m 'depends' on. The

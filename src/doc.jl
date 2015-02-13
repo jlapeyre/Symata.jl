@@ -95,8 +95,9 @@ end
 ## Print see alsos for sym
 function format_see_alsos(sym)
     ! haskey(SJSEEALSO,sym) && return
-    sas = SJSEEALSO[sym]
+    sas = copy(SJSEEALSO[sym])
     length(sas) == 0 && return
+    sort!(sas)
     print("See also ")
     len = length(sas)
     if len == 1
