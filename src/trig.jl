@@ -70,5 +70,34 @@ cos_one_arg(mx::Mxpr{:Cos},x) = mx
 # With the present implmentation, this is slower than
 # writing an apprule directly in Julia. Patterns are not optimized
 unset_attribute(:Sin,:Protected)
-@ex( Sin(-1*x_) := -1 * Sin(x) )
+unset_attribute(:Tan,:Protected)
+unset_attribute(:Cos,:Protected)
+
+# Some are not evaled far enough.
+# Unfix is a workaround for bug
+@ex  Sin(-1*x_) := -1 * Sin(x)   # These won't work right until AC matching.
+@ex  Tan(-1*x_) := -1 * Tan(x)
+@ex  Tan(ACos(x_)) := Unfix(Sqrt(1-x^2)/x)
+@ex  Tan(ASin(x_)) := Unfix(x/Sqrt(1-x^2))
+@ex  Sin(ASin(x_)) := x
+@ex  Sin(ACos(x_)) := Unfix((1-x^2)^(1/2))  
+@ex  Cos(-1*x_) := Cos(x)
+
 set_attribute(:Sin,:Protected)
+set_attribute(:Cos,:Protected)
+set_attribute(:Tan,:Protected)
+
+
+# Not trig. We can move this.
+unset_attribute(:Power,:Protected)
+
+@ex  Exp(Log(x_)) := x
+@ex  Power(Cos(x_),-1) := Sec(x)   # These should be upvalues of Cos
+@ex  Power(Sec(x_),-1) := Cos(x)
+@ex  Power(Sin(x_),-1) := Csc(x)   
+@ex  Power(Csc(x_),-1) := Sin(x)
+@ex  Power(Tan(x_),-1) := Cot(x)   
+@ex  Power(Cot(x_),-1) := Tan(x)
+
+
+set_attribute(:Power,:Protected)
