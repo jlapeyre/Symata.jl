@@ -39,6 +39,7 @@ end
 extomx(x) = x
 function extomx(s::Symbol)
     s == :I && return complex(0,1)
+    s == :π && return :Pi
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)
@@ -140,6 +141,8 @@ is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_division(ex::Expr) = is_call(ex, :/,3)  
 is_power(ex::Expr) = is_call(ex, :^)
 
+is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
+
 # In extomx, we first rewrite some Math to canonical forms
 # a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
@@ -161,9 +164,8 @@ function rewrite_expr(ex::Expr)
         ex = rewrite_division(ex)
     elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :^, :E, ex.args[2])
-#    elseif is_call(ex,:Sqrt,2)  TODO
-#        ex = Expr(:call, :^, ex.args[2], SJRational(1//2))
-#    end
+    elseif is_call(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
+        ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
     end
     return ex
 end
@@ -291,8 +293,11 @@ end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 infseval(x) = x
 
+infseval(x::Complex) = x.im == 0 ? x.re : x
+
 ## Evaluation of Mxpr
 
+meval(x::Complex) = x.im == 0 ? x.re : x
 meval(x) = x
 meval(s::SJSym) = symval(s)
 

@@ -136,7 +136,16 @@ function do_set_attributes(lhs::SJSym, rhs::SJSym)
     set_attribute(lhs,rhs)
     nothing
 end
-    
+
+
+#### Unprotect
+
+function apprules(mx::Mxpr{:Unprotect})
+    do_unprotect(mx,mx[1])
+end
+do_unprotect(mx,a::Symbol) = (unset_attribute(a,:Protected) ; nothing)
+do_unprotect(mx,a) = error("Can't unprotect $mx")
+
 function do_set(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
@@ -537,7 +546,56 @@ dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), (exp*expt(b)
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), (expt(b)*exp)) : mx
 dopower(mx,b,e) = mx
 
-## convert to BigInt or BigFloat. We cannot yet do this automatically
+@sjdoc Abs "
+Abs(z) represents the absolute value of z.
+"
+
+function apprules(mx::Mxpr{:Abs})
+    doabs(mx,mx[1])
+end
+
+doabs(mx,n::Number) = mabs(n)
+doabs(mx,prod::Mxpr{:Times}) = doabs(mx,prod,prod[1])
+
+#doabs(mx,prod,s::Symbol)
+
+function doabs(mx,prod,f::Number)
+    f >=0 && return mx
+    if f == -1
+        return doabsmone(mx,prod,f)
+    end
+    args = copy(margs(prod))
+    args[1] = -args[1]
+    return mxpr(:Abs,mxpr(:Times,args))
+end
+
+function doabsmone(mx,prod,f::Integer)
+    args = copy(margs(prod))
+    shift!(args)
+    if length(args) == 1
+        return mxpr(:Abs,args)
+    else
+        return mxpr(:Abs,mxpr(:Times,args))
+    end
+end
+
+# TODO Fix canonical routines so that 1.0 * a is not simplifed to a
+function doabsmone(mx,prod,f::Real)
+    args = copy(margs(prod))
+    shift!(args)
+    if length(args) == 1
+        res = mxpr(:Times,one(f),mxpr(:Abs,args))
+    else
+        res = mxpr(:Times,one(f),mxpr(:Abs,mxpr(:Times,args)))
+    end
+    return res
+end
+
+doabs(mx,x) = mx
+
+
+#### convert to BigInt or BigFloat. We cannot yet do this automatically
+
 @sjdoc BI "
 BI(n) converts the number n to a BigInt. SJulia currently neither
 detects integer overflow, nor automatically promote integers to BigInts.

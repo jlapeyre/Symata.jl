@@ -15,10 +15,17 @@ mdiv(x::Int, y::Int) =  rem(x,y) == 0 ? div(x,y) : x // y
 mdiv(x::Int, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y >= 0 ? x^y : 1//(x^(-y))
+#mpow(x::Complex,y::Integer) = x^y handled below
 
 # FIXME: currently (3*3)^(2/3) --> 3^(4//3). should be 3 * 3^(1//3)
 # (7*7*7)^(1//2) --> 7 * 7^(1//2)
 function mpow{T<:Integer}(x::T,y::Rational)
+    if x < 0
+        x = -x
+        gotneg = true
+    else
+        gotneg = false
+    end
     facs = factor(x)    
     newfacs = newargs()
     for (fac,mul) in facs
@@ -27,6 +34,9 @@ function mpow{T<:Integer}(x::T,y::Rational)
         nf != 1 ? push!(newfacs,nf) : nothing
         newexp = mmul(r,y)
         newexp != 0 ? push!(newfacs,mxpr(:Power,fac,newexp)) : nothing
+    end
+    if gotneg == true
+        push!(newfacs,:I)
     end
     length(newfacs) == 1 && return newfacs[1]
     mxpr(:Times,newfacs...)
@@ -39,6 +49,30 @@ end
 
 mpow(x,y) = x^y
 
+mabs(x) = abs(x)
+
+# TODO.  T Rational
+function mabs{T<:Integer}(x::Complex{T})
+    r,i = reim(x)
+    sq = r*r + i*i
+    x = isqrt(sq)
+    if x * x == sq
+        return x
+    else
+        res = mxpr(:Power,sq,1//2)
+        setfixed(res)
+        mergesyms(res,:nothing)
+        return res
+    end
+end
+
+# mpow for Rational is wrong often wrong.
+# so this will be broken, too.
+function mabs{T<:Rational}(x::Complex{T})
+    r,i = reim(x)
+    sq = mplus(mmul(r,r),mmul(i,i))
+    return mpow(sq,1//2)
+end
 
 ## copied from base/operators, a great trick
 for op = (:mplus, :mmul)

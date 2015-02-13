@@ -62,3 +62,7 @@ function cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin})
     return res
 end
 cos_one_arg(mx::Mxpr{:Cos},x) = mx    
+
+####
+
+# Try using downvalues

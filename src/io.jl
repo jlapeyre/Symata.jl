@@ -28,7 +28,7 @@ needsparen(x::Rational) = true
 needsparen(x::Complex) = true
 needsparen(x) = false
 
-function degensym(str::String)
+function de_gensym(str::String)
     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
         return split(str,['#'],keep=false)[1]
     else
@@ -37,9 +37,13 @@ function degensym(str::String)
 end
 
 function Base.show(io::IO, s::SJSym)
-    ss = string(symname(s))
-    ss = degensym(ss)
-    Base.show_unquoted(io,symbol(ss))
+    if symname(s) == :Pi
+        Base.show_unquoted(io,:π)
+    else    
+        ss = string(symname(s))
+        ss = de_gensym(ss) # remove gensym characters
+        Base.show_unquoted(io,symbol(ss))
+    end
 end
 
 # This may break. It will only work if the value of s
@@ -47,9 +51,13 @@ end
 # with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
 # This is only stored as the key to the symbol table.
 function Base.show(io::IO, s::SSJSym)
-    ss = string(symname(s))
-    ss = degensym(ss)
-    Base.show_unquoted(io,symbol(ss))
+    if symname(s) == :Pi
+        Base.show_unquoted(io,:π)
+    else    
+        ss = string(symname(s))
+        ss = de_gensym(ss)
+        Base.show_unquoted(io,symbol(ss))
+    end
 end
 
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])

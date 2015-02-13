@@ -11,7 +11,7 @@ end
 
 # Age, Fixed and others are not Mma
 for v in ("Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
-          "DownValues", "HAge", "Table", "For", "If", "While", "Do", "Jxpr") 
+          "DownValues", "HAge", "Table", "For", "If", "While", "Do", "Jxpr", "Unprotect") 
     @eval begin
         set_attribute(symbol($v),:HoldAll)
         set_attribute(symbol($v),:Protected)
@@ -96,7 +96,7 @@ for v in ("Part",)
     end
 end
 
-for v in ("Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus")  # etc.
+for v in ("Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus","Abs")  # etc.
     @eval begin    
         set_attribute(symbol($v),:Listable)
         set_attribute(symbol($v),:NumericFunction)
@@ -146,3 +146,15 @@ for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSeque
         set_attribute(symbol($v),:Protected)        
     end
 end
+
+@sjdoc I "
+I represents the imaginary unit
+"
+
+@sjdoc E "
+E is the base of the natural logarithm
+"
+
+@sjdoc Pi "
+Pi is the trigonometric constant π.
+"
