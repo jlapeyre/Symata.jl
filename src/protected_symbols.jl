@@ -17,135 +17,47 @@ function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol
     end
 end
 
-set_pattributes(["Pattern", "SetJ", "SetAttributes"],
-               [:HoldFirst])
+set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
+set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
+set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
 
+set_pattributes(["Pattern", "SetJ", "SetAttributes"], :HoldFirst)
 
-# Age, Fixed and others are not Mma
-for v in ("Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold", "DumpHold",
-          "DownValues", "HAge", "Table", "For", "If", "While", "Do", "Jxpr", "Unprotect") 
-    @eval begin
-        set_attribute(symbol($v),:HoldAll)
-        set_attribute(symbol($v),:Protected)
-    end
-end
+set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold",
+                 "DumpHold", "DownValues", "HAge", "Table", "For", "If", "While", "Do",
+                 "Jxpr", "Unprotect"],
+                :HoldAll)
 
-for v in ("Attributes",)
-    @eval begin
-        set_attribute(symbol($v),:HoldAll)
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:Listable)        
-    end
-end
+set_pattributes("Attributes",[:HoldAll,:Listable])
 
-for v in ("Rule",)
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:SequenceHold)        
-    end
-end
+set_pattributes("Rule",:SequenceHold)
 
-for v in ("Set",)
-    @eval begin
-        set_attribute(symbol($v),:HoldFirst)        
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:SequenceHold)        
-    end
-end
+set_pattributes("Set",[:HoldFirst, :SequenceHold])
 
-for v in ("RuleDelayed","PatternTest")
-    @eval begin
-        set_attribute(symbol($v),:HoldRest)
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:SequenceHold)        
-    end
-end
+set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 
-for v in ("Timing","Allocated","SetDelayed")
-    @eval begin
-        set_attribute(symbol($v),:HoldAll)
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:SequenceHold)        
-    end
-end
+set_pattributes(["Timing","Allocated","SetDelayed"], [:HoldAll,:SequenceHold])
 
-for v in ("Pi","E")
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:ReadProtected)
-        set_attribute(symbol($v),:Constant)
-    end
-end
+set_pattributes(["Pi","E"],[:ReadProtected,:Constant])
 
-for v in ("I")
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:ReadProtected)
-        set_attribute(symbol($v),:Locked)
-    end
-end
+set_pattributes("I", [:ReadProtected,:Locked])
 
-for v in ("Pi","E")
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:ReadProtected)  # In Mma E is not ReadProtected
-        set_attribute(symbol($v),:Constant)
-    end
-end
+set_pattributes(["CompoundExpression","Sum"],[:ReadProtected,:HoldAll])
 
-for v in ("CompoundExpression","Sum")
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:ReadProtected)
-        set_attribute(symbol($v),:HoldAll) 
-    end
-end
+set_pattributes("Part",:ReadProtected)
 
-for v in ("Part",)
-    @eval begin
-        set_attribute(symbol($v),:Protected)
-        set_attribute(symbol($v),:ReadProtected)        
-    end
-end
+set_pattributes(["Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus","Abs"],
+                [:Listable,:NumericFunction])
 
-for v in ("Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus","Abs")  # etc.
-    @eval begin    
-        set_attribute(symbol($v),:Listable)
-        set_attribute(symbol($v),:NumericFunction)
-        set_attribute(symbol($v),:Protected)        
-    end
-end
+set_pattributes(["Plus", "Times"],
+            [:Flat,:Listable,:NumericFunction,:OneIdentity,:Orderless])
 
-for v in ("Plus", "Times")
-    @eval begin
-        set_attribute(symbol($v),:Flat)
-        set_attribute(symbol($v),:Listable)
-        set_attribute(symbol($v),:NumericFunction)
-        set_attribute(symbol($v),:OneIdentity)
-        set_attribute(symbol($v),:Orderless)
-        set_attribute(symbol($v),:Protected)
-    end
-end
+set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
+set_pattributes(["EvenQ","OddQ","Range"],[:Listable])
 
-for v in ("Power",)
-    @eval begin
-        set_attribute(symbol($v),:Listable)
-        set_attribute(symbol($v),:NumericFunction)
-        set_attribute(symbol($v),:OneIdentity)
-        set_attribute(symbol($v),:Protected)
-    end
-end
-
-for v in ("EvenQ","OddQ","Range")
-    @eval begin
-        set_attribute(symbol($v),:Listable)
-        set_attribute(symbol($v),:Protected)        
-    end
-end
-
-# Of course, these need to be organized
-for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
+# Of course, these need to be organized!
+set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println","Keys",
           "Replace", "ReplaceAll","TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
@@ -153,10 +65,8 @@ for v in ("Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSeque
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N",
-          "String", "StringLength","Protected", "TimeOn", "TimeOff"
-          )
-    set_attribute(symbol(v),:Protected)
-end
+          "String", "StringLength","Protected", "TimeOn", "TimeOff"],
+                :Protected)
 
 @sjdoc I "
 I represents the imaginary unit
