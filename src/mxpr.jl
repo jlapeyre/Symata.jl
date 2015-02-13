@@ -176,8 +176,9 @@ type Meval
     entrycount::Int  # For trace
     traceon::Bool    # TraceOn()
     timingon::Bool   # TimeOn() does @time on every user input
+    replacefail_count::Int
 end
-const MEVAL = Meval(0,false,false)
+const MEVAL = Meval(0,false,false,0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -186,6 +187,9 @@ decrement_meval_count() = MEVAL.entrycount -= 1
 set_meval_trace() = MEVAL.traceon = true
 unset_meval_trace() = MEVAL.traceon = false
 is_meval_trace() = MEVAL.traceon
+reset_replacefail_count() = MEVAL.replacefail_count = 0
+get_replacefail_count() = MEVAL.replacefail_count
+increment_replacefail_count() = MEVAL.replacefail_count += 1
 
 # Read a line of user input, translate Expr to Mxpr, but don't evaluate result
 macro exnoeval(ex)
@@ -198,8 +202,10 @@ macro ex(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
     res = extomx(ex)  # Translate to Mxpr
     reset_meval_count()
+    reset_replacefail_count()
     if MEVAL.timingon
         mx = @time doeval(res) # doeval just calls loopeval. But we can change it to get single eval.
+        println("try downvalue count ", get_replacefail_count())
     else
         mx = doeval(res)
     end
@@ -335,6 +341,8 @@ function revisesyms(mx::Mxpr)
     return nsyms
 end
 
+## meval
+
 # main evaluation routine. Call doeval (which is loopeval) on head
 # and some of the arguments. Then apply rules and other things on the result.
 function meval(mx::Mxpr)
@@ -403,6 +411,8 @@ function meval(mx::Mxpr)
     return res
 end
 
+## Listable
+
 # If any arguments to mx are lists, thread over them. If there are more than one list,
 # they must be of the same length.
 # Eg.  f([a,b,c],d) -> [f(a,d),f(b,d),f(c,d)]
@@ -439,4 +449,42 @@ function threadlistable(mx::Mxpr)
     end
     nmx = mxpr(:List,largs)
     return nmx
+end
+
+## LeafCount
+
+leaf_count(x) = 1
+function leaf_count(mx::Mxpr)
+    count::Int = 1 #  1 for the Head
+    for i in 1:length(mx)
+        if is_Mxpr(mx[i])
+            count += leaf_count(mx[i])
+        else
+            count += 1
+        end
+    end
+    return count
+end
+
+## ByteCount
+
+# For BigInt, we always get 16, it is probably  8 * x.size or x.alloc
+jssizeof(x) = sizeof(x)
+# I think they are 64 bit chunks
+jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
+
+Base.sizeof(a::Symbol) = int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
+
+byte_count(x) = jssizeof(x)
+
+function byte_count(mx::Mxpr)
+    count::Int = jssizeof(mx)
+    for i in 1:length(mx)
+        if is_Mxpr(mx[i])
+            count += byte_count(mx[i])
+        else
+            count += jssizeof(mx[i])
+        end
+    end
+    return count
 end

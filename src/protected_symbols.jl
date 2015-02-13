@@ -65,11 +65,13 @@ set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNu
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
-          "String", "StringLength","Protected", "TimeOn", "TimeOff"],
-                :Protected)
+          "String", "StringLength","Protected", "TimeOn", "TimeOff",
+          "LeafCount","ByteCount"
+           ],
+           :Protected)
 
 @sjdoc I "
-I represents the imaginary unit
+I is the imaginary unit
 "
 
 @sjdoc E "

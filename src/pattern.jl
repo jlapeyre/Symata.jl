@@ -72,7 +72,10 @@ function patterntopvar(mx::Mxpr{:Blank})
 end
 
 function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
+#    println("$rd")
+#    prule = @time(RuleDelayed_to_PRule(rd))
     prule = RuleDelayed_to_PRule(rd)
+    increment_replacefail_count()
     replacefail(mx,prule)
 end
 

@@ -36,6 +36,10 @@ function de_gensym(str::String)
     end
 end
 
+# We need a way to force using this. In the REPL, I guess
+# Hmm. Wrap all output in a type made just for that purpose.... no that won't work
+# sjshow(io::IO,x) = Base.show(io,x)
+
 function Base.show(io::IO, s::SJSym)
     if symname(s) == :Pi
         Base.show_unquoted(io,:π)

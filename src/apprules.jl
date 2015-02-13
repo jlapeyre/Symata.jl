@@ -360,6 +360,19 @@ apprules(mx::Mxpr{:Length}) = symjlength(margs(mx,1))
 symjlength(mx::Mxpr) = length(margs(mx))
 symjlength(x) = length(x)
 
+@sjdoc LeafCount "
+LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
+This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
+"
+apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
+
+
+@sjdoc ByteCount "
+ByteCount(expr) gives number of bytes in expr. Not everything is counted
+correctly at the moment.
+"
+apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
+
 
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
@@ -645,12 +658,13 @@ detects integer overflow, nor automatically promote integers to BigInts.
 "
 @sjseealso_group(BI,BF)
 @sjdoc BF "
-BF(n) converts the number n to a BigFloat. SJulia currently neither
+BF(n) converts the number, or string n to a BigFloat. SJulia currently neither
 detects overflow, nor automatically promotes types from fixed to arbitrary precision.
 "
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint{T<:Number}(mx,x::T) = BigInt(x)
+dobigint{T<:AbstractString}(mx,x::T) = BigInt(x)
 apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)

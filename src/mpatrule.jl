@@ -202,7 +202,7 @@ end
 
 # Descend expression tree. If there is no pattern var in
 # a subexpression of pattern `pat', then the subexpressions in
-# ex and pat must match exactly.
+# mx and pat must match exactly.
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
@@ -220,7 +220,7 @@ function _cmppat(mx,pat,captures)
         return false
     end
     # match and capture subexpressions. false propagates to the top node
-    # retracing all steps. This is inefficient if we are not AC matching
+    # retracing all steps.
     @inbounds for i in 1:length(mx)
          _cmppat(mx[i],pat[i],captures) == false && return false
     end

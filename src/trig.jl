@@ -3,8 +3,8 @@
 # Symols like Cos should probably be treated not with apprules, but
 # rules, for instance.
 
+# They always should have one arg.
 apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,mx.args[1]) : mx
-
 Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
 
 ## 1/Sqrt(2) and -1/Sqrt(2)
@@ -40,6 +40,14 @@ Cos_pi_coeff(mx::Mxpr{:Cos},c::FloatingPoint) = cospi(c)
 Cos_pi_coeff(mx::Mxpr{:Cos},c) = mx
 
 function cos_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:Times})
+    if is_Complex(arg[1])
+        (r,i) = reim(arg[1])
+        if r == 0  #  Cos(I x) -> Cosh(x)
+            nargs = copy(margs(arg))
+            nargs[1] = i
+            return mxpr(:Cosh,mxpr(:Times,nargs))
+        end
+    end
     return length(arg) == 2 ? Cos_factor_arg(mx,arg.args...) :
     mx
 end
@@ -63,9 +71,30 @@ function cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin})
 end
 cos_one_arg(mx::Mxpr{:Cos},x) = mx    
 
+
+#### Sin
+
+apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,mx.args[1]) : mx
+
+function sin_one_arg(mx::Mxpr{:Sin},arg::Mxpr{:Times})
+    if is_Complex(arg[1])
+        (r,i) = reim(arg[1])
+        if r == 0  #  Sin(I x) -> I Sinh(x)
+            nargs = copy(margs(arg))
+            nargs[1] = i
+            return mxpr(:Times, complex(0,1), mxpr(:Sinh,mxpr(:Times,nargs)))
+        end
+    end
+#    todo
+    mx
+end
+sin_one_arg(mx::Mxpr{:Sin},x) = mx
+
+
+
 ####
 
-# Example of using down value
+# Examples of using down values
 
 # With the present implmentation, this is slower than
 # writing an apprule directly in Julia. Patterns are not optimized
@@ -73,9 +102,10 @@ unset_attribute(:Sin,:Protected)
 unset_attribute(:Tan,:Protected)
 unset_attribute(:Cos,:Protected)
 
+# The multiplication rules won't work generally until AC matching is implemened
 # Some are not evaled far enough.
 # Unfix is a workaround for bugs that prevent evaluation
-@ex  Sin(-1*x_) := -1 * Sin(x)   # These won't work right until AC matching.
+@ex  Sin(-1*x_) := -1 * Sin(x)   
 @ex  Tan(-1*x_) := -1 * Tan(x)
 @ex  Tan(ACos(x_)) := Unfix(Sqrt(1-x^2)/x)
 @ex  Tan(ASin(x_)) := Unfix(x/Sqrt(1-x^2))
@@ -92,6 +122,8 @@ set_attribute(:Tan,:Protected)
 # Not trig. We can move this.
 unset_attribute(:Power,:Protected)
 
+# These slow everything down, because all of them are checked against
+# every instance of Power.
 @ex  Exp(Log(x_)) := x
 @ex  Power(Cos(x_),-1) := Sec(x)   # These should be upvalues of Cos
 @ex  Power(Sec(x_),-1) := Cos(x)
