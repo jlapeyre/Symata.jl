@@ -443,8 +443,11 @@ end
 
 function is_protected(sj::SJSym)
     get(getssym(sj).attr,:Protected,false)
-end 
-    
+end
+
+unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
+protect(sj::SJSym) = set_attribute(sj,:Protected)
+
 function set_attribute(sj::SJSym, attr::Symbol)
     getssym(sj).attr[attr] = true
 end

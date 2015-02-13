@@ -82,11 +82,12 @@ unset_attribute(:Cos,:Protected)
 @ex  Sin(ASin(x_)) := x
 @ex  Sin(ACos(x_)) := Unfix((1-x^2)^(1/2))  
 @ex  Cos(-1*x_) := Cos(x)
+# Following works together with rules for Cos <---> Cosh, which are not yet written
+
 
 set_attribute(:Sin,:Protected)
 set_attribute(:Cos,:Protected)
 set_attribute(:Tan,:Protected)
-
 
 # Not trig. We can move this.
 unset_attribute(:Power,:Protected)

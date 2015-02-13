@@ -66,13 +66,4 @@ using Base.Test
 
 @ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y,z,A,Z)
 
-## BROKEN
-#  a should come first in both of these
-# sjulia> a * Power(g,2)
-#   a*(g^2)
-# sjulia> a * Power(G,2)
-#   (G^2)*a
-
-
-
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
