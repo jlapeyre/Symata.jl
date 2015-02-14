@@ -51,14 +51,17 @@ function check_doc_query(ex)
     end
 end
 
-function print_doc(q)
-    if haskey(SJDOCS,q)
-        print(SJDOCS[q])
-        format_see_alsos(q)
-        format_sjexamples(q)
-    else
-        println("No documentation for '", string(q),"'.")
-    end    
+function print_doc(qs...)
+    length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
+    for q in qs
+        if haskey(SJDOCS,q)
+            print(SJDOCS[q])
+            format_see_alsos(q)
+            format_sjexamples(q)
+        else
+            println("No documentation for '", string(q),"'.")
+        end
+    end
 end
 
 function list_documented_symbols()

@@ -835,7 +835,7 @@ Help(sym) prints documentation for the symbol sym. Eg: Help(Expand)
 "
 
 function apprules(mx::Mxpr{:Help})
-    print_doc(mx[1])
+    print_doc(margs(mx)...)
 end
 
 
