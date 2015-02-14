@@ -207,12 +207,9 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 
+# capturevar -> false means contradicts previous capture
 function _cmppat(mx,pat::Pvar,captures)
-    if matchpat(pat,mx)
-            return capturepvar(captures,pat,mx)  # false means contradicts previous capture
-    else
-        return false
-    end
+    return matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 end
 
 function _cmppat(mx,pat,captures)
