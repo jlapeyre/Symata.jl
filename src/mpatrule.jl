@@ -257,7 +257,7 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
 replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
 
-# We are not using replaceall ??
+# I think this is old.
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
     if is_Mxpr(ex)
@@ -270,8 +270,7 @@ function replaceall(ex,pat1::PatternT,pat2::PatternT)
     res
 end
 
-# same as above, but patterns are wrapped in a rule
-function replaceall(ex::ExSym, r::PRule)
+function replaceall(ex, r::PRule)
     replaceall(ex,r.lhs,r.rhs)
 end
 

@@ -27,4 +27,5 @@ using Base.Test
 
 @ex ClearAll(c,y)
 @testex ReplaceAll(c, c => y) == y
+@testex ReplaceAll(1, 1 => y) == y
 @ex ClearAll(c,y)
