@@ -210,9 +210,7 @@ end
 # capturevar -> false means contradicts previous capture
 _cmppat(mx,pat::Pvar,captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 _cmppat(mx::Mxpr,pat::Pvar,captures) =  matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
-
-# 'leaf' on the tree. Must match exactly.
-_cmppat(mx,pat,captures) = mx == pat 
+_cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
 function _cmppat(mx::Mxpr,pat,captures)
     if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
