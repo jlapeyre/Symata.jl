@@ -66,7 +66,7 @@ set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNu
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
           "String", "StringLength","Protected", "TimeOn", "TimeOff",
-          "LeafCount","ByteCount","Depth"
+          "LeafCount","ByteCount","Depth","Permutations","FactorInteger"
            ],
            :Protected)
 

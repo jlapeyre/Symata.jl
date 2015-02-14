@@ -321,8 +321,22 @@ end
 
 ## Permutations
 
+@sjdoc Permutations "
+Permutations(expr) give a list of all permuations of elements in expr.
+"
+
 function apprules(mx::Mxpr{:Permutations})
-    mx = mxpr(:List,collect(permutations(margs(mx[1]))))
-    setfixed(mx)
-    return mx
+    perms = collect(permutations(margs(mx[1])))
+    h = mhead(mx[1])
+    len = length(perms)
+    nargs = newargs(len)
+    for i in 1:len
+        nargs[i] = setfixed(mxpr(:List,perms[i]))
+    end
+    setfixed(mxpr(:List,nargs))
 end
+
+@sjdoc FactorInteger "
+FactorInteger(n) gives a list of prime factors of n and their multiplicities.
+"
+apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
