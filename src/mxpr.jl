@@ -386,7 +386,8 @@ function meval(mx::Mxpr)
             nargs[i] = res1
         end
     end
-    ! get_attribute(nhead, :SequenceHold) ? splice_sequences!(nargs) : nothing
+    ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
+            splice_sequences!(nargs) : nothing
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
     nmx.syms = revisesyms(mx) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
@@ -454,6 +455,7 @@ end
 
 ## Splice expressions with head Sequence into argument list
 
+# f(a,b,Sequence(c,d),e,f) -> f(a,b,c,d,e,f)
 # args are args of an Mxpr
 function splice_sequences!(args)
     length(args) == 0 && return
@@ -471,6 +473,14 @@ end
 
 ## LeafCount
 
+# View Mxpr's as trees and all other objects as nodes.
+# leafcount(x) returns the number of nodes in x:
+# that is 1 if x is a node and
+# the number of nodes in the tree if it is an Mxpr.
+# An empty Mxpr is an empty tree, i.e. a node.
+#
+# LeafCount is Mma's term. But better might be NodeCount,
+# because it counts all nodes in the tree, not only terminal nodes.
 leaf_count(x) = 1
 function leaf_count(mx::Mxpr)
     count::Int = 1 #  1 for the Head
@@ -486,7 +496,13 @@ end
 
 ## ByteCount
 
-# For BigInt, we always get 16, it is probably  8 * x.size or x.alloc
+# Try to count bytes allocated for everything in an object.
+# This relies in part on Julia's ability to do this with sizeof.
+# But the result is not quite what we want, so we define jssizeof.
+# For instance, sizeof a BigInt always returns 16. The amount of data allocated
+# is it is probably actually  8 * x.size or x.alloc.
+# We also guess what to do for symbol, and we don't yet handle BigFloat.
+
 jssizeof(x) = sizeof(x)
 # I think they are 64 bit chunks
 jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
@@ -508,6 +524,8 @@ function byte_count(mx::Mxpr)
 end
 
 ## Depth
+
+# This is the maximum depth of the tree as described above in LeafCount.
 
 depth(x) = 1
 function depth(mx::Mxpr)

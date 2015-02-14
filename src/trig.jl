@@ -126,7 +126,7 @@ unset_attribute(:Power,:Protected)
 # every instance of Power.
 @ex  Exp(Log(x_)) := x
 @ex  Power(Cos(x_),-1) := Sec(x)   # These should be upvalues of Cos
-@ex  Power(Sec(x_),-1) := Cos(x)
+@ex  Power(Sec(x_),-1) := Unfix(Cos(x)) # need to fix bug that requires Unfix!
 @ex  Power(Sin(x_),-1) := Csc(x)   
 @ex  Power(Csc(x_),-1) := Sin(x)
 @ex  Power(Tan(x_),-1) := Cot(x)   
