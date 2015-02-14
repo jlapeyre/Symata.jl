@@ -212,17 +212,16 @@ _cmppat(mx,pat::Pvar,captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx
 _cmppat(mx::Mxpr,pat::Pvar,captures) =  matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
-function _cmppat(mx::Mxpr,pat,captures)
-    if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
-        length(pat) != length(mx)
-        return false
-    end
-    # match and capture subexpressions. false propagates to the top node
-    # retracing all steps.
-    @inbounds for i in 1:length(mx)
-         _cmppat(mx[i],pat[i],captures) == false && return false
-    end
-    return true
+_cmppat(mx::Mxpr,pat,captures) = false
+    #    return false
+    # if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
+    #     length(pat) != length(mx)
+    #     return false
+    # end
+    # @inbounds for i in 1:length(mx)
+    #      _cmppat(mx[i],pat[i],captures) == false && return false
+    # end
+    # return true
 end
 
 function _cmppat(mx::Mxpr,pat::Mxpr,captures)
