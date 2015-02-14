@@ -38,8 +38,16 @@ using Base.Test
 @testex Apply(List, a__ + x) == List(x,a__)
 @testex Apply(List, a__h + x) == List(x,a__h)
 @testex Apply(List, a_ + _x) == List(_x,a_)
+@testex Apply(List, x_ + _x) == List(_x,x_)
 @testex Apply(List, _ + __) == List(_,__)
 @testex Apply(List, a + _x) == List(a,_x)
+
+@ex ClearAll(f,x)
+@testex Apply(List, x + f(x_)) == List(x,f(x_))
+@testex Apply(List, _ + f(x_)) == List(_,f(x_))
+@testex Apply(List, x_ + f(x)) == List(f(x),x_)
+@testex Apply(List, x_ + f(x) + _) == List(_,f(x),x_)
+@ex ClearAll(f,x)
 
 # FIXME: This is the correct order
 #  f[cos[x_]] + x_

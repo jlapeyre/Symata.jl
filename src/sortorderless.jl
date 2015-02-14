@@ -71,6 +71,7 @@ typealias BlankXXX Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequen
 
 # Return the name of the blank or ""
 # For sorting, no name becomes a zero-length string.
+# The "blankname" is Blank[Name], this name is the type qualifier for the match
 blankname(b) = length(b) == 0 ? "" : b[1]
 
 # Order of Blankxxx's when they have no name (i.e. do not capture a match)
@@ -98,6 +99,7 @@ for b in ("Blank","BlankSequence","BlankNullSequence")
     end
 end
 
+is_nameless_blankxxx(mx::BlankXXX) = blankname(mx) == ""
 is_blankxxx(mx::BlankXXX) = true
 is_blankxxx(x::Mxpr) = false
 # Return true if mx contains a BlankXXX at any depth
@@ -118,18 +120,41 @@ for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
         end
     end
     @eval begin
-        function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
-            # return expr_has_blank(x)
-            return false
-        end
-        function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
-            # return ! expr_has_blank(y)
-            return true
-        end
+        # function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
+        #     # return expr_has_blank(x)
+        #     # is_nameless_blankxxx(y) && return false
+        #     # return true
+        #     return false
+        # end
+        # function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
+        #     # return ! expr_has_blank(y)
+        #     # is_nameless_blankxxx(x) && return true
+        #     return true
+        # end
         jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
         jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
     end        
 end
+
+# Try using Union type BlankXXX here
+for b in ("Blank","BlankSequence","BlankNullSequence")
+    @eval begin
+        function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
+            # return expr_has_blank(x)
+            # is_nameless_blankxxx(y) && return false
+            # return true
+            return false
+        end
+        function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
+            # return ! expr_has_blank(y)
+            # is_nameless_blankxxx(x) && return true
+            return true
+        end
+    end
+end
+
+jslexless(x::Mxpr, y::Mxpr{:Pattern}) = true
+jslexless(x::Mxpr{:Pattern}, y::Mxpr) = false
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr{:Power})
     jslexless(base(x),base(y)) || (!jslexless(base(y),base(x))) &&  jslexless(expt(x),expt(y))
