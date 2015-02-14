@@ -47,6 +47,7 @@ using Base.Test
 @testex Apply(List, _ + f(x_)) == List(_,f(x_))
 @testex Apply(List, x_ + f(x)) == List(f(x),x_)
 @testex Apply(List, x_ + f(x) + _) == List(_,f(x),x_)
+@testex Apply(List, x_y + f(x) + _ + _y) == List(_,_y,f(x),x_y)
 @ex ClearAll(f,x)
 
 # FIXME: This is the correct order
