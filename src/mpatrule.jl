@@ -200,6 +200,7 @@ function matchpat(cvar,ex)
     return ptestmatch
 end
 
+# For non-orderless, non-flat matching only
 # Descend expression tree. If there is no pattern var in
 # a subexpression of pattern `pat', then the subexpressions in
 # mx and pat must match exactly.
@@ -207,7 +208,7 @@ end
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
 #    println("$mx $pat $captures")
-#    println("ispvar ", ispvar(pat))
+    #    println("ispvar ", ispvar(pat))
     if ispvar(pat) && matchpat(pat,mx)
         return capturepvar(captures,pat,mx)  # false means contradicts previous capture
     end

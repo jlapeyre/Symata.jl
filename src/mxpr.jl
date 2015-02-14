@@ -386,6 +386,7 @@ function meval(mx::Mxpr)
             nargs[i] = res1
         end
     end
+    ! get_attribute(nhead, :SequenceHold) ? splice_sequences!(nargs) : nothing
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
     nmx.syms = revisesyms(mx) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
@@ -411,7 +412,7 @@ function meval(mx::Mxpr)
     return res
 end
 
-## Listable
+## Thread Listable over Lists
 
 # If any arguments to mx are lists, thread over them. If there are more than one list,
 # they must be of the same length.
@@ -449,6 +450,23 @@ function threadlistable(mx::Mxpr)
     end
     nmx = mxpr(:List,largs)
     return nmx
+end
+
+## Splice expressions with head Sequence into argument list
+
+# args are args of an Mxpr
+function splice_sequences!(args)
+    length(args) == 0 && return
+    i::Int = 1
+    while true
+        if is_Mxpr(args[i], :Sequence)
+            sargs = margs(args[i])
+            splice!(args,i,sargs)
+            i += length(sargs) # skip over new arguments. 
+        end                      # splicing in lower levels should be done already.
+        i += 1
+        i > length(args) && break
+    end
 end
 
 ## LeafCount
@@ -506,4 +524,3 @@ function depth(mx::Mxpr)
     end
     return d + 1
 end
-

@@ -99,18 +99,19 @@ for b in ("Blank","BlankSequence","BlankNullSequence")
     end
 end
 
-is_nameless_blankxxx(mx::BlankXXX) = blankname(mx) == ""
-is_blankxxx(mx::BlankXXX) = true
-is_blankxxx(x::Mxpr) = false
-# Return true if mx contains a BlankXXX at any depth
-function expr_has_blank(mx::Mxpr)
-    is_blankxxx(mx) && return true
-    for i in 1:length(mx)
-        expr_has_blank(mx[i]) && return true
-    end
-    return false
-end
-expr_has_blank(x) = false
+# This works, but we did not need it
+# is_nameless_blankxxx(mx::BlankXXX) = blankname(mx) == ""
+# is_blankxxx(mx::BlankXXX) = true
+# is_blankxxx(x::Mxpr) = false
+# # Return true if mx contains a BlankXXX at any depth
+# function expr_has_blank(mx::Mxpr)
+#     is_blankxxx(mx) && return true
+#     for i in 1:length(mx)
+#         expr_has_blank(mx[i]) && return true
+#     end
+#     return false
+# end
+# expr_has_blank(x) = false
 
 for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
@@ -120,38 +121,24 @@ for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
         end
     end
     @eval begin
-        # function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
-        #     # return expr_has_blank(x)
-        #     # is_nameless_blankxxx(y) && return false
-        #     # return true
-        #     return false
-        # end
-        # function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
-        #     # return ! expr_has_blank(y)
-        #     # is_nameless_blankxxx(x) && return true
-        #     return true
-        # end
         jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
         jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
     end        
 end
 
-# Try using Union type BlankXXX here
+# Try using Union type BlankXXX here. No, this causes ambiguity errors.
 for b in ("Blank","BlankSequence","BlankNullSequence")
     @eval begin
         function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
-            # return expr_has_blank(x)
-            # is_nameless_blankxxx(y) && return false
-            # return true
             return false
         end
         function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
-            # return ! expr_has_blank(y)
-            # is_nameless_blankxxx(x) && return true
             return true
         end
     end
 end
+#jslexless(x::Mxpr, y::BlankXXX) = false
+#jslexless(x::BlankXXX, y::Mxpr) = true
 
 jslexless(x::Mxpr, y::Mxpr{:Pattern}) = true
 jslexless(x::Mxpr{:Pattern}, y::Mxpr) = false
