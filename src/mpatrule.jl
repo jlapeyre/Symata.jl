@@ -1,16 +1,11 @@
 ## Pattern matching and rules
-
 # This is not called from meval, rather via code in pattern.jl
 
 typealias UExpr  Mxpr  # annotation for expressions in Unions
-
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union(UExpr,Symbol,SJSym)
-# TODO: need to split this up and separate them by dispatch,
-# or just make this Any
-typealias CondT Union(UExpr,Symbol,SJSym,DataType,Function)
-
-#isexpr(x) = (typeof(x) <: AbstractMxpr)
+# TODO: need to split this up and separate them by dispatch, or just make this Any
+typealias CondT Union(ExSym,DataType,Function)
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -21,7 +16,6 @@ type Pvar
     head::Symbol  # head to match
     ptest::Symbol   # head of "function" to call (meval) for bool test
 end
-#typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
 typealias ExSymPvar Union(ExSym,Pvar)
 
 # we could allow non-underscored names
@@ -87,27 +81,6 @@ prule(x,y) = PRule(x,y)
 prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
 prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
-const ruledict = Dict{Symbol,Array{PRule,1}}()
-
-function downrule(sym::Symbol, r::PRule)
-    if !haskey(ruledict,sym)
-        ruledict[sym] = Array(PRule,0)
-    end
-    push!(ruledict[sym],r)
-    r
-end
-
-macro dr(ex::Expr)
-    ex.head != :(:=) && error("@dr expected head :=")
-    ex1 = deepcopy(ex)
-    ex1.head = :(=>)
-    r = eval(ex1)
-    downrule(r.lhs.ast.head, r)
-    r
-end
-   
-ispvar(x) = is_type(x,Pvar)
-#pvarsym(pvar::Pvar) = pvar.name
 pvarsym(pvar::Symbol) = pvar
 getpvarptest(pvar::Pvar) = pvar.ptest
 getpvarhead(pvar::Pvar) = pvar.head
