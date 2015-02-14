@@ -208,14 +208,22 @@ end
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
 #    println("mx : $mx,   pat : $pat,   capt : $captures")
-    if ispvar(pat) && matchpat(pat,mx)
-        return capturepvar(captures,pat,mx)  # false means contradicts previous capture
+
+#    if ispvar(pat) && matchpat(pat,mx)
+#        return capturepvar(captures,pat,mx)  # false means contradicts previous capture
+#    end
+
+    if ispvar(pat)
+        if matchpat(pat,mx)
+            return capturepvar(captures,pat,mx)  # false means contradicts previous capture
+        else
+            return false
+        end
     end
+    
     if !is_Mxpr(mx)
         res = mx == pat # 'leaf' on the tree. Must match exactly.
         return res
-    end
-    if is_SJSym(pat) && is_Mxpr(mx,pat)
     end
     if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
         length(pat) != length(mx)

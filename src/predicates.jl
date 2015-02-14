@@ -22,5 +22,9 @@ is_Complex(x) = false
 atomq(x::Mxpr) = false
 atomq(x) = true
 
-function is_indexable(x)
-end
+#function is_indexable(x)
+#end
+
+typealias BlankXXX Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
+is_blankxxx(mx::BlankXXX) = true
+is_blankxxx(x::Mxpr) = false

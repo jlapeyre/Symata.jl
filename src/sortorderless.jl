@@ -67,8 +67,6 @@ end
 
 ## FIXME jslexless.  simplify and economize this code.
 
-typealias BlankXXX Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
-
 # Return the name of the blank or ""
 # For sorting, no name becomes a zero-length string.
 # The "blankname" is Blank[Name], this name is the type qualifier for the match
@@ -101,8 +99,6 @@ end
 
 # This works, but we did not need it
 # is_nameless_blankxxx(mx::BlankXXX) = blankname(mx) == ""
-# is_blankxxx(mx::BlankXXX) = true
-# is_blankxxx(x::Mxpr) = false
 # # Return true if mx contains a BlankXXX at any depth
 # function expr_has_blank(mx::Mxpr)
 #     is_blankxxx(mx) && return true

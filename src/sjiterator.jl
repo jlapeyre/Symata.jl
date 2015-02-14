@@ -1,7 +1,9 @@
+## These are SJulia Mma-like iterators. They have nothing to
+# do with Julia iterators.
 # There are at least two kinds of "standard" iterators that
 # require different Julia types.
 # We have AbstractSJIter and AbstractSJIterA.
-# Do is a prototype for the former, and Range for the latter.
+# "Do" is a prototype uisng the former, and "Range using the latter.
 
 ## Standard iterator used, for instance, by Do
 
