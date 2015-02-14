@@ -81,7 +81,6 @@ prule(x,y) = PRule(x,y)
 prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
 prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
-pvarsym(pvar::Symbol) = pvar
 getpvarptest(pvar::Pvar) = pvar.ptest
 getpvarhead(pvar::Pvar) = pvar.head
 
@@ -103,7 +102,7 @@ function capturepvar(capt,pvar,ex)
 end
 
 # store captured expression in Dict. Here only the capture var name
-storecapt(pat,cap,cd) = cd[pvarsym(pat)] = cap
+storecapt(pat,cap,cd) = cd[pat] = cap
 # retrieve captured expression by caption var name
 retrievecapt(sym,cd) = cd[sym]
 retrievecapt(sym::SJSym,cd) = cd[symname(sym)]
