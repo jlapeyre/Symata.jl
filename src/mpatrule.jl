@@ -209,10 +209,6 @@ end
 
 # capturevar -> false means contradicts previous capture
 _cmppat(mx,pat::Pvar,captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
-#_cmppat(mx::Mxpr,pat::Pvar,captures) =  matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
-_cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
-#_cmppat(mx::Mxpr,pat,captures) = false
-
 function _cmppat(mx::Mxpr,pat::Mxpr,captures)
     (mhead(pat) == mhead(mx) && length(pat) == length(mx)) || return false
     @inbounds for i in 1:length(mx)      # match and capture subexpressions
@@ -220,10 +216,10 @@ function _cmppat(mx::Mxpr,pat::Mxpr,captures)
     end
     return true
 end
+_cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
 # match and capture on ex with pattern pat1.
-# Replace pattern vars in pat2 with expressions captured from
-# ex.
+# Replace pattern vars in pat2 with expressions captured from ex.
 # Copying Dict is inefficient!
 function patrule(ex,pat1::PatternT,pat2::PatternT)
     @mdebug(1, "enter patrule with ", ex)
