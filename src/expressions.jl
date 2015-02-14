@@ -318,3 +318,11 @@ do_reverse(mx::Orderless) = mx
 function do_reverse(mx::Mxpr)
     mxpr(mx.head,reverse(margs(mx)))
 end
+
+## Permutations
+
+function apprules(mx::Mxpr{:Permutations})
+    mx = mxpr(:List,collect(permutations(margs(mx[1]))))
+    setfixed(mx)
+    return mx
+end

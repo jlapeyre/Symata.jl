@@ -374,11 +374,11 @@ listsyms(x) = nothing
 @inline is_fixed(mx::Mxpr) = mx.fixed
 is_fixed(s::SJSym) = symval(s) == s
 #is_fixed{T}(s::SJSym{T}) = symval(s) == T
-@inline setcanon(mx::Mxpr) = mx.canon = true
-@inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx))
-@inline setfixed(x) = true
-@inline unsetcanon(mx::Mxpr) = mx.canon = false
-@inline unsetfixed(mx::Mxpr) = mx.fixed = false
+@inline setcanon(mx::Mxpr) = (mx.canon = true; mx)
+@inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx); mx)
+@inline setfixed(x) = x
+@inline unsetcanon(mx::Mxpr) = (mx.canon = false; mx)
+@inline unsetfixed(mx::Mxpr) = (mx.fixed = false ; mx)
 
 @inline is_canon(x) = false
 @inline setcanon(x) = false

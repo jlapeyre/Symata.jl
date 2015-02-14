@@ -287,7 +287,6 @@ apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d)))
 do_keys(mx,x) = (warn("Can't return keys of $mx"); mx)
 
-
 #### Symbol
 
 @sjdoc Symbol "
@@ -372,6 +371,12 @@ ByteCount(expr) gives number of bytes in expr. Not everything is counted
 correctly at the moment.
 "
 apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
+
+@sjdoc Depth "
+Depth(expr) gives the maximum number of indicies required to specify
+any part of expr, plus 1.
+"
+apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 
 
 @sjdoc Part "

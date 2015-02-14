@@ -488,3 +488,22 @@ function byte_count(mx::Mxpr)
     end
     return count
 end
+
+## Depth
+
+depth(x) = 1
+function depth(mx::Mxpr)
+    d::Int = 1
+    for i in 1:length(mx)
+        if is_Mxpr(mx[i])
+            nd = depth(mx[i])
+            if nd > d d
+                d = nd
+            end
+        else
+            nothing
+        end
+    end
+    return d + 1
+end
+
