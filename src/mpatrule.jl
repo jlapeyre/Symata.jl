@@ -206,21 +206,17 @@ end
 # mx and pat must match exactly.
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
+
+function _cmppat(mx,pat::Pvar,captures)
+    if matchpat(pat,mx)
+            return capturepvar(captures,pat,mx)  # false means contradicts previous capture
+    else
+        return false
+    end
+end
+
 function _cmppat(mx,pat,captures)
 #    println("mx : $mx,   pat : $pat,   capt : $captures")
-
-#    if ispvar(pat) && matchpat(pat,mx)
-#        return capturepvar(captures,pat,mx)  # false means contradicts previous capture
-#    end
-
-    if ispvar(pat)
-        if matchpat(pat,mx)
-            return capturepvar(captures,pat,mx)  # false means contradicts previous capture
-        else
-            return false
-        end
-    end
-    
     if !is_Mxpr(mx)
         res = mx == pat # 'leaf' on the tree. Must match exactly.
         return res
