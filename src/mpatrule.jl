@@ -120,9 +120,7 @@ function cmppat(ex,pat::PatternT)
 end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
-function capturealloc()
-    return Dict{Symbol,Any}()
-end
+capturealloc() = Dict{Symbol,Any}()
 
 function capturepvar(capt,pvar,ex)
     name = pvar.name
@@ -132,26 +130,12 @@ function capturepvar(capt,pvar,ex)
 end
 
 # store captured expression in Dict. Here only the capture var name
-function storecapt(pat,cap,cd)
-    cd[pvarsym(pat)] = cap
-end
-
+storecapt(pat,cap,cd) = cd[pvarsym(pat)] = cap
 # retrieve captured expression by caption var name
-function retrievecapt(sym,cd)
-    cd[sym]
-end
-
-function retrievecapt(sym::SJSym,cd)
-    cd[symname(sym)]
-end
-
-function havecapt(sym,cd)
-    haskey(cd,sym)
-end
-
-function havecapt(sym::SJSym,cd)
-    haskey(cd,symname(sym))
-end
+retrievecapt(sym,cd) = cd[sym]
+retrievecapt(sym::SJSym,cd) = cd[symname(sym)]
+havecapt(sym,cd) = haskey(cd,sym)
+havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 
 # check if restriction on Head and pattern test
 # are satisfied.
@@ -258,9 +242,7 @@ function replaceall(ex,pat1::PatternT,pat2::PatternT)
     res
 end
 
-function replaceall(ex, r::PRule)
-    replaceall(ex,r.lhs,r.rhs)
-end
+replaceall(ex, r::PRule) = replaceall(ex,r.lhs,r.rhs)
 
 # Apply an array of rules. each subexpression is tested.
 # Continue after first match for each expression.
@@ -297,20 +279,8 @@ function patsubst!(pat::Mxpr,cd)
     return pat
 end
 
-function patsubst!(pat::SJSym,cd)
-#    println(" 2 patsubst: $pat")
-    if havecapt(pat,cd)
-        pat = retrievecapt(pat,cd)
-    end
-    return pat
-end
-
-function patsubst!(pat::Pvar,cd)
-#    println(" 3 patsubst")
-    pat = retrievecapt(pat,cd)
-    return pat
-end
-
+patsubst!(pat::SJSym,cd) = return  havecapt(pat,cd) ? retrievecapt(pat,cd) : pat
+patsubst!(pat::Pvar,cd) = retrievecapt(pat,cd)
 patsubst!(pat,cd) = pat
 
 ## ReplaceRepeated
