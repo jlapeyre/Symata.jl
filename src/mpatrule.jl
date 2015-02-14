@@ -208,12 +208,10 @@ end
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
 #    println("mx : $mx,   pat : $pat,   capt : $captures")
-    #    println("ispvar ", ispvar(pat))
     if ispvar(pat) && matchpat(pat,mx)
         return capturepvar(captures,pat,mx)  # false means contradicts previous capture
     end
     if !is_Mxpr(mx)
-#        println("cmp  $mx and $pat")
         res = mx == pat # 'leaf' on the tree. Must match exactly.
         return res
     end
@@ -225,7 +223,6 @@ function _cmppat(mx,pat,captures)
     end
     # match and capture subexpressions. false propagates to the top node
     # retracing all steps.
-#    println("**** Looping throuhg args")
     @inbounds for i in 1:length(mx)
          _cmppat(mx[i],pat[i],captures) == false && return false
     end
@@ -261,11 +258,9 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
 replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
 
-# Do depth-first replacement applying the same rule to each subexpression
+# Do depth-first replacement applying the same rule to head and each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
-#    println("1 Replace!  all $ex")
     if is_Mxpr(ex)
-#        println(" Trying head, ", replaceall(mhead(ex),pat1,pat2))
         ex = mxpr(replaceall(mhead(ex),pat1,pat2),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
@@ -276,14 +271,12 @@ function replaceall(ex,pat1::PatternT,pat2::PatternT)
 end
 
 function replaceall(ex, r::PRule)
-#    println("2 Replace!  all $ex")
     replaceall(ex,r.lhs,r.rhs)
 end
 
 # Apply an array of rules. each subexpression is tested.
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
-#    println("3 Replace!  all $ex")
     if is_Mxpr(ex)
         ex = mxpr(mhead(ex),
                     map((x)->replaceall(x,rules),margs(ex))...)
