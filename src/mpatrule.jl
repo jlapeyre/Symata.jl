@@ -226,8 +226,7 @@ function _cmppat(mx::Mxpr,pat,captures)
 end
 
 function _cmppat(mx::Mxpr,pat::Mxpr,captures)
-    if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
-        length(pat) != length(mx)
+    if mhead(pat) != mhead(mx) || length(pat) != length(mx)
         return false
     end
     # match and capture subexpressions. false propagates to the top node
