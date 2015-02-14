@@ -266,6 +266,8 @@ end
     mx
 end
 
+mxpr{T}(x::T, args...) = error("Can't create an SJulia expression with head of type ", T)
+
 # set fixed point and clean bits
 # not used much
 @inline function mxprcf(s::SJSym,iargs...)
