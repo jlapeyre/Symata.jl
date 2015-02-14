@@ -49,7 +49,6 @@ function Base.show(io::IO, p::PatternT)
 end
 
 pattern(x,cond::Symbol) = PatternT(x,cond)
-
 pattern(x) = pattern(x,:All)
 
 # replacement rule
@@ -67,9 +66,7 @@ function Base.show(io::IO, p::PRule)
     show(io,p.rhs)
 end
 
-
 ## most of this stuff is old. works in Julia, not SJulia
-
 PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 ==(a::PatternT, b::PatternT) = (a.ast == b.ast)
@@ -94,6 +91,7 @@ cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 capturealloc() = Dict{Symbol,Any}()
 
+# capture expression ex in pvar, or return false if the new value conflicts with old.
 function capturepvar(capt,pvar,ex)
     name = pvar.name
     haskey(capt,name) && capt[name] != ex  && return false
@@ -216,6 +214,9 @@ end
 
 replaceall(ex, r::PRule) = replaceall(ex,r.lhs,r.rhs)
 
+# TODO, check replaceall below and replacerepeated to see that they
+# replace heads as does replaceall above.
+
 # Apply an array of rules. each subexpression is tested.
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
@@ -237,7 +238,6 @@ end
 # Version for new pattern matching format:  x_ => x^2
 
 function patsubst!(pat::Mxpr,cd)
-#    println(" 1 patsubst")    
     if ! havecapt(pat,cd)
         pa = margs(pat)
         @inbounds for i in 1:length(pa)
@@ -257,8 +257,8 @@ patsubst!(pat,cd) = pat
 
 ## ReplaceRepeated
 
-# This applies the rules to all sub-expressions, and the expression
-
+# This applies the rules to all sub-expressions, and the expression.
+# Repeat till we reach a fixed point
 replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
 replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 
@@ -277,7 +277,7 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
             break
         end
     end
-    if ( ex != ex1 )
+    if ex != ex1
         ex1 = _replacerepeated(ex1,rules,n+1)
     end
     ex1
