@@ -207,7 +207,7 @@ end
 # If pat is a capture var, then it matches the subexpression ex,
 # if the condition as checked by matchpat is satisfied.
 function _cmppat(mx,pat,captures)
-#    println("$mx $pat $captures")
+    #    println("$mx $pat $captures")
     #    println("ispvar ", ispvar(pat))
     if ispvar(pat) && matchpat(pat,mx)
         return capturepvar(captures,pat,mx)  # false means contradicts previous capture
@@ -257,6 +257,7 @@ replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
 replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
 
+# We are not using replaceall ??
 # Do depth-first replacement applying the same rule to each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
     if is_Mxpr(ex)
@@ -293,8 +294,25 @@ end
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
 # Version for new pattern matching format:  x_ => x^2
-function patsubst!(pat,cd)
-    if (is_Mxpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
+# function patsubst!(pat,cd)
+# #    println("patsubs with $pat")
+#     if (is_Mxpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
+#         pa = margs(pat)
+#         @inbounds for i in 1:length(pa)
+#             if havecapt(pa[i],cd)
+#                 pa[i] =  retrievecapt(pa[i],cd)
+#             elseif is_Mxpr(pa[i])
+#                 pa[i] = patsubst!(pa[i],cd)
+#             end
+#         end
+#     elseif ispvar(pat) || is_SJSym(pat)
+#         pat = retrievecapt(pat,cd)
+#     end
+#     return pat
+# end
+
+function patsubst!(pat::Mxpr,cd)
+    if ! havecapt(pat,cd)
         pa = margs(pat)
         @inbounds for i in 1:length(pa)
             if havecapt(pa[i],cd)
@@ -303,11 +321,21 @@ function patsubst!(pat,cd)
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
-    elseif ispvar(pat) || is_SJSym(pat)
-        pat = retrievecapt(pat,cd)
     end
     return pat
 end
+
+function patsubst!(pat::SJSym,cd)
+    pat = retrievecapt(pat,cd)
+    return pat
+end
+
+function patsubst!(pat::Pvar,cd)
+    pat = retrievecapt(pat,cd)
+    return pat
+end
+
+patsubst!(pat,cd) = pat
 
 ## ReplaceRepeated
 
