@@ -21,7 +21,8 @@ type Pvar
     head::Symbol  # head to match
     ptest::Symbol   # head of "function" to call (meval) for bool test
 end
-typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
+#typealias ExSymPvar Union(UExpr,Symbol,SJSym,Pvar)
+typealias ExSymPvar Union(ExSym,Pvar)
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
