@@ -294,24 +294,9 @@ end
 # cd is a Dict with pattern var names as keys and expressions as vals.
 # Subsitute the pattern vars in pat with the vals from cd.
 # Version for new pattern matching format:  x_ => x^2
-# function patsubst!(pat,cd)
-# #    println("patsubs with $pat")
-#     if (is_Mxpr(pat) || is_SJSym(pat)) && ! havecapt(pat,cd)
-#         pa = margs(pat)
-#         @inbounds for i in 1:length(pa)
-#             if havecapt(pa[i],cd)
-#                 pa[i] =  retrievecapt(pa[i],cd)
-#             elseif is_Mxpr(pa[i])
-#                 pa[i] = patsubst!(pa[i],cd)
-#             end
-#         end
-#     elseif ispvar(pat) || is_SJSym(pat)
-#         pat = retrievecapt(pat,cd)
-#     end
-#     return pat
-# end
 
 function patsubst!(pat::Mxpr,cd)
+#    println(" 1 patsubst")    
     if ! havecapt(pat,cd)
         pa = margs(pat)
         @inbounds for i in 1:length(pa)
@@ -326,11 +311,15 @@ function patsubst!(pat::Mxpr,cd)
 end
 
 function patsubst!(pat::SJSym,cd)
-    pat = retrievecapt(pat,cd)
+#    println(" 2 patsubst: $pat")
+    if havecapt(pat,cd)
+        pat = retrievecapt(pat,cd)
+    end
     return pat
 end
 
 function patsubst!(pat::Pvar,cd)
+#    println(" 3 patsubst")
     pat = retrievecapt(pat,cd)
     return pat
 end

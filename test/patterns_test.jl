@@ -24,3 +24,7 @@ using Base.Test
 @ex f(x_) := Module([a],(a=1,x+a))
 @testex  f(3) == 4
 @ex ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)
+
+@ex ClearAll(c,y)
+@testex ReplaceAll(c, c => y) == y
+@ex ClearAll(c,y)
