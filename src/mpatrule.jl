@@ -225,6 +225,19 @@ function _cmppat(mx::Mxpr,pat,captures)
     return true
 end
 
+function _cmppat(mx::Mxpr,pat::Mxpr,captures)
+    if !is_Mxpr(pat) || mhead(pat) != mhead(mx) ||
+        length(pat) != length(mx)
+        return false
+    end
+    # match and capture subexpressions. false propagates to the top node
+    # retracing all steps.
+    @inbounds for i in 1:length(mx)
+         _cmppat(mx[i],pat[i],captures) == false && return false
+    end
+    return true
+end
+
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from
 # ex.
