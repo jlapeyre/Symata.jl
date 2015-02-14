@@ -41,6 +41,10 @@ using Base.Test
 @testex Apply(List, _ + __) == List(_,__)
 @testex Apply(List, a + _x) == List(a,_x)
 
+# FIXME: This is the correct order
+#  f[cos[x_]] + x_
+#  _  + f[cos[x_]]
+
 ## Test do_canon_power!
 @ex Clear(a,b,m)
 @ex m = (2*a*b)^3

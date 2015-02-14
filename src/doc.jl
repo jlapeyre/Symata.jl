@@ -35,8 +35,14 @@ end
 
 # Called from the macro @ex which parses cli input to see if we have a help query
 # or an expression.
+# no io stream specified when printing here
 function check_doc_query(ex)
     if is_type(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
+        if length(ex.args) == 1
+            println("Documentation is available for these symbols.")
+            print(list_documented_symbols())
+            return true
+        end
         q = ex.args[2]
         print_doc(q)
         return true
@@ -55,19 +61,15 @@ function print_doc(q)
     end    
 end
 
-# use in source files to define examples for a symbol (representing a Head)
-# maybe this should be a function
-macro sjexamp(sym,strs...)
-    if ! haskey(SJEXAMPLES,sym)
-        SJEXAMPLES[sym] = Array(Any,0)
-    end
-    exs = SJEXAMPLES[sym]
-    ar = Array(Any,0)
-    for i in 1:length(strs)
-        push!(ar,eval(strs[i]))
-    end
-    push!(exs,ar)
+function list_documented_symbols()
+    syms = sort!(collect(keys(SJDOCS)))
+    len = length(syms)
+    args = newargs(len)
+    for i in 1:len args[i] = syms[i] end
+    mxpr(:List,args)
 end
+
+#### See Alsos
 
 # set seealsos. clobbers existing
 macro sjseealso(source_sym, targ_syms...)
@@ -112,6 +114,22 @@ function format_see_alsos(sym)
         end
         println("and ", string(sas[end]),".")
     end
+end
+
+#### Examples
+
+# use in source files to define examples for a symbol (representing a Head)
+# maybe this should be a function
+macro sjexamp(sym,strs...)
+    if ! haskey(SJEXAMPLES,sym)
+        SJEXAMPLES[sym] = Array(Any,0)
+    end
+    exs = SJEXAMPLES[sym]
+    ar = Array(Any,0)
+    for i in 1:length(strs)
+        push!(ar,eval(strs[i]))
+    end
+    push!(exs,ar)
 end
 
 #  For printing along with doc string.

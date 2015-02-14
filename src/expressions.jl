@@ -265,7 +265,8 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
 end
 
 @sjdoc Apply "
-Apply(f,expr) replaces the Head of expr with f.
+Apply(f,expr) replaces the Head of expr with f. This also works for some
+Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55.
 "
 apprules(mx::Mxpr{:Apply}) = doapply(mx,mx[1],mx[2])
 

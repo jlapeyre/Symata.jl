@@ -67,9 +67,13 @@ end
 
 ## FIXME jslexless.  simplify and economize this code.
 
+typealias BlankXXX Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
+
+# Return the name of the blank or ""
 # For sorting, no name becomes a zero-length string.
 blankname(b) = length(b) == 0 ? "" : b[1]
 
+# Order of Blankxxx's when they have no name (i.e. do not capture a match)
 lessblanknoname(x::Mxpr{:Blank},y::Mxpr{:BlankSequence}) = true
 lessblanknoname(x::Mxpr{:BlankSequence},y::Mxpr{:Blank}) = false
 lessblanknoname(x::Mxpr{:Blank},y::Mxpr{:BlankNullSequence}) = true
@@ -94,6 +98,18 @@ for b in ("Blank","BlankSequence","BlankNullSequence")
     end
 end
 
+is_blankxxx(mx::BlankXXX) = true
+is_blankxxx(x::Mxpr) = false
+# Return true if mx contains a BlankXXX at any depth
+function expr_has_blank(mx::Mxpr)
+    is_blankxxx(mx) && return true
+    for i in 1:length(mx)
+        expr_has_blank(mx[i]) && return true
+    end
+    return false
+end
+expr_has_blank(x) = false
+
 for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
         @eval begin
@@ -102,8 +118,14 @@ for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
         end
     end
     @eval begin
-        jslexless(x::Mxpr, y::Mxpr{symbol($b)}) = false        
-        jslexless(x::Mxpr{symbol($b)},y::Mxpr) = true
+        function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
+            # return expr_has_blank(x)
+            return false
+        end
+        function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
+            # return ! expr_has_blank(y)
+            return true
+        end
         jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
         jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
     end        

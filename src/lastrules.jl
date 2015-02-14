@@ -8,7 +8,7 @@ protect(:ExpToTrig)
 
 @sjdoc ExpToTrig "
 ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
-But, transformations between Cosh and Cos are not yet working.
+But, the transformation from Cosh to Cos is not implemented.
 "
 
 # No numerical yet.
