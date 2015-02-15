@@ -976,6 +976,7 @@ You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
 This uses emebedded Julia to create a typed Array and then unpacks it to a List.
 "
 
+# Need to check for uprules for free symbols
 function apprules(mx::Mxpr{:Range})
     iter = make_sjitera(margs(mx))
     args = do_range(iter)
@@ -1016,6 +1017,7 @@ function do_range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
     return args
 end
 
+# FIXME. We don't record free symbols and check for upvalues.
 # symbolic types
 # This is about as fast as Mma 3 (running on a somewhat slower cpu)
 function do_range(iter::SJIterA2)
@@ -1060,6 +1062,7 @@ function do_range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
     return args
 end
 
+# Symbolic again
 function do_range(iter::SJIterA3)
     args = newargs(iter.num_iters)
     imin = iter.imin
