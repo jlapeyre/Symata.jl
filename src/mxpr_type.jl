@@ -19,6 +19,8 @@ const evalage = Evalage(0)
 #####################################################################
 typealias SJSym Symbol 
 
+
+
 # Almost all symbols use Any for parameter T.
 # We experiented a bit with a value of Int for some symbols
 # It may be better to have no parameter, or that it means
@@ -103,13 +105,20 @@ const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
 
 import Base:  ==
 
+# This does not work. We need to compare things like
+# HoldPattern(f(1.0)) HoldPattern(f(1))
+# The best solution  is probably to make a hash key of the lhs's
+downvalue_lhs_equal(x,y) = x == y
+downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
+
 function push_downvalue(ins::SJSym,val)
     s = getssym(ins)
-    dv = s.downvalues
+    dvs = s.downvalues
     isnewrule = true
-    @inbounds for i in 1:length(dv)
-        if val[1] == dv[i][1]
-            dv[i] = val
+    @inbounds for i in 1:length(dvs)
+#        println("checking ", val[1], " ",  dvs[i][1])
+        if downvalue_lhs_equal(val[1], dvs[i][1])
+            dvs[i] = val
             isnewrule = false
             break
         end
@@ -260,8 +269,8 @@ end
 # 1. Check if mx already has a hash key, then it is good one, return
 # 2. Compute hash code of mx, look it up. Return unique copy, or make mx unique copy
 #  if none exists.
-# Slows down some code by factor of 2 to 5 or more or less
-@inline function checkhash(mx::Mxpr)
+#  Slows down some code by factor of 2 to 5 or more or less if we do it with all expressions
+function checkhash(mx::Mxpr)
     mx.key != 0 && return mx
     k = hash(mx)
     if haskey(EXPRDICT,k)
@@ -271,7 +280,22 @@ end
     EXPRDICT[k] = mx
     mx
 end
-@inline checkhash(x) = x
+checkhash(x) = x
+
+
+# function checknewhash(mx::Mxpr)
+#     mx.key != 0 && return mx
+#     k = hash(mx)
+#     if haskey(EXPRDICT,k)
+#         return EXPRDICT[k]
+#     end
+#     mx.key = k
+#     EXPRDICT[k] = mx
+#     mx
+# end
+# checknewhash(x) = (x,true)
+
+
 
 # Create a new Mxpr from list of args
 function mxpr(s::SJSym,iargs...)

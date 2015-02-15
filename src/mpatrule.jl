@@ -170,7 +170,10 @@ function _cmppat(mx::Mxpr,pat::Mxpr,captures)
     end
     return true
 end
+
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
+# Numbers should be === to match
+_cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from ex.

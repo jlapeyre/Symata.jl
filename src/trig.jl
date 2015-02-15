@@ -90,8 +90,6 @@ function sin_one_arg(mx::Mxpr{:Sin},arg::Mxpr{:Times})
 end
 sin_one_arg(mx::Mxpr{:Sin},x) = mx
 
-
-
 ####
 
 # Examples of using down values

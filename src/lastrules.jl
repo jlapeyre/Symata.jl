@@ -14,6 +14,7 @@ But, the transformation from Cosh to Cos is not implemented.
 # No numerical yet.
 unprotect(:Log)
 @ex Log(1) := 0
+@ex Log(1.0) := 0.0
 protect(:Log)
 
 @sjdoc Log "
