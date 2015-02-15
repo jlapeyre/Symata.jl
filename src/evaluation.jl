@@ -319,7 +319,7 @@ ev_downvalues(x) = x
 function ev_upvalues(res::Mxpr)
     merge_args_if_emtpy_syms(res) # do upvalues are for free symbols in res.
     for s in listsyms(res)
-        if length(upvalues(s)) != 0
+        if has_upvalues(s)
             res = applyupvalues(res,s)
             break # I think we are supposed to only apply one rule
         end
