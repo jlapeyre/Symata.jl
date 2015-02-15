@@ -54,6 +54,14 @@ elapsed time: 0.001219758 seconds (2394728 bytes allocated)
 sjulia> a[-1]
 elapsed time: 3.5242e-5 seconds (976 bytes allocated)
 100000
+
+sjulia> a[-1] = d
+elapsed time: 3.7307e-5 seconds (816 bytes allocated)
+d
+
+sjulia> Apply(Plus,a)
+elapsed time: 0.005774109 seconds
+4999950000 + d
 ```
 
 ### Installing
