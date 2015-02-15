@@ -754,7 +754,8 @@ apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
 Timing(expr) evaluates expr and returns a list of the elapsed CPU time
 and the result.
 "
-@sjseealso_group(Timing,Allocated,TimeOn,TimeOff)
+
+@sjseealso_group(Timing,Allocated,TimeOn,TimeOff,TrDownOn,TrDownOff,TrUpOn,TrUpOff)
 function apprules(mxt::Mxpr{:Timing})
     t = @elapsed begin
         reset_meval_count()
@@ -773,25 +774,31 @@ after each evaluation of command line input.
 TimeOff() disables printing CPU time consumed and memory allocated
 after each evaluation of command line input.
 "
+
 apprules(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
 apprules(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
+
+@sjdoc TrDownOn "
+TrDownOn() enables tracing attempted application of DownRule.
+"
+
+@sjdoc TrDownOff "
+TrDownOff() disables tracing attempted application of DownRule.
+"
+
+@sjdoc TrUpOn "
+TrUpOn() enables tracing attempted application of UpRule.
+"
+
+@sjdoc TrUpOff "
+TrUpOff() disables tracing attempted application of UpRule.
+"
 
 apprules(mx::Mxpr{:TrUpOn}) = (set_up_trace() ; nothing)
 apprules(mx::Mxpr{:TrUpOff}) = (unset_up_trace(); nothing)
 
 apprules(mx::Mxpr{:TrDownOn}) = (set_down_trace() ; nothing)
 apprules(mx::Mxpr{:TrDownOff}) = (unset_down_trace(); nothing)
-
-# This does not work. Does not report correct time and allocation
-# We have to do Allocted and Timing separately
-function apprules(mxt::Mxpr{:Timing2})
-    begin
-        reset_meval_count()
-        mx = @time(doeval(mxt[1]))
-        setsymval(:ans,mx)
-    end
-    mx
-end
 
 @sjdoc Allocated "
 Allocated(expr) evaluates expr and returns a list of the memory allocated
