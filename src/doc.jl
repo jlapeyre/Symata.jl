@@ -68,10 +68,26 @@ function print_all_docs()
     syms = sort!(collect(keys(SJDOCS)))
     for x in syms
         println("##### ", x)
-        print_doc(x)
+        print(SJDOCS[x])
+        println()
+        format_see_alsos(x)
+        println()
+        if haskey(SJEXAMPLES,x)
+            exs = SJEXAMPLES[x]
+            println("Examples")
+            for strs in exs
+                println()
+                println("```")
+                format_sjexample(strs)
+                println("```")
+            end
+            println()
+        end
         println()
     end
 end
+
+
 
 function list_documented_symbols()
     syms = sort!(collect(keys(SJDOCS)))
@@ -157,7 +173,7 @@ function format_sjexamples(sym)
 end
 
 # Format just one example for printing with docs. Do not evaluate.
-# Each items in example is either an explanatory string,
+# Each item in example is either an explanatory string,
 # or a 2-tuple of input and output.
 function format_sjexample(lines)
     local ins, outs, expl
