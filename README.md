@@ -47,6 +47,9 @@ Documentation for many BuiltIn symbols can be found by entering
 neccessary because limitations in the provisional parsing method.
 `Help(Symname)` prints the same documentation. This allows you
 to type `@ex Help(SymName)` from Julia.
+
+To print a list of all help topics, type `?,` or `Help()`.
+
 If examples are printed with the documentation string, they can be
 evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
 prompt. The input strings from the examples are pushed to the history
