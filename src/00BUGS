@@ -1,2 +1,36 @@
 It's not that there are no bugs. But, I list some notes
 on bugs here and erase them when they are fixed.
+
+----------------
+
+sjulia> m = a*b + c
+a*b + c
+
+sjulia> mm = m + 1
+1 + a*b + c
+
+sjulia> mm - m
+1
+
+sjulia> m
+-1*(a*b) + -1*c
+
+-------------------
+sjulia> m = Expand( (a+b)^2)
+a^2 + 2*a*b + b^2
+
+sjulia> mm = m + 1
+1 + a^2 + 2*a*b + b^2
+
+sjulia> mm - m
+1
+
+sjulia> mm - m
+1 + 2*(a^2) + 4*a*b + 2*(b^2)
+
+sjulia> mm - m
+1
+
+sjulia> mm - m
+1 + 2*(a^2) + 4*a*b + 2*(b^2)
+-------------------
