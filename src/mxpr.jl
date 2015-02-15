@@ -481,15 +481,17 @@ end
 #
 # LeafCount is Mma's term. But better might be NodeCount,
 # because it counts all nodes in the tree, not only terminal nodes.
+# This is not the same as Mma.
+# 1/2 + I  -> Complex[Rationa[1,2],1]  : LeafCount is 5
+# We have Complex{:Rational}(Rational(1,2),Rational(1,1)), LeafCount is 7
 leaf_count(x) = 1
+leaf_count(x::Complex) = 3
+leaf_count{T<:Rational}(x::Complex{T}) = 7
+leaf_count(x::Rational) = 3
 function leaf_count(mx::Mxpr)
     count::Int = 1 #  1 for the Head
     for i in 1:length(mx)
-        if is_Mxpr(mx[i])
-            count += leaf_count(mx[i])
-        else
-            count += 1
-        end
+        count += leaf_count(mx[i])
     end
     return count
 end
@@ -506,27 +508,22 @@ end
 jssizeof(x) = sizeof(x)
 # I think they are 64 bit chunks
 jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
-
 Base.sizeof(a::Symbol) = int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
-
 byte_count(x) = jssizeof(x)
-
 function byte_count(mx::Mxpr)
     count::Int = jssizeof(mx)
+    args = margs(mx)
     for i in 1:length(mx)
-        if is_Mxpr(mx[i])
-            count += byte_count(mx[i])
-        else
-            count += jssizeof(mx[i])
-        end
+        count += byte_count(args[i])
     end
     return count
 end
 
 ## Depth
 
-# This is the maximum depth of the tree as described above in LeafCount.
-
+# This is the maximum depth of the tree.
+# We do not descend into Complex and Rational.
+# Different than tree for LeafCount.
 depth(x) = 1
 function depth(mx::Mxpr)
     d::Int = 1
