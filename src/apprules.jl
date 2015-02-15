@@ -144,7 +144,7 @@ set_and_setdelayed(mx,y,z) = mx
 #### UpSet
 
 @sjdoc UpSet "
-UPSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
+UpSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
 "
 
 function apprules(mx::Mxpr{:UpSet})
