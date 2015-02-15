@@ -309,13 +309,15 @@ function mulpowers(mx::Mxpr{:Power})
 end
 mulpowers(x) = x
 
-function distribute_minus_one_a!(n,terms)
+function distribute_minus_one_a(n,terms)
+    newterms = newargs(length(terms))
     @inbounds for i in 1:length(terms)
-        terms[i] = mxpr(:Times,n,terms[i])
+        newterms[i] = mxpr(:Times,n,terms[i])
     end
-    return terms
+    return newterms
 end
 
+# 
 function distribute_minus_one!(mx::Mxpr{:Times})
     len = length(mx)
     len != 2 && return mx
@@ -324,8 +326,8 @@ function distribute_minus_one!(mx::Mxpr{:Times})
     n == -1 || return mx
     sum0 = mx[2]
     is_Mxpr(sum0,:Plus) || return mx
-    distribute_minus_one_a!(n,margs(sum0))
-    return sum0
+    sum1 = mxpr(:Plus,distribute_minus_one_a(n,margs(sum0)))
+    return sum1
 end
 
 distribute_minus_one!(x) = x
@@ -342,12 +344,16 @@ end
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function canonexpr_orderless!(mx)
+    #    println("1: $mx canonexpr")
+#    println("1 sym val m ", symval(:m))
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
-#    println("1 canonexpr")
+#    println("2 sym val m ", symval(:m))
     is_Number(mx) && return mx
     mx = distribute_minus_one!(mx)
+#    println("3 sym val m ", symval(:m))
 #    println("** 2 canonexpr, ordering $mx")
     orderexpr!(mx)  # sort terms
+#    println("4 sym val m ", symval(:m))
 #    println("  *** output $mx")
     if is_type_less(mx,Mxpr)        
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
@@ -369,7 +375,7 @@ function canonexpr_orderless!(mx)
 #    mergeargs(mx)  # We keep adding and removing this when the evaluation code changes!
 #    dump(mx.syms)
 #    println("done")
-    setcanon(mx)    
+    setcanon(mx)
 #    setfixed(mx) # need to try to enable this.
     mx
 end 

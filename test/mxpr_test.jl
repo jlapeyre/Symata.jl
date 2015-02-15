@@ -1,7 +1,5 @@
 using Base.Test
 
-## These are a few tests while we reorganize the code.
-
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
 @testex a == a

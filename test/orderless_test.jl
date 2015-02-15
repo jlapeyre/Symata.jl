@@ -50,9 +50,13 @@ using Base.Test
 @testex Apply(List, x_y + f(x) + _ + _y) == List(_,_y,f(x),x_y)
 @ex ClearAll(f,x)
 
-# FIXME: This is the correct order
-#  f[cos[x_]] + x_
-#  _  + f[cos[x_]]
+# bug present in 422b42d34e4c0c6e0f377c85d1d2e78b9c1bbb19 and earlier
+@ex ClearAll(m,a,b,c)
+@ex m = a*b + c
+@ex -m      # must not change the value of m
+@testex m == a*b + c
+@ex ClearAll(m,a,b,c)
+
 
 ## Test do_canon_power!
 @ex Clear(a,b,m)
