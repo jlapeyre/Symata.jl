@@ -9,6 +9,7 @@
 @ex m = Expand((a*c + b*d)^2)
 # Following depends on whether we allow protected symbols in free symbol list
 # @testex Syms(m) == HoldForm([a,b,c,d])
+@testex Syms(m) == HoldForm([Times,a,b,c,d])
 @testex Fixed(m)
 @ex a = 1
 @ex Length(m)
