@@ -1,4 +1,6 @@
 using Base.Test
+
+@ex TimeOff()   # don't print hundreds of diagnostic lines
 include("trig_exp_test.jl")
 include("somemath_test.jl")
 include("flowcontrol_test.jl")

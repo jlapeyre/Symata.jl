@@ -177,24 +177,29 @@ end
 
 ## Macro for translation and evaluation, at repl or from file
 
+# Data structure for monitoring evaluation
 type Meval
     entrycount::Int  # For trace
-    traceon::Bool    # TraceOn()
+    trace_ev_flag::Bool    # TraceOn()
     timingon::Bool   # TimeOn() does @time on every user input
-    replacefail_count::Int
+    try_downvalue_count::Int
+    try_upvalue_count::Int    
 end
-const MEVAL = Meval(0,false,false,0)
+const MEVAL = Meval(0,false,false,0,0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
 increment_meval_count() = MEVAL.entrycount += 1
 decrement_meval_count() = MEVAL.entrycount -= 1
-set_meval_trace() = MEVAL.traceon = true
-unset_meval_trace() = MEVAL.traceon = false
-is_meval_trace() = MEVAL.traceon
-reset_replacefail_count() = MEVAL.replacefail_count = 0
-get_replacefail_count() = MEVAL.replacefail_count
-increment_replacefail_count() = MEVAL.replacefail_count += 1
+set_meval_trace() = MEVAL.trace_ev_flag = true
+unset_meval_trace() = MEVAL.trace_ev_flag = false
+is_meval_trace() = MEVAL.trace_ev_flag
+reset_try_downvalue_count() = MEVAL.try_downvalue_count = 0
+reset_try_upvalue_count() = MEVAL.try_upvalue_count = 0
+get_try_downvalue_count() = MEVAL.try_downvalue_count
+get_try_upvalue_count() = MEVAL.try_upvalue_count
+increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
+increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
 
 # Read a line of user input, translate Expr to Mxpr, but don't evaluate result
 macro exnoeval(ex)
@@ -207,10 +212,11 @@ macro ex(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
     res = extomx(ex)  # Translate to Mxpr
     reset_meval_count()
-    reset_replacefail_count()
+    reset_try_downvalue_count()
+    reset_try_upvalue_count()    
     if MEVAL.timingon
-        mx = @time doeval(res) # doeval just calls loopeval. But we can change it to get single eval.
-        println("try downvalue count ", get_replacefail_count())
+        mx = @time doeval(res) # doeval is calls either infseval or meval
+        println("tryrule count: downvalue ", get_try_downvalue_count(),", upvalue ", get_try_upvalue_count())
     else
         mx = doeval(res)
     end
@@ -219,8 +225,12 @@ macro ex(ex)
     :(($(esc(mx))))  # Let the repl display the result
 end
 
-# Diagnostic. Count number of exits from points in loopeval
-global const exitcounts = Int[0,0,0,0]
+#################################################################################
+#                                                                               #
+#  infseval                                                                     #
+#  repeats meval till we reach a fixed point                                    #
+#                                                                               #
+#################################################################################
 
 # We use infinite or fixed point evaluation: the Mxpr is evaled repeatedly until it does
 # not change. Actually Mma, and SJulia try to detect and avoid more evaluations.
@@ -229,6 +239,10 @@ global const exitcounts = Int[0,0,0,0]
 # simplified depends on the current environment. We try to solve this with lists of 'free' symbols.
 # Note: lcheckhash is the identity (ie disabled)
 # doeval is infseval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
+
+# Diagnostic. Count number of exits from points in infseval
+global const exitcounts = Int[0,0,0,0]
+
 function infseval(mxin::Mxpr)
     @mdebug(2, "infseval ", mxin)
 #    println("infseval ", mxin)
@@ -282,74 +296,36 @@ function infseval(mxin::Mxpr)
 #    println("4 Returning ckh $mx")
     return lcheckhash(mx)  # checking hash code is disbled.
 end
-
-# This stuff is maybe a bit more efficient ? But it breaks abstraction.
-# never called
-# infseval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
-
-# function infseval(s::SJSym, ss::SSJSym)
-#     return s == symval(ss) ? s : infseval(symval(ss))
-# end
-
-# function infseval{T<:Number}(s::SJSym, ss::SSJSym{T})
-#     return symval(ss)
-# end
-
 function infseval(s::SJSym)
 #    infseval(s,getssym(s))
     mx = meval(s)
     return mx == s ? s : infseval(mx)
 end
-
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 infseval(x) = x
-
 infseval(x::Complex) = x.im == 0 ? x.re : x
 
-## Evaluation of Mxpr
+# This stuff is maybe a bit more efficient ? But it breaks abstraction.
+# never called
+# infseval{T<:Number}(s::SSJSym{T}) = (println("ssjsym") ; symval(s))
+# function infseval(s::SJSym, ss::SSJSym)
+#     return s == symval(ss) ? s : infseval(symval(ss))
+# end
+# function infseval{T<:Number}(s::SJSym, ss::SSJSym{T})
+#     return symval(ss)
+# end
 
+
+#################################################################################
+#                                                                               #
+#  meval  Evaluation of Mxpr                                                    #
+#  main evaluation routine. Call doeval on head                                 #
+#  and some of the arguments. Then apply rules and other things on the result.  #
+#                                                                               #
+#################################################################################
 meval(x::Complex) = x.im == 0 ? x.re : x
 meval(x) = x
 meval(s::SJSym) = symval(s)
-
-# Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
-# That input has been mevaled at least once and the result is mx, the argument
-# to revisesyms. Here, we make a free-symbol list for mx. We look at its current
-# free symbol list, which is inherited, and identify those that are no longer
-# free. Eg. the environment changed. E.g The user set a = 1. Or 'a' may
-# evaluate to an expression with other symbols.
-#
-# move this to mxpr_type
-function revisesyms(mx::Mxpr)
-    s = mx.syms
-#    println("revising $mx:  $s")
-    mxage = getage(mx)
-    nochange = true     # Don't create a new symbol list if nothing changed
-    for sym in keys(s)  # Check if changes. Does this save or waste time ?
-        if symage(sym) > mxage
-            nochange = false
-            break
-        end
-    end
-    nochange == true && return s
-    nsyms = newsymsdict()
-    for sym in keys(s)
- #        mergesyms(nsyms,symval(sym))
-        if symage(sym) > mxage
-#            println("Merging Changed $sym")
-            mergesyms(nsyms,symval(sym))
-        else
-#            println("Merged unchanged $sym")
-            mergesyms(nsyms,sym)  # just copying from the old symbol list
-        end
-    end
-    return nsyms
-end
-
-## meval
-
-# main evaluation routine. Call doeval (which is loopeval) on head
-# and some of the arguments. Then apply rules and other things on the result.
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
@@ -405,46 +381,89 @@ function meval(mx::Mxpr)
     res = apprules(nmx)
     if res == nothing
         is_meval_trace()  && println(ind,">> " , res)
+        decrement_meval_count()  # decrement at every exit point
         return nothing
     end
     if  ! is_canon(res)
         res = flatten!(res)
         res = canonexpr!(res)
     end
-    if is_Mxpr(res)
-        for s in listsyms(res)
-            if length(upvalues(s)) != 0
-                res = applyupvalues(res,s)
-                break # I think we are supposed to only apply one rule
-            end
-        end
-    end
-    #     for i in 1:length(res) # This slows things down considerably for large expressions
-    #         m = res[i]
-    #         if is_Mxpr(m) &&   # need to check for m::Symbol, too
-    #             length(upvalues(m)) != 0
-    #             res = applyupvalues(res,m)
-    #             break # I think we are supposed to only apply one rule
-    #         end
-    #     end
-    # end
-    #    if is_Mxpr(res) && length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
+    res = ev_upvalues(res)    
     res = ev_downvalues(res)
-    if is_Mxpr(res)  && isempty(res.syms) # get free symbol lists from arguments
-#        println("Merging in meval $res")
-        mergeargs(res) # This is costly if it is not already done.
-        add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.
-    end
+    merge_args_if_emtpy_syms(res)
     is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
     decrement_meval_count()
     return res
 end
+
+# Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
+# That input has been mevaled at least once and the result is mx, the argument
+# to revisesyms. Here, we make a free-symbol list for mx. We look at its current
+# free symbol list, which is inherited, and identify those that are no longer
+# free. Eg. the environment changed. E.g The user set a = 1. Or 'a' may
+# evaluate to an expression with other symbols.
+#
+# move this to mxpr_type
+function revisesyms(mx::Mxpr)
+    s = mx.syms
+#    println("revising $mx:  $s")
+    mxage = getage(mx)
+    nochange = true     # Don't create a new symbol list if nothing changed
+    for sym in keys(s)  # Check if changes. Does this save or waste time ?
+        if symage(sym) > mxage
+            nochange = false
+            break
+        end
+    end
+    nochange == true && return s
+    nsyms = newsymsdict()
+    for sym in keys(s)
+ #        mergesyms(nsyms,symval(sym))
+        if symage(sym) > mxage
+#            println("Merging Changed $sym")
+            mergesyms(nsyms,symval(sym))
+        else
+#            println("Merged unchanged $sym")
+            mergesyms(nsyms,sym)  # just copying from the old symbol list
+        end
+    end
+    return nsyms
+end
+
+## Try applying downvalues
 
 function ev_downvalues(res::Mxpr)
     if length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
     return res
 end
 ev_downvalues(x) = x
+
+## Applying upvalues. This has to be efficient, we must not iterate over args.
+#  Instead, we check free-symbol list.
+
+function ev_upvalues(res::Mxpr)
+    merge_args_if_emtpy_syms(res) # do upvalues are for free symbols in res.
+    for s in listsyms(res)
+        if length(upvalues(s)) != 0
+            res = applyupvalues(res,s)
+            break # I think we are supposed to only apply one rule
+        end
+    end
+    return res
+end
+ev_upvalues(x) = x
+
+
+## Build list of free syms in Mxpr if list is empty.
+function merge_args_if_emtpy_syms(res::Mxpr)
+    if isempty(res.syms) # get free symbol lists from arguments
+#        println("Merging in meval $res")
+        mergeargs(res) # This is costly if it is not already done.
+        add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.
+    end
+    
+end
+merge_args_if_emtpy_syms(res) = nothing
 
 
 ## Thread Listable over Lists

@@ -76,7 +76,6 @@ function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
 #    println("4 $rd")
 #    prule = @time(RuleDelayed_to_PRule(rd))
     prule = RuleDelayed_to_PRule(rd)
-    increment_replacefail_count()
     res = replacefail(mx,prule)
 #    println("5 res is $res")
     res
@@ -86,6 +85,7 @@ end
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mx.head)
     for r in dvs
+        increment_try_downvalue_count()
         res = trysymbolrule(mx,r)
         if res !== false  # false can be a legitimate value ?
             return res
@@ -107,7 +107,8 @@ function tryupvalues(mx::Mxpr,m::SJSym)
 #    println("3 HI")
     dvs = upvalues(m)
     for r in dvs
-#        println("Upval for $m, $r")
+        #        println("Upval for $m, $r")
+        increment_try_upvalue_count()
         res = trysymbolrule(mx,r)  # should be the same
         if res !== false  # false can be a legitimate value ?
 #            println("6 retr $res")
