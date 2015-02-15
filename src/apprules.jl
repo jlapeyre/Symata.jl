@@ -899,11 +899,16 @@ all user defined symbols.
 apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 
 @sjdoc Help "
-Help(sym) prints documentation for the symbol sym. Eg: Help(Expand)
+Help(sym) prints documentation for the symbol sym. Eg: Help(Expand).
+Help(All -> true) prints all of the documentation.
 "
 
 function apprules(mx::Mxpr{:Help})
-    print_doc(margs(mx)...)
+    if mx[1] == mxpr(:RuleDelayed, :All,true)
+        print_all_docs()
+    else
+        print_doc(margs(mx)...)
+    end
 end
 
 

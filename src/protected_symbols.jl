@@ -57,7 +57,7 @@ set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 set_pattributes(["EvenQ","OddQ","Range"],[:Listable])
 
 # Of course, these need to be organized!
-set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
+set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println","Keys",
           "Replace", "ReplaceAll", "ReplaceRepeated", "TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
@@ -71,6 +71,11 @@ set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNu
           "Reverse","Help","ans" # protect ans to keep it out of user symbols
            ],
            :Protected)
+
+
+@sjdoc All "
+All is a symbol used in options.
+"
 
 @sjdoc I "
 I is the imaginary unit

@@ -64,6 +64,15 @@ function print_doc(qs...)
     end
 end
 
+function print_all_docs()
+    syms = sort!(collect(keys(SJDOCS)))
+    for x in syms
+        println("##### ", x)
+        print_doc(x)
+        println()
+    end
+end
+
 function list_documented_symbols()
     syms = sort!(collect(keys(SJDOCS)))
     len = length(syms)
