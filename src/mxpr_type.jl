@@ -19,7 +19,12 @@ const evalage = Evalage(0)
 #####################################################################
 typealias SJSym Symbol 
 
-
+typealias SJSymAttrs Dict{Symbol,Bool}
+typealias SJSymDVs Array{Any,1}
+typealias SJSymuVs Array{Any,1}
+newattributes() = SJSymAttrs()
+newdownvalues() = Array(Any,0)
+newupvalues() = Array(Any,0)
 
 # Almost all symbols use Any for parameter T.
 # We experiented a bit with a value of Int for some symbols
@@ -33,15 +38,11 @@ abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
 #    val::Any
     val::Array{T,1}
-    attr::Dict{Symbol,Bool}  # attributes
-    downvalues::Array{Any,1}
-    upvalues::Array{Any,1}    
+    attr::SJSymAttrs
+    downvalues::SJSymDVs
+    upvalues::SJSymDVs
     age::UInt64
 end
-
-newattributes() = Dict{Symbol,Bool}()
-newdownvalues() = Array(Any,0)
-newupvalues() = Array(Any,0)
 
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
