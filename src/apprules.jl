@@ -773,8 +773,14 @@ after each evaluation of command line input.
 TimeOff() disables printing CPU time consumed and memory allocated
 after each evaluation of command line input.
 "
-apprules(mx::Mxpr{:TimeOn}) = (MEVAL.timingon = true ; nothing)
-apprules(mx::Mxpr{:TimeOff}) = (MEVAL.timingon = false; nothing)
+apprules(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
+apprules(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
+
+apprules(mx::Mxpr{:TrUpOn}) = (set_up_trace() ; nothing)
+apprules(mx::Mxpr{:TrUpOff}) = (unset_up_trace(); nothing)
+
+apprules(mx::Mxpr{:TrDownOn}) = (set_down_trace() ; nothing)
+apprules(mx::Mxpr{:TrDownOff}) = (unset_down_trace(); nothing)
 
 # This does not work. Does not report correct time and allocation
 # We have to do Allocted and Timing separately

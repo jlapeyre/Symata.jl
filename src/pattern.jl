@@ -85,6 +85,7 @@ end
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mx.head)
     for r in dvs
+        if is_down_trace() println("downvalue ",r) end
         increment_try_downvalue_count()
         res = trysymbolrule(mx,r)
         if res !== false  # false can be a legitimate value ?
@@ -107,7 +108,7 @@ function tryupvalues(mx::Mxpr,m::SJSym)
 #    println("3 HI")
     dvs = upvalues(m)
     for r in dvs
-        #        println("Upval for $m, $r")
+        if is_up_trace() println("upvalue ",r) end
         increment_try_upvalue_count()
         res = trysymbolrule(mx,r)  # should be the same
         if res !== false  # false can be a legitimate value ?

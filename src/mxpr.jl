@@ -181,19 +181,35 @@ end
 type Meval
     entrycount::Int  # For trace
     trace_ev_flag::Bool    # TraceOn()
+    trace_upvalues_flag::Bool  # TrUpOn()
+    trace_downvalues_flag::Bool  # TrDownOn()
     timingon::Bool   # TimeOn() does @time on every user input
     try_downvalue_count::Int
     try_upvalue_count::Int    
 end
-const MEVAL = Meval(0,false,false,0,0)
+const MEVAL = Meval(0,false,false,false,false,0,0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
 increment_meval_count() = MEVAL.entrycount += 1
 decrement_meval_count() = MEVAL.entrycount -= 1
+
 set_meval_trace() = MEVAL.trace_ev_flag = true
 unset_meval_trace() = MEVAL.trace_ev_flag = false
 is_meval_trace() = MEVAL.trace_ev_flag
+
+set_down_trace() = MEVAL.trace_downvalues_flag = true
+unset_down_trace() = MEVAL.trace_downvalues_flag = false
+is_down_trace() = MEVAL.trace_downvalues_flag
+
+set_up_trace() = MEVAL.trace_upvalues_flag = true
+unset_up_trace() = MEVAL.trace_upvalues_flag = false
+is_up_trace() = MEVAL.trace_upvalues_flag
+
+set_timing() = MEVAL.timingon = true
+unset_timing() = MEVAL.timingon = false
+is_timing() = MEVAL.timingon
+
 reset_try_downvalue_count() = MEVAL.try_downvalue_count = 0
 reset_try_upvalue_count() = MEVAL.try_upvalue_count = 0
 get_try_downvalue_count() = MEVAL.try_downvalue_count
@@ -214,7 +230,7 @@ macro ex(ex)
     reset_meval_count()
     reset_try_downvalue_count()
     reset_try_upvalue_count()    
-    if MEVAL.timingon
+    if is_timing()
         mx = @time doeval(res) # doeval is calls either infseval or meval
         println("tryrule count: downvalue ", get_try_downvalue_count(),", upvalue ", get_try_upvalue_count())
     else
