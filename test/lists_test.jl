@@ -1,6 +1,7 @@
 using Base.Test
 
-@ex      ClearAll(a,x)
+@ex      ClearAll(a,x,y)
+
 @testex  Table(i,[i,3]) == [1,2,3]
 @testex  Table(a(i^2),[i,3]) == [a(1),a(4),a(9)]
 @ex      a(9) := "zebra"
@@ -19,10 +20,11 @@ using Base.Test
 @testex  Range(3.0,1,-.5) == [3.0,2.5,2.0,1.5,1.0]
 @testex  Abs(Apply(Plus, Range(1,2,.2) -[1,1.2,1.4,1.6,1.8,2.0])) < 1e-15
 @testex  Range(x, x + 4,1) == [x,1 + x,2 + x,3 + x,4 + x]
-@testex  Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x]
+@testex  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x]
+# @testex  Syms(m) == [x]  FIXME
 @testex  Range(x+y, x + y  + 4) == [x + y,1 + x + y,2 + x + y,3 + x + y,4 + x + y]
-# @testex  Range(5,1)  FIX
+# @testex  Range(5,1)  FIXME, do something or graceful error
 @testex  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
 
-@ex      ClearAll(a,x)
+@ex      ClearAll(a,x,y)
