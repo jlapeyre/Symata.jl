@@ -311,6 +311,9 @@ end
 
 ######  Manage lists of free symbols
 
+# Sometimes these need to be merged, somewhere.
+is_sym_mergeable(s) = ! is_protected(s)
+
 # Copy list of free (bound to self) symbols in a to free symbols in mx.
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
@@ -318,7 +321,7 @@ end
         mxs[sym] = true
     end
     h = mhead(a)
-    if ! is_protected(h)
+    if is_sym_mergeable(h)
         mxs[h] = true
     end
 end
@@ -331,7 +334,7 @@ function mergesyms(mxs::FreeSyms, a::Mxpr)
     end
     h = mhead(a)
 #    println("Checking head $h")    
-    if ! is_protected(h)
+    if is_sym_mergeable(h)
         mxs[h] = true
     end
 end
@@ -355,7 +358,7 @@ mergesyms(x,y) = nothing
 # separate this function. Maybe not.
 function mergeargs(mx::Mxpr)
     h = mhead(mx)
-    if ! is_protected(h)
+    if is_sym_mergeable(h)
         mergesyms(mx,h)
     end    
     @inbounds for i in 1:length(mx)
