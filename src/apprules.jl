@@ -1017,15 +1017,15 @@ function do_range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
     return args
 end
 
+# Symbolic values
 # FIXME. We don't record free symbols and check for upvalues.
-# symbolic types
 # This is about as fast as Mma 3 (running on a somewhat slower cpu)
 function do_range(iter::SJIterA2)
     args = newargs(iter.num_iters)
     imin = iter.imin
     args[1] = imin
     s = imin
-    if is_Mxpr(imin,:Plus)
+    if is_Mxpr(imin,:Plus)  # imin is a sum
         if is_Number(imin[1])  # number is always first in canon order.
             b = imin[1]  # extract number
             r = imin[2:end]  # the rest of the sum
@@ -1040,9 +1040,9 @@ function do_range(iter::SJIterA2)
                 setfixed(args[i])
             end
         end
-    else
+    else  # imin is not a sum
         for i in 2:iter.num_iters
-            args[i] = mxpr(:Plus,i,s)
+            args[i] = mxpr(:Plus,i-1,s)
             setfixed(args[i])
         end
     end
@@ -1113,6 +1113,7 @@ function do_range(iter::SJIterA3)
     return args
 end    
 
+# Some is implemented here that is not in the new Range yet
 function apprules(mx::Mxpr{:OldRange})
     if length(mx) == 1
         n = mx[1]
