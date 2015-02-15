@@ -312,7 +312,8 @@ end
 ######  Manage lists of free symbols
 
 # Sometimes these need to be merged, somewhere.
-is_sym_mergeable(s) = ! is_protected(s)
+#is_sym_mergeable(s) = ! is_protected(s)
+is_sym_mergeable(s) = true
 
 # Copy list of free (bound to self) symbols in a to free symbols in mx.
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
