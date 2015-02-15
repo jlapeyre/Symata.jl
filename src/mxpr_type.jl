@@ -30,7 +30,6 @@ newupvalues() = Array(Any,0)
 #type DownValueT
 #end
 
-
 # Almost all symbols use Any for parameter T.
 # We experiented a bit with a value of Int for some symbols
 # It may be better to have no parameter, or that it means

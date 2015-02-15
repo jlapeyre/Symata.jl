@@ -153,10 +153,14 @@ end
 
 function upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+#    println("upset $mx, $lhs, $rhs")
     for i in 1:length(lhs)
         m = lhs[i]
+#        println("  upset $m")
         if is_Mxpr(m) && warncheckprotect(m)
             push_upvalue(mhead(m),rule)
+        elseif is_SJSym(m) && warncheckprotect(m)
+            push_upvalue(m,rule)
         end
     end
     return rhs

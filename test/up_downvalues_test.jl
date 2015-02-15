@@ -53,3 +53,12 @@ using Base.Test
 @testex  Head(g("cat")) == g
 @testex  g("zebra") == "Greater than 4"
 @ex      ClearAll(a,b,stringgt4,g,gt5)
+
+## UpValues
+
+@ex ClearAll(a,p)
+@ex a^3 ^= p
+@testex a^3 == p
+@testex Apply(List,a^2) == [a,2]
+@ex ClearAll(a,p)
+

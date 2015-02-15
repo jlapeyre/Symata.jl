@@ -11,7 +11,7 @@ ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
 But, the transformation from Cosh to Cos is not implemented.
 "
 
-# No numerical yet.
+# Not working yet. Second rule overwrites the first.
 unprotect(:Log)
 @ex Log(1) := 0
 @ex Log(1.0) := 0.0
