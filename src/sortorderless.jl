@@ -10,10 +10,9 @@
 #    canoning other expressions.
 # 2. Sort the terms and factors into a canonical order.
 # 3. Evaluate all + and * between singleton numbers from 1., which have been sorted to beginning.
-# 4. Combine terms with:
-#    A. same numeric coefficient
-#    B. same numeric power
-# XXX  no, this is disabled:: 4a.  Sort again.
+# 4. Combine
+#    A. terms with same numeric coefficient
+#    B. terms with same numeric power
 
 ## Comparison functions for sorting expressions to canonical order.
 
@@ -185,7 +184,7 @@ jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 
 # TODO: do we need to define casecmp differently for MSWin ?
 # cmp(a::Symbol, b::Symbol) is in base/string.jl
-# Mma does case insensitive ordering of symbols
+# Mma does case insensitive ordering of symbols, we do too
 casecmp(a::Symbol, b::Symbol) = int(sign(ccall(:strcasecmp, Int32, (Ptr{UInt8}, Ptr{UInt8}), a, b)))
 # Same as isless(a,b) for symbols, but we do case insensitive comparison first
 # *and* we invert order of upper to lower case.  we want  a < A.
@@ -241,7 +240,6 @@ function orderexpr!(mx::Mxpr)
     sort!(ar,lt=jslexless)
     mx
 end
-
 
 # Step 1. Reduce sequences of explicit numbers.
 # Sum (multiply) sequence of numbers in expression before sorting.
@@ -309,28 +307,28 @@ function mulpowers(mx::Mxpr{:Power})
 end
 mulpowers(x) = x
 
-function distribute_minus_one_a(n,terms)
+## Distribute -1 * sum
+
+function distribute_minus_one_b(n,terms)
     newterms = newargs(length(terms))
     @inbounds for i in 1:length(terms)
         newterms[i] = mxpr(:Times,n,terms[i])
     end
     return newterms
 end
-
-# 
-function distribute_minus_one!(mx::Mxpr{:Times})
-    len = length(mx)
-    len != 2 && return mx
-    n = mx[1]
-    is_type_less(n,Integer) || return mx
+function distribute_minus_one_a(mx, n::Integer, sum0::Mxpr{:Plus})
     n == -1 || return mx
-    sum0 = mx[2]
-    is_Mxpr(sum0,:Plus) || return mx
-    sum1 = mxpr(:Plus,distribute_minus_one_a(n,margs(sum0)))
-    return sum1
+    return mxpr(:Plus,distribute_minus_one_b(n,margs(sum0)))
 end
+distribute_minus_one_a(mx, n, m) = mx
 
-distribute_minus_one!(x) = x
+function distribute_minus_one(mx::Mxpr{:Times})
+    length(mx) != 2 && return mx
+    distribute_minus_one_a(mx,mx[1],mx[2])
+end
+distribute_minus_one(x) = x
+
+#### canonexpr!
 
 canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
 
@@ -344,39 +342,21 @@ end
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function canonexpr_orderless!(mx)
-    #    println("1: $mx canonexpr")
-#    println("1 sym val m ", symval(:m))
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
-#    println("2 sym val m ", symval(:m))
     is_Number(mx) && return mx
-    mx = distribute_minus_one!(mx)
-#    println("3 sym val m ", symval(:m))
-#    println("** 2 canonexpr, ordering $mx")
+    mx = distribute_minus_one(mx)
     orderexpr!(mx)  # sort terms
-#    println("4 sym val m ", symval(:m))
-#    println("  *** output $mx")
     if is_type_less(mx,Mxpr)        
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
-#        println("4 canonexpr")
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
-#            println("5 canonexpr")
             # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
                 mx = mulpowers(mx)
-#                println("6 canonexpr")
             end  # add numeric exponents when base is same
         end
     end
-#    println("7 canonexpr $mx")
-#    for i in 1:length(mx)
-#        dump(mx[i].syms)
-#    end
-#    mergeargs(mx)  # We keep adding and removing this when the evaluation code changes!
-#    dump(mx.syms)
-#    println("done")
     setcanon(mx)
-#    setfixed(mx) # need to try to enable this.
     mx
 end 
 
