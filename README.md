@@ -7,8 +7,54 @@ a fixed decision.
 
 The focus now is not on implementing specific mathematical
 computation, but rather on testing implmentations of core features and
-subsystems. Some important features are pattern matching and the
-evaluation sequence and data structures that support it.
+subsystems that are effcient or can be made efficient. Some important
+features are pattern matching and the evaluation sequence and data
+structures that support it.
+
+#### Here are some results.
+
+This quickly evaluates an expression and tracks
+whether it needs to be re-evaluated.
+
+```julia
+sjulia> m = Expand((a+b)^BI(1000));   # expand with BigInt exponent
+elapsed time: 0.008785756 seconds
+
+sjulia> m[2]             # get a single value without re-evaluating
+elapsed time: 3.7545e-5 seconds (992 bytes allocated)
+1000*(a^999)*b
+
+sjulia> a = 1;
+
+sjulia> m[2]           # slower because we re-evaluate everything
+elapsed time: 0.075710831
+1000*b
+
+sjulia> ClearAll(a)
+
+sjulia> m[2]     # re-evaluate, it is still relatively slow.
+elapsed time: 0.040376351 seconds (3723352 bytes allocated)
+1000*(a^999)*b
+
+sjulia> m[2]    # no evaluation, expression has been marked as fixed again.
+elapsed time: 3.7984e-5 seconds (992 bytes allocated)
+tryrule count: downvalue 0, upvalue 0
+1000*(a^999)*b
+
+sjulia> m[3]   # we can iterate over m without re-evaluating
+elapsed time: 8.2968e-5 seconds (1544 bytes allocated)
+499500*(a^998)*(b^2)
+```
+
+Quickly generate a large list of numbers and access a value.
+```julia
+sjulia> a = Range(10^5);
+elapsed time: 0.001219758 seconds (2394728 bytes allocated)
+
+sjulia> a[-1]
+elapsed time: 3.5242e-5 seconds (976 bytes allocated)
+100000
+```
 
 ### Installing
 
