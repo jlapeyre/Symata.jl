@@ -983,7 +983,7 @@ function apprules(mx::Mxpr{:Range})
     r = mxpr(:List,args)
     setfixed(r)
     setcanon(r)
-    mergesyms(r,:nothing)
+    mergesyms(r,:nothing)  # not correct if we have symbols.
     return r
 end
 
@@ -1247,7 +1247,7 @@ function do_table(imax::Int,isym,ex)
     sisym = getssym(isym)
     @inbounds for i in 1:imax
         setsymval(sisym,i)
-        v = meval(ex)
+        v = doeval(ex)
         args[i] = v
         setfixed(args[i])  # no difference ?
     end
