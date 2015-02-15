@@ -1,5 +1,33 @@
 ## Expand, Apply, Reverse
 
+# This is applied at toplevel after expression has been constructed.
+# It is applied now to binomial expansion. Needs to be applied more
+# generally.
+function apply_upvalues_to_args!(mx::Mxpr)
+    syms = listsyms(mx)
+    goodsyms = Array(Symbol,0)
+    for sym in syms
+        if has_upvalues(sym)
+            push!(goodsyms,sym)
+        end
+    end
+    args = margs(mx)
+    for sym in goodsyms
+        mx = deep_applyupvalues!(mx,sym)
+    end
+    return mx
+end
+
+function deep_applyupvalues!(mx::Mxpr,sym)
+    args = margs(mx)
+    for i in 1:length(mx)
+        args[i] = deep_applyupvalues!(args[i],sym)
+    end
+    return applyupvalues(mx,sym)
+end
+deep_applyupvalues!(x,sym) = x
+
+
 function _doexpand(x)
     ! is_Mxpr(x) && return x
     n = length(x)
@@ -138,20 +166,8 @@ function mulfacs(a::Mxpr{:Plus},b)
 end
 
 function mulfacs(a, b::Mxpr{:Plus})
-#   println("3:  $a,  $b")
     mulfacs(b,a)
 end
-
-# factors are not sums, but other things!
-# This should not be called!
-# function mulfacs(a::Number,b::Union(SJSym,Mxpr{:Power}))
-#     mx = mxpr(:Times,a,b)
-#     setfixed(mx)
-#     mergesyms(mx,b)
-#     mx
-# end
-
-# mulfacs(a::SJSym,b::Number)
 
 ## construct Power. Decide whether to canonicalize according to types of args
 function canonpower{T<:Real}(base,expt::T)
@@ -199,6 +215,7 @@ function expand_binomial(a,b,n::Integer)
     mx = mxprcf(:Plus,args)
     mergesyms(mx,a)
     mergesyms(mx,b)
+    apply_upvalues_to_args!(mx)
     setage(mx)
     setfixed(mx)
     mx
