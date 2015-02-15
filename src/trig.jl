@@ -126,6 +126,9 @@ set_attribute(:Tan,:Protected)
 set_attribute(:Sec,:Protected)
 set_attribute(:Csc,:Protected)
 
+# the symbol x should be local, anyway.
+@ex ClearAll(x)
+
 # Not trig. We can move this.
 #unset_attribute(:Power,:Protected)
 

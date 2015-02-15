@@ -481,9 +481,10 @@ function protectedsymbols()
     for s in keys(SYMTAB)
         if get_attribute(s,:Protected) push!(args,getsym(s)) end
     end
-    mx = mxpr(:List, sort!(args)...)
+    mx = mxpr(:List, sort!(args))
 end
 
+# Should we be constructing Mxpr's in this file ?
 function usersymbols()
     args = newargs()
     for s in keys(SYMTAB)

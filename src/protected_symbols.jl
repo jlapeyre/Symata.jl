@@ -46,7 +46,7 @@ set_pattributes(["CompoundExpression","Sum"],[:ReadProtected,:HoldAll])
 
 set_pattributes("Part",:ReadProtected)
 
-set_pattributes(["Cos", "ACos", "Sin","Tan","Cosh","Sinh","Log","Minus","Abs"],
+set_pattributes(["Cos", "ACos", "Sin", "ASin", "Tan", "Cot", "Cosh","Sinh","Log","Minus","Abs"],
                 [:Listable,:NumericFunction])
 
 set_pattributes(["Plus", "Times"],
@@ -67,7 +67,8 @@ set_pattributes(["Age","Apply","Dump", "Length","Blank","BlankSequence","BlankNu
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
           "String", "StringLength","Protected", "TimeOn", "TimeOff",
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff",
-          "LeafCount","ByteCount","Depth","Permutations","FactorInteger"
+          "LeafCount","ByteCount","Depth","Permutations","FactorInteger",
+          "Reverse","Help","ans" # protect ans to keep it out of user symbols
            ],
            :Protected)
 

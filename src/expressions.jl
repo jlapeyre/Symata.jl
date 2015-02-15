@@ -330,11 +330,17 @@ function apprules(mx::Mxpr{:Reverse})
     do_reverse(mx[1])
 end
 
+# Builtin Orderless
 # they would only be resorted
 do_reverse(mx::Orderless) = mx
 
 function do_reverse(mx::Mxpr)
-    mxpr(mx.head,reverse(margs(mx)))
+#    println("Head of mx is ", mhead(mx))
+    if get_attribute(mx,:Orderless)
+#        println("mx is Orderless")
+        return mx
+    end
+    setfixed(mxpr(mx.head,reverse(margs(mx))))
 end
 
 ## Permutations

@@ -70,6 +70,3 @@ using Base.Test
 @testex a^BF(4) == p
 @testex a^4.0 == p
 @ex ClearAll(a,p)
-
-
-

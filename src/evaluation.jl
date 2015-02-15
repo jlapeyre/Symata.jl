@@ -213,7 +213,6 @@ function meval(mx::Mxpr)
     end
     nhead = doeval(mhead(mx))
     local nargs
-#    println("1. meval $mx: ", listsyms(mx))
     mxargs = margs(mx)
     len = length(mxargs)
     if get_attribute(nhead,:HoldFirst)
@@ -228,14 +227,6 @@ function meval(mx::Mxpr)
         nargs = copy(mxargs) # need to copy these, I think!
         nargs[1] = doeval(nargs[1])
     else  # Evaluate all arguments
-#        changeflag = false  
-#         for i in 1:length(mxargs)  # need to see if this code is worth anything. It breaks somes things.
-# #            println("Checking change in ", mxargs[i], " in expr ",mx)
-#             if mxargs[i] != doeval(mxargs[i])
-#                 changeflag = true
-#                 break
-#             end
-#         end
         nargs = newargs(len)
         @inbounds for i in 1:len
             res1 = doeval(mxargs[i])
@@ -244,12 +235,7 @@ function meval(mx::Mxpr)
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
                splice_sequences!(nargs) : nothing
-#    println("mx: $mx")
-#    println("nargs: $nargs")
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
-#    println("nmx: $nmx")
-#    println("syms nmx ", listsyms(nmx))
-#    println("mx: $mx")
     nmx.syms = revisesyms(mx) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
@@ -295,10 +281,8 @@ function revisesyms(mx::Mxpr)
     for sym in keys(s)
  #        mergesyms(nsyms,symval(sym))
         if symage(sym) > mxage
-#            println("Merging Changed $sym")
             mergesyms(nsyms,symval(sym))
         else
-#            println("Merged unchanged $sym")
             mergesyms(nsyms,sym)  # just copying from the old symbol list
         end
     end
@@ -342,9 +326,16 @@ merge_args_if_emtpy_syms(res) = nothing
 
 
 ## Thread Listable over Lists
-# If any arguments to mx are lists, thread over them. If there are more than one list,
-# they must be of the same length.
-# Eg.  f([a,b,c],d) -> [f(a,d),f(b,d),f(c,d)]
+# If any arguments to mx are lists, thread over them. If there are
+# more than one list, they must be of the same length.  Eg.
+# f([a,b,c],d) -> [f(a,d),f(b,d),f(c,d)].
+#
+# This is general, but is not the most efficient way. Some Specific
+# cases, or classes should be handled separately. Eg Adding two large
+# lists of numbers, is slow this way. The problem is that
+# threadlistable is called early in the evaluation sequence, as per
+# Mma. So we can't add lists of numbers at that point.
+
 function threadlistable(mx::Mxpr)
     pos = Array(Int,0) # should avoid this
     lenmx = length(mx)
