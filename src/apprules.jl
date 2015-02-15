@@ -24,6 +24,16 @@ function checkprotect(s::SJSym)
 end
 checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
+function warncheckprotect(s::SJSym)
+    if get_attribute(symname(s),:Protected)
+        warn(string("Symbol '",symname(s), "' is protected."))
+        return false
+    else
+        return true
+    end
+end
+warncheckprotect(mx::Mxpr) = warncheckprotect(mhead(mx))
+
 @sjdoc Set "
 Set(a,b), a = b
 Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
@@ -31,7 +41,7 @@ obj[i,j,...] = val sets a part of obj to val. obj can be an SJulia expression
 or a Julia object, such as an Array or Dict.
 "
 
-@sjseealso_group( Set, SetDelayed )
+@sjseealso_group( Set, SetDelayed, UpSet, DownValues, UpValues )
 
 @sjexamp( Set,
          ("Clear(a,b,c)",""),
@@ -129,6 +139,29 @@ do_set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_set(mx,lhs,localize_module!(rhs))
 
 # We renamed stuff and the Module code above calls the old things. We need to fix this.
 set_and_setdelayed(mx,y,z) = mx
+
+
+#### UpSet
+
+@sjdoc UpSet "
+UPSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
+"
+
+function apprules(mx::Mxpr{:UpSet})
+    upset(mx,margs(mx,1),margs(mx,2))
+end
+
+function upset(mx,lhs::Mxpr, rhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    for i in 1:length(lhs)
+        m = lhs[i]
+        if is_Mxpr(m) && warncheckprotect(m)
+            push_upvalue(mhead(m),rule)
+        end
+    end
+    return rhs
+end
+
 
 #### SetAttributes
 
@@ -443,6 +476,8 @@ function get_attributes(sj::SJSym)
     mxpr(:List,ks...) # need to splat because array ks is not of type Any
 end
 
+#### DownValues
+
 @sjdoc DownValues "
 DownValues(s) returns a List of DownValues associated with symbol s. These are values
 that are typically set with the declarative \"function definition\".
@@ -453,6 +488,22 @@ that are typically set with the declarative \"function definition\".
          ("f(x_) := x^2",""),
          ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
 apprules(mx::Mxpr{:DownValues}) = listdownvalues(margs(mx,1))
+
+
+#### UpValues
+
+@sjdoc UpValues "
+UpValues(s) returns a List of UpValues associated with symbol s. These are values
+that are typically set with UpSet.
+"
+
+# @sjexamp( UpValues,
+#          ("ClearAll(f)",""),
+#          ("f(x_) := x^2",""),
+#          ("UpValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
+apprules(mx::Mxpr{:UpValues}) = listupvalues(margs(mx,1))
+
+#### Example
 
 @sjdoc Example "
 Example(s) runs (evaluates) the first example for the symbol s, which is typically

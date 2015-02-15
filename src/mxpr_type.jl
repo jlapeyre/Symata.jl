@@ -33,22 +33,24 @@ type SSJSym{T}  <: AbstractSJSym
     val::Array{T,1}
     attr::Dict{Symbol,Bool}  # attributes
     downvalues::Array{Any,1}
+    upvalues::Array{Any,1}    
     age::UInt64
 end
 
 newattributes() = Dict{Symbol,Bool}()
 newdownvalues() = Array(Any,0)
+newupvalues() = Array(Any,0)
 
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
-@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),0)
+@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0)
 #@inline symname{T}(s::SSJSym{T}) = T
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
-ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),0)
+ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),newupvalues(),0)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 sjval(s::SJSym) = getssym(s).val[1]  
 @inline symval(s::SJSym) = getssym(s).val[1]
@@ -116,11 +118,30 @@ function push_downvalue(ins::SJSym,val)
     sort!(s.downvalues,lt=isless_patterns)
     s.age = increvalage()    
 end
-    
-@inline clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
+
+clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
 downvalues(s::SJSym) = getssym(s).downvalues
 listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
+
+function push_upvalue(ins::SJSym,val)
+    s = getssym(ins)
+    uv = s.upvalues
+    isnewrule = true
+    @inbounds for i in 1:length(uv)
+        if val[1] == uv[i][1]
+            uv[i] = val
+            isnewrule = false
+            break
+        end
+    end
+    isnewrule && push!(s.upvalues,val)
+#    sort!(s.downvalues,lt=isless_patterns)  need to work on sorting these!
+    s.age = increvalage()    
+end
+
+upvalues(s::SJSym) = getssym(s).upvalues
+listupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)
@@ -202,6 +223,10 @@ global gotit = 0   # non constant global, only for testing
     args = copy(mx.args)
     mxpr(mhead(mx),args)
 end
+
+## This belongs more with SSJsym above, but Mxpr is not yet defined
+upvalues(m::Mxpr) = upvalues(mhead(m))
+downvalues(m::Mxpr) = downvalues(mhead(m))
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find

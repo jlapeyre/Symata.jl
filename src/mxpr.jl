@@ -402,7 +402,17 @@ function meval(mx::Mxpr)
         res = canonexpr!(res)
     end
     # The conditional probably saves little time
-    if is_Mxpr(res) && length(downvalues(res.head)) != 0  res = applydownvalues(res)  end
+    if is_Mxpr(res)
+        for i in 1:length(res)
+            m = res[i]
+            if is_Mxpr(m) &&   # need to check for m::Symbol, too
+                length(upvalues(m)) != 0
+                res = applyupvalues(res,m)
+                break # I think we are supposed to only apply one rule
+            end
+        end
+    end
+    if is_Mxpr(res) && length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
     if is_Mxpr(res)  && isempty(res.syms) # get free symbol lists from arguments
 #        println("Merging in meval $res")
         mergeargs(res) # This is costly if it is not already done.

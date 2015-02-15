@@ -7,6 +7,7 @@ const JTOMSYM  =
  Dict(
       :(=) => :Set,
       :(:=) => :SetDelayed,
+      :(^=) => :UpSet,
       :+ => :Plus,
       :- => :Minus,
       :* => :Times,
@@ -46,7 +47,8 @@ end
 # For printing only
 const OPTYPE  = Dict{Symbol,Symbol}()
 
-for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :Set, :SetDelayed ) # need :Set here
+for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
+           :Set, :SetDelayed, :UpSet ) # need :Set here
     OPTYPE[op] = :binary
 end
 

@@ -101,6 +101,8 @@ sin_one_arg(mx::Mxpr{:Sin},x) = mx
 unset_attribute(:Sin,:Protected)
 unset_attribute(:Tan,:Protected)
 unset_attribute(:Cos,:Protected)
+unset_attribute(:Sec,:Protected)
+unset_attribute(:Csc,:Protected)
 
 # The multiplication rules won't work generally until AC matching is implemened
 # Some are not evaled far enough.
@@ -112,25 +114,25 @@ unset_attribute(:Cos,:Protected)
 @ex  Sin(ASin(x_)) := x
 @ex  Sin(ACos(x_)) := Unfix((1-x^2)^(1/2))  
 @ex  Cos(-1*x_) := Cos(x)
-# Following works together with rules for Cos <---> Cosh, which are not yet written
 
+@ex  Power(Cos(x_),-1) ^= Sec(x)
+@ex  Power(Sec(x_),-1) ^= Unfix(Cos(x)) # need to fix bug that requires Unfix!
+@ex  Power(Sin(x_),-1) ^= Csc(x)   
+@ex  Power(Csc(x_),-1) ^= Sin(x)
+@ex  Power(Tan(x_),-1) ^= Cot(x)   
+@ex  Power(Cot(x_),-1) ^= Tan(x)
 
 set_attribute(:Sin,:Protected)
 set_attribute(:Cos,:Protected)
 set_attribute(:Tan,:Protected)
+set_attribute(:Sec,:Protected)
+set_attribute(:Csc,:Protected)
 
 # Not trig. We can move this.
-unset_attribute(:Power,:Protected)
+#unset_attribute(:Power,:Protected)
 
 # These slow everything down, because all of them are checked against
 # every instance of Power.
-@ex  Exp(Log(x_)) := x
-@ex  Power(Cos(x_),-1) := Sec(x)   # These should be upvalues of Cos
-@ex  Power(Sec(x_),-1) := Unfix(Cos(x)) # need to fix bug that requires Unfix!
-@ex  Power(Sin(x_),-1) := Csc(x)   
-@ex  Power(Csc(x_),-1) := Sin(x)
-@ex  Power(Tan(x_),-1) := Cot(x)   
-@ex  Power(Cot(x_),-1) := Tan(x)
+#@ex  Exp(Log(x_)) := x
 
-
-set_attribute(:Power,:Protected)
+#set_attribute(:Power,:Protected)

@@ -71,19 +71,22 @@ function patterntopvar(mx::Mxpr{:Blank})
     res    
 end
 
-function trydownvalue(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-#    println("$rd")
+
+function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
+#    println("4 $rd")
 #    prule = @time(RuleDelayed_to_PRule(rd))
     prule = RuleDelayed_to_PRule(rd)
     increment_replacefail_count()
-    replacefail(mx,prule)
+    res = replacefail(mx,prule)
+#    println("5 res is $res")
+    res
 end
 
 
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mx.head)
     for r in dvs
-        res = trydownvalue(mx,r)
+        res = trysymbolrule(mx,r)
         if res !== false  # false can be a legitimate value ?
             return res
         end
@@ -97,3 +100,34 @@ function applydownvalues(mx::Mxpr)
 end
 
 applydownvalues(x) = x
+
+## UpValues
+
+function tryupvalues(mx::Mxpr,m::SJSym)
+#    println("3 HI")
+    dvs = upvalues(m)
+    for r in dvs
+        res = trysymbolrule(mx,r)  # should be the same
+        if res !== false  # false can be a legitimate value ?
+#            println("6 retr $res")
+            return res
+        end
+    end
+    return false
+end
+
+function applyupvalues(mx::Mxpr,m::Mxpr)
+#    println("1 HI")
+    res = tryupvalues(mx,mhead(m))
+#    println("7 Got res $res")
+    res === false ? mx : res
+end
+
+function applyupvalues(mx::Mxpr,m::SJSym)
+#    println("2 HI")
+    res = tryupvalues(mx,m)
+    res === false ? mx : res
+end
+
+
+applyupvalues(x) = x

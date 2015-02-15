@@ -24,7 +24,7 @@ set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],
 set_pattributes(["Pattern", "SetJ", "SetAttributes"], :HoldFirst)
 
 set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold",
-                 "DumpHold", "DownValues", "HAge", "Table", "For", "If", "While", "Do",
+                 "DumpHold", "DownValues", "UpValues", "HAge", "Table", "For", "If", "While", "Do",
                  "Jxpr", "Unprotect"],
                 :HoldAll)
 
@@ -32,7 +32,7 @@ set_pattributes("Attributes",[:HoldAll,:Listable])
 
 set_pattributes("Rule",:SequenceHold)
 
-set_pattributes("Set",[:HoldFirst, :SequenceHold])
+set_pattributes(["Set","UpSet"],[:HoldFirst, :SequenceHold])
 
 set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 
