@@ -137,6 +137,7 @@ is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
+is_unary_minus(ex::Expr) = is_call(ex, :-, 2)
 # number of args != 3 will pass through. But probably can't be used
 is_division(ex::Expr) = is_call(ex, :/,3)  
 is_power(ex::Expr) = is_call(ex, :^)
@@ -146,6 +147,8 @@ is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
 # In extomx, we first rewrite some Math to canonical forms
 # a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
+#  - b  -->  -1 * b
+rewrite_unary_minus(ex::Expr) = Expr(:call, :*, -1 , ex.args[2])
 # a / b -->  a * b^(-1)
 rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
 
@@ -158,7 +161,9 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 # We definitely need to dispatch on a hash query, or types somehow
 # Other rewrites needed, but not done.
 function rewrite_expr(ex::Expr)
-    if is_binary_minus(ex)  #  a - b --> a + -b.
+    if is_unary_minus(ex)    #  - b --> -1 * b
+        ex = rewrite_unary_minus(ex)
+    elseif is_binary_minus(ex)  #  a - b --> a + -b.
         ex = rewrite_binary_minus(ex)
     elseif is_division(ex) # a / b --> a + b^(-1)
         ex = rewrite_division(ex)
@@ -401,8 +406,7 @@ function meval(mx::Mxpr)
         res = flatten!(res)
         res = canonexpr!(res)
     end
-    # The conditional probably saves little time
-    if is_Mxpr(res)
+    if is_Mxpr(res)   # This slows things down considerably for large expressions
         for i in 1:length(res)
             m = res[i]
             if is_Mxpr(m) &&   # need to check for m::Symbol, too
