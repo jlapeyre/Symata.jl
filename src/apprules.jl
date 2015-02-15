@@ -1219,6 +1219,7 @@ function apprules(mx::Mxpr{:Table})
 #    issym = createssym(isym,Int)  ## Trying out Typed variable
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
     args = do_table(imax,isym,ex) # creating a symbol is pretty slow
+    removesym(isym)
     mx1 = mxpr(:List,args) # takes no time
     mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
