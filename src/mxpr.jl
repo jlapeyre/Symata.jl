@@ -397,6 +397,7 @@ function meval(mx::Mxpr)
 #    println("nargs: $nargs")
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
 #    println("nmx: $nmx")
+#    println("syms nmx ", listsyms(nmx))
 #    println("mx: $mx")
     nmx.syms = revisesyms(mx) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
@@ -410,17 +411,25 @@ function meval(mx::Mxpr)
         res = flatten!(res)
         res = canonexpr!(res)
     end
-    if is_Mxpr(res)   # This slows things down considerably for large expressions
-        for i in 1:length(res)
-            m = res[i]
-            if is_Mxpr(m) &&   # need to check for m::Symbol, too
-                length(upvalues(m)) != 0
-                res = applyupvalues(res,m)
+    if is_Mxpr(res)
+        for s in listsyms(res)
+            if length(upvalues(s)) != 0
+                res = applyupvalues(res,s)
                 break # I think we are supposed to only apply one rule
             end
         end
     end
-    if is_Mxpr(res) && length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
+    #     for i in 1:length(res) # This slows things down considerably for large expressions
+    #         m = res[i]
+    #         if is_Mxpr(m) &&   # need to check for m::Symbol, too
+    #             length(upvalues(m)) != 0
+    #             res = applyupvalues(res,m)
+    #             break # I think we are supposed to only apply one rule
+    #         end
+    #     end
+    # end
+    #    if is_Mxpr(res) && length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
+    res = ev_downvalues(res)
     if is_Mxpr(res)  && isempty(res.syms) # get free symbol lists from arguments
 #        println("Merging in meval $res")
         mergeargs(res) # This is costly if it is not already done.
@@ -431,8 +440,14 @@ function meval(mx::Mxpr)
     return res
 end
 
-## Thread Listable over Lists
+function ev_downvalues(res::Mxpr)
+    if length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
+    return res
+end
+ev_downvalues(x) = x
 
+
+## Thread Listable over Lists
 # If any arguments to mx are lists, thread over them. If there are more than one list,
 # they must be of the same length.
 # Eg.  f([a,b,c],d) -> [f(a,d),f(b,d),f(c,d)]

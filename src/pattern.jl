@@ -107,6 +107,7 @@ function tryupvalues(mx::Mxpr,m::SJSym)
 #    println("3 HI")
     dvs = upvalues(m)
     for r in dvs
+#        println("Upval for $m, $r")
         res = trysymbolrule(mx,r)  # should be the same
         if res !== false  # false can be a legitimate value ?
 #            println("6 retr $res")
