@@ -26,6 +26,11 @@ newattributes() = SJSymAttrs()
 newdownvalues() = Array(Any,0)
 newupvalues() = Array(Any,0)
 
+# TODO
+#type DownValueT
+#end
+
+
 # Almost all symbols use Any for parameter T.
 # We experiented a bit with a value of Int for some symbols
 # It may be better to have no parameter, or that it means
@@ -109,6 +114,7 @@ import Base:  ==
 # This does not work. We need to compare things like
 # HoldPattern(f(1.0)) HoldPattern(f(1))
 # The best solution  is probably to make a hash key of the lhs's
+# We need to use a type like DownValueT above
 downvalue_lhs_equal(x,y) = x == y
 downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
 
@@ -117,7 +123,6 @@ function push_downvalue(ins::SJSym,val)
     dvs = s.downvalues
     isnewrule = true
     @inbounds for i in 1:length(dvs)
-#        println("checking ", val[1], " ",  dvs[i][1])
         if downvalue_lhs_equal(val[1], dvs[i][1])
             dvs[i] = val
             isnewrule = false
