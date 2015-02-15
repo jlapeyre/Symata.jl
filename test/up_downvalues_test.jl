@@ -56,9 +56,20 @@ using Base.Test
 
 ## UpValues
 
+# All subtypes of Integer match. All subtypes of FloatingPoint match.
 @ex ClearAll(a,p)
 @ex a^3 ^= p
 @testex a^3 == p
 @testex Apply(List,a^2) == [a,2]
+@testex a^BI(3) == p
 @ex ClearAll(a,p)
+
+@ex ClearAll(a,p)
+@ex a^4.0 ^= p
+@testex a^4 != p
+@testex a^BF(4) == p
+@testex a^4.0 == p
+@ex ClearAll(a,p)
+
+
 

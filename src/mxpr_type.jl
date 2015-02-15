@@ -156,6 +156,7 @@ end
 
 upvalues(s::SJSym) = getssym(s).upvalues
 listupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
+has_upvalues(s::SJSym) = length(upvalues(s)) > 0
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)

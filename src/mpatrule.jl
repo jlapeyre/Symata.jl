@@ -172,8 +172,12 @@ function _cmppat(mx::Mxpr,pat::Mxpr,captures)
 end
 
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
-# Numbers should be === to match
+# Allow different kinds of integers and floats to match
+_cmppat{T<:Integer,V<:Integer}(mx::T,pat::V,captures) = mx == pat
+_cmppat{T<:FloatingPoint,V<:FloatingPoint}(mx::T,pat::V,captures) = mx == pat
+# In general, Numbers should be === to match. Ie. floats and ints are not the same
 _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
+
 
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from ex.
