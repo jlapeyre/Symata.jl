@@ -1291,7 +1291,7 @@ end
 # I return to that commit. Time is closer to 0.5 than 0.35
 # setsymval still seems to be an expensive operation
 
-function do_table(imax::Int,isym,ex)
+function do_table(imax::Integer,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
     @inbounds for i in 1:imax
@@ -1308,17 +1308,29 @@ end
 # Much slower than Mma and SBCL
 # If we us val::Array{Any,1}, the speed penalty is better by a couple
 # orders of magnitude
-type NSYM
-#    val::Int
-    val::Array{Any,1}
-end
 
-function testset()
-    ss = NSYM(Any[0])
-    sum0 = 0
-    for i in 1:10^6
-        ss.val[1] = i
-        sum0 += ss.val[1]
-    end
-    sum0
-end
+# type NSYM
+# #    val::Int
+#     val::Array{Any,1}
+# end
+
+# function testset()
+#     ss = NSYM(Any[0])
+#     sum0 = 0
+#     for i in 1:10^6
+#         ss.val[1] = i
+#         sum0 += ss.val[1]
+#     end
+#     sum0
+# end
+
+
+
+
+
+
+
+
+
+
+
