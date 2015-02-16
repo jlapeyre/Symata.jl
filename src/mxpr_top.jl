@@ -12,6 +12,8 @@ const JTOMSYM  =
       :- => :Minus,
       :* => :Times,
       :^ => :Power,
+      :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
+      :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->  (hmmm)
       :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
       :vcat => :List,
