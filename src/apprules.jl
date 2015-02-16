@@ -547,7 +547,19 @@ doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
 doreplaceall(mx,a,b) = mx
 
 apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
-doreplacerepeated(mx,expr,r::Mxpr{:Rule}) = replacerepeated(expr,Rule_to_PRule(r))
+# Repeating doeval and doreplacerepeated is a workaround for
+# a bug.
+# All the integers should be gone in the following:
+# m1 = Expand((a+b)^3)  --> a^3 + 3*(a^2)*b + 3*a*(b^2) + b^3
+# m2 = ReplaceRepeated(m1, x_Integer => 1)  --> a + 2*a*b + b
+# ... hmm could be because 1 is an integer too.
+# So, we remove the work around, more reasonable rules like  x_Integer => d
+# do work correctly.
+function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
+    ex1 = replacerepeated(expr,Rule_to_PRule(r))
+#    ex1 = doeval(ex1)
+#    ex1 = replacerepeated(ex1,Rule_to_PRule(r))
+end
 doreplacerepeated(mx,a,b) = mx
 
 

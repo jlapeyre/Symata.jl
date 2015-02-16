@@ -267,13 +267,37 @@ patsubst!(pat,cd) = pat
 
 # This applies the rules to all sub-expressions, and the expression.
 # Repeat till we reach a fixed point
-replacerepeated(ex, rules::Array{PRule,1}) = _replacerepeated(ex,rules,0)
-replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
+function replacerepeated(ex, rules::Array{PRule,1})
+    _replacerepeated(ex,rules,0)
+end
+
+function replacerepeated(ex, therule::PRule)
+    _replacerepeated(ex,[therule],0)
+end
 
 function _replacerepeated(ex, rules::Array{PRule,1},n)
-    n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
+    n > 20 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
-    if is_Mxpr(ex) # Use dispatch instead here!
+    local res
+    for r in rules
+        res = patrule(ex1,r.lhs,r.rhs)
+        if (res !== false)
+            ex1 = res
+            break
+        end
+    end
+    if ex != ex1
+        ex1 = _replacerepeated(ex1,rules,n+1)
+    end
+    # This needed for eg, ExpToTrig. But, we need a more efficient way to do it
+    mergeargs(ex1)  
+    ex1
+end
+
+function _replacerepeated(ex::Mxpr, rules::Array{PRule,1},n)
+    n > 20 && error("Exceeded max iterations, $n, in replacerepeated")
+    ex1 = ex
+    if is_Mxpr(ex)
         args = margs(ex)
         nargs = newargs(length(args))
         for i in 1:length(args)
