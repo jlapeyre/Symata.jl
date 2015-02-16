@@ -11,12 +11,17 @@ ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
 But, the transformation from Cosh to Cos is not implemented.
 "
 
-# Not working yet. Second rule overwrites the first.
+# These are for testing downrules.
+# We don't really want to eat our own dogfood with Log. These
+# should be implemented more efficiently.
+const directed_infinitym1 = setfixed(mxpr(:DirectedInfinity,-1))
 unprotect(:Log)
 @ex Log(1) := 0
-@ex Log(1.0) := 0.0
+# This is slow because the julia expression is parsed every time
+@ex Log(0) := DirectedInfinity(-1)
 protect(:Log)
 
 @sjdoc Log "
-Log(x) gives the natural logarithm of x.
+Log(x) represents the natural logarithm of x.
+Log(b,x) represents the base \"b\" logarithm of x.
 "

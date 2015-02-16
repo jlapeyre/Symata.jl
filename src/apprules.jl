@@ -642,20 +642,29 @@ makecomplex(mx,n,d) = mx
 # Probably faster to handle this in
 # canonicalization code
 function apprules(mx::Mxpr{:Power})
-    dopower(mx,mx[1],mx[2])
+    do_Power(mx,mx[1],mx[2])
 end
 
 # TODO: Make sure Rationals are simplified
-dopower(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
-dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
-dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), mmul(exp,expt(b)))
-dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), mmul(exp,expt(b)))
-dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
+do_Power(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
+do_Power(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
+do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), mmul(exp,expt(b)))
+do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), mmul(exp,expt(b)))
+do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-dopower(mx::Mxpr{:Power},b::SJSym,expt::FloatingPoint) = b == :E ? exp(expt) : mx
-dopower{T<:FloatingPoint}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+do_Power(mx::Mxpr{:Power},b::SJSym,expt::FloatingPoint) = b == :E ? exp(expt) : mx
+do_Power{T<:FloatingPoint}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
-dopower(mx,b,e) = mx
+#
+# Check if the exact answer is an integer.
+function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
+    res = b^e
+    ires = round(T,res)
+    nrat = Rational(den(e),num(e))
+    return ires^nrat == b ? ires : mx
+end
+
+do_Power(mx,b,e) = mx
 
 @sjdoc Abs "
 Abs(z) represents the absolute value of z.
@@ -914,11 +923,12 @@ apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 
 @sjdoc Help "
 Help(sym) prints documentation for the symbol sym. Eg: Help(Expand).
+.Help() lists all documented symbols.
 Help(All -> true) prints all of the documentation.
 "
 
 function apprules(mx::Mxpr{:Help})
-    if mx[1] == mxpr(:RuleDelayed, :All,true)
+    if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
         print_all_docs()
     else
         print_doc(margs(mx)...)

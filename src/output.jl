@@ -50,6 +50,30 @@ function Base.show(io::IO, s::SJSym)
     end
 end
 
+# We display real part if it is 0.0
+function Base.show{T<:Real}(io::IO, z::Complex{T})
+    show(io,real(z))
+    print(io," + ")
+    show(io,imag(z))
+    print(io,"I")    
+end
+
+# Do not display real part if it is 0
+function Base.show{T<:Integer}(io::IO, z::Complex{T})
+    if real(z) != 0
+        show(io,real(z))
+        print(io," + ")
+    end
+    if imag(z) == 1
+        print(io,"I")
+    else
+        show(io,imag(z))
+        print(io,"I")
+    end
+end
+
+Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
+
 # Not sure this is a good idea, confusing symbols with boolean values
 function Base.show(io::IO, v::Bool)
     v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)

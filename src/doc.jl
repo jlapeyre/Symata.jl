@@ -87,8 +87,6 @@ function print_all_docs()
     end
 end
 
-
-
 function list_documented_symbols()
     syms = sort!(collect(keys(SJDOCS)))
     len = length(syms)

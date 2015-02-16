@@ -17,6 +17,9 @@ mdiv(x,y) = x/y
 mpow(x::Integer,y::Integer) = y >= 0 ? x^y : 1//(x^(-y))
 #mpow(x::Complex,y::Integer) = x^y handled below
 
+# FIXME: This code and
+# function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
+# in apprules are in conflict.
 # FIXME: currently (3*3)^(2/3) --> 3^(4//3). should be 3 * 3^(1//3)
 # (7*7*7)^(1//2) --> 7 * 7^(1//2)
 function mpow{T<:Integer}(x::T,y::Rational)

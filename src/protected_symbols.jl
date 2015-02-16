@@ -39,6 +39,7 @@ set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 set_pattributes(["Timing","Allocated","SetDelayed"], [:HoldAll,:SequenceHold])
 
 set_pattributes(["Pi","E"],[:ReadProtected,:Constant])
+set_pattributes(["EulerGamma"],[:Protected,:Constant])
 
 set_pattributes("I", [:ReadProtected,:Locked])
 

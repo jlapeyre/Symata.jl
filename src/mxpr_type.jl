@@ -86,7 +86,10 @@ end
 ###################################
 
 @inline symname(s::SJSym) = s
-#@inline symname(s::String) = symbol(s)
+
+# 
+#symname(s::AbstractString) = symbol(s)
+
 @inline symattr(s::SJSym) = getssym(s).attr
 @inline getsym(s) = s  # careful, this is not getssym
 
