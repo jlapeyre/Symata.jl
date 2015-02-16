@@ -54,6 +54,7 @@ function extomx(ex::Expr)
     newa = newargs()
     local head::Symbol
     ex = rewrite_expr(ex)
+    is_type(ex,Expr) || return ex  # may be a rational
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
@@ -113,6 +114,14 @@ is_power(ex::Expr) = is_call(ex, :^)
 
 is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
 
+# save time, don't make SJulia meval convert //(a,b) to rational
+# we should also detect sums/products of like numbers, etc. and
+# combine them.
+function is_rational(ex::Expr)
+    is_call(ex, :(//), 3) && is_Number(ex.args[2]) &&
+        is_Number(ex.args[3])
+end
+
 # In extomx, we first rewrite some Math to canonical forms
 # a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
@@ -140,6 +149,8 @@ function rewrite_expr(ex::Expr)
         ex = Expr(:call, :^, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
+    elseif is_rational(ex)
+        return eval(ex)
     end
     return ex
 end

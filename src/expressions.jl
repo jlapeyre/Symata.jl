@@ -364,3 +364,5 @@ end
 FactorInteger(n) gives a list of prime factors of n and their multiplicities.
 "
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
+
+
