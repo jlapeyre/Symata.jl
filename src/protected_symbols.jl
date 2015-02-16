@@ -60,7 +60,7 @@ set_pattributes(["EvenQ","OddQ","Range"],[:Listable])
 set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
           "JVar", "MatchQ", "AtomQ", "Println","Keys",
           "Replace", "ReplaceAll", "ReplaceRepeated", "TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
+          "BI", "BF", "Big", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
           "UserSyms", "List","Syms", "Sequence",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
