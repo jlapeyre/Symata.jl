@@ -273,9 +273,13 @@ replacerepeated(ex, therule::PRule) = _replacerepeated(ex,[therule],0)
 function _replacerepeated(ex, rules::Array{PRule,1},n)
     n > 10^5 && error("Exceeded max iterations, $n, in replacerepeated")
     ex1 = ex
-    if is_Mxpr(ex)
-        ex1 = mxpr(mhead(ex), #  margs(ex,1),  # careful, we changed this and it is not well tested
-              map((x)->replacerepeated(x,rules),margs(ex)[1:end])...)
+    if is_Mxpr(ex) # Use dispatch instead here!
+        args = margs(ex)
+        nargs = newargs(length(args))
+        for i in 1:length(args)
+            nargs[i] = replacerepeated(args[i],rules)
+        end
+        ex1 = mxpr(mhead(ex),nargs)
     end
     local res
     for r in rules
