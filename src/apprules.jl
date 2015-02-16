@@ -399,13 +399,13 @@ symjlength(x) = length(x)
 @sjdoc LeafCount "
 LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
 This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
+A more accurate name is NodeCount.
 "
 apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
 
 
 @sjdoc ByteCount "
-ByteCount(expr) gives number of bytes in expr. Not everything is counted
-correctly at the moment.
+ByteCount(expr) gives number of bytes in expr.
 "
 apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
 
