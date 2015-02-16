@@ -214,6 +214,12 @@ end
 # p digits long if we do set_bigfloat_precision(p).
 # Or not sometimes. Don't know what is happening.
 # propagation of precision with operations or something.
+#
+# One problem is that bigfloat arithmetic does not use the
+# precision of the input types, but rather the current working
+# precision.
+# So N(2*Pi,1000) does not do what we want.
+# It may be expensive to change it on the fly.
 function float_with_precision(x,p)
     if p > 16
         pr = get_bigfloat_precision()
@@ -270,5 +276,13 @@ function do_N(s::SJSym,pr::Integer)
     end    
     return s
 end
+
+@sjdoc Precision "
+Precsion(x) gets the precision of a floating point number x, as defined by the
+effective number of bits in the mantissa.
+"
+apprules(mx::Mxpr{:Precision}) = do_Precision(mx::Mxpr{:Precision},margs(mx)...)
+do_Precision(mx::Mxpr{:Precision},args...) = mx
+do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
 
 nothing

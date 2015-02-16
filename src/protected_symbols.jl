@@ -66,10 +66,10 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
-          "String", "StringLength","Protected", "TimeOn", "TimeOff",
+          "String", "StringLength", "ToString", "Protected", "TimeOn", "TimeOff",
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff",
           "LeafCount","ByteCount","Depth","Permutations","FactorInteger","IntegerDigits",
-          "Reverse","Help","Primes",
+          "Reverse","Help","Primes","Precision",
                  "ans" # protect ans to keep it out of user symbols
            ],
            :Protected)

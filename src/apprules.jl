@@ -952,6 +952,12 @@ StringLength(s) returns the length of the string s.
 "
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 
+@sjdoc ToString "
+ToStringLength(expr) returns the string of the printed form or expr.
+"
+apprules(mx::Mxpr{:ToString}) = string(mx[1])
+
+
 @sjdoc Module "
 Module creates a lexical scope block for variables. Warning, this is broken
 in the sense that nested calls to a Module are not supported.
