@@ -182,6 +182,21 @@ end
 
 ## 
 
+# optimize a bit for types
+function _expand_binomial_aux1(a::Symbol,b::Symbol,n)
+    mxpr(:Times,n,canonpower(a,(n-1)),b)
+end
+function _expand_binomial_aux1(a,b,n)
+    flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
+end
+function _expand_binomial_aux2(a::Symbol,b::Symbol,n)
+    mxpr(:Times,n,a,canonpower(b,(n-1)))
+end
+function _expand_binomial_aux2(a,b,n)
+    flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
+end
+
+
 # Be careful to construct expression in canonical form.
 # Lots of ways to go wrong.
 # Assume a < b in canonical order
@@ -199,8 +214,10 @@ function expand_binomial(a,b,n::Integer)
         args[2] = flatcanon!(mxpr(:Times,2,a,b))  # we have to flatcanon
     else
         # TODO optimize for symbols a,b, as in general case below. No flatcanon.
-        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b)) 
-        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
+        args[2] = _expand_binomial_aux1(a,b,n)
+        args[n] = _expand_binomial_aux2(a,b,n)
+#        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b)) 
+#        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))        
         mergesyms(args[2],a)
         mergesyms(args[2],b)
         mergesyms(args[n],a)
@@ -215,7 +232,7 @@ function expand_binomial(a,b,n::Integer)
     mx = mxprcf(:Plus,args)
     mergesyms(mx,a)
     mergesyms(mx,b)
-    apply_upvalues_to_args!(mx)
+    apply_upvalues_to_args!(mx)  # takes some time
     setage(mx)
     setfixed(mx)
     mx
@@ -266,7 +283,6 @@ function _expand_mulpowers(fac,b1,e1,b2::ExpNoCanon,e2)
     mergesyms(m2,b2)
     return flatcanon!(mxpr(:Times, fac, m1, m2))    
 end
-
 
 function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2

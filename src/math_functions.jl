@@ -285,4 +285,31 @@ apprules(mx::Mxpr{:Precision}) = do_Precision(mx::Mxpr{:Precision},margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
 do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
 
+# apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
+# do_Numerator(mx::Mxpr{:Numerator},args...) = mx
+# function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})
+#     nargsn = newargs()
+#     nargsd = newargs()
+#     args = margs(m)
+#     for i in 1:length(args)
+#         res = find_numerator(args[i])
+#         if res
+#             push!(nargsn,res)
+#         else 
+#             res = find_denominator(args[i])
+#             if res
+#                 push!(nargsd,res)
+#             else
+#                 push!(nargsn,args[i])
+#             end
+#         end
+#     end
+#     mxpr(mhead(m),nargsn)
+# end
+
+# find_numerator(x::Rational) = num(x)
+# find_numerator(x::Power) = 
+# find_numerator(x) = false
+
+
 nothing
