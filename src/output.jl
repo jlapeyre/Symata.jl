@@ -43,11 +43,16 @@ end
 function Base.show(io::IO, s::SJSym)
     if symname(s) == :Pi
         Base.show_unquoted(io,:π)
-    else    
+    else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
         Base.show_unquoted(io,symbol(ss))
     end
+end
+
+# Not sure this is a good idea, confusing symbols with boolean values
+function Base.show(io::IO, v::Bool)
+    v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)
 end
 
 # This may break. It will only work if the value of s
@@ -57,7 +62,7 @@ end
 function Base.show(io::IO, s::SSJSym)
     if symname(s) == :Pi
         Base.show_unquoted(io,:π)
-    else    
+    else
         ss = string(symname(s))
         ss = de_gensym(ss)
         Base.show_unquoted(io,symbol(ss))

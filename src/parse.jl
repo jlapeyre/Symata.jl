@@ -7,6 +7,8 @@ extomx(x) = x
 function extomx(s::Symbol)
     s == :I && return complex(0,1)
     s == :π && return :Pi
+    s == :True && return true
+    s == :False && return false
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)
