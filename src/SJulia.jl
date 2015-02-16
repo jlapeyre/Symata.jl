@@ -24,4 +24,5 @@ include("module.jl")
 include("trig.jl")
 include("protected_symbols.jl")
 include("lastrules.jl")
+include("math_functions.jl")
 nothing

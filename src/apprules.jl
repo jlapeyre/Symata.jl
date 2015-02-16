@@ -651,6 +651,10 @@ dopower(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) 
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), mmul(exp,expt(b)))
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), mmul(exp,expt(b)))
 dopower(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
+
+dopower(mx::Mxpr{:Power},b::SJSym,expt::FloatingPoint) = b == :E ? exp(expt) : mx
+dopower{T<:FloatingPoint}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+
 dopower(mx,b,e) = mx
 
 @sjdoc Abs "
@@ -783,19 +787,19 @@ apprules(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
 apprules(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
 
 @sjdoc TrDownOn "
-TrDownOn() enables tracing attempted application of DownRule.
+TrDownOn() enables tracing attempted applications of DownRules.
 "
 
 @sjdoc TrDownOff "
-TrDownOff() disables tracing attempted application of DownRule.
+TrDownOff() disables tracing attempted applications of DownRules.
 "
 
 @sjdoc TrUpOn "
-TrUpOn() enables tracing attempted application of UpRule.
+TrUpOn() enables tracing attempted applications of UpRules.
 "
 
 @sjdoc TrUpOff "
-TrUpOff() disables tracing attempted application of UpRule.
+TrUpOff() disables tracing attempted applications of UpRules.
 "
 
 apprules(mx::Mxpr{:TrUpOn}) = (set_up_trace() ; nothing)

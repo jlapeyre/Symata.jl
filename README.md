@@ -438,7 +438,6 @@ sjulia> DownValues(f)
 [HoldPattern(f(x_))->(x^2)]
 ```
 
-
 ##### Dump
 
 Dump(expr) prints an internal representation of expr. This is similar to

@@ -479,7 +479,8 @@ end
 function protectedsymbols()
     args = newargs()
     for s in keys(SYMTAB)
-        if get_attribute(s,:Protected) push!(args,getsym(s)) end
+        if get_attribute(s,:Protected) && s != :ans
+            push!(args,getsym(s)) end
     end
     mx = mxpr(:List, sort!(args))
 end
