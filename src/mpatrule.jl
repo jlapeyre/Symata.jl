@@ -250,6 +250,7 @@ function patsubst!(pat::Mxpr,cd)
         @inbounds for i in 1:length(pa)
             if havecapt(pa[i],cd)
                 pa[i] =  retrievecapt(pa[i],cd)
+#                mergeargs(pa[i])  # does this help ? probably expensive
             elseif is_Mxpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end
@@ -287,6 +288,8 @@ function _replacerepeated(ex, rules::Array{PRule,1},n)
     if ex != ex1
         ex1 = _replacerepeated(ex1,rules,n+1)
     end
+    # This needed for eg, ExpToTrig. But, we need a more efficient way to do it
+    mergeargs(ex1)  
     ex1
 end
 
