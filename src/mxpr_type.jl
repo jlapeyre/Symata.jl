@@ -198,7 +198,7 @@ typealias FreeSyms Dict{Symbol,Bool}
 
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
-    head::SJSym
+    head::Any          # making this Any instead of SJSym slows things a bit
     args::MxprArgs
     fixed::Bool
     canon::Bool
@@ -246,6 +246,10 @@ end
 ## This belongs more with SSJsym above, but Mxpr is not yet defined
 @inline upvalues(m::Mxpr) = upvalues(mhead(m))
 @inline downvalues(m::Mxpr) = downvalues(mhead(m))
+
+# Allow any Head, Integer, anything.
+downvalues(x) = newdownvalues()
+
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find
@@ -317,6 +321,10 @@ checkhash(x) = x
     mx
 end
 
+# We currently dissallow heads that are not a Symbol.
+# We need to extend this.
+#mxpr{T}(x::T, args...) = error("Can't create an SJulia expression with head of type ", T)
+
 # Create a new Mxpr from Array of args
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx =Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
@@ -325,7 +333,22 @@ end
     mx
 end
 
-mxpr{T}(x::T, args...) = error("Can't create an SJulia expression with head of type ", T)
+# Head can be anything
+function mxpr(s,args::MxprArgs)
+    mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+    setage(mx)
+    mx
+end
+
+function mxpr(s,iargs...)
+    args = newargs()
+    for x in iargs push!(args,x) end
+    mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+    setage(mx)
+#    checkhash(mx)
+    mx
+end
+
 
 # set fixed point and clean bits
 # not used much
@@ -500,6 +523,10 @@ function usersymbols()
     setfixed(mx)
     mx
 end
+
+
+# For Heads that are not symbols
+get_attribute(args...) = false
 
 # Return true if sj has attribute attr
 @inline function get_attribute(sj::SJSym, attr::Symbol)

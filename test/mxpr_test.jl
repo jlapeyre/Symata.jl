@@ -22,6 +22,14 @@ using Base.Test
 @testex a(b) == g(b)
 @ex Clear(a,g)
 
+# Test non-Symbol Head for Mxpr
+@ex ClearAll(a,c,f,b)
+@ex      a = f(c)     
+@ex      b = ReplaceAll(a, f => 4)  # Parser will not allow us to construct 4(c)
+@testex  Head(b) == 4
+@ex ClearAll(a,c,f,b)
+
+
 # Test replacement
 @ex ClearAll(a,b,c,g)
 

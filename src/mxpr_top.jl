@@ -41,6 +41,9 @@ function mtojsym(x::Symbol)
     return x
 end
 
+# Non-Symbol Heads translate to themselves
+mtojsym(x) = x
+
 # These will not be translated back to Julia expression symbol on printing
 for (k,v) = ( (:tuple,:CompoundExpression),)
     JTOMSYM[k] = v
@@ -59,6 +62,9 @@ for op in (:Plus, :Times)
 end
 
 getoptype(s::SJSym) = getoptype(symname(s))
+
+# Nonsymbolic Heads, Integer, etc. assume they are prefix ops
+getoptype(x) = :prefix
 
 function getoptype(x::Symbol)
     if haskey(OPTYPE,x)

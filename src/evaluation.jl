@@ -156,7 +156,7 @@ function infseval(mxin::Mxpr)
             break
         end
         neval += 1
-        if neval > 100
+        if neval > 2
             println(mx)
             println(meval(mx))
             error("infseval: Too many, $neval, evaluations. Expression still changing")
@@ -239,7 +239,7 @@ function meval(mx::Mxpr)
         end
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
-               splice_sequences!(nargs) : nothing
+           splice_sequences!(nargs) : nothing
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
