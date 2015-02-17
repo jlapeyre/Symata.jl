@@ -36,15 +36,22 @@ function set_part_spec(expr,spec,val)
     p[spec[end]] = val
 end
 
-function do_table_new{T<:Integer}(imax::T,isym,ex::Mxpr,exprpos)
+function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)
-    clearsyms(ex) # Clear the iterator variable
+    clearsyms(exin) # Clear the iterator variable
+    ex = exin
     @inbounds for i in 1:imax
+        # Don't know why we need this, but we do.
+        # The expression ex should not be changed by doeval,
+        # but it apparently is.
+        # doeval is changing ex. meval1 does not.
+        ex = deepcopy(exin)  
         for j in 1:length(exprpos)  # exprpos is a list of positions at which the itvar occurs in ex
             set_part_spec(ex,exprpos[j],i)
         end
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
+        unsetfixed(ex)
 #        args[i] = meval1(ex)
         setfixed(args[i])
         setcanon(args[i])
