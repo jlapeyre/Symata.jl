@@ -1,5 +1,9 @@
 Watch Table get slower with more recent commits.
-Table(a(i),[i,10^5])  
+Our command is always: Table(a(i),[i,10^5])
+
+free symbol list is present the whole time, so thats
+not the culprit. Maybe how its used.
+
 commit                                     Time
 486a76c0ca0f6b04f5cc05589eff0587ee5a2f6a   1.81 s
 64e597c5eeac53264110dd72a217d5edf4e685f7   1.43 s
@@ -17,7 +21,12 @@ commit                                     Time
 
 
 # Table present in this commit, but not TimeOne or Timing
-# It runs pretty slowly
+# It runs pretty slowly, more than a second
 commit 7fd3ea5da62a7b32f6013e9cb8bc2dd9573bcc0e
 Date:   Tue Feb 3 21:17:36 2015 +0100
 
+commit f3b5cacdb3bee7d865ff7b90c1b87e1f1c7e613f
+Date:   Sun Feb 8 12:07:08 2015 +0100
+sjulia> Table(a(i),[i,100000]);
+elapsed time: 0.631463795 seconds (115963592 bytes allocated, 13.01% gc time)
+But, we are cheating here and using meval, not doeval.
