@@ -316,6 +316,11 @@ function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
 end
 
 
+function doapply(mx::Mxpr,h,mxa::Mxpr)
+    mx = mxpr(h,margs(mxa))
+end
+
+
 # Apply operation to a typed numeric array.
 # We can build these functions with a macro and
 # mapping from  :Times -> mmul
