@@ -52,7 +52,7 @@ end
 # sometimes a little, sometimes a lot.
 function extomx(ex::Expr)
     newa = newargs()
-    local head::Symbol
+    local head::Any
     ex = rewrite_expr(ex)
     is_type(ex,Expr) || return ex  # may be a rational
     a = ex.args

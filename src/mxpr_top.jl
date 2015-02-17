@@ -32,6 +32,8 @@ function jtomsym(x::Symbol)
     return x
 end
 
+jtomsym(x) = extomx(x)
+
 # Inverse of translations already present in MTOJSYM will be recorded
 mtojsym(s::SJSym) = mtojsym(symname(s))
 function mtojsym(x::Symbol)

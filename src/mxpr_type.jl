@@ -196,6 +196,10 @@ end
 typealias MxprArgs Array{Any,1}
 typealias FreeSyms Dict{Symbol,Bool}
 
+type GenHead
+end
+    
+
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::Any          # making this Any instead of SJSym slows things a bit
@@ -333,17 +337,18 @@ end
     mx
 end
 
-# Head can be anything
+# Non-symbolic Heads have type GenHead, for now
 function mxpr(s,args::MxprArgs)
-    mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+    mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
     mx
 end
 
+# Non-symbolic Heads have type GenHead, for now
 function mxpr(s,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+    mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
 #    checkhash(mx)
     mx
