@@ -29,13 +29,13 @@ end
 # Making this a kernel is not only useful, but faster.
 function set_part_spec(expr,spec,val)
     p = expr
-    if length(spec) == 2
+    len = length(spec)
+    if len == 2
         p[spec[end]] = val
     else
-        for k in 2:length(spec)
+        for k in 2:len
             p = expr[spec[k]]
         end
-        #    println("Setting $val"
         p[spec[end]] = val
     end
 end
@@ -43,7 +43,6 @@ end
 function do_table_new{T<:Integer}(imax::T,isym,ex::Mxpr,exprpos)
     args = newargs(imax)
     clearsyms(ex) # Clear the iterator variable
-#    println(exprpos)
     @inbounds for i in 1:imax
         for j in 1:length(exprpos)  # exprpos is a list of positions at which the itvar occurs in ex
             set_part_spec(ex,exprpos[j],i)
