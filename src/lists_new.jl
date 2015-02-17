@@ -49,6 +49,7 @@ function do_table_new{T<:Integer}(imax::T,isym,ex::Mxpr,exprpos)
         end
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
+#        args[i] = meval1(ex)
         setfixed(args[i])
         setcanon(args[i])
     end
