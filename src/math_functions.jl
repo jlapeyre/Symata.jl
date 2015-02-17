@@ -13,6 +13,18 @@
 # end
 # bind_types()
 
+# Workaround till we solve the Int64 Symbol vs DataType problem is to make
+# new symbols bound to the data types. So to test that 1//1 does not evaluate to
+# Rational, we can do Head(1//1) == Int64T
+function bind_types()
+    for x in ("Int","Float64","Int64")  # etc.
+        t = Main.eval(parse(x))
+        s = symbol(x * "T")  # ie Int64T , etc
+        setsymval(s,t)  #  SJulia symbol  Int64T is bound to Julia data type Int64
+    end
+end
+bind_types()
+
 # We want to put things into modules eventually
 function evalmath(x)
     Main.eval(x)

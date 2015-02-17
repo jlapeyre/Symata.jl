@@ -196,7 +196,6 @@ end
 typealias MxprArgs Array{Any,1}
 typealias FreeSyms Dict{Symbol,Bool}
 
-
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
     head::SJSym

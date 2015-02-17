@@ -179,6 +179,7 @@ end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 @inline infseval(x) = x
 @inline infseval(x::Complex) = x.im == 0 ? x.re : x
+infseval(x::Rational) = x.den == 1 ? x.num : x
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
@@ -198,9 +199,13 @@ end
 #  and some of the arguments. Then apply rules and other things on the result.  #
 #                                                                               #
 #################################################################################
-@inline meval(x::Complex) = x.im == 0 ? x.re : x
+
+# These are normally not called, but rather are caught by infseval.
+@inline meval(x::Complex) = x.im == 0 ? x.re : x  # probably never called because
+meval(x::Rational) = x.den == 1 ? x.num : x
 @inline meval(x) = x
-@inline meval(s::SJSym) = symval(s)
+
+@inline meval(s::SJSym) = symval(s) # this is where var subst happens
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
