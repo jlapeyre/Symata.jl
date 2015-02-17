@@ -342,6 +342,7 @@ end
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function canonexpr_orderless!(mx)
+#    println("canon $mx")
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
     is_Number(mx) && return mx
     mx = distribute_minus_one(mx)

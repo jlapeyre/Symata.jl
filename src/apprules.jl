@@ -1252,12 +1252,10 @@ i set successively to 1 through imax. Other Table features are not implemented.
 # and setfixed() then the speed is the same.
 # But, the 3rd party 'table' for Maxima is 4 times faster than makelist
 # in this example.
-# Hmmm, well Mma 3.0 is pretty slow, too.
-
+# Mma 3.0  Timing[mm = Table[a[i],{i,10^5}];]  {0.05 Second, Null}
+# 3rd pary maxima: table(a(i),[i,10^5]);  0.14 s
 # At commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
 # Table(a(i),[i,10000]) takes bout 0.45--0.49 s, makelist reports 0.503.
-# 3rd party Maxima table( z(i), [i, 1, 100000]) takes 0.1
-# Mma 3, 0.05 s 
 
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
@@ -1269,6 +1267,8 @@ function apprules(mx::Mxpr{:Table})
     args = do_table(imax,isym,ex) # creating a symbol is pretty slow
     removesym(isym)
     mx1 = mxpr(:List,args) # takes no time
+    # This mergesyms no longer makes this much faster, because overall Table has slowed by more than 5x
+    # syms are being merged alot somewhere else
     mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
@@ -1290,16 +1290,23 @@ end
 # *sigh* Cannot reproduce the performance in the previous line. Even if
 # I return to that commit. Time is closer to 0.5 than 0.35
 # setsymval still seems to be an expensive operation
-# This commit,   Time is  1.83 s. For same code as above.
-# 4f7d9f6dff207ae2c95736ab058627f503fbad26
 #
+# 4f7d9f6dff207ae2c95736ab058627f503fbad26
+# This commit,   Time is  1.83 s. For same code as above.
+# Table is becoming slower
+# Using stripped-down meval1 from alteval.jl, time is .43 with no gc
+
 
 function do_table{T<:Integer}(imax::T,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
+    setsymval(sisym,1)    
     @inbounds for i in 1:imax
         setsymval(sisym,i)
-        args[i] = doeval(ex)
+#        args[i] = meval(ex)
+#        args[i] = doeval(ex)
+#        args[i] = 1
+        args[i] = meval1(ex)
         setfixed(args[i])  # no difference ?
     end
     return args

@@ -22,9 +22,9 @@ typealias SJSym Symbol
 typealias SJSymAttrs Dict{Symbol,Bool}
 typealias SJSymDVs Array{Any,1}
 typealias SJSymuVs Array{Any,1}
-newattributes() = SJSymAttrs()
-newdownvalues() = Array(Any,0)
-newupvalues() = Array(Any,0)
+@inline newattributes() = SJSymAttrs()
+@inline newdownvalues() = Array(Any,0)
+@inline newupvalues() = Array(Any,0)
 
 # TODO
 #type DownValueT
@@ -57,9 +57,9 @@ end
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
-ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),newupvalues(),0)
+@inline ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),newupvalues(),0)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
-sjval(s::SJSym) = getssym(s).val[1]  
+@inline sjval(s::SJSym) = getssym(s).val[1]  
 @inline symval(s::SJSym) = getssym(s).val[1]
 @inline symval(s::SSJSym) = s.val[1]
 
@@ -138,8 +138,8 @@ end
 
 clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
 
-downvalues(s::SJSym) = getssym(s).downvalues
-listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
+@inline downvalues(s::SJSym) = getssym(s).downvalues
+@inline listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 
 function push_upvalue(ins::SJSym,val)
     s = getssym(ins)
@@ -157,9 +157,9 @@ function push_upvalue(ins::SJSym,val)
     s.age = increvalage()    
 end
 
-upvalues(s::SJSym) = getssym(s).upvalues
-listupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
-has_upvalues(s::SJSym) = length(upvalues(s)) > 0
+@inline upvalues(s::SJSym) = getssym(s).upvalues
+@inline listupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
+@inline has_upvalues(s::SJSym) = length(upvalues(s)) > 0
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)
@@ -178,13 +178,13 @@ has_upvalues(s::SJSym) = length(upvalues(s)) > 0
 end
 @inline getssym(ss::String) = getssym(symbol(ss))
 
-function createssym(s::Symbol,T::DataType)
+@inline function createssym(s::Symbol,T::DataType)
     ns = ssjsym(s,T)
     SYMTAB[s] = ns
     return ns
 end
 
-function removesym(s::Symbol)
+@inline function removesym(s::Symbol)
     delete!(SYMTAB,s)
     nothing
 end
@@ -209,12 +209,12 @@ type Mxpr{T} <: AbstractMxpr
     typ::DataType
 end
 typealias Symbolic Union(Mxpr,SJSym)
-newargs() = Array(Any,0)
-newargs(n::Integer) = Array(Any,n)
-newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
-mhead(mx::Mxpr) = mx.head
-margs(mx::Mxpr) = mx.args
-margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
+@inline newargs() = Array(Any,0)
+@inline newargs(n::Integer) = Array(Any,n)
+@inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
+@inline mhead(mx::Mxpr) = mx.head
+@inline margs(mx::Mxpr) = mx.args
+@inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
 @inline setage(mx::Mxpr) = mx.age = increvalage()
 @inline getage(mx::Mxpr) = mx.age
 
@@ -229,7 +229,7 @@ margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, se
 # Base.start(mx::Mxpr) = margs(mx)[1] # could use start here too
 # Base.next(mx::Mxpr,state) = (state,next(state,margs(mx)))
 # Base.done(mx::Mxpr,state) = done(margs(mx),state)
-mxprtype{T}(mx::Mxpr{T}) = T
+@inline mxprtype{T}(mx::Mxpr{T}) = T
 
 # Table for storing Mxpr indexed by hash code.
 # Not using this at the moment.
@@ -243,8 +243,8 @@ global gotit = 0   # non constant global, only for testing
 end
 
 ## This belongs more with SSJsym above, but Mxpr is not yet defined
-upvalues(m::Mxpr) = upvalues(mhead(m))
-downvalues(m::Mxpr) = downvalues(mhead(m))
+@inline upvalues(m::Mxpr) = upvalues(mhead(m))
+@inline downvalues(m::Mxpr) = downvalues(mhead(m))
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find
@@ -307,7 +307,7 @@ checkhash(x) = x
 
 
 # Create a new Mxpr from list of args
-function mxpr(s::SJSym,iargs...)
+@inline function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
@@ -346,7 +346,7 @@ end
 
 # Sometimes these need to be merged, somewhere.
 #is_sym_mergeable(s) = ! is_protected(s)
-is_sym_mergeable(s) = true
+@inline is_sym_mergeable(s) = true
 
 # Copy list of free (bound to self) symbols in a to free symbols in mx.
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
@@ -361,7 +361,7 @@ is_sym_mergeable(s) = true
 end
 
 # Copy list of free (bound to self) symbols in a to a collection (Dict) of free symbols
-function mergesyms(mxs::FreeSyms, a::Mxpr)
+@inline function mergesyms(mxs::FreeSyms, a::Mxpr)
     for sym in keys(a.syms)
 #        println("m1: $sym")
         mxs[sym] = true
@@ -374,7 +374,7 @@ function mergesyms(mxs::FreeSyms, a::Mxpr)
 end
 
 # Add Symbol a to list of free symbols syms
-function mergesyms(syms::FreeSyms, a::SJSym)
+@inline function mergesyms(syms::FreeSyms, a::SJSym)
 #    println("m2: $a")    
     syms[a] = true
 end
@@ -384,7 +384,7 @@ end
     (mx.syms)[a] = true    
 end
 
-mergesyms(x,y) = nothing
+@inline mergesyms(x,y) = nothing
 
 # Copy lists of free symbols in subexpressions of mx to
 # list of free symbols of mx. Only descend one level.
@@ -401,7 +401,7 @@ function mergeargs(mx::Mxpr)
     end
 end
 
-mergeargs(x) = nothing
+@inline mergeargs(x) = nothing
 
 ## clear list of free symbols in mx.
 # is it cheaper to delete keys, or throw it away ?
@@ -449,11 +449,11 @@ is_fixed(s::SJSym) = symval(s) == s
 @inline unsetcanon(x) = false
 #is_fixed(x) = false
 #setfixed(x) = false
-unsetfixed(x) = false  # sometimes we have a Julia object
+@inline unsetfixed(x) = false  # sometimes we have a Julia object
 
 # We need to think about copying in the following. Support both refs and copies ?
 # where is this used ?
-function getindex(mx::Mxpr, r::UnitRange)
+@inline function getindex(mx::Mxpr, r::UnitRange)
     if r.start == 0
         return mxpr(mhead(mx),margs(mx)[1:r.stop]...)
     else
@@ -461,7 +461,7 @@ function getindex(mx::Mxpr, r::UnitRange)
     end
 end
 
-function getindex(mx::Mxpr, r::StepRange)
+@inline function getindex(mx::Mxpr, r::StepRange)
     if r.start == 0
         return mxpr(mhead(mx),margs(mx)[0+r.step:r.step:r.stop]...)
     elseif r.stop == 0 && r.step < 0
@@ -501,27 +501,27 @@ function usersymbols()
 end
 
 # Return true if sj has attribute attr
-function get_attribute(sj::SJSym, attr::Symbol)
+@inline function get_attribute(sj::SJSym, attr::Symbol)
     get(getssym(sj).attr,attr,false)
 end
 
 # Return true if head of mx has attribute attr
-function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
+@inline function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
     get_attribute(T,attr)
 end
 
-function is_protected(sj::SJSym)
+@inline function is_protected(sj::SJSym)
     get(getssym(sj).attr,:Protected,false)
 end
 
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
 protect(sj::SJSym) = set_attribute(sj,:Protected)
 
-function set_attribute(sj::SJSym, attr::Symbol)
+@inline function set_attribute(sj::SJSym, attr::Symbol)
     getssym(sj).attr[attr] = true
 end
 
-function unset_attribute(sj::SJSym, attr::Symbol)
+@inline function unset_attribute(sj::SJSym, attr::Symbol)
     getssym(sj).attr[attr] = false
 end
 

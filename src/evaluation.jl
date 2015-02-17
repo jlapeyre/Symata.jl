@@ -177,8 +177,8 @@ function infseval(s::SJSym)
     return mx == s ? s : infseval(mx)
 end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
-infseval(x) = x
-infseval(x::Complex) = x.im == 0 ? x.re : x
+@inline infseval(x) = x
+@inline infseval(x::Complex) = x.im == 0 ? x.re : x
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
@@ -198,9 +198,9 @@ infseval(x::Complex) = x.im == 0 ? x.re : x
 #  and some of the arguments. Then apply rules and other things on the result.  #
 #                                                                               #
 #################################################################################
-meval(x::Complex) = x.im == 0 ? x.re : x
-meval(x) = x
-meval(s::SJSym) = symval(s)
+@inline meval(x::Complex) = x.im == 0 ? x.re : x
+@inline meval(x) = x
+@inline meval(s::SJSym) = symval(s)
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
@@ -291,16 +291,16 @@ end
 
 ## Try applying downvalues
 
-function ev_downvalues(res::Mxpr)
+@inline function ev_downvalues(res::Mxpr)
     if length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
     return res
 end
-ev_downvalues(x) = x
+@inline ev_downvalues(x) = x
 
 ## Applying upvalues. This has to be efficient, we must not iterate over args.
 #  Instead, we check free-symbol list.
 
-function ev_upvalues(res::Mxpr)
+@inline function ev_upvalues(res::Mxpr)
     merge_args_if_emtpy_syms(res) # do upvalues are for free symbols in res.
     for s in listsyms(res)
         if has_upvalues(s)
@@ -310,11 +310,11 @@ function ev_upvalues(res::Mxpr)
     end
     return res
 end
-ev_upvalues(x) = x
+@inline ev_upvalues(x) = x
 
 
 ## Build list of free syms in Mxpr if list is empty.
-function merge_args_if_emtpy_syms(res::Mxpr)
+@inline function merge_args_if_emtpy_syms(res::Mxpr)
     if isempty(res.syms) # get free symbol lists from arguments
 #        println("Merging in meval $res")
         mergeargs(res) # This is costly if it is not already done.
@@ -322,7 +322,7 @@ function merge_args_if_emtpy_syms(res::Mxpr)
     end
     
 end
-merge_args_if_emtpy_syms(res) = nothing
+@inline merge_args_if_emtpy_syms(res) = nothing
 
 
 ## Thread Listable over Lists
