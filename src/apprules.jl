@@ -541,10 +541,26 @@ doreplace(mx,a,b) = mx
 
 @sjdoc ReplaceAll "
 ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
+ReplaceAll(expr,List(rule1,rule2,...)) replaces parts at all levels in expr according to the
+list or rules. If given explicitly, the rules must be given as List(...) rather than
+[...] because of a parsing error.
 "
+
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
+function doreplaceall(mx,expr,rs::Mxpr{:List})
+    rsa = Array(PRule,0)
+    for i in 1:length(rs)
+        push!(rsa, Rule_to_PRule(rs[i]))
+    end
+    replaceall(expr,rsa)
+end
 doreplaceall(mx,a,b) = mx
+
+@sjexamp( ReplaceAll,
+         ("ClearAll(zz,b,c)",""),
+         ("zz = 10 * b^2 * (c+d)","zz = 10 * b^2 * (c+d)"),
+         ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
 apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
 # Repeating doeval and doreplacerepeated is a workaround for

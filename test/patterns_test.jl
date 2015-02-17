@@ -30,3 +30,9 @@ using Base.Test
 @testex ReplaceAll(1, 1 => y) == y
 @testex ReplaceAll(c(1), c => y) == y(1)
 @ex ClearAll(c,y)
+
+# We have to write rules in List(), because [x=>y] is parsed by Julia as deprecated Dict construction.
+@ex ClearAll(r1,r2,zz,b,c)
+@ex zz = 10 * b^2 * (c+d)
+@testex ReplaceAll(zz, List(c => 3,d => 2) ) == 50*b^2
+@ex ClearAll(r1,r2,zz,b,c)
