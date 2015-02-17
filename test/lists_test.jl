@@ -11,6 +11,8 @@ using Base.Test
 @ex      a(x_) := x + 1
 @testex  Table(a(i^2),[i,4])  == [2,5,"zebra",17]
 
+@testex  Table(x^n+2*x,[n,3]) == [3*x,2*x + x^2,2*x + x^3]
+
 @testex  Range(0) == []
 @testex  Range(1) == [1]
 @testex  Range(3) == [1,2,3]

@@ -10,7 +10,7 @@
 # faster. Still don't understand.
 
 # This is also rather limited
-set_attribute(:TableNew, :HoldAll)
+#set_attribute(:TableNew, :HoldAll)
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     iter = mx[2]
@@ -27,17 +27,13 @@ function apprules(mx::Mxpr{:Table})
 end
 
 # Making this a kernel is not only useful, but faster.
+# Set part in expr given by spec to val
 function set_part_spec(expr,spec,val)
     p = expr
-    len = length(spec)
-    if len == 2
-        p[spec[end]] = val
-    else
-        for k in 2:len
-            p = expr[spec[k]]
-        end
-        p[spec[end]] = val
+    for k in 2:(length(spec)-1)
+        p = p[spec[k]]
     end
+    p[spec[end]] = val
 end
 
 function do_table_new{T<:Integer}(imax::T,isym,ex::Mxpr,exprpos)
