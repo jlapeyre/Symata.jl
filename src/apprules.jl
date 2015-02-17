@@ -1299,8 +1299,7 @@ function do_table{T<:Integer}(imax::T,isym,ex)
     sisym = getssym(isym)
     @inbounds for i in 1:imax
         setsymval(sisym,i)
-        v = doeval(ex)
-        args[i] = v
+        args[i] = doeval(ex)
         setfixed(args[i])  # no difference ?
     end
     return args
