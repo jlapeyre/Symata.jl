@@ -234,8 +234,7 @@ function meval(mx::Mxpr)
     else  # Evaluate all arguments
         nargs = newargs(len)
         @inbounds for i in 1:len
-            res1 = doeval(mxargs[i])
-            nargs[i] = res1
+            nargs[i] = doeval(mxargs[i])
         end
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
@@ -281,7 +280,8 @@ function revisesyms(mx::Mxpr)
             break
         end
     end
-    nochange == true && return s
+    # Need to return a copy, or Table(x^i + x*i + 1,[i,10]) shows a bug.
+    nochange == true && return copy(s)
     nsyms = newsymsdict()
     for sym in keys(s)
  #        mergesyms(nsyms,symval(sym))

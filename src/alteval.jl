@@ -24,5 +24,6 @@ function meval1(mx::Mxpr)
         nargs[i] = res
     end
 #    mx.args = nargs
-    mxpr(mhead(mx),nargs)
+    nmx = mxpr(mhead(mx),nargs)
+    apprules(nmx)
 end
