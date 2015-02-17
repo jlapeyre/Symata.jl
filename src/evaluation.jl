@@ -236,7 +236,7 @@ function meval(mx::Mxpr)
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
                splice_sequences!(nargs) : nothing
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
-    nmx.syms = revisesyms(mx) # set free symbol list in nmx
+    setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
     if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
     # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx)
@@ -266,7 +266,7 @@ end
 #
 # move this to mxpr_type
 function revisesyms(mx::Mxpr)
-    s = mx.syms
+    s = getfreesyms(mx)
 #    println("revising $mx:  $s")
     mxage = getage(mx)
     nochange = true     # Don't create a new symbol list if nothing changed
@@ -315,7 +315,7 @@ end
 
 ## Build list of free syms in Mxpr if list is empty.
 @inline function merge_args_if_emtpy_syms(res::Mxpr)
-    if isempty(res.syms) # get free symbol lists from arguments
+    if isempty(getfreesyms(res)) # get free symbol lists from arguments
 #        println("Merging in meval $res")
         mergeargs(res) # This is costly if it is not already done.
         add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.

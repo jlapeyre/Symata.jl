@@ -217,6 +217,8 @@ typealias Symbolic Union(Mxpr,SJSym)
 @inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
 @inline setage(mx::Mxpr) = mx.age = increvalage()
 @inline getage(mx::Mxpr) = mx.age
+getfreesyms(mx::Mxpr) = mx.syms
+setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
 # These should be fast: In the SJulia language, mx[0] gets the head, but not here.
 # TODO: iterator for mx that iterates over args would be useful
