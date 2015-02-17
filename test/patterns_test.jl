@@ -36,3 +36,9 @@ using Base.Test
 @ex zz = 10 * b^2 * (c+d)
 @testex ReplaceAll(zz, List(c => 3,d => 2) ) == 50*b^2
 @ex ClearAll(r1,r2,zz,b,c)
+
+@ex       ClearAll(pf,x,y,a,b)
+@ex       pf(x_,y_) :=  x(y)
+@testex   pf(a,b) == a(b)
+@ex       ClearAll(pf,x,y,a,b)
+

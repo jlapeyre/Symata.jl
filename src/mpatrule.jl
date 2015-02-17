@@ -205,7 +205,9 @@ end
 # apply replacement rule r to expression ex
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
 
-replacefail(ex::ExSym, r::PRule) = patrule(ex,r.lhs,r.rhs)
+function replacefail(ex::ExSym, r::PRule)
+    patrule(ex,r.lhs,r.rhs)
+end
 
 # Do depth-first replacement applying the same rule to head and each subexpression
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
@@ -255,6 +257,9 @@ function patsubst!(pat::Mxpr,cd)
                 pa[i] = patsubst!(pa[i],cd)
             end
         end
+    end
+    if havecapt(mhead(pat),cd)
+        pat = mxpr(retrievecapt(mhead(pat),cd),margs(pat))
     end
     return pat
 end
