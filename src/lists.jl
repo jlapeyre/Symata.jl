@@ -242,19 +242,16 @@ i set successively to 1 through imax. Other Table features are not implemented.
 # At commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
 # Table(a(i),[i,10000]) takes bout 0.45--0.49 s, makelist reports 0.503.
 
-# We have now made this much faster in lists_new.jl. But, this is in
-# part getting around slow evaluation, rather than improving the
-# general case.
+set_attribute(:TableOld, :HoldAll)
 
 function apprules(mx::Mxpr{:TableOld})
     expr = mx[1]
     iter = mx[2]
     isym = get_localized_symbol(iter[1])
-#    exprpos = expression_positions(expr,iter[1])
     imax = meval(iter[2])
 #    issym = createssym(isym,Int)  ## Trying out Typed variable
     ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
-    args = do_table(imax,isym,ex,exprpos) # creating a symbol is pretty slow
+    args = do_table(imax,isym,ex) # creating a symbol is pretty slow
     removesym(isym)
     mx1 = mxpr(:List,args) # takes no time
     # This mergesyms no longer makes this much faster, because overall Table has slowed by more than 5x
@@ -286,46 +283,30 @@ end
 # becoming slower. We try using a stripped-down meval1 from
 # alteval.jl, time is .43 with no gc.
 
-function do_table{T<:Integer}(imax::T,isym,exin,exprpos)
+function do_table{T<:Integer}(imax::T,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
-    #    setsymval(sisym,1)
-    #    println("Expro pos",exprpos)
-    ex = exin
+#    setsymval(sisym,1)    
     @inbounds for i in 1:imax
         setsymval(sisym,i)
-        #        args[i] = meval(ex)
-#        ss1 = copy(ss)
-       # # ex = mxpr(hd,copy(margs(exin)))
-       #  for j in 1:length(exprpos)
-       #      ispec = exprpos[j]
-       #      p = ex
-       #      for k in 2:length(ispec)
-       #          p = ex[ispec[k]]
-       #      end
-       #      ex[ispec[end]] = ss1.val[1]
-       #  end
-#        args[i] = doeval(mxpr(mhead(ex),margs(ex)))  # it's construction of mxpr that is so slow.
+#        args[i] = meval(ex)
         args[i] = doeval(ex)
 #        args[i] = meval1(ex)
-#        setfixed(args[i])  # no difference ?
+        setfixed(args[i])  # no difference ?
     end
     return args
 end
 
-# Test code.
 # The speed penalty for val::Any instead of val::Int, is factor of 10^4.
 # Setting isym.val is by far the slowest step in Table(i,[i,10^6])
 # Much slower than Mma and SBCL
 # If we us val::Array{Any,1}, the speed penalty is better by a couple
 # orders of magnitude
 
-type NSYM
-#    val::Int
-    val::Array{Any,1}
-end
-
-Base.copy(x::NSYM) = NSYM(copy(x.val))
+# type NSYM
+# #    val::Int
+#     val::Array{Any,1}
+# end
 
 # function testset()
 #     ss = NSYM(Any[0])
@@ -336,4 +317,3 @@ Base.copy(x::NSYM) = NSYM(copy(x.val))
 #     end
 #     sum0
 # end
-
