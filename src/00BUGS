@@ -2,9 +2,12 @@ It's not that there are no bugs. But, I list some notes
 on bugs here and erase them when they are fixed.
 
 ------------
-
 Wrong order
 sjulia> x + x^2 * 1//2
 (x^2)*(1//2) + x
-
+------------
+(b^2)*(b^n)  should go to
+b^(2+n) , but does not.
+Also want
+(b^m)*(b^n) --> b^(m+n)
 ------------

@@ -505,6 +505,8 @@ end
 # Replace n repeated terms expr by expr*x, and factors expr by expr^n
 # This assumes that terms have been ordered so that collectable
 # terms are neighboring.
+# FIXME. Here or elsewhere  expr^n * expr^m with m and or n symbolic should
+# also go to expr^(n+m)
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)
