@@ -1290,8 +1290,11 @@ end
 # *sigh* Cannot reproduce the performance in the previous line. Even if
 # I return to that commit. Time is closer to 0.5 than 0.35
 # setsymval still seems to be an expensive operation
+# This commit,   Time is  1.83 s. For same code as above.
+# 4f7d9f6dff207ae2c95736ab058627f503fbad26
+#
 
-function do_table(imax::Integer,isym,ex)
+function do_table{T<:Integer}(imax::T,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
     @inbounds for i in 1:imax
