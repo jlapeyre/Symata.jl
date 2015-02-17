@@ -313,13 +313,12 @@ checkhash(x) = x
 # end
 # checknewhash(x) = (x,true)
 
-
-
 # Create a new Mxpr from list of args
 @inline function mxpr(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
+#    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,Bool}(),0,0,Any)    
     setage(mx)
 #    checkhash(mx)
     mx
@@ -332,6 +331,7 @@ end
 # Create a new Mxpr from Array of args
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx =Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
+#    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,Bool}(),0,0,Any)    
     setage(mx)
 #    checkhash(mx)    
     mx
@@ -373,7 +373,7 @@ end
 
 ######  Manage lists of free symbols
 
-# Sometimes these need to be merged, somewhere.
+# Sometimes protectd symbols need to be merged, somewhere.
 #is_sym_mergeable(s) = ! is_protected(s)
 @inline is_sym_mergeable(s) = true
 
