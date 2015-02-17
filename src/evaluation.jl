@@ -357,7 +357,7 @@ function threadlistable(mx::Mxpr)
         end
     end
     lenp = length(pos)
-    lenp == 0 && return mx
+    lenp == 0 && return mx   # Nothing to do. return input array
     largs = newargs(lenlist)
     @inbounds for i in 1:lenlist
         nargs = newargs(lenmx)
