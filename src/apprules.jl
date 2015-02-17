@@ -1292,21 +1292,20 @@ end
 # setsymval still seems to be an expensive operation
 #
 # 4f7d9f6dff207ae2c95736ab058627f503fbad26
-# This commit,   Time is  1.83 s. For same code as above.
-# Table is becoming slower
-# Using stripped-down meval1 from alteval.jl, time is .43 with no gc
-
+# With this commit, Time is 1.83 s. For same code as above.  Table is
+# becoming slower. We try using a stripped-down meval1 from
+# alteval.jl, time is .43 with no gc.
 
 function do_table{T<:Integer}(imax::T,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
-    setsymval(sisym,1)    
+#    setsymval(sisym,1)    
     @inbounds for i in 1:imax
         setsymval(sisym,i)
 #        args[i] = meval(ex)
-#        args[i] = doeval(ex)
+        args[i] = doeval(ex)
 #        args[i] = 1
-        args[i] = meval1(ex)
+#        args[i] = meval1(ex)
         setfixed(args[i])  # no difference ?
     end
     return args

@@ -1,0 +1,16 @@
+Watch Table get slower with more recent commits.
+Table(a(i),[i,10^5])  
+commit                                     Time
+486a76c0ca0f6b04f5cc05589eff0587ee5a2f6a   1.81 s
+64e597c5eeac53264110dd72a217d5edf4e685f7   1.43 s
+7d1b9e4aa70c6c5adf89c9991c933d7f5ca48c9a   0.75 s
+83cd8411472d83d86c4a932f0b1c363d03328e6f   0.68 s
+1ac6fbe717c56cf8338ab70d809a2360ca60b2c1   0.63 s
+7043cf1101f2fe48a548639693be1f7165ea9a58   0.53 s
+
+# This commit has a comment about Table running 20% faster
+80e09ff0b6869af90107c3dc359c46e78464d86f   0.55
+
+
+# I try disabling many evaluation steps (essential ones).
+# Nothing lets the speed approach the old speed.
