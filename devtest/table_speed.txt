@@ -14,3 +14,10 @@ commit                                     Time
 
 # I try disabling many evaluation steps (essential ones).
 # Nothing lets the speed approach the old speed.
+
+
+# Table present in this commit, but not TimeOne or Timing
+# It runs pretty slowly
+commit 7fd3ea5da62a7b32f6013e9cb8bc2dd9573bcc0e
+Date:   Tue Feb 3 21:17:36 2015 +0100
+
