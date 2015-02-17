@@ -13,3 +13,4 @@ include("mxpr_test.jl")
 include("orderless_test.jl")
 include("patterns_test.jl")
 include("simple_expression_test.jl")
+#include("code_in_SJulia_test.jl")  # test slow loading code.

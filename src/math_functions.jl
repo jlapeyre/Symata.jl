@@ -179,10 +179,6 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
-unprotect(:Zeta)
-@ex Zeta(1) := ComplexInfinity
-protect(:Zeta)
-
 do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Integer,z::Complex{T}) = log(b,z)
 do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Integer,z::T) = log(b,z)
 

@@ -9,8 +9,6 @@ using Base.Test
 @testex  Abs(z^4.1) == Abs(z)^4.1
 @testex  Abs(-z) == Abs(z)
 @testex  Abs(-z^(1/2))^2 == Abs(z)
-@testex  Sin(-z) == -1*Sin(z)
-@testex  Sin(-z^2)^2 == Sin(z^2)^2
 
 @ex ClearAll(z)
 
