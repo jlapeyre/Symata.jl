@@ -5,12 +5,29 @@ newmatchcapts() = MatchCapts(Dict{Symbol,Any}())
 
 # This type corresponds to the expression:
 # PatternTest[Pattern[name,Blank[head]],test]
-type BlankPat
-    name::Symbol
-    head::Symbol
-    test::Mxpr # or ? what should this be ?
-    optional::Any # default value
-end
+
+# abstract AbstractPattern
+# type BlankT <: AbstractPattern
+#     head::Symbol
+# end
+# type PatternT1 <: AbstractPattern
+#     name::Symbol
+#     head::Symbol
+# end
+# function toBlankPat(mx::Mxpr{:Blank})
+#     if length(mx) > 0
+#         BlankT(mx[1])
+#     else
+#         BlankPat(:Any)
+#     end
+# end
+# function toBlankPat(mx::Mxpr{:Pattern})
+#     if length(mx) > 0
+#         BlankT(mx[1])
+#     else
+#         BlankPat(:Any)
+#     end
+# end
 
 # Match item to a single term in args of an AC expression.
 # item can potentially match any of the terms. Find each match
