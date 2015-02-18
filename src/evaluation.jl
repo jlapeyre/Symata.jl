@@ -393,3 +393,14 @@ function splice_sequences!(args)
         i > length(args) && break
     end
 end
+
+function mkapprule(head::String)
+    s1 = ":" * head
+    s2 = "do_" * head
+    a1 = "apprules(mx::Mxpr{$s1}) = $s2(mx,margs(mx)...)"
+    a2 = "$s2(mx::Mxpr{$s1},args...) = mx"
+#    println(a1)
+#    println(a2)
+    eval(parse(a1))
+    eval(parse(a2))
+end
