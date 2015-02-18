@@ -214,6 +214,8 @@ end
 typealias Symbolic Union(Mxpr,SJSym)
 @inline newargs() = Array(Any,0)
 @inline newargs(n::Integer) = Array(Any,n)
+@inline newargs(m::Mxpr) = newargs(length(m))
+@inline newargs(a::Array) = newargs(length(a))
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 @inline mhead(mx::Mxpr) = mx.head
 @inline margs(mx::Mxpr) = mx.args

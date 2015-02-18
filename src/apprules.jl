@@ -231,6 +231,11 @@ Jxpr is evaluated. You never see the head Jxpr. For example
          ("m = :( [1:3] )",
           "3-element Array{Int64,1}:\n 1\n 2\n 3"))
 
+@sjexamp( Jxpr,
+         "Call a Julia function",
+         ("tf = :( time )",""),
+         ("tf()","1.424287593897437e9"))
+
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
 # Mxpr with head Jxpr. It is evaluated here.
 # Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m

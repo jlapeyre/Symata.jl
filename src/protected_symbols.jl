@@ -62,7 +62,7 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "JVar", "MatchQ", "AtomQ", "Println","Keys",
           "Replace", "ReplaceAll", "ReplaceRepeated", "TraceOn","TraceOff","FullForm", "Expand",
           "BI", "BF", "Big", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
-          "UserSyms", "List","Syms", "Sequence",
+          "UserSyms", "List","Syms", "Sequence", "Map",
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N","Unfix", "ExpToTrig",

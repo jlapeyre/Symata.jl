@@ -387,3 +387,27 @@ FactorInteger(n) gives a list of prime factors of n and their multiplicities.
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
 
+@sjdoc Map "
+Map(f,expr) returns f applied to each element in a copy of expr.
+f can be an SJulia object or a Julia function.
+"
+
+mkapprule("Map")
+
+function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
+    args = margs(expr)
+    nargs = newargs(args)
+    for i in 1:length(args)
+        nargs[i] = f(args[i]) # Probably need more evaluation
+    end
+    mxpr(mhead(expr),nargs)
+end
+
+function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
+    args = margs(expr)
+    nargs = newargs(args)
+    for i in 1:length(args)
+        nargs[i] = doeval(mxpr(f,args[i]))
+    end
+    mxpr(mhead(expr),nargs)
+end
