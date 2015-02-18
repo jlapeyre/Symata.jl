@@ -30,6 +30,13 @@ using Base.Test
 @testex  Head(Apply(5.0,[1,2,3])) == 5.0
 @ex ClearAll(a,c,f,b)
 
+@ex ClearAll(g,h,x,m,y)
+@ex m = [g,h]
+@ex g(x_) := x^2
+@ex h(x_) := x^3
+@testex m[1](y) == y^2
+@testex m[2](y) == y^3
+@ex ClearAll(g,h,x,m,y)
 
 # Test replacement
 @ex ClearAll(a,b,c,g)
