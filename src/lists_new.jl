@@ -36,14 +36,20 @@ function set_part_spec(expr,spec,val)
     p[spec[end]] = val
 end
 
+function set_all_part_specs(expr,specs,val)
+    for j in 1:length(specs)
+        set_part_spec(expr,specs[j],val)
+    end    
+end
+
+
 function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)
     clearsyms(exin) # Clear the iterator variable
     ex = exin
     @inbounds for i in 1:imax
-        for j in 1:length(exprpos)  # exprpos is a list of positions at which the itvar occurs in ex
-            set_part_spec(ex,exprpos[j],i)
-        end
+        #        ex = copy(exin)
+        set_all_part_specs(ex,exprpos,i)
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
 #        args[i] = meval1(ex)
