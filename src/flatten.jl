@@ -5,7 +5,8 @@
 # FlatT because Flat is already a symbol
 typealias FlatT Union(Mxpr{:Plus},Mxpr{:Times})
 
-# Here we copy
+# Might be faster to interleave the terms
+# because they may need less ordering then.
 function flatten!{T<:FlatT}(mx::T)
     needsflat = false
     for x in margs(mx)
@@ -28,5 +29,5 @@ function flatten!{T<:FlatT}(mx::T)
     return mxpr(mhead(mx),na)
 end
 
-# Here we do not
+# Here we do not copy
 flatten!(x) = x
