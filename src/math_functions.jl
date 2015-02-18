@@ -289,10 +289,18 @@ end
 Precsion(x) gets the precision of a floating point number x, as defined by the
 effective number of bits in the mantissa.
 "
-apprules(mx::Mxpr{:Precision}) = do_Precision(mx::Mxpr{:Precision},margs(mx)...)
+apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
 do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
 
+# These are not enough
+mkapprule("Re")
+do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
+do_Re(mx::Mxpr{:Re}, x::Real) = x
+mkapprule("Im")
+do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
+do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
+      
 # apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
 # do_Numerator(mx::Mxpr{:Numerator},args...) = mx
 # function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})
