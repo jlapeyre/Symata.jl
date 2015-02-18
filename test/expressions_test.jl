@@ -38,3 +38,13 @@ using Base.Test
 @testex m == ["cat",88,[3,4,5,g(6,7)]]
 @testex m[-1,-1] == g(6,7)
 @ex ClearAll(m,f,g)
+
+@ex ClearAll(f,a,b,g,c,d,m)
+@ex m = f(a,b,g(c(d,b),a(a,b(c(d)))))
+@testex Position(m,f) == [[0]]
+@testex Position(m,a) == [[1],[3,2,1],[3,2,0]]
+@testex Position(m,b) == [[2],[3,1,2],[3,2,2,0]]
+@testex Position(m,c(d)) == [[3,2,2,1]]
+@ex m = f(a,b,g(c(d,b),a(a,b(c(d)))),c(d,b))
+@testex Position(m, c(d,b)) == [[3,1],[4]]
+@ex ClearAll(f,a,b,g,c,d,m)

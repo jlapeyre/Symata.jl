@@ -397,13 +397,23 @@ function splice_sequences!(args)
     end
 end
 
+function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
+    for s in syms
+        for a in attrs
+            set_attribute(symbol(s),a)
+        end
+        set_attribute(symbol(s),:Protected)  # They all are Protected
+    end
+end
+
 function mkapprule(head::String)
     s1 = ":" * head
     s2 = "do_" * head
     a1 = "apprules(mx::Mxpr{$s1}) = $s2(mx,margs(mx)...)"
     a2 = "$s2(mx::Mxpr{$s1},args...) = mx"
 #    println(a1)
-#    println(a2)
+    #    println(a2)
+    set_pattributes([head],[:Protected])
     eval(parse(a1))
     eval(parse(a2))
 end

@@ -8,15 +8,6 @@
 # want to allow that they be bound to functions, instead, in files
 # loaded before this one.
 
-function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
-    for s in syms
-        for a in attrs
-            set_attribute(symbol(s),a)
-        end
-        set_attribute(symbol(s),:Protected)  # They all are Protected
-    end
-end
-
 set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
 set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
 set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])

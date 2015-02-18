@@ -1,5 +1,8 @@
 using Base.Test
 
+
+@testex [1,2,3][2] == 2
+
 ## Head of Mxpr is Julia function
 
 @ex ClearAll(f,g,x,c)

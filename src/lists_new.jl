@@ -42,7 +42,7 @@ end
 
 # Making this a kernel is not only useful, but faster.
 # Set part in expr given by spec to val
-function set_part_spec(expr,spec,val)
+function set_part_spec2(expr,spec,val)
     p = expr
     @inbounds for k in 2:(length(spec)-1)
         p = p[spec[k]]
@@ -50,9 +50,9 @@ function set_part_spec(expr,spec,val)
     @inbounds p[spec[end]] = val
 end
 
-function set_all_part_specs(expr,specs,val)
+function set_all_part_specs2(expr,specs,val)
     @inbounds for j in 1:length(specs)
-        set_part_spec(expr,specs[j],val)
+        set_part_spec2(expr,specs[j],val)
     end    
 end
 
@@ -62,7 +62,7 @@ function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     ex = exin
     @inbounds for i in 1:imax
         #        ex = copy(exin)
-        set_all_part_specs(ex,exprpos,i)
+        set_all_part_specs2(ex,exprpos,i)
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
 #        args[i] = meval1(ex)
@@ -101,6 +101,7 @@ function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
     return args
 end
 
+# Broken. we need to replace this in Table with find_positions in parts.jl
 ## Return positions in ex at which subx is a subexpression
 # Returns an array of arrays representing part specifications
 # ie each array returned is a list of positions at levels.
@@ -110,6 +111,8 @@ end
 # We actually only know that this works in a few cases used
 # by Table
 
+# This seems to be broken, but somehow it works for Table ?
+# Maybe it works for everything but heads.
 function expression_positions(ex,subx)
     posns = Array(Array{Int,1},0)
     lev = Array(Int,10)
@@ -120,6 +123,7 @@ function expression_positions(ex,subx)
 end
 
 
+# Looks broken, but is apparently working for Table
 function _expr_positions(ex,subx,lev,posns,clev)
     if is_Mxpr(ex)
         args = margs(ex)
