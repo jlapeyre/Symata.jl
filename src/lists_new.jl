@@ -9,10 +9,24 @@
 # is expensive. But, older code had free sym lists and was
 # faster. Still don't understand.
 
+@sjdoc Table "
+Table(expr,[i,imax]) returns a list of expr evaluated imax times with
+i set successively to 1 through imax. Other Table features are not implemented.
+Unusual examples:
+This calls an anonymous Julia function. It is currently very slow
+Table( (:((x)->(x^2))(i) ),[i,10])
+This is much faster
+f = :( g(x) = x^2 )
+Table( f(i), [i,10])
+"
+
 # This is also rather limited
 #set_attribute(:TableNew, :HoldAll)
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
+    if is_Mxpr(expr,:Jxpr)
+        expr = eval(expr)
+    end
     iter = mx[2]
     exprpos = expression_positions(expr,iter[1])
     imax = meval(iter[2])
@@ -41,7 +55,6 @@ function set_all_part_specs(expr,specs,val)
         set_part_spec(expr,specs[j],val)
     end    
 end
-
 
 function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)

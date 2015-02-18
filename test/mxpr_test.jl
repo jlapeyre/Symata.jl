@@ -1,5 +1,16 @@
 using Base.Test
 
+## Head of Mxpr is Julia function
+
+@ex ClearAll(f,g,x,c)
+@ex       g = :( fftest(x) = x^2 ) # g is SJulia Symbol bound to Julia Function
+# Creates Mxpr with head of type Function.
+# The apprule for head Function is to call it on the args
+@testex   g(3) == 9
+# The following works because we have defined ^ for Symbols in Julia
+@testex   g(c) == c^2
+@ex ClearAll(f,g,x,c)
+
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
 @testex a == a

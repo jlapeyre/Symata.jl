@@ -226,10 +226,6 @@ function replsym(ex,os,ns)
     end
 end
 
-@sjdoc Table "
-Table(expr,[i,imax]) returns a list of expr evaluated imax times with
-i set successively to 1 through imax. Other Table features are not implemented.
-"
 # We only do Table(expr,[i,imax])
 # Our Table is rather slow. Slower than Maxima makelist.
 # Table(a(i),[i,10000]) is 2 to 3 x slower than makelist( i, i, 1, 10000)

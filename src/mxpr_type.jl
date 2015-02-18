@@ -337,12 +337,28 @@ end
     mx
 end
 
+# Function cannot be parameter type
+# function mxpr(s::Function,iargs...)
+#     args = newargs()
+#     for x in iargs push!(args,x) end
+#     mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+#     setage(mx)
+#     mx
+# end
+
+# function mxpr(s::Function,args::MxprArgs)
+#     mx =Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
+#     setage(mx)
+#     mx
+# end
+
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,args::MxprArgs)
     mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
     mx
 end
+
 
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,iargs...)

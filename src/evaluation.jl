@@ -207,6 +207,7 @@ meval(x::Rational) = x.den == 1 ? x.num : x
 
 @inline meval(s::SJSym) = symval(s) # this is where var subst happens
 function meval(mx::Mxpr)
+#    println("$mx")
     increment_meval_count()
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
@@ -238,8 +239,10 @@ function meval(mx::Mxpr)
         end
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
-           splice_sequences!(nargs) : nothing
+    splice_sequences!(nargs) : nothing
+#    println("nmx $nhead, $nargs")    
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
+#    println("nmx $nmx")    
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
     if  ! is_canon(nmx)
         nmx = flatten!(nmx)
@@ -403,4 +406,10 @@ function mkapprule(head::String)
 #    println(a2)
     eval(parse(a1))
     eval(parse(a2))
+end
+
+apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
+do_GenHead(mx,h) = mx
+function do_GenHead(mx,f::Function)
+    f(margs(mx)...)
 end
