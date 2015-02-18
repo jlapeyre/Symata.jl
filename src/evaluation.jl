@@ -241,24 +241,17 @@ function meval(mx::Mxpr)
            splice_sequences!(nargs) : nothing
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
-
     if  ! is_canon(nmx)
         nmx = flatten!(nmx)
+        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end        
         nmx = canonexpr!(nmx)
     end
-    
-    if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
-    # We apply the rules before doing the ordering. This differs from Mma.
     res = apprules(nmx)
     if res == nothing
         is_meval_trace()  && println(ind,">> " , res)
         decrement_meval_count()  # decrement at every exit point
         return nothing
     end
-#    if  ! is_canon(res)
-#        res = flatten!(res)
-#        res = canonexpr!(res)
-#    end
     res = ev_upvalues(res)    
     res = ev_downvalues(res)
     merge_args_if_emtpy_syms(res)
