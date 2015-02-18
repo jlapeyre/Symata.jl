@@ -30,14 +30,14 @@ end
 # Set part in expr given by spec to val
 function set_part_spec(expr,spec,val)
     p = expr
-    for k in 2:(length(spec)-1)
+    @inbounds for k in 2:(length(spec)-1)
         p = p[spec[k]]
     end
-    p[spec[end]] = val
+    @inbounds p[spec[end]] = val
 end
 
 function set_all_part_specs(expr,specs,val)
-    for j in 1:length(specs)
+    @inbounds for j in 1:length(specs)
         set_part_spec(expr,specs[j],val)
     end    
 end
@@ -79,12 +79,23 @@ function do_table_new{T<:Integer}(imax::T,isym,ex::SJSym,exprpos)
     return args
 end
 
+# ex is anything other than Mxpr or Symbol
+function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
+    args = newargs(imax)
+    @inbounds for i in 1:imax
+        args[i] = ex
+    end
+    return args
+end
+
 ## Return positions in ex at which subx is a subexpression
 # Returns an array of arrays representing part specifications
 # ie each array returned is a list of positions at levels.
 # The first index refers to the top level and is always zero.
 # It essentially means nothing unless the postion spec is
 # just [0], in which case, it means the head matchs.
+# We actually only know that this works in a few cases used
+# by Table
 
 function expression_positions(ex,subx)
     posns = Array(Array{Int,1},0)
