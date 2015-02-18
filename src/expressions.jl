@@ -297,13 +297,23 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
         end
 end
 
+## Apply
+
 @sjdoc Apply "
 Apply(f,expr) replaces the Head of expr with f. This also works for some
-Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55.
+Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55. Apply can be used
+in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
 "
-apprules(mx::Mxpr{:Apply}) = doapply(mx,mx[1],mx[2])
 
-function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
+# Why mkapprule does not work ?
+#mkapprule("Apply")
+apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
+
+# This allows things like:  Apply(f)([a,b,c])
+do_Apply(mx,f) = mx
+do_Apply(mx,x,y) = mx
+
+function do_Apply(mx::Mxpr,h::SJSym,mxa::Mxpr)
     if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
         mx = mxpr(h,copy(margs(mxa)))
         mx = canonexpr!(mx)
@@ -315,17 +325,13 @@ function doapply(mx::Mxpr,h::SJSym,mxa::Mxpr)
     mx
 end
 
-
-function doapply(mx::Mxpr,h,mxa::Mxpr)
-    mx = mxpr(h,margs(mxa))
-end
-
+do_Apply(mx::Mxpr,h,mxa::Mxpr) = mxpr(h,margs(mxa))
 
 # Apply operation to a typed numeric array.
 # We can build these functions with a macro and
 # mapping from  :Times -> mmul
 # :Cos -> cos, etc.
-function doapply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
+function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     if h == :Plus
         s = zero(T)
         for i in 1:length(arr)
@@ -336,7 +342,7 @@ function doapply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     return mx
 end
 
-doapply(mx,x,y) = mx
+## Reverse
 
 function Base.reverse(mx::Mxpr)
     mx1 = copy(mx)

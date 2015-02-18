@@ -416,6 +416,7 @@ function do_GenHead(mx,f::Function)
     f(margs(mx)...)
 end
 
+# This feature was added to Mma sometime after 3.0
 # Assume operator version of an SJulia "function". Eg, Map
 # Map(q)([1,2,3])
 function do_GenHead(mx,head::Mxpr)
