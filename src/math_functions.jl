@@ -293,14 +293,47 @@ apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
 do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
 
-# These are not enough
+# Mma allows complex numbers of mixed Real type. Julia does not.
+# Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
 mkapprule("Re")
 do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
 do_Re(mx::Mxpr{:Re}, x::Real) = x
+
+function do_Re(mx::Mxpr{:Re}, m::Mxpr{:Times})
+    f = m[1]
+    return is_imaginary_integer(f) ? do_Re_imag_int(m,f) : mx    
+end
+
+# dispatch on type of f. Maybe this is worth something.
+function do_Re_imag_int(m,f)
+    nargs = copy(margs(m))
+    shift!(nargs)
+    if length(nargs) == 1
+        return mxpr(:Times,-imag(f),mxpr(:Im,nargs))
+    else
+        return mxpr(:Times,-imag(f),mxpr(:Im,mxpr(:Times,nargs)))
+    end    
+end
+
 mkapprule("Im")
 do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
 do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
-      
+
+function do_Im(mx::Mxpr{:Im}, m::Mxpr{:Times})
+    f = m[1]
+    return is_imaginary_integer(f) ? do_Im_imag_int(m,f) : mx
+end
+
+function do_Im_imag_int(m,f)
+    nargs = copy(margs(m))
+    shift!(nargs)
+    if length(nargs) == 1
+        return mxpr(:Times,imag(f),mxpr(:Re,nargs))
+    else
+        return mxpr(:Times,imag(f),mxpr(:Re,mxpr(:Times,nargs)))
+    end    
+end
+
 # apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
 # do_Numerator(mx::Mxpr{:Numerator},args...) = mx
 # function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})

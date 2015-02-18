@@ -19,6 +19,9 @@ is_Number(x) = false
 is_Complex(x::Complex) = true
 is_Complex(x) = false
 
+is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
+is_imaginary_integer(x) = false
+
 atomq(x::Mxpr) = false
 atomq(x) = true
 
