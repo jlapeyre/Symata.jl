@@ -141,6 +141,12 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 # We definitely need to dispatch on a hash query, or types somehow
 # Other rewrites needed, but not done.
 function rewrite_expr(ex::Expr)
+    for i in 1:length(ex.args)
+        x = ex.args[i]
+        if is_type(x,Expr) && x.head == :macrocall
+            ex.args[i] = eval(x)
+        end
+    end
     if is_unary_minus(ex)    #  - b --> -1 * b
         ex = rewrite_unary_minus(ex)
     elseif is_binary_minus(ex)  #  a - b --> a + -b.
