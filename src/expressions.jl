@@ -389,7 +389,8 @@ apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1])
 
 @sjdoc Map "
 Map(f,expr) returns f applied to each element in a copy of expr.
-f can be an SJulia object or a Julia function.
+f can be an SJulia object or a Julia function. Map can be used in
+an operator form. For example Map(f)(expr).
 "
 
 mkapprule("Map")

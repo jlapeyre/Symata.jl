@@ -410,6 +410,14 @@ end
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
+
+# Head is a Julia function. Apply it to the arguments
 function do_GenHead(mx,f::Function)
     f(margs(mx)...)
+end
+
+# Assume operator version of an SJulia "function". Eg, Map
+# Map(q)([1,2,3])
+function do_GenHead(mx,head::Mxpr)
+    mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
 end
