@@ -89,6 +89,8 @@ function extomx(ex::Expr)
         head = :Jxpr           # This allows running Julia code from within SJulia.
         push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                                # But, this is the same effect as evaling ex
+    elseif ex.head == :macrocall
+        return eval(ex )
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
