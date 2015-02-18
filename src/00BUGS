@@ -11,3 +11,6 @@ b^(2+n) , but does not.
 Also want
 (b^m)*(b^n) --> b^(m+n)
 ------------
+Simplify this:
+(2 + 2 * I)/2 --> 1//1 + 1//1I
+------------
