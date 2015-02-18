@@ -245,6 +245,7 @@ function meval(mx::Mxpr)
         nmx = flatten!(nmx)
         if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end        
         nmx = canonexpr!(nmx)
+#        if is_Mxpr(nmx,:Plus) setfixed(nmx) end  This cannot be done, in general
     end
     res = apprules(nmx)
     if res == nothing

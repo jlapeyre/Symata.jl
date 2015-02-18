@@ -17,7 +17,9 @@ typealias FlatT Union(Mxpr{:Plus},Mxpr{:Times})
 # takes 0.00925 s, that is only a little bit faster.
 # So maybe optimizing here is not worth anything at the moment.
 # At SJulia cli, m3 = m1 + m2 --> 0.04 s.
-# Maxima generate the two sums much more slowly but adds
+# calling setfixed() after canonexpr cuts this time to 0.01s
+# But, this cannot be done, in general.
+# Maxima generates the two sums much more slowly but adds
 # them much more quickly.
 function flatten!{T<:FlatT}(mx::T)
     needsflat = false
