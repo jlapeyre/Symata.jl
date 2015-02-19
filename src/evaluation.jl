@@ -429,6 +429,8 @@ end
 # This feature was added to Mma sometime after 3.0
 # Assume operator version of an SJulia "function". Eg, Map
 # Map(q)([1,2,3])
+# But, not all functions use the first operator. Eg for MatchQ it is
+# the second
 function do_GenHead(mx,head::Mxpr)
     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
 end

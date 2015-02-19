@@ -585,16 +585,33 @@ doreplacerepeated(mx,a,b) = mx
 
 
 @sjdoc MatchQ "
-MatchQ(expr,pattern) returns true if expr matches pattern.
+MatchQ(expr,pattern) returns true if expr matches pattern. MatchQ can
+be used in operator form. For example, myintq = MatchQ(_Integer).
 "
 @sjexamp( MatchQ,
          ("MatchQ( 1, _Integer)", "true"),
          ("ClearAll(gg,xx,b)",""),
          ("MatchQ( gg(xx) , _gg)", "true"),
          ("MatchQ( b^2, _^2)","true"))
+
 function apprules(mx::Mxpr{:MatchQ})
-    (gotmatch,cap) = cmppat(mx[1],just_pattern(mx[2]))
+    do_MatchQ(mx,margs(mx)...)
+#    (gotmatch,cap) = cmppat(mx[1],just_pattern(mx[2]))
+#    gotmatch
+end
+
+function do_MatchQ(mx,expr,pat)
+    (gotmatch,cap) = cmppat(expr,just_pattern(pat))
     gotmatch
+end
+
+function do_MatchQ(mx,pat)
+    mx
+end
+
+# for operator form of MatchQ
+function do_GenHead(mx,head::Mxpr{:MatchQ})
+    mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
 
 @sjdoc FullForm "
