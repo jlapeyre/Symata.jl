@@ -6,8 +6,8 @@ evaluation sequence modeled on Mathematica, although this by no means
 a fixed decision.
 
 The focus now is not on implementing specific mathematical
-computation, but rather on testing implmentations of core features and
-subsystems that are effcient or can be made efficient. Some important
+computation, but rather on testing implementations of core features and
+subsystems that are efficient or can be made efficient. Some important
 features are pattern matching and the evaluation sequence and data
 structures that support it.
 
@@ -101,7 +101,7 @@ this document.
 
 This documentation can be printed from within SJulia
 by entering `?, SymName` at the `sjulia` prompt. Note the comma, which
-is neccessary because limitations in the provisional parsing method.
+is necessary because limitations in the provisional parsing method.
 `Help(Symname)` prints the same documentation. This allows you to type
 `@ex Help(SymName)` from Julia.
 
@@ -139,7 +139,7 @@ a + b
 Using the SJulia mode or the `@ex` macro is essentially using a language distinct
 from Julia. In particular, the evaluation sequence, and binding of symbols to
 storage is separate from Julia. But there is also some work done on allowing
-use of SJulia direclty from Julia. For instance, these
+use of SJulia directly from Julia. For instance, these
 
 ```julia
 julia> ex = :x + 1
@@ -150,8 +150,8 @@ a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 
 make Julia bindings of SJulia expressions to the symbols ex and m.
 
-Here are a few commands (at the sjulia repl, or as a argument to the @ex macro).
-There are many more commands available, mostly to support experimenting with
+Here are a few commands (or functions) (at the sjulia repl, or as a argument to the @ex macro).
+There are many more listed below, mostly to support experimenting with
 design of SJulia.
 
 * `SetJ(x,val)` set a Julia variable
@@ -290,13 +290,14 @@ See also TimeOff, TimeOn, Timing, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
 ##### Apply
 
 Apply(f,expr) replaces the Head of expr with f. This also works for some
-Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55.
+Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55. Apply can be used
+in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
 
 
 
 ##### AtomQ
 
-AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
+AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 
 See also EvenQ and OddQ.
@@ -314,7 +315,7 @@ the attribute Protected, and may have others.
 BF(n) converts the number, or string n to a BigFloat. SJulia currently neither
 detects overflow, nor automatically promotes types from fixed to arbitrary precision.
 
-See also BI.
+See also BI and Big.
 
 
 ##### BI
@@ -322,7 +323,15 @@ See also BI.
 BI(n) converts the number n to a BigInt. SJulia currently neither
 detects integer overflow, nor automatically promote integers to BigInts.
 
-See also BF.
+See also BF and Big.
+
+
+##### Big
+
+Convert a number to a maximum precision representation (typically
+'BigInt' or 'BigFloat')
+
+See also BF and BI.
 
 
 ##### BuiltIns
@@ -334,8 +343,7 @@ have the Protected attribute.
 
 ##### ByteCount
 
-ByteCount(expr) gives number of bytes in expr. Not everything is counted
-correctly at the moment.
+ByteCount(expr) gives number of bytes in expr.
 
 
 
@@ -394,7 +402,7 @@ returns the result of only the final evaluation.
 
 ##### Depth
 
-Depth(expr) gives the maximum number of indicies required to specify
+Depth(expr) gives the maximum number of indices required to specify
 any part of expr, plus 1.
 
 
@@ -438,6 +446,7 @@ sjulia> DownValues(f)
 [HoldPattern(f(x_))->(x^2)]
 ```
 
+
 ##### Dump
 
 Dump(expr) prints an internal representation of expr. This is similar to
@@ -449,7 +458,7 @@ See also DumpHold.
 ##### DumpHold
 
 DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
+Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 
 See also Dump.
@@ -476,13 +485,6 @@ for the example are pushed onto the terminal history so they can be retrieved an
 edited and re-evaluated. Example(s,n) runs the nth example for symbol s. When viewing
 documentation strings via ? SomeHead, the examples are printed along with the
 documentation string, but are not evaluated.
-
-
-
-##### ExpToTrig
-
-ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
-But, the transformation from Cosh to Cos is not implemented.
 
 
 
@@ -554,6 +556,7 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 ##### Help
 
 Help(sym) prints documentation for the symbol sym. Eg: Help(Expand).
+.Help() lists all documented symbols.
 Help(All -> true) prints all of the documentation.
 
 
@@ -567,6 +570,14 @@ I is the imaginary unit
 ##### If
 
 If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch
+
+
+
+##### IntegerDigits
+
+IntegerDigits(n,[, base][, pad]) Returns an array of the digits of "n" in the given base,
+optionally padded with zeros to a specified size. In contrast to Julia, more significant
+digits are at lower indexes.
 
 
 
@@ -599,6 +610,14 @@ sjulia> m = :( [1:3] )
  3
 ```
 
+```
+Call a Julia function
+sjulia> tf = :( time )
+
+sjulia> tf()
+1.424287593897437e9
+```
+
 
 ##### Keys
 
@@ -610,6 +629,7 @@ Keys(d) returns a list of the keys in Dict d
 
 LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
 This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
+A more accurate name is NodeCount.
 
 
 
@@ -622,15 +642,18 @@ Julia `length'.
 
 
 
-##### Log
+##### Map
 
-Log(x) gives the natural logarithm of x.
+Map(f,expr) returns f applied to each element in a copy of expr.
+f can be an SJulia object or a Julia function. Map can be used in
+an operator form. For example Map(f)(expr).
 
 
 
 ##### MatchQ
 
-MatchQ(expr,pattern) returns true if expr matches pattern.
+MatchQ(expr,pattern) returns true if expr matches pattern. MatchQ can
+be used in operator form. For example, myintq = MatchQ(_Integer).
 
 
 Examples
@@ -670,6 +693,13 @@ a
 ```
 
 
+##### N
+
+N(expr) tries to give a the numerical value of expr.
+N(expr,p) tries to give p decimal digits of precision.
+
+
+
 ##### OddQ
 
 OddQ(expr) returns true if expr is an odd integer.
@@ -699,7 +729,7 @@ sjulia> Pack(f(1,2,3))
 
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be acheived less efficiently with expr[n1][n2]...
+The same can be achieved less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
@@ -709,13 +739,34 @@ Julia types such as Array and Dict.
 
 ##### Permutations
 
-Permutations(expr) give a list of all permuations of elements in expr.
+Permutations(expr) give a list of all permutations of elements in expr.
 
 
 
 ##### Pi
 
 Pi is the trigonometric constant π.
+
+
+
+##### Position
+
+Position(expr,x) returns a list of part specifications of positions in
+expr at which x occurs. Only literal values for x are supported, not
+patterns
+
+
+
+##### Precision
+
+Precision(x) gets the precision of a floating point number x, as defined by the
+effective number of bits in the mantissa.
+
+
+
+##### Primes
+
+Primes(n) returns a collection of the prime numbers <= "n"
 
 
 
@@ -732,7 +783,7 @@ Range(n1,n2) returns the List of numbers from n1 through n2.
 Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
 di may be negative. Floats and some symbolic arguments are supported.
 You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
-This uses emebedded Julia to create a typed Array and then unpacks it to a List.
+This uses embedded Julia to create a typed Array and then unpacks it to a List.
 
 
 
@@ -760,8 +811,23 @@ sjulia> Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)
 ##### ReplaceAll
 
 ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
+ReplaceAll(expr,List(rule1,rule2,...)) replaces parts at all levels in expr according to the
+list or rules. If given explicitly, the rules must be given as List(...) rather than
+[...] because of a parsing error.
 
 See also Replace.
+
+Examples
+
+```
+sjulia> ClearAll(zz,b,c)
+
+sjulia> zz = 10 * b^2 * (c+d)
+zz = 10 * b^2 * (c+d)
+
+sjulia> ReplaceAll(zz, List(c => 3,d => 2) )
+50*b^2
+```
 
 
 ##### Reverse
@@ -821,6 +887,20 @@ are separate from those in Julia, ie, their table of bindings to symbols are sep
 
 
 
+##### Span
+
+Span(a,b) or a:b represents elements a through b.
+Span(a,b,c) or a:b:c represents elements a through b in steps of c.
+expr(a:b) returns elements a through b of expr, with the same head as expr.
+
+
+
+##### StringInterpolation
+
+ " string1  $a string2 " interpolates the value of 'a' into the string.
+
+
+
 ##### StringLength
 
 StringLength(s) returns the length of the string s.
@@ -846,6 +926,12 @@ See also Age, DirtyQ, Fixed, HAge, and Unfix.
 
 Table(expr,[i,imax]) returns a list of expr evaluated imax times with
 i set successively to 1 through imax. Other Table features are not implemented.
+Unusual examples:
+This calls an anonymous Julia function. It is currently very slow
+Table( (:((x)->(x^2))(i) ),[i,10])
+This is much faster
+f = :( g(x) = x^2 )
+Table( f(i), [i,10])
 
 
 
@@ -873,30 +959,42 @@ and the result.
 See also Allocated, TimeOff, TimeOn, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
 
 
+##### ToExpression
+
+ToExpression(str) converts string str to an expression.
+
+
+
+##### ToString
+
+ToStringLength(expr) returns the string of the printed form or expr.
+
+
+
 ##### TrDownOff
 
-TrDownOff() disables tracing attempted application of DownRule.
+TrDownOff() disables tracing attempted applications of DownRules.
 
 See also Allocated, TimeOff, TimeOn, Timing, TrDownOn, TrUpOff, and TrUpOn.
 
 
 ##### TrDownOn
 
-TrDownOn() enables tracing attempted application of DownRule.
+TrDownOn() enables tracing attempted applications of DownRules.
 
 See also Allocated, TimeOff, TimeOn, Timing, TrDownOff, TrUpOff, and TrUpOn.
 
 
 ##### TrUpOff
 
-TrUpOff() disables tracing attempted application of UpRule.
+TrUpOff() disables tracing attempted applications of UpRules.
 
 See also Allocated, TimeOff, TimeOn, Timing, TrDownOff, TrDownOn, and TrUpOn.
 
 
 ##### TrUpOn
 
-TrUpOn() enables tracing attempted application of UpRule.
+TrUpOn() enables tracing attempted applications of UpRules.
 
 See also Allocated, TimeOff, TimeOn, Timing, TrDownOff, TrDownOn, and TrUpOff.
 
@@ -978,17 +1076,39 @@ While(test,body) evaluates test then body in a loop until test does not return t
  -->
 <!--  LocalWords:  TraceOn TraceOff expr ReplaceAll subdirs symrepl
  -->
-<!--  LocalWords:  newrepl wrappermacro premxprcode Mathematica Eg
+<!--  LocalWords:  newrepl wrappermacro premxprcode Mathematica Eg di
  -->
 <!--  LocalWords:  matcher replaceall Mxpr oldmxpr SJSym SJulia meval
  -->
-<!--  LocalWords:  canonicalizer Orderless cossinrule  Mma
+<!--  LocalWords:  canonicalizer Orderless cossinrule  Mma BigInt arg
  -->
-<!--  LocalWords:  Fateman IIRC OTOOH else's matlab AbstractSJSym
+<!--  LocalWords:  Fateman IIRC OTOOH else's matlab AbstractSJSym eg
  -->
 <!--  LocalWords:  Bool symname sjsym downvalues subtype AbstractMxpr
  -->
-<!--  LocalWords:  RuleDelayed addone lexically FloatingPoint
+<!--  LocalWords:  RuleDelayed addone lexically FloatingPoint tryrule
  -->
-<!--  LocalWords:  BuiltIns
+<!--  LocalWords:  BuiltIns downvalue upvalue Maxima BuiltIn SymName
+ -->
+<!--  LocalWords:  infseval SSJSym timestamps Timestamp TimeOff AtomQ
+ -->
+<!--  LocalWords:  TimeOn TrDownOff TrDownOn TrUpOff TrUpOn EvenQ sym
+ -->
+<!--  LocalWords:  OddQ Builtin BigFloat BigInts builtin ByteCount tf
+ -->
+<!--  LocalWords:  UserSyms CompoundExpression DirtyQ timestamp HAge
+ -->
+<!--  LocalWords:  Syms imax imin SetDelayed UpSet UpValues DumpHold
+ -->
+<!--  LocalWords:  HoldPattern SomeHead FactorInteger incr Println gg
+ -->
+<!--  LocalWords:  FullForm tbranch fbranch IntegerDigits JVar Jxpr
+ -->
+<!--  LocalWords:  LeafCount NodeCount Dict's MatchQ myintq mx args
+ -->
+<!--  LocalWords:  zz ie StringInterpolation StringLength
+ -->
+<!--  LocalWords:  str HoldForm ToExpression ToString ToStringLength
+ -->
+<!--  LocalWords:  DownRules UpRules unsets Unprotect
  -->

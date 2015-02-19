@@ -298,7 +298,7 @@ function do_N(s::SJSym,pr::Integer)
 end
 
 @sjdoc Precision "
-Precsion(x) gets the precision of a floating point number x, as defined by the
+Precision(x) gets the precision of a floating point number x, as defined by the
 effective number of bits in the mantissa.
 "
 apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)

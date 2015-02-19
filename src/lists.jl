@@ -5,7 +5,7 @@ Range(n1,n2) returns the List of numbers from n1 through n2.
 Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
 di may be negative. Floats and some symbolic arguments are supported.
 You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
-This uses emebedded Julia to create a typed Array and then unpacks it to a List.
+This uses embedded Julia to create a typed Array and then unpacks it to a List.
 "
 
 # Need to check for uprules for free symbols
