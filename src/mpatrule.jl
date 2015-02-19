@@ -14,7 +14,7 @@ typealias CondT Union(ExSym,DataType,Function)
 type Pvar
     name::Symbol  # name
     head::Symbol  # head to match
-    ptest::Symbol   # head of "function" to call (meval) for bool test
+    ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 typealias ExSymPvar Union(ExSym,Pvar)
 
@@ -89,6 +89,7 @@ function cmppat(ex,pat::PatternT)
 end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
+# pre-allocate the capture Dict. This can be much faster in a loop.
 function cmppat(ex,pat::PatternT, capt)
     empty!(capt)
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
@@ -151,10 +152,14 @@ function matchpat(cvar,ex)
     end
     headmatch || return false
     cc = getpvarptest(cvar)
-    is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")
     if cc != :None
-        testmx = mxpr(cc,ex)
-        ptestmatch = (infseval(testmx) == true)
+        is_type_less(cc,Mxpr) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
+        #    is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")    
+        #        testmx = mxpr(cc,ex) # this alloc is slow in a loop.
+        #        ptestmatch = (infseval(testmx) == true)
+        cc.args[1] = ex
+        ptestmatch = (infseval(cc) == true)
+        #        cc.args = save
     else
         ptestmatch = true
     end
