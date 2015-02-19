@@ -392,6 +392,7 @@ FactorInteger(n) gives a list of prime factors of n and their multiplicities.
 "
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
+## Map
 
 @sjdoc Map "
 Map(f,expr) returns f applied to each element in a copy of expr.
@@ -418,3 +419,14 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     end
     mxpr(mhead(expr),nargs)
 end
+
+## ToExpression
+
+@sjdoc ToExpression "
+ToExpression(str) converts string str to an expression.
+"
+set_attribute(:ToExpression, :Protected)
+apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
+do_ToExpression(mx,s::String) = eval(parse("@ex " * mx[1]))
+do_ToExpression(mx,s) = s
+do_ToExpression(mx,args...) = mx
