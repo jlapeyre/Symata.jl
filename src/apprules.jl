@@ -436,24 +436,36 @@ Julia types such as Array and Dict.
 # a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
 # a[i,j] parses to Part(a,i,j).
 function apprules(mx::Mxpr{:Part})
-    texpr = expr(mx)
-    tinds = inds(mx)
+    do_Part(mx,margs(mx)...)
+end
+
+function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     for j in 1:length(tinds)
-        if is_Mxpr(tinds[j],:Span)
-            spanargs = margs(tinds[j])
-            lsp = length(spanargs)
-            if lsp == 2
-                nargs = slice(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
-            elseif lsp == 3
-                nargs = slice(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
-            end
-            texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
-        else
-            ind::Int = tinds[j]
-            ind = ind < 0 ? length(texpr)+ind+1 : ind
-            texpr = ind == 0 ? mhead(texpr) : texpr[ind]
-        end
+        texpr = get_part_one_ind(texpr,tinds[j])
     end
+    return texpr
+end
+
+function get_part_one_ind(texpr::Union(Mxpr,Array),ind::Integer)
+#    ind::Int = tind
+    ind = ind < 0 ? length(texpr)+ind+1 : ind
+    texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+    return texpr
+end
+
+function get_part_one_ind(texpr::Dict,tind)
+    return texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
+end
+
+function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
+    spanargs = margs(tind)
+    lsp = length(spanargs)
+    if lsp == 2
+        nargs = slice(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
+    elseif lsp == 3
+        nargs = slice(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
+    end
+    texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
     return texpr
 end
 

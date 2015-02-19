@@ -417,7 +417,8 @@ Count(expr,pattern) returns the number of arguments in expr than match pattern.
 Only matching on one level is supported. This is for testing the performance
 of pattern matching. Count(pattern) can be used as the head of an expression,
 as an operator. For instance cop = Count(_^2) defines a function that counts
-the number of arguments that have the form of a square.
+the number of arguments that have the form of a square. Count also works when
+expr is a Julia Dict.
 "
 
 @sjexamp( Count,
@@ -432,7 +433,7 @@ end
 
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
-function do_Count(mx,expr::Mxpr,pat)
+function do_Count(mx,expr,pat)
     args = margs(expr)
     c = 0
     jp = just_pattern(pat)

@@ -243,6 +243,15 @@ typealias Symbolic Union(Mxpr,SJSym)
 @inline mhead(mx::Mxpr) = mx.head
 @inline margs(mx::Mxpr) = mx.args
 @inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
+
+# Everything that is not an Mxpr
+mhead(x) = typeof(x)
+# This allows, in some cases, SJulia code to operate directly on a Dict.
+# Eg, it works with Count.
+# If we always access via iterators, then we don't need to 'collect' the values
+# Probably not slower, either.
+margs(d::Dict) = collect(values(d))
+
 @inline setage(mx::Mxpr) = mx.age = increvalage()
 @inline getage(mx::Mxpr) = mx.age
 getfreesyms(mx::Mxpr) = mx.syms
@@ -279,9 +288,8 @@ end
 @inline upvalues(m::Mxpr) = upvalues(mhead(m))
 @inline downvalues(m::Mxpr) = downvalues(mhead(m))
 
-# Allow any Head, Integer, anything.
+# Allow any Head; Integer, anything.
 downvalues(x) = newdownvalues()
-
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find
