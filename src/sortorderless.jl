@@ -297,8 +297,8 @@ end
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
 
+# Try: Assume we can mutate and reuse the same Mxpr.
 # (x^n)^m --> x^(n*m) , only for real n,m
-# This works, but not as called
 function mulpowers(mx::Mxpr{:Power})
     (e,b) = numeric_expt_and_base(mx)
     (e1,b1) = numeric_expt_and_base(base(mx))
