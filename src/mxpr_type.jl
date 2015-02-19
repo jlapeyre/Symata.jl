@@ -231,6 +231,9 @@ setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 @inline getindex(mx::Mxpr, k::Int) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0
+# We are claiming a lot of space here. But in SJulia,
+# Most things should have length zero.
+Base.length(x) = 0
 @inline Base.endof(mx::Mxpr) = length(mx)
 # Using this iterator is probably less efficient than iterating directly over the args
 # Base.start(mx::Mxpr) = margs(mx)[1] # could use start here too
