@@ -457,6 +457,12 @@ function apprules(mx::Mxpr{:Part})
     return texpr
 end
 
+@sjdoc Span "
+Span[a,b] or a:b represents elements a through b.
+Span[a,b,c] or a:b:c represents elements a through b in steps of c.
+expr[a:b] returns elements a through b of expr, with the same head as expr.
+"
+
 @sjdoc Head "
 Head(expr) returns the head of expr, which may be an SJulia expression or object of any
 Julia type. The head of a Julia expression is Expr, eg.
