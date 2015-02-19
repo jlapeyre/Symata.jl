@@ -44,18 +44,22 @@ function make_math()
          (:sinc,),(:cosc,),(:log,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
          (:erf,),(:erfc,),(:erfi,),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
-         (:conj,:Conjugate),(:angle,:Arg),(:cis,),(:gamma,),(:lgamma,:LogGamma),
+         (:angle,:Arg),(:cis,),(:gamma,),(:lgamma,:LogGamma),
          (:lfact,:LogFactorial),(:digamma,),(:trigamma,),(:airyai,:AiryAi),
          (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
          (:eta,),(:zeta,)
-         
          ]
 
-    single_arg_float = [(:sign,),(:signbit,),(:cbrt,),(:erfinv,:ErfInv),(:erfcinv,:ErfcInv),(:invdigamma,:InvDigamma)
+    single_arg_float_int_complex =
+        [
+         (:conj,:Conjugate)
+         ]
+    
+    single_arg_float = [(:cbrt,),(:erfinv,:ErfInv),(:erfcinv,:ErfcInv),(:invdigamma,:InvDigamma)
                         ]
 
-    single_arg_float_int = [(:factorial,)]
+    single_arg_float_int = [(:factorial,),(:sign,),(:signbit,:SignBit)]
 
     single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
                       (:isprime,:PrimeQ)
@@ -99,6 +103,14 @@ function make_math()
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Real) = $jf(x)" # may not work for rational
         evalmath(parse(aprs2))
     end
+
+    # This is all numbers, I suppose
+    for x in single_arg_float_int_complex
+        jf,sjf = get_sjstr(x)
+        do_common(sjf)
+        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Number) = $jf(x)" # may not work for rational
+        evalmath(parse(aprs2))
+    end    
 
     for x in single_arg_int
         jf,sjf = get_sjstr(x)
