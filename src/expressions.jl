@@ -383,11 +383,18 @@ function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
     mxpr(mhead(expr),nargs)
 end
 
+# We create one Mxpr outside the loop. Old
+# code (commented out) created Mxpr every time.
+# This saves 30 percent of time and allocation in some tests.
 function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
+    println("In this domap")
     args = margs(expr)
     nargs = newargs(args)
+    mx = mxpr(f,0) # reserve one argument
     for i in 1:length(args)
-        nargs[i] = doeval(mxpr(f,args[i]))
+        mx.args[1] = args[i]  # map f of one argument
+        nargs[i] = doeval(mx)
+#        nargs[i] = doeval(mxpr(f,args[i]))
     end
     mxpr(mhead(expr),nargs)
 end
