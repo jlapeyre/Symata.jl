@@ -42,3 +42,7 @@ using Base.Test
 @testex   pf(a,b) == a(b)
 @ex       ClearAll(pf,x,y,a,b)
 
+@testex Count(Range(10), 2) == 1
+@testex Count(Range(10), _Integer) == 10
+@testex Count(Range(10), _String) == 0
+

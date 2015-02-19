@@ -345,7 +345,7 @@ end
 ## Permutations
 
 @sjdoc Permutations "
-Permutations(expr) give a list of all permutations of elements in expr.
+Permutations(expr) give a list of all permuations of elements in expr.
 "
 
 function apprules(mx::Mxpr{:Permutations})
@@ -402,3 +402,47 @@ apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 do_ToExpression(mx,s::String) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
+
+## Count
+
+@sjdoc Count "
+Count(expr,pattern) returns the number of arguments in expr than match pattern.
+Only matching on one level is supported. This is for testing the performance
+of pattern matching. Count(pattern) can be used as the head of an expression,
+as an operator. For instance cop = Count(_^2) defines a function that counts
+the number of arguments that have the form of a square.
+"
+
+@sjexamp( Count,
+         ("Count(Range(10), _Integer)", "10"),
+         ("Count(_Integer)(Range(10))", "10"),
+         ("Count(Range(10), 2)", "1"))
+
+set_attribute(:Count, :Count)
+function apprules(mx::Mxpr{:Count})
+    do_Count(mx,margs(mx)...)
+end
+
+
+# This does a lot of allocating. Probably in pattern
+# matching. Need to look into reducing, reusing structures.
+function do_Count(mx,expr::Mxpr,pat)
+    args = margs(expr)
+    c = 0
+    jp = just_pattern(pat)
+    for i in 1:length(args)
+        (gotmatch,cap) = cmppat(args[i],jp)
+        gotmatch ? c += 1 : nothing
+    end
+    return c
+end
+
+# for operator form.
+function do_Count(mx,pat)
+    mx
+end
+
+# operator form of Count
+function do_GenHead(mx,head::Mxpr{:Count})
+    mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+end
