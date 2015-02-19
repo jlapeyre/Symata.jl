@@ -1,3 +1,16 @@
+# return true if h occurs anywhere in tree as a head
+function has_head(mx::Mxpr, h::Symbol)
+    mhead(mx) == h && return true
+    for i in 1:length(mx)
+        has_head(mx[i],h) && return true
+    end
+    return false
+end
+has_head(x,h::Symbol) = false
+
+#has_head(x) = error("has_head: unimplemented")
+
+# These should go somewhere else.
 # This is applied at toplevel after expression has been constructed.
 # It is applied now to binomial expansion. Needs to be applied more
 # generally.
