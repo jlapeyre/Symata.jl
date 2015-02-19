@@ -49,7 +49,6 @@ using Base.Test
 @testex Position(m, c(d,b)) == [[3,1],[4]]
 @ex ClearAll(f,a,b,g,c,d,m)
 
-
 # Test Span
 @ex ClearAll(m)
 @ex m = Range(10)
