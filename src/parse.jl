@@ -86,7 +86,7 @@ function extomx(ex::Expr)
             end
         else
             head = :Span
-            extomxarr(a,newa)            
+            extomxarr(a,newa)
            # error("extomx: No translation for $ex can't use colon this way")
         end
     elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
@@ -95,6 +95,9 @@ function extomx(ex::Expr)
                                # But, this is the same effect as evaling ex
     elseif ex.head == :macrocall
         return eval(ex )
+    elseif ex.head == :string
+        head = :StringInterpolation
+        extomxarr(a,newa)
     else        
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")

@@ -28,6 +28,7 @@ include("module.jl")
 include("trig.jl")
 include("protected_symbols.jl")
 include("math_functions.jl")
+include("strings.jl")
 # This last file loads slowly because it has to jit a lot of code
 #include("code_in_SJulia.jl")
 nothing
