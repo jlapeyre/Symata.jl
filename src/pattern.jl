@@ -27,6 +27,10 @@ function just_pattern(mx::Mxpr)
     PatternT(patterntopvar(mx), :All)
 end
 
+function just_pattern(s)
+    PatternT(patterntopvar(s), :All)
+end
+
 function patterntopvar(mx::Mxpr)
     nargs = newargs()
     for x in mx.args
