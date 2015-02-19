@@ -191,8 +191,8 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
-do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Integer,z::Complex{T}) = log(b,z)
-do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Integer,z::T) = log(b,z)
+do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
+do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
 
 # This is probably quite slow, but might be correct in many cases
 # The same idea could be used for other functions, such as sqrts etc.
