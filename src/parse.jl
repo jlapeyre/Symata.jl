@@ -80,10 +80,14 @@ function extomx(ex::Expr)
                 push!(newa,extomx(a[1]),getsym(ptargs[2]))
             else
                 # something here later
-                error("extomx: No translation for $ex")
+                head = :Span
+                extomxarr(a,newa)
+                # error("extomx: No translation for $ex, can't use colon this way")
             end
         else
-            error("extomx: No translation for $ex")
+            head = :Span
+            extomxarr(a,newa)            
+           # error("extomx: No translation for $ex can't use colon this way")
         end
     elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
         head = :Jxpr           # This allows running Julia code from within SJulia.

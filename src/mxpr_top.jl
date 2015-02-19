@@ -16,6 +16,7 @@ const JTOMSYM  =
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->  (hmmm)
       :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
+#      :(:) => :Span, # we can't use this, or have to be more careful with it
       :vcat => :List,
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
@@ -33,6 +34,9 @@ function jtomsym(x::Symbol)
 end
 
 jtomsym(x) = extomx(x)
+
+# We need a better interface for doing this kind of thing.
+MTOJSYM[:Span] = :(:)
 
 # Inverse of translations already present in MTOJSYM will be recorded
 mtojsym(s::SJSym) = mtojsym(symname(s))
@@ -59,7 +63,7 @@ for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
     OPTYPE[op] = :binary
 end
 
-for op in (:Plus, :Times)
+for op in (:Plus, :Times, :Span)
     OPTYPE[op] = :infix
 end
 

@@ -48,3 +48,12 @@ using Base.Test
 @ex m = f(a,b,g(c(d,b),a(a,b(c(d)))),c(d,b))
 @testex Position(m, c(d,b)) == [[3,1],[4]]
 @ex ClearAll(f,a,b,g,c,d,m)
+
+
+# Test Span
+@ex ClearAll(m)
+@ex m = Range(10)
+@ex m[3] = Range(10)*4
+@testex m[3,4:6] == [16,20,24]
+@testex m[3,1:10:2] == [4,12,20,28,36]
+@ex ClearAll(m)

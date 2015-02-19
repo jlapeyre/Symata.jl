@@ -420,6 +420,7 @@ any part of expr, plus 1.
 "
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 
+## Part
 
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
@@ -438,9 +439,20 @@ function apprules(mx::Mxpr{:Part})
     texpr = expr(mx)
     tinds = inds(mx)
     for j in 1:length(tinds)
-        ind::Int = tinds[j]
-        ind = ind < 0 ? length(texpr)+ind+1 : ind
-        texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+        if is_Mxpr(tinds[j],:Span)
+            spanargs = margs(tinds[j])
+            lsp = length(spanargs)
+            if lsp == 2
+                nargs = slice(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
+            elseif lsp == 3
+                nargs = slice(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
+            end
+            texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
+        else
+            ind::Int = tinds[j]
+            ind = ind < 0 ? length(texpr)+ind+1 : ind
+            texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+        end
     end
     return texpr
 end
