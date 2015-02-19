@@ -381,7 +381,7 @@ Julia `dump'.
 
 @sjdoc DumpHold "
 DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
+Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 "
 
@@ -415,7 +415,7 @@ ByteCount(expr) gives number of bytes in expr.
 apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
 
 @sjdoc Depth "
-Depth(expr) gives the maximum number of indices required to specify
+Depth(expr) gives the maximum number of indicies required to specify
 any part of expr, plus 1.
 "
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
@@ -425,7 +425,7 @@ apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be achieved less efficiently with expr[n1][n2]...
+The same can be acheived less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
@@ -486,7 +486,7 @@ apprules(mx::Mxpr{:JVar}) = eval(symname(mx[1]))
 
 
 @sjdoc AtomQ "
-AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
+AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 "
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
@@ -989,19 +989,39 @@ all user defined symbols.
 apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 
 @sjdoc Help "
-Help(sym) prints documentation for the symbol sym. Eg: Help(Expand).
-.Help() lists all documented symbols.
+Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
+Help() lists all documented symbols. Due to parsing restrictions at the repl, for some
+topics, the input must be a string. The same help can be accessed with
+h\"topic\", which is implemented as a Julia special string literal.
+Help(regex) prints a list of topics whose documentation text matches the
+regular expression regex.
 Help(All -> true) prints all of the documentation.
 "
 
-function apprules(mx::Mxpr{:Help})
+apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
+
+# function apprules(mx::Mxpr{:Help})
+#     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
+#         print_all_docs()
+#     else
+#         print_doc(margs(mx)...)
+#     end
+# end
+
+function do_Help(mx,args...)
     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
         print_all_docs()
     else
+        if length(margs(mx)) == 0
+            print_doc("Help")
+        end
         print_doc(margs(mx)...)
     end
 end
 
+function do_Help(mx,r::Regex)
+    print_matching_topics(r)
+end
 
 @sjdoc EvenQ "
 EvenQ(expr) returns true if expr is an even integer.
