@@ -51,6 +51,8 @@ function check_doc_query(ex)
     end
 end
 
+print_doc(s::String) = print_doc(symbol(s))
+
 function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
     for q in qs
@@ -60,6 +62,14 @@ function print_doc(qs...)
             format_sjexamples(q)
         else
             println("No documentation for '", string(q),"'.")
+        end
+    end
+end
+
+function print_matching_topics(r::Regex)
+    for (t,doc) in SJDOCS
+        if ismatch(r,doc)
+            println(t)
         end
     end
 end
