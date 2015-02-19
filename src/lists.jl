@@ -208,7 +208,56 @@ function range_args3(n0,n,di,off)
     args
 end
 
-## quickly hacked Table, just for testing other parts of evaluation
+## ConstantArray
+
+@sjdoc ConstantArray "
+ConstantArray(expr,n) creates a list of n copies of expr.
+"
+
+# We take only attribute to be Protected. So expr is evaled already
+function apprules(mx::Mxpr{:ConstantArray})
+    do_ConstantArray(mx,margs(mx)...)
+end
+
+do_ConstantArray(mx,args...) = mx
+
+# We need annotation for Number below, because deepcopy tries
+# to do something very slow with numbers.
+# Copying a small Mxpr is extremely slow
+# 'c^2' is 40 times slower than Symbol 'c'.
+function do_ConstantArray(mx,expr,n)
+    nargs = newargs(n)
+    for i in 1:n
+        nargs[i] = deepcopy(expr)
+    end
+    setfixed(mxpr(:List,nargs))
+end
+
+function do_ConstantArray(mx,expr::Mxpr,n)
+    nargs = newargs(n)
+    for i in 1:n
+        nargs[i] = setfixed(deepcopy(expr))
+    end
+    setfixed(mxpr(:List,nargs))
+end
+
+function do_ConstantArray(mx,expr::Union(Number,Symbol),n)
+    nargs = newargs(n)
+    for i in 1:n
+        nargs[i] = expr
+    end
+    setfixed(mxpr(:List,nargs))
+end
+
+function do_ConstantArray(mx,expr::String,n)
+    nargs = newargs(n)
+    for i in 1:n
+        nargs[i] = copy(expr)
+    end
+    setfixed(mxpr(:List,nargs))
+end
+
+## This is the OLD version of Table. We are using the version in lists_new.jl
 
 # Create lexical scope for Table.
 # Replace symbol os with ns in ex
@@ -292,6 +341,12 @@ function do_table{T<:Integer}(imax::T,isym,ex)
     end
     return args
 end
+
+
+
+
+
+
 
 # The speed penalty for val::Any instead of val::Int, is factor of 10^4.
 # Setting isym.val is by far the slowest step in Table(i,[i,10^6])

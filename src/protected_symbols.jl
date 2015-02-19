@@ -60,7 +60,7 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "String", "StringLength", "ToString", "Protected", "TimeOn", "TimeOff",
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff",
           "LeafCount","ByteCount","Depth","Permutations","FactorInteger","IntegerDigits",
-          "Reverse","Help","Primes","Precision","Span",
+          "Reverse","Help","Primes","Precision","Span","ConstantArray",
                  "ans" # protect ans to keep it out of user symbols
            ],
            :Protected)
