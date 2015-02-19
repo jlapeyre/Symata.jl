@@ -431,8 +431,7 @@ function apprules(mx::Mxpr{:Count})
 end
 
 
-# This does a lot of allocating. Probably in pattern
-# matching. Need to look into reducing, reusing structures.
+# Allocating outside loop and sending Dict as arg is 3x faster in one test
 function do_Count(mx,expr::Mxpr,pat)
     args = margs(expr)
     c = 0

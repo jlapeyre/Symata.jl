@@ -196,13 +196,36 @@ end
 typealias MxprArgs Array{Any,1}
 typealias FreeSyms Dict{Symbol,Bool}
 
+# Creating an Array of these Dicts and using them is slower than
+# Just creating them one at a time. So this is disabled.
+# type Freesymsind
+#     ind::Int
+# end
+# const Freesymspoolsize = 10^6
+# const Freesymspool = Array(FreeSyms,Freesymspoolsize)
+# const freesymsind = Freesymsind(Freesymspoolsize)
+# function disable_newsymsdict()
+#     if freesymsind.ind < Freesymspoolsize - 1
+#         freesymsind.ind += 1
+#         return Freesymspool[freesymsind.ind]
+#     else
+#         for i in 1:Freesymspoolsize
+#             Freesymspool[i] = Dict{Symbol,Bool}()
+#         end
+#         freesymsind.ind = 1
+#         return Freesymspool[freesymsind.ind]
+#     end
+# end
+
+
+# This is T in Mxpr{T} for any Head that is not a Symbol
+# We have duplicate information about the Head in a field, as well.
 type GenHead
 end
-    
 
 abstract AbstractMxpr
 type Mxpr{T} <: AbstractMxpr
-    head::Any          # making this Any instead of SJSym slows things a bit
+    head::Any  # making this Any instead of Symbol slows things a bit
     args::MxprArgs
     fixed::Bool
     canon::Bool
@@ -318,44 +341,32 @@ checkhash(x) = x
 # end
 # checknewhash(x) = (x,true)
 
+##### Create Mxpr
+
 # Create a new Mxpr from list of args
 @inline function mxpr(s::SJSym,iargs...)
-    args = newargs()
-    for x in iargs push!(args,x) end
+    n = length(iargs)
+    args = newargs(n)
+    for i in 1:n
+        args[i] = iargs[i]
+    end
+    # args = newargs()  for reference. this appears to be no slower.
+    # for x in iargs
+    #     push!(args,x)
+    # end
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
-#    mx = Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,Bool}(),0,0,Any)    
     setage(mx)
 #    checkhash(mx)
     mx
 end
 
-# We currently dissallow heads that are not a Symbol.
-# We need to extend this.
-#mxpr{T}(x::T, args...) = error("Can't create an SJulia expression with head of type ", T)
-
 # Create a new Mxpr from Array of args
 @inline function mxpr(s::SJSym,args::MxprArgs)
-    mx =Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
-#    mx =Mxpr{symname(s)}(s,args,false,false,Dict{Symbol,Bool}(),0,0,Any)    
+    mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
 #    checkhash(mx)    
     mx
 end
-
-# Function cannot be parameter type
-# function mxpr(s::Function,iargs...)
-#     args = newargs()
-#     for x in iargs push!(args,x) end
-#     mx = Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
-#     setage(mx)
-#     mx
-# end
-
-# function mxpr(s::Function,args::MxprArgs)
-#     mx =Mxpr{s}(s,args,false,false,newsymsdict(),0,0,Any)
-#     setage(mx)
-#     mx
-# end
 
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,args::MxprArgs)
@@ -367,8 +378,11 @@ end
 
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,iargs...)
-    args = newargs()
-    for x in iargs push!(args,x) end
+    len = length(iargs)
+    args = newargs(len)
+    for i in 1:len
+        args[i] = iargs[i]
+    end
     mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
 #    checkhash(mx)
