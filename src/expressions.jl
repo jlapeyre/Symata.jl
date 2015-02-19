@@ -430,8 +430,9 @@ function do_Count(mx,expr::Mxpr,pat)
     args = margs(expr)
     c = 0
     jp = just_pattern(pat)
+    capt = capturealloc()
     for i in 1:length(args)
-        (gotmatch,cap) = cmppat(args[i],jp)
+        (gotmatch,capt) = cmppat(args[i],jp,capt)
         gotmatch ? c += 1 : nothing
     end
     return c

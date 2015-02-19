@@ -89,6 +89,13 @@ function cmppat(ex,pat::PatternT)
 end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
+function cmppat(ex,pat::PatternT, capt)
+    empty!(capt)
+    success_flag = _cmppat(ex,pat.ast,capt) # do the matching
+    return (success_flag,capt)  # report whether matched, and return captures    
+end
+cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat),capt)
+
 capturealloc() = Dict{Symbol,Any}()
 
 # capture expression ex in pvar, or return false if the new value conflicts with old.
