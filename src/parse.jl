@@ -1,7 +1,12 @@
 ## Translate Expr to Mxpr
 
 # Input lines are parsed by the Julia parser into Julia Expr.
-# Here, we reinterpret the Expr into a Mxpr
+# This code reinterprets the Expr into a Mxpr.
+
+# At the command line h"topic" prints help
+macro h_str(s)
+    print_doc(s)
+end
 
 extomx(x) = x
 function extomx(s::Symbol)
