@@ -1,5 +1,9 @@
 module SJulia
 
+# This is for testing using SJulia code from Julia
+# There is not much done here.
+
+
 # why cant import apprules ?
 #import Main: apprules
 import Main: Mxpr, mxpr
