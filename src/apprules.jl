@@ -473,7 +473,6 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 apprules(mx::Mxpr{:Head}) = gethead(margs(mx,1))
 gethead(mx::Mxpr) = mhead(mx)
 gethead(s::SJSym) = getsym(:Symbol)
-#gethead(s::Symbol) = getsym(:JuliaSymbol)  # out dated
 gethead(ex) = typeof(ex)
 
 @sjdoc JVar "
