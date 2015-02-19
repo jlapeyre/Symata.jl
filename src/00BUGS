@@ -14,3 +14,7 @@ Also want
 Simplify this:
 (2 + 2 * I)/2 --> 1//1 + 1//1I
 ------------
+Completing \gamma at the CLI with sjulia (modified repl)
+causes Julia to quit with BoundsError. This happens in
+julia mode and sjulia mode.
+------------
