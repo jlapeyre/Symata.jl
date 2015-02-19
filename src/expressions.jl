@@ -13,19 +13,19 @@ function apply_upvalues_to_args!(mx::Mxpr)
     end
     args = margs(mx)
     for sym in goodsyms
-        mx = deep_applyupvalues!(mx,sym)
+        mx = deep_apply_upvalues!(mx,sym)
     end
     return mx
 end
 
-function deep_applyupvalues!(mx::Mxpr,sym)
+function deep_apply_upvalues!(mx::Mxpr,sym)
     args = margs(mx)
     for i in 1:length(mx)
-        args[i] = deep_applyupvalues!(args[i],sym)
+        args[i] = deep_apply_upvalues!(args[i],sym)
     end
     return applyupvalues(mx,sym)
 end
-deep_applyupvalues!(x,sym) = x
+deep_apply_upvalues!(x,sym) = x
 
 
 function _doexpand(x)
