@@ -406,6 +406,8 @@ function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol
     end
 end
 
+mkapprule(head::Symbol) = mkapprule(string(head))
+
 function mkapprule(head::String)
     s1 = ":" * head
     s2 = "do_" * head
