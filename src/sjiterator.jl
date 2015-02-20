@@ -81,7 +81,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
                 itererror(mx)
             end
         elseif len == 4
-            nargs = deepcopy(args) # needed if we do the computation below
+            nargs = recursive_copy(args) # needed if we do the computation below
             (i,imin,imax,di) = (nargs[1],nargs[2],nargs[3],nargs[4])
             #  Mma does not simplify this: x + y + -2*(x + y)
             #  Mma does simplify this: x + y + -1*(x + y)            
@@ -144,7 +144,7 @@ function make_sjitera{T}(args::Array{T,1})
             itererrora(args)
         end
     elseif len ==  2
-        nargs = deepcopy(args)
+        nargs = recursive_copy(args)
         num_iters = doeval(mxpr(:Plus, nargs[2], -1 * nargs[1]))
         if is_type_less(num_iters, Real) # args2 - args1
             return SJIterA2(args[1],args[2],floor(Int,num_iters)+1)
@@ -152,7 +152,7 @@ function make_sjitera{T}(args::Array{T,1})
             itererrora(args)
         end
     elseif len == 3
-        nargs = deepcopy(args) # needed if we do the computation below
+        nargs = recursive_copy(args) # needed if we do the computation below
         (imin,imax,di) = (nargs[1],nargs[2],nargs[3])
         tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
         num_iters = doeval(tst)
