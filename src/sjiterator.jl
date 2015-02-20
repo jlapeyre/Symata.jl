@@ -44,10 +44,10 @@ itererror(mx) = error(mx, " does not have the form of an iterator.")
 make_sjiter(x) = itererror(x)
 
 function make_sjiter(mx::Mxpr{:List})
-    make_sjiter(margs(mx))
+    make_sjiter(mx,margs(mx))
 end
 
-function make_sjiter{T}(args::Array{T,1})
+function make_sjiter{T}(mx,args::Array{T,1})
 #    args = margs(mx)
     len = length(args)
     len < 1 && itererror(mx)
@@ -64,10 +64,13 @@ function make_sjiter{T}(args::Array{T,1})
         if  len ==  2
             if is_Mxpr(args[2],:List)
                 return SJIterList(args[1],margs(args[2]))
-            elseif is_type_less(args[2],Real)
-                return SJIter2(args[1],args[2])
             else
-                itererror(mx)
+                imax = doeval(args[2])
+                if is_type_less(imax,Real)
+                    return SJIter2(args[1],doeval(args[2]))
+                else
+                    itererror(mx)
+                end
             end
         elseif len == 3        # We need to overload ops to make these easier to write
             # do we need deepcopy here ?
