@@ -12,6 +12,8 @@ const JTOMSYM  =
       :- => :Minus,
       :* => :Times,
       :^ => :Power,
+      :(*=) => :TimesBy,
+      :(+=) => :AddTo,
       :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->  (hmmm)
@@ -59,7 +61,8 @@ end
 const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
-           :Set, :SetDelayed, :UpSet ) # need :Set here
+           :Set, :SetDelayed, :UpSet, :(*=), :(+=),
+           :TimesBy, :AddTo ) # need :Set here
     OPTYPE[op] = :binary
 end
 
