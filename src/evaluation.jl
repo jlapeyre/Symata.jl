@@ -216,6 +216,30 @@ function meval(mx::Mxpr)
         ind = " " ^ get_meval_count()
         println(ind,"<<", get_meval_count(), " " , mx)
     end
+    nmx::Mxpr = meval_arguments(mx)
+    setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
+    res = meval_apply_all_rules(nmx)
+    is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
+    decrement_meval_count()
+    return res
+end
+
+function meval_apply_all_rules(nmx::Mxpr)
+    if  ! is_canon(nmx)
+        if get_attribute(nmx,:Flat) nmx = flatten!(nmx) end
+        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
+        res = canonexpr!(nmx)
+    end
+    res = apprules(res)  # apply "builtin" rules
+    is_Mxpr(res) || return res
+    res = ev_upvalues(res)    
+    res = ev_downvalues(res)
+    merge_args_if_emtpy_syms(res) # merge free symbol lists from arguments
+    return res
+end
+
+# Evaluate arguments of mx, construct and return new Mxpr
+function meval_arguments(mx::Mxpr)
     nhead = doeval(mhead(mx))
     local nargs::MxprArgs
     mxargs::MxprArgs = margs(mx)
@@ -240,22 +264,7 @@ function meval(mx::Mxpr)
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
        splice_sequences!(nargs) : nothing
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
-    setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
-    if  ! is_canon(nmx)
-        nmx = flatten!(nmx)
-        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
-        res = canonexpr!(nmx)
-#        if is_Mxpr(nmx,:Plus) setfixed(nmx) end  This cannot be done, in general
-    end
-    res = apprules(res)
-    if is_Mxpr(res)
-        res = ev_upvalues(res)    
-        res = ev_downvalues(res)
-        merge_args_if_emtpy_syms(res)
-    end
-    is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
-    decrement_meval_count()
-    return res
+    return nmx
 end
 
 # Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
@@ -424,7 +433,7 @@ function do_GenHead(mx,f::Function)
     f(margs(mx)...)
 end
 
-# This feature was added to Mma sometime after 3.0
+# This feature was added to Mma sometime after 3.0: actually, in 2014
 # Assume operator version of an SJulia "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is
