@@ -750,45 +750,6 @@ function do_Comparison(mx::Mxpr{:Comparison},theargs...)
     eval(Expr(:comparison,nargs...))
 end
 
-# function apprules(mx::Mxpr{:Comparison})
-#     nargs1 = newargs()
-#     i = 1
-#     while i <= length(mx)  # do all the != and ==
-#         if is_SJSym(mx[i])
-#             if symname(mx[i]) == :(==)
-#                 if mx[i-1] == mx[i+1]
-#                     i += 1
-#                 else
-#                     return false
-#                 end
-#             elseif symname(mx[i]) == :(!=)
-#                 if mx[i-1] != mx[i+1]
-#                     i += 1
-#                 else
-#                     return false
-#                 end
-#             else
-#                 push!(nargs1,mx[i])
-#             end
-#         else
-#             push!(nargs1,mx[i])
-#         end
-#         i += 1
-#     end
-#     length(nargs1) == 1  && return true
-#     nargs = newargs()    
-#     for x in nargs1   # Do numeric inequalities
-#         if is_Number(x)
-#             push!(nargs,x)
-#         elseif is_comparison_symbol(x)
-#             push!(nargs,symname(x))
-#         else
-#             return mx
-#         end
-#     end
-#     eval(Expr(:comparison,nargs...))
-# end
-
 ## A few Number rules
 
 # These may not all be necessary.
