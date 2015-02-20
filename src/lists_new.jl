@@ -30,7 +30,6 @@ function apprules(mx::Mxpr{:Table})
     iter = mx[2]
     exprpos = expression_positions(expr,iter[1])
     imax = meval(iter[2])
-    #    ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
     ex = deepcopy(expr)
     args = do_table_new(imax,iter[1],ex,exprpos) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
