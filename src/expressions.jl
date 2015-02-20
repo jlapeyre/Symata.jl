@@ -269,7 +269,7 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
         end
 end
 
-## Apply
+#### Apply
 
 @sjdoc Apply "
 Apply(f,expr) replaces the Head of expr with f. This also works for some
@@ -314,7 +314,7 @@ function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     return mx
 end
 
-## Reverse
+#### Reverse
 
 function Base.reverse(mx::Mxpr)
     mx1 = copy(mx)
@@ -342,7 +342,7 @@ function do_reverse(mx::Mxpr)
     setfixed(mxpr(mhead(mx),reverse(margs(mx))))
 end
 
-## Permutations
+#### Permutations
 
 @sjdoc Permutations "
 Permutations(expr) give a list of all permuations of elements in expr.
@@ -364,7 +364,7 @@ FactorInteger(n) gives a list of prime factors of n and their multiplicities.
 "
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
-## Map
+#### Map
 
 @sjdoc Map "
 Map(f,expr) returns f applied to each element in a copy of expr.
@@ -399,7 +399,7 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     mxpr(mhead(expr),nargs)
 end
 
-## ToExpression
+#### ToExpression
 
 @sjdoc ToExpression "
 ToExpression(str) converts string str to an expression.
@@ -410,7 +410,7 @@ do_ToExpression(mx,s::String) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
 
-## Count
+#### Count
 
 @sjdoc Count "
 Count(expr,pattern) returns the number of arguments in expr than match pattern.
@@ -454,3 +454,24 @@ end
 function do_GenHead(mx,head::Mxpr{:Count})
     mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
+
+#### Push!
+
+@sjdoc Push! "
+Push!(a,val) pushes val onto the expression that symbol a evaluates to.
+Push! is outside the Mma programming model, which requires immutable
+expressions. Re-evaluation, and updating metadata is not implemented.
+Re-evaluation can be forced with Unfix(a).
+"
+
+@sjexamp( Push!,
+         ("ClearAll(a,b)",""),
+         ("a = []",""),
+         ("For(i=1, i < 1000, Increment(i), Push!(a,Symbol(\"b\$i\")))",""))
+
+set_pattributes(["Push!"],[:HoldFirst])
+apprules(mx::Mxpr{:Push!}) = do_Push(mx,margs(mx)...)
+do_Push(mx,args...) = mx
+do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
+do_Push1(mx,x,val) = mx
+do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); val)
