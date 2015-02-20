@@ -247,11 +247,6 @@ function meval(mx::Mxpr)
         res = canonexpr!(nmx)
 #        if is_Mxpr(nmx,:Plus) setfixed(nmx) end  This cannot be done, in general
     end
-    if res == nothing
-        is_meval_trace()  && println(ind,">> " , res)
-        decrement_meval_count()
-        return nothing
-    end    
     res = apprules(res)
     if is_Mxpr(res)
         res = ev_upvalues(res)    
