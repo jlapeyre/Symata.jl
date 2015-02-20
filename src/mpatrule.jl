@@ -37,6 +37,9 @@ type PatternT
     cond::CondT
 end
 
+#function Base.copy(p::PatternT)
+#end
+
 PatternT(ast::ExSymPvar) = PatternT(ast,:All)
 pattern(ast::ExSym) = pattern(ast,:All)
 
@@ -198,6 +201,7 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
+    # We need something more efficient than deepcopy !
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
     cd = Dict{Any,Any}()   
     for (p,c) in capt  # type inferred? move to aux function ?
