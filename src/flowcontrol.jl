@@ -1,4 +1,20 @@
-## For
+# For lexically scoped variables. Replace symbol os with ns in ex
+function replsym(ex,os,ns)
+    if is_Mxpr(ex)
+        args = margs(ex)
+        @inbounds for i in 1:length(args)
+            args[i] = replsym(args[i],os,ns)
+        end
+    end
+    if ex == os
+        return ns
+    else
+        return ex
+    end
+end
+
+
+#### For
 
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, i = i + 1 , Println(i))
@@ -43,7 +59,7 @@ function apprules(mx::Mxpr{:If})
     tres ? doeval(tbranch) : doeval(fbranch)
 end
 
-## While
+#### While
 
 @sjdoc While "
 While(test,body) evaluates test then body in a loop until test does not return true.
@@ -56,7 +72,7 @@ function apprules(mx::Mxpr{:While})
     end
 end
 
-## Do
+#### Do
 
 @sjdoc Do "
 Do(expr,[imax]) evaluates expr imax times.

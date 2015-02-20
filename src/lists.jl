@@ -1,3 +1,4 @@
+#### Range
 
 @sjdoc Range "
 Range(n) returns the List of integers from 1 through n.
@@ -208,7 +209,7 @@ function range_args3(n0,n,di,off)
     args
 end
 
-## ConstantArray
+#### ConstantArray
 
 @sjdoc ConstantArray "
 ConstantArray(expr,n) creates a list of n copies of expr.
@@ -239,8 +240,8 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
     for i in 1:n
         nargs[i] = setfixed(recursive_copy(expr))
-#        nargs[i] = setfixed(deepcopy(expr))        
-#        nargs[i] = setfixed(copy(expr))
+#        nargs[i] = setfixed(deepcopy(expr))  slow 
+#        nargs[i] = setfixed(copy(expr))  incorrect
     end
     setfixed(mxpr(:List,nargs))
 end
@@ -261,114 +262,149 @@ function do_ConstantArray(mx,expr::String,n)
     setfixed(mxpr(:List,nargs))
 end
 
-## This is the OLD version of Table. We are using the version in lists_new.jl
+#### Table
 
-# Create lexical scope for Table.
-# Replace symbol os with ns in ex
-function replsym(ex,os,ns)
-    if is_Mxpr(ex)
-        args = margs(ex)
-        @inbounds for i in 1:length(args)
-            args[i] = replsym(args[i],os,ns)
-        end
-    end
-    if ex == os
-        return ns
-    else
-        return ex
-    end
-end
+## Newer Table.
+# Instead of localizing the iterating var iter in expr, we
+# find and record the positions in expr where iter occurs
+# and set all occurence in a loop each time before evaluating.
+# Testing with the type NSYM, we see that a simpler structure
+# can be copied much more quickly.
+# It runs TableNew(a(i),[i,10^5]) twice as fast as the usual
+# Table, but it is still slow. Probably creating new mxprs
+# is expensive. But, older code had free sym lists and was
+# faster. Still don't understand.
 
-# We only do Table(expr,[i,imax])
-# Our Table is rather slow. Slower than Maxima makelist.
-# Table(a(i),[i,10000]) is 2 to 3 x slower than makelist( i, i, 1, 10000)
-# If we cheat and only do a single evaluation,
-# and setfixed() then the speed is the same.
-# But, the 3rd party 'table' for Maxima is 4 times faster than makelist
-# in this example.
-# Mma 3.0  Timing[mm = Table[a[i],{i,10^5}];]  {0.05 Second, Null}
-# 3rd pary maxima: table(a(i),[i,10^5]);  0.14 s
-# At commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
-# Table(a(i),[i,10000]) takes bout 0.45--0.49 s, makelist reports 0.503.
+@sjdoc Table "
+Table(expr,[i,imax]) returns a list of expr evaluated imax times with
+i set successively to 1 through imax. Other Table features are not implemented.
+Unusual examples:
+This calls an anonymous Julia function. It is currently very slow
+Table( (:((x)->(x^2))(i) ),[i,10])
+This is much faster
+f = :( g(x) = x^2 )
+Table( f(i), [i,10])
+"
 
-set_attribute(:TableOld, :HoldAll)
-
-function apprules(mx::Mxpr{:TableOld})
+# This is also rather limited
+#set_attribute(:TableNew, :HoldAll)
+function apprules(mx::Mxpr{:Table})
     expr = mx[1]
+    if is_Mxpr(expr,:Jxpr)
+        expr = eval(expr)
+    end
     iter = mx[2]
-    isym = get_localized_symbol(iter[1])
+    exprpos = expression_positions(expr,iter[1])
     imax = meval(iter[2])
-#    issym = createssym(isym,Int)  ## Trying out Typed variable
-    ex = replsym(deepcopy(expr),iter[1],isym) # takes no time, for simple expression
-    args = do_table(imax,isym,ex) # creating a symbol is pretty slow
-    removesym(isym)
+    ex = deepcopy(expr)
+    args = do_table_new(imax,iter[1],ex,exprpos) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
-    # This mergesyms no longer makes this much faster, because overall Table has slowed by more than 5x
-    # syms are being merged alot somewhere else
-    mergesyms(mx1,:nothing) # not correct, but stops the merging
+#    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
     return mx1
 end
 
-# These tests concern not Table per se, but the efficiency
-# of evaluation, in particular assigning values to symbols.
-# commit 3478f83ee403238704ad6af81b42e1c7f4d07cc8
-# Testing Table(a(i),[i,10^5])
-# changes                   Time
-# normal                    0.49
-# disable setsymval         0.35
-# 
-# commit 0d2332b17eb7e5c518a86b1b3044b691fddb5b87
-# setsymval is now much faster because we changed data structure in SSJSym
-# Testing Table(a(i),[i,10^5])
-# normal                    0.36
-# *sigh* Cannot reproduce the performance in the previous line. Even if
-# I return to that commit. Time is closer to 0.5 than 0.35
-# setsymval still seems to be an expensive operation
-#
-# 4f7d9f6dff207ae2c95736ab058627f503fbad26
-# With this commit, Time is 1.83 s. For same code as above.  Table is
-# becoming slower. We try using a stripped-down meval1 from
-# alteval.jl, time is .43 with no gc.
+# Making this a kernel is not only useful, but faster.
+# Set part in expr given by spec to val
+function set_part_spec2(expr,spec,val)
+    p = expr
+    @inbounds for k in 2:(length(spec)-1)
+        p = p[spec[k]]
+    end
+    @inbounds p[spec[end]] = val
+end
 
-function do_table{T<:Integer}(imax::T,isym,ex)
+function set_all_part_specs2(expr,specs,val)
+    @inbounds for j in 1:length(specs)
+        set_part_spec2(expr,specs[j],val)
+    end    
+end
+
+function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)
-    sisym = getssym(isym)
-#    setsymval(sisym,1)    
+    clearsyms(exin) # Clear the iterator variable
+    ex = exin
     @inbounds for i in 1:imax
-        setsymval(sisym,i)
-#        args[i] = meval(ex)
+        #        ex = copy(exin)
+        set_all_part_specs2(ex,exprpos,i)
+        unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
 #        args[i] = meval1(ex)
-        setfixed(args[i])  # no difference ?
+#        args[i] = meval(ex)
+        setfixed(args[i])
+        setcanon(args[i])
     end
     return args
 end
 
+# For symbols, either the iterator, or not.
+function do_table_new{T<:Integer}(imax::T,isym,ex::SJSym,exprpos)
+    args = newargs(imax)
+    if isym == ex
+        @inbounds for i in 1:imax
+            args[i] = doeval(i)
+            setfixed(args[i])
+            setcanon(args[i])
+        end
+    else
+        @inbounds for i in 1:imax
+            args[i] = doeval(ex)
+            setfixed(args[i])
+            setcanon(args[i])
+        end
+    end
+    return args
+end
 
+# ex is anything other than Mxpr or Symbol
+function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
+    args = newargs(imax)
+    @inbounds for i in 1:imax
+        args[i] = ex
+    end
+    return args
+end
 
+# Broken. we need to replace this in Table with find_positions in parts.jl
+## Return positions in ex at which subx is a subexpression
+# Returns an array of arrays representing part specifications
+# ie each array returned is a list of positions at levels.
+# The first index refers to the top level and is always zero.
+# It essentially means nothing unless the postion spec is
+# just [0], in which case, it means the head matchs.
+# We actually only know that this works in a few cases used
+# by Table
 
+# This seems to be broken, but somehow it works for Table ?
+# Maybe it works for everything but heads.
+function expression_positions(ex,subx)
+    posns = Array(Array{Int,1},0)
+    lev = Array(Int,10)
+    clev::Int = 1
+    lev[clev] = 0
+    _expr_positions(ex,subx,lev,posns,clev)
+    return posns
+end
 
-
-
-# The speed penalty for val::Any instead of val::Int, is factor of 10^4.
-# Setting isym.val is by far the slowest step in Table(i,[i,10^6])
-# Much slower than Mma and SBCL
-# If we us val::Array{Any,1}, the speed penalty is better by a couple
-# orders of magnitude
-
-# type NSYM
-# #    val::Int
-#     val::Array{Any,1}
-# end
-
-# function testset()
-#     ss = NSYM(Any[0])
-#     sum0 = 0
-#     for i in 1:10^6
-#         ss.val[1] = i
-#         sum0 += ss.val[1]
-#     end
-#     sum0
-# end
+# Looks broken, but is apparently working for Table
+function _expr_positions(ex,subx,lev,posns,clev)
+    if is_Mxpr(ex)
+        args = margs(ex)
+        @inbounds for i in 1:length(args)
+            lev[clev+1] = i
+            _expr_positions(args[i],subx,lev,posns,clev+1)
+        end
+        if mhead(ex) == subx  # this is only found in toplevel case
+            lev[clev] = 0     # so, move it out of here.
+            nlev = copy(lev)
+            push!(posns,slice(nlev,1:clev))
+        end
+    end
+    if ex == subx
+        nlev = copy(lev)
+        push!(posns,slice(nlev,1:clev))
+    else
+        nothing
+    end
+end
