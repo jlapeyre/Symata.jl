@@ -16,7 +16,7 @@ const JTOMSYM  =
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->  (hmmm)
       :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
-#      :(:) => :Span, # we can't use this, or have to be more careful with it
+      #      :(:) => :Span, # this is done specially in extomx. colon means various things
       :vcat => :List,
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
