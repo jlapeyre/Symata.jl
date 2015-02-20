@@ -132,7 +132,6 @@ do_set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_set(mx,lhs,localize_module!(rhs))
 # We renamed stuff and the Module code above calls the old things. We need to fix this.
 set_and_setdelayed(mx,y,z) = mx
 
-
 #### Increment
 
 @sjdoc Increment "
@@ -142,7 +141,7 @@ Increment(n) increments the value of n by 1 and returns the old value.
 apprules(mx::Mxpr{:Increment}) = do_Increment(mx,margs(mx)...)
 do_Increment(mx,x::SJSym) = do_Increment1(mx,x,symval(x))
 function do_Increment1(mx,x,xval::Number)
-    setsymval(x,xval+1)
+    setsymval(x,mplus(xval,1))  # maybe + is ok here.
     return xval
 end
 function do_Increment1(mx,x,val)
@@ -151,6 +150,45 @@ function do_Increment1(mx,x,val)
 end
 do_Increment(mx,args...) = mx
 
+#### TimesBy
+
+@sjdoc TimesBy "
+TimesBy(a,b) sets a to a * b and returns the new value. This is currently
+faster than a = a * b for numbers.
+"
+
+apprules(mx::Mxpr{:TimesBy}) = do_TimesBy(mx,margs(mx)...)
+do_TimesBy(mx,x::SJSym,val) = do_TimesBy1(mx,x,symval(x),val)
+function do_TimesBy1(mx,x,xval::Number, val::Number)
+    r = mmul(xval,val)
+    setsymval(x,r)
+    return r
+end
+function do_TimesBy1(mx,x,xval,val)
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Time,xval,val))))
+    return symval(x)
+end
+do_TimesBy(mx,args...) = mx
+
+#### AddTo
+
+@sjdoc AddTo "
+AddTo(a,b) sets a to a + b and returns the new value. This is currently
+faster than a = a + b for numbers.
+"
+
+apprules(mx::Mxpr{:AddTo}) = do_AddTo(mx,margs(mx)...)
+do_AddTo(mx,x::SJSym,val) = do_AddTo1(mx,x,symval(x),val)
+function do_AddTo1(mx,x,xval::Number, val::Number)
+    r = mplus(xval,val)
+    setsymval(x,r)
+    return r
+end
+function do_AddTo1(mx,x,xval,val)
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Time,xval,val))))
+    return symval(x)
+end
+do_AddTo(mx,args...) = mx
 
 #### UpSet
 
@@ -967,18 +1005,6 @@ function apprules(mxt::Mxpr{:Allocated})
         setsymval(:ans,mx)  ## why here ?
     end
     mxpr(:List,a,mx)
-end
-
-@sjdoc CompoundExpression "
-CompoundExpression(expr1,expr2,...) or (expr1,expr2,...) evaluates each expression in turn and
-returns the result of only the final evaluation.
-"
-function apprules(mx::Mxpr{:CompoundExpression})
-    local res
-        @inbounds for i in 1:length(mx)
-            res = doeval(mx[i])
-        end
-    res
 end
 
 @sjdoc HAge "

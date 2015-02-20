@@ -166,3 +166,17 @@ function do_doloop(expr,iter::SJIterList)
     end
     removesym(isym)
 end
+
+#### CompoundExpression
+
+@sjdoc CompoundExpression "
+CompoundExpression(expr1,expr2,...) or (expr1,expr2,...) evaluates each expression in turn and
+returns the result of only the final evaluation.
+"
+function apprules(mx::Mxpr{:CompoundExpression})
+    local res
+        @inbounds for i in 1:length(mx)
+            res = doeval(mx[i])
+        end
+    res
+end

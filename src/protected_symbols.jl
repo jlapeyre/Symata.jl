@@ -12,7 +12,7 @@ set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattribu
 set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
 set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
 
-set_pattributes(["Pattern", "SetJ", "SetAttributes"], :HoldFirst)
+set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo"], :HoldFirst)
 
 set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "For", "If", "While", "Do",
