@@ -2,14 +2,6 @@
 # These evaluate expressions with builtin (protected) heads.
 # They are called from meval.
 
-# Would be nice to get something like this working to get
-# rid of boiler plate or allow changing how dispatch is done
-# And checking number of args.
-#macro apphead(sym,body...)
-#    name = :apprules
-#    :(function $(esc(name))(mx::Mxpr{$sym}) $body end)
-#end
-
 ## Application of Rules for many heads of Mxpr
 
 ## Head with no builtin or user defined evaluation code.
@@ -704,14 +696,28 @@ function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
         return a >= b
     elseif comp == :(<=)
         return a <= b
+    elseif comp == :(!=)
+        return a != b
     elseif comp == :(===)
         return a === b        
     end
     eval(Expr(:comparison,a,comp,b)) # This will be slow.
 end
 
+function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::T)
+    if comp == :(==)
+        return a == b
+    elseif comp == :(!=)
+        return a != b
+    elseif comp == :(===)
+        return a === b # probably not what we want
+    end
+    return mx
+end
+
 # This is pretty slow.
 function do_Comparison(mx::Mxpr{:Comparison},theargs...)
+#    println("Here $mx") A few still sneak through here
     nargs1 = newargs()
     i = 1
     while i <= length(mx)  # do all the != and ==
