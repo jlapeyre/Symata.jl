@@ -141,6 +141,25 @@ do_set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_set(mx,lhs,localize_module!(rhs))
 set_and_setdelayed(mx,y,z) = mx
 
 
+#### Increment
+
+@sjdoc Increment "
+Increment(n) increments the value of n by 1 and returns the old value.
+"
+
+apprules(mx::Mxpr{:Increment}) = do_Increment(mx,margs(mx)...)
+do_Increment(mx,x::SJSym) = do_Increment1(mx,x,symval(x))
+function do_Increment1(mx,x,xval::Number)
+    setsymval(x,xval+1)
+    return xval
+end
+function do_Increment1(mx,x,val)
+    setsymval(x,doeval(mxpr(:Plus,val,1)))
+    return val
+end
+do_Increment(mx,args...) = mx
+
+
 #### UpSet
 
 @sjdoc UpSet "

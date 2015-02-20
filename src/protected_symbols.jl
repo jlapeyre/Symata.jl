@@ -25,6 +25,8 @@ set_pattributes("Rule",:SequenceHold)
 
 set_pattributes(["Set","UpSet"],[:HoldFirst, :SequenceHold])
 
+set_pattributes(["Increment","Decrement"],[:HoldFirst, :ReadProtected])
+
 set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 
 set_pattributes(["Timing","Allocated","SetDelayed"], [:HoldAll,:SequenceHold])
