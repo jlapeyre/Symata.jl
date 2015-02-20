@@ -236,7 +236,8 @@ end
 function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
     for i in 1:n
-        nargs[i] = setfixed(deepcopy(expr))
+        nargs[i] = setfixed(deepcopy(expr))  # need to do this
+#        nargs[i] = setfixed(copy(expr))
     end
     setfixed(mxpr(:List,nargs))
 end
