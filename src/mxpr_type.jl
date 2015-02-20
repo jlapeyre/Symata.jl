@@ -372,10 +372,7 @@ checkhash(x) = x
     # for x in iargs
     #     push!(args,x)
     # end
-    mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
-    setage(mx)
-#    checkhash(mx)
-    mx
+    return mxpr(s,args)
 end
 
 # Create a new Mxpr from Array of args
