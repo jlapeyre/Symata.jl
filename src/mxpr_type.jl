@@ -284,6 +284,11 @@ global gotit = 0   # non constant global, only for testing
     mxpr(mhead(mx),args)
 end
 
+function Base.push!(mx::Mxpr,item)
+    push!(margs(mx),item)
+    mx
+end
+
 ## This belongs more with SSJsym above, but Mxpr is not yet defined
 @inline upvalues(m::Mxpr) = upvalues(mhead(m))
 @inline downvalues(m::Mxpr) = downvalues(mhead(m))
