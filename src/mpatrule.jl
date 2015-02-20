@@ -161,7 +161,19 @@ function matchpat(cvar,ex)
         #        testmx = mxpr(cc,ex) # this alloc is slow in a loop.
         #        ptestmatch = (infseval(testmx) == true)
         cc.args[1] = ex
-        ptestmatch = (infseval(cc) == true)
+        #ptestmatch = (infseval(cc) == true)
+        # This needs to be considered, organized, done at an earlier stage.
+        # Works for what we have now, but what about upvalues, maybe threadlist, ... ?
+        res = apprules(cc)
+        if res == true
+            ptestmatch = true
+        elseif res == false
+            ptestmatch = false
+        elseif (length(downvalues(mhead(cc))) != 0)
+            ptestmatch = ( infseval(applydownvalues(cc)) == true )
+        else
+            ptestmatch = false
+        end
         #        cc.args = save
     else
         ptestmatch = true
