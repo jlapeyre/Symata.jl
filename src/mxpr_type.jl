@@ -398,10 +398,7 @@ function mxpr(s,iargs...)
     for i in 1:len
         args[i] = iargs[i]
     end
-    mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
-    setage(mx)
-#    checkhash(mx)
-    mx
+    mxpr(s,args)
 end
 
 
