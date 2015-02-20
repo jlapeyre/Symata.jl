@@ -11,9 +11,15 @@ function apprules(mx::Mxpr{:For})
         body = mx[4]
     end
     doeval(start)
-    while doeval(test)
-        doeval(body)
-        doeval(incr)
+    if body != nothing
+        while doeval(test)
+            doeval(body)
+            doeval(incr)
+        end
+    else # This is not at all faster than doeval(nothing)
+        while doeval(test) 
+            doeval(incr)
+        end
     end
 end
 
