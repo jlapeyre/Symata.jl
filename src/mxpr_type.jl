@@ -498,7 +498,7 @@ end
 #    if mxage > getevalage() # && return false # check if *any* user symbol has changed.
 #        return false        # in test suite, this branch is never taken.
 #    end
-    for (sym,age) in mx.syms
+    for sym in keys(mx.syms) # is there a better data structure for this ?
         symage(sym) > mxage && return true        
     end
 #    symage(mhead(mx)) > mxage && return true
