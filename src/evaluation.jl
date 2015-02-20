@@ -275,10 +275,10 @@ end
 #
 # move this to mxpr_type
 function revisesyms(mx::Mxpr)
-    s = getfreesyms(mx)
+    s::FreeSyms = getfreesyms(mx)
 #    println("revising $mx:  $s")
-    mxage = getage(mx)
-    nochange = true     # Don't create a new symbol list if nothing changed
+    mxage::UInt64 = getage(mx)
+    nochange::Bool = true     # Don't create a new symbol list if nothing changed
     for sym in keys(s)  # Check if changes. Does this save or waste time ?
         if symage(sym) > mxage
             nochange = false
@@ -287,7 +287,7 @@ function revisesyms(mx::Mxpr)
     end
     # Need to return a copy, or Table(x^i + x*i + 1,[i,10]) shows a bug.
     nochange == true && return copy(s)
-    nsyms = newsymsdict()
+    nsyms::FreeSyms = newsymsdict()
     for sym in keys(s)
  #        mergesyms(nsyms,symval(sym))
         if symage(sym) > mxage

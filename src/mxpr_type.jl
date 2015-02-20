@@ -294,12 +294,12 @@ end
 @inline downvalues(m::Mxpr) = downvalues(mhead(m))
 
 # Allow any Head; Integer, anything.
-downvalues(x) = newdownvalues()
+@inline downvalues(x) = newdownvalues()
 
-function has_downvalues(mx::Mxpr)
+@inline function has_downvalues(mx::Mxpr)
     return ! isempty(downvalues(mhead(mx)))
 end
-has_downvalues(x) = false
+@inline has_downvalues(x) = false
 
 # hash function for expressions.
 # Mma and Maple claim to use hash functions for all expressions. But, we find
