@@ -339,7 +339,7 @@ function do_reverse(mx::Mxpr)
 #        println("mx is Orderless")
         return mx
     end
-    setfixed(mxpr(mx.head,reverse(margs(mx))))
+    setfixed(mxpr(mhead(mx),reverse(margs(mx))))
 end
 
 ## Permutations
