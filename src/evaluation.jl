@@ -238,29 +238,26 @@ function meval(mx::Mxpr)
         end
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
-    splice_sequences!(nargs) : nothing
-    nmx = mxpr(nhead,nargs)   # new expression with evaled args
+       splice_sequences!(nargs) : nothing
+    nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
     if  ! is_canon(nmx)
         nmx = flatten!(nmx)
-        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end        
-        nmx = canonexpr!(nmx)
+        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
+        res = canonexpr!(nmx)
 #        if is_Mxpr(nmx,:Plus) setfixed(nmx) end  This cannot be done, in general
     end
-    if nmx == nothing
-        is_meval_trace()  && println(ind,">> " , nmx)
+    if res == nothing
+        is_meval_trace()  && println(ind,">> " , res)
         decrement_meval_count()
         return nothing
     end    
-    res = apprules(nmx)
-    if res == nothing
-        is_meval_trace()  && println(ind,">> " , res)
-        decrement_meval_count()  # decrement at every exit point
-        return nothing
+    res = apprules(res)
+    if is_Mxpr(res)
+        res = ev_upvalues(res)    
+        res = ev_downvalues(res)
+        merge_args_if_emtpy_syms(res)
     end
-    res = ev_upvalues(res)    
-    res = ev_downvalues(res)
-    merge_args_if_emtpy_syms(res)
     is_meval_trace() && println(ind,get_meval_count(), ">> ", res)
     decrement_meval_count()
     return res
