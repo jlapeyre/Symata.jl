@@ -556,14 +556,6 @@ end
     end
 end
 
-
-# refresh a copy that is not in the symbol table. how does this happen?
-#getsym(sjs::SJSym) = getsym(symname(sjs))
-
-#get_attribute(s::Symbol, a::Symbol) = get_attribute(getsym(s),a)
-#set_attribute(s::Symbol, a::Symbol) = set_attribute(getsym(s),a)
-#unset_attribute(s::Symbol, a::Symbol) = unset_attribute(getsym(s),a)
-
 function protectedsymbols()
     args = newargs()
     for s in keys(SYMTAB)
