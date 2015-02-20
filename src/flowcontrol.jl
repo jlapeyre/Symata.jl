@@ -2,8 +2,12 @@
 
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, i = i + 1 , Println(i))
+Using Increment[i] is currently much faster. There is no special syntax yet for
+Increment.
 "
 
+# This is pretty fast: For(i=1,i<1000, Increment(i))
+# Note using 10^3 is much slower. Mma3.0 also is slower with 10^3
 function apprules(mx::Mxpr{:For})
     (start,test,incr)= (mx[1],mx[2],mx[3])
     body = nothing
