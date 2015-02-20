@@ -125,7 +125,6 @@ function infseval(mxin::Mxpr)
     if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than on mxin ?
 #        println("got dirty syms $mxin")
         unsetfixed(mxin) # flag mxin as not being at its fixed point in this environment.
-                         # we should check first if *any* user symbol has changed. this can be a single flag.
     end                  # This might be good for iterating over list of args in Mxpr.
     if is_fixed(mxin)  # If mxin was already fixed and none of its free vars changed, just return.
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end

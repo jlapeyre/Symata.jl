@@ -495,6 +495,7 @@ end
 @inline function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
+    mxage > getevalage() && return false # check if *any* user symbol has changed.
     for (sym,age) in mx.syms
         symage(sym) > mxage && return true        
     end
