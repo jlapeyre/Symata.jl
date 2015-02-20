@@ -151,7 +151,8 @@ function matchpat(cvar,ex)
     res = apprules(cc)  # we decide that apprules (builtin) overrides and up or down values.
     res == true && return true
     res == false && return false
-    if (length(downvalues(mhead(cc))) != 0)
+#    if (length(downvalues(mhead(cc))) != 0)
+    if has_downvalues(cc)
         return infseval(applydownvalues(cc)) == true  # or maybe just return what infseval gives
     else
         return false

@@ -301,38 +301,40 @@ end
 
 ## Try applying downvalues
 
-@inline function ev_downvalues(res::Mxpr)
-    if length(downvalues(mhead(res))) != 0  res = applydownvalues(res)  end
-    return res
+@inline function ev_downvalues(mx::Mxpr)
+    if has_downvalues(mx)
+        return applydownvalues(mx)
+    else
+        return mx
+    end
 end
 @inline ev_downvalues(x) = x
 
 ## Applying upvalues. This has to be efficient, we must not iterate over args.
 #  Instead, we check free-symbol list.
 
-@inline function ev_upvalues(res::Mxpr)
-    merge_args_if_emtpy_syms(res) # do upvalues are for free symbols in res.
-    for s in listsyms(res)
+@inline function ev_upvalues(mx::Mxpr)
+    merge_args_if_emtpy_syms(mx) # do upvalues are for free symbols in mx.
+    for s in listsyms(mx)
         if has_upvalues(s)
-            res = applyupvalues(res,s)
+            mx = applyupvalues(mx,s)
             break # I think we are supposed to only apply one rule
         end
     end
-    return res
+    return mx
 end
 @inline ev_upvalues(x) = x
 
 
 ## Build list of free syms in Mxpr if list is empty.
-@inline function merge_args_if_emtpy_syms(res::Mxpr)
-    if isempty(getfreesyms(res)) # get free symbol lists from arguments
-#        println("Merging in meval $res")
-        mergeargs(res) # This is costly if it is not already done.
-        add_nothing_if_no_syms(res)  # if there no symbols, add :nothing, so this is not called again.
+@inline function merge_args_if_emtpy_syms(mx::Mxpr)
+    if isempty(getfreesyms(mx)) # get free symbol lists from arguments
+        mergeargs(mx) # This is costly if it is not already done.
+        add_nothing_if_no_syms(mx)  # if there no symbols, add :nothing, so this is not called again.
     end
     
 end
-@inline merge_args_if_emtpy_syms(res) = nothing
+@inline merge_args_if_emtpy_syms(x) = nothing
 
 
 ## Thread Listable over Lists
