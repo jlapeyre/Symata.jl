@@ -43,3 +43,13 @@ using Base.Test
 @testex  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
 @ex      ClearAll(a,x,y)
+
+## ConstantArray
+
+@ex ClearAll(a,d)
+@ex a = ConstantArray(1+d^2,3)
+@ex a[2,2,2] = 3
+@testex a[2] == 1 + d^3
+@testex a[1] == 1 + d^2
+@testex a[3] == 1 + d^2
+@ex ClearAll(a,d)
