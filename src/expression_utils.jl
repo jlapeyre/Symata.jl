@@ -1,4 +1,5 @@
 # return true if h occurs anywhere in tree as a head
+# Decided not to use this after it was written
 function has_head(mx::Mxpr, h::Symbol)
     mhead(mx) == h && return true
     for i in 1:length(mx)
@@ -7,7 +8,6 @@ function has_head(mx::Mxpr, h::Symbol)
     return false
 end
 has_head(x,h::Symbol) = false
-
 #has_head(x) = error("has_head: unimplemented")
 
 # These should go somewhere else.
@@ -37,3 +37,18 @@ function deep_apply_upvalues!(mx::Mxpr,sym)
     return applyupvalues(mx,sym)
 end
 deep_apply_upvalues!(x,sym) = x
+
+# We use this for copying expression trees.
+# Important details are not addressed. free symbol list ?
+function recursive_copy(mx::Mxpr)
+    nargs = newargs(mx)
+    args = margs(mx)
+    for i in 1:length(nargs)
+        nargs[i] = recursive_copy(args[i])
+    end
+    mxpr(mhead(mx),nargs)
+end
+recursive_copy(x) = copy(x)
+recursive_copy(x::Symbol) = x
+recursive_copy(x::DataType) = x
+recursive_copy(x::Number) = x
