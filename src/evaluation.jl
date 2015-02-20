@@ -211,15 +211,15 @@ function meval(mx::Mxpr)
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
     end
-    local ind = ""  # some places get complaint that its not defined. other places no !?
+    local ind::String = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ get_meval_count()
         println(ind,"<<", get_meval_count(), " " , mx)
     end
     nhead = doeval(mhead(mx))
-    local nargs
-    mxargs = margs(mx)
-    len = length(mxargs)
+    local nargs::MxprArgs
+    mxargs::MxprArgs = margs(mx)
+    len::Int = length(mxargs)
     if get_attribute(nhead,:HoldFirst)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
@@ -247,6 +247,11 @@ function meval(mx::Mxpr)
         nmx = canonexpr!(nmx)
 #        if is_Mxpr(nmx,:Plus) setfixed(nmx) end  This cannot be done, in general
     end
+    if nmx == nothing
+        is_meval_trace()  && println(ind,">> " , nmx)
+        decrement_meval_count()
+        return nothing
+    end    
     res = apprules(nmx)
     if res == nothing
         is_meval_trace()  && println(ind,">> " , res)
