@@ -4,6 +4,9 @@ import Main: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
        symname, mhead, margs, is_type, getoptype,
        mtojsym
 
+# A space, or maybe not.
+const opspc = " "
+
 # Julia-like syntax
 const FUNCL = '('
 const FUNCR = ')'
@@ -151,7 +154,7 @@ function show_binary(io::IO, mx::Mxpr)
         else
             show(io,lop)
         end        
-        print(io, "", mtojsym(mx.head), "")
+        print(io, opspc, mtojsym(mx.head), opspc)
         rop = mx.args[2]
         if  needsparen(rop)
             print(io,"(")
@@ -223,7 +226,7 @@ function show_infix(io::IO, mx::Mxpr)
         if np
             print(io,")")
         end
-        print(io, sepsym)
+        print(io, opspc, sepsym)
     end
     if ! isempty(args)
         if needsparen(args[end]) #  && wantparens
@@ -232,7 +235,7 @@ function show_infix(io::IO, mx::Mxpr)
         else
             np = false
         end   
-        show(io,args[end])
+        show(io, args[end])
         if np
             print(io,")")
         end
