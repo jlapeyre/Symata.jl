@@ -77,9 +77,7 @@ end
 
 
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-#    prule = @time(RuleDelayed_to_PRule(rd))
     prule = RuleDelayed_to_PRule(rd)
-#    res = @time(replacefail(mx,prule))
     res = replacefail(mx,prule)
     res
 end
