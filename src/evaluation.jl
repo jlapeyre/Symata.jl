@@ -207,7 +207,6 @@ meval(x::Rational) = x.den == 1 ? x.num : x
 
 @inline meval(s::SJSym) = symval(s) # this is where var subst happens
 function meval(mx::Mxpr)
-#    println("$mx")
     increment_meval_count()
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
@@ -228,9 +227,9 @@ function meval(mx::Mxpr)
             nargs[i] = doeval(mxargs[i])
         end
     elseif get_attribute(nhead,:HoldAll)
-        nargs = copy(mxargs) # need to copy these, I think!
+        nargs = copy(mxargs)
     elseif get_attribute(nhead,:HoldRest)
-        nargs = copy(mxargs) # need to copy these, I think!
+        nargs = copy(mxargs)
         nargs[1] = doeval(nargs[1])
     else  # Evaluate all arguments
         nargs = newargs(len)
@@ -240,9 +239,7 @@ function meval(mx::Mxpr)
     end
     ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
     splice_sequences!(nargs) : nothing
-#    println("nmx $nhead, $nargs")    
     nmx = mxpr(nhead,nargs)   # new expression with evaled args
-#    println("nmx $nmx")    
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
     if  ! is_canon(nmx)
         nmx = flatten!(nmx)
