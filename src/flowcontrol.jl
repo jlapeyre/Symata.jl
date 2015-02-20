@@ -1,4 +1,9 @@
+# For, While, Do, If, CompoundExpressoin
+
+# Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
+# We should follow what we did in table and set the value in the function,
+# rather than localizing the variable and letting meval do the setting.
 function replsym(ex,os,ns)
     if is_Mxpr(ex)
         args = margs(ex)
@@ -17,8 +22,8 @@ end
 #### For
 
 @sjdoc For "
-For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, i = i + 1 , Println(i))
-Using Increment[i] is currently much faster. There is no special syntax yet for
+For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment[i] , Println(i))
+Using Increment[i] is currently much faster than i = i + 1. There is no special syntax yet for
 Increment.
 "
 
@@ -43,7 +48,7 @@ function apprules(mx::Mxpr{:For})
     end
 end
 
-## If
+#### If
 
 @sjdoc If "
 If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch
