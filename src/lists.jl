@@ -221,22 +221,25 @@ end
 
 do_ConstantArray(mx,args...) = mx
 
-# We need annotation for Number below, because deepcopy tries
+# The annotation for Number is needed, because deepcopy tries
 # to do something very slow with numbers.
 # Copying a small Mxpr is extremely slow
 # 'c^2' is 40 times slower than Symbol 'c'.
 function do_ConstantArray(mx,expr,n)
     nargs = newargs(n)
     for i in 1:n
-        nargs[i] = deepcopy(expr)
+#        nargs[i] = deepcopy(expr)
+        nargs[i] = recursive_copy(expr)
     end
     setfixed(mxpr(:List,nargs))
 end
 
+# We need to find something more efficient than deepcopy
 function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
     for i in 1:n
-        nargs[i] = setfixed(deepcopy(expr))  # need to do this
+        nargs[i] = setfixed(recursive_copy(expr))
+#        nargs[i] = setfixed(deepcopy(expr))        
 #        nargs[i] = setfixed(copy(expr))
     end
     setfixed(mxpr(:List,nargs))
