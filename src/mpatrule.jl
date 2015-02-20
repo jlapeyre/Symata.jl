@@ -118,6 +118,20 @@ retrievecapt(sym::SJSym,cd) = cd[symname(sym)]
 havecapt(sym,cd) = haskey(cd,sym)
 havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 
+# For instance, in x_Integer, we match Integer.
+function match_head(hh::Symbol,ex)
+    hh == :All && return true
+    if isdefined(hh)    # Julia symbol represents data type ?
+        hhe = eval(hh)  # This way seems wasteful and error prone. Maybe do SJulia binding of :Integer to Integer, etc.
+        if is_type(hhe,DataType)
+            return is_type_less(ex,hhe)
+        end
+    end
+    return is_Mxpr(ex,hh)
+end
+
+match_head(hh,ex) = error("matchpat: Head to match is not a symbol. Not implemented.")
+
 # check if restriction on Head and pattern test
 # are satisfied.
 # TODO: reorganize. maybe make type of Pvar.head Any
@@ -127,43 +141,19 @@ havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 # Then, much of the logic below can be eliminated
 function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    local headmatch  # does the head match ?
-    local ptestmatch  # is the pattern test satisfied ?
-    isdatatype = false  # does head-to-match evaluate to a DataType ?
+    local ptestmatch        # is the pattern test satisfied ?
     hh = getpvarhead(cvar)  # head to match
-    if is_type(hh,Symbol)
-        if isdefined(hh) # Julia symbol represents data type ?
-            hhe = eval(hh)
-            if is_type(hhe,DataType)
-                isdatatype = true
-                if is_type_less(ex,hhe)
-                    headmatch = true
-                else
-                    headmatch = false
-                end
-            end
-        end
-        if ! isdatatype
-            if hh == :All || is_Mxpr(ex,hh)
-                headmatch = true
-            else
-                headmatch = false
-            end
-        end
-    else
-        error("matchpat: Head to match is not a symbol")
-    end
-    headmatch || return false
-    cc = getpvarptest(cvar)
+    match_head(hh,ex) || return false
+    cc = getpvarptest(cvar) # This is an Mxpr or :None
     if cc != :None
         is_type_less(cc,Mxpr) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
         #    is_type(cc,Symbol) || error("matchpat: Pattern test to match is not a symbol")    
         #        testmx = mxpr(cc,ex) # this alloc is slow in a loop.
         #        ptestmatch = (infseval(testmx) == true)
-        cc.args[1] = ex
+        cc.args[1] = ex  # we reuse a stored Mxpr.
         #ptestmatch = (infseval(cc) == true)
         # This needs to be considered, organized, done at an earlier stage.
-        # Works for what we have now, but what about upvalues, maybe threadlist, ... ?
+        # Works for what we have now, but what about upvalues, ... ?
         res = apprules(cc)
         if res == true
             ptestmatch = true
