@@ -277,8 +277,8 @@ You can see the evaluation sequence in `infseval` and `meval` in the code.
 #### Parsing
 
 I use the Julia parser and reinterpret the results. Maybe there is an elegant enough
-way to get everything you need this way. But, probably copying and altering the
-parser would be better even though it adds more complication. Eg. Now, I can use curly
+way to get everything you need this way. But, copying and altering the
+parser might be better even though it adds more complication. Eg. Now, I can use curly
 braces for literal construction of lists, but get a deprecation warning. So I use
 square brackets. Once you change the parser, you can ask whether you want full Mma
 syntax. OTOH, staying close to Julia (and everyone else's) syntax is also reasonable.
