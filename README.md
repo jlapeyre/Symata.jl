@@ -47,7 +47,7 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 
 ```
 
-Like, Mma, SJulia does evaluation to a fixed point, always effectivley re-evaluating in the
+Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
 current environment. There are pros and cons to this approach. In Mma there are a host
 of `HoldXXX` symbols to prevent evaluation, and in
 [Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
@@ -1168,9 +1168,11 @@ While(test,body) evaluates test then body in a loop until test does not return t
  -->
 <!--  LocalWords:  LeafCount NodeCount Dict's MatchQ myintq mx args
  -->
-<!--  LocalWords:  zz ie StringInterpolation StringLength
+<!--  LocalWords:  zz ie StringInterpolation StringLength countprimes
  -->
 <!--  LocalWords:  str HoldForm ToExpression ToString ToStringLength
  -->
-<!--  LocalWords:  DownRules UpRules unsets Unprotect
+<!--  LocalWords:  DownRules UpRules unsets Unprotect PrimeQ HoldXXX
+ -->
+<!--  LocalWords:  eval Mathics SymPy SJulia's GMP
  -->
