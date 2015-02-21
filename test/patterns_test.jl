@@ -11,7 +11,7 @@ using Base.Test
 # Mma Does this successfully. We use a workaround in apprules.jl
 @ex     ClearAll(a,b)
 @ex     m = a ^ 3 + 3 * (a ^ 2) * b + 3 * a * (b ^ 2) + b ^ 3
-@testex ReplaceRepeated(m1, x_Integer => 1) == a + a*b + b
+@testex ReplaceRepeated(m, x_Integer => 1) == a + a*b + b
 @ex     ClearAll(a,b)
 
 @testex MatchQ( 1, _Integer) == true

@@ -653,10 +653,13 @@ apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
 # Mma 3 does this correctly. We insert an expensive workaround.
 function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
     ex1 = replacerepeated(expr,Rule_to_PRule(r))
-    ex1 = meval_arguments(ex1)        # 
-    ex1 = meval_apply_all_rules(ex1)    
-#    ex1 = meval(ex1)
-    ex1 = replacerepeated(ex1,Rule_to_PRule(r))
+    if is_Mxpr(ex1)
+        ex1 = meval_arguments(ex1)        # 
+        ex1 = meval_apply_all_rules(ex1)    
+        #    ex1 = meval(ex1)
+        ex1 = replacerepeated(ex1,Rule_to_PRule(r))
+    end
+    return ex1
 end
 doreplacerepeated(mx,a,b) = mx
 
