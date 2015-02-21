@@ -13,9 +13,71 @@ structures that support it.
 
 #### Here are some results.
 
-This quickly evaluates an expression and tracks
-whether it needs to be re-evaluated.
+Here is counting with patterns. The execution time is about the same as Mma 3.
 
+```
+sjulia> b = Range(10^5);   # [1,2,...,100000]
+elapsed time: 0.001218053 seconds (2395840 bytes allocated)
+
+sjulia> Count(b, 2)     # Count the number of 2's
+elapsed time: 0.008307134 seconds (1608 bytes allocated)
+1
+
+sjulia> Count(b, _Integer)
+elapsed time: 0.022361488 seconds (1594520 bytes allocated)
+100000
+
+sjulia> Count(b,_String)
+elapsed time: 0.015774562 seconds (1594488 bytes allocated)
+0
+
+sjulia> Count(b, _:?(EvenQ))
+elapsed time: 0.075666716 seconds (3984008 bytes allocated)
+50000
+
+sjulia> Count(b, _:?( :( (x) -> x > 5 ) ) )    # Use a Julia function as the test
+elapsed time: 0.076713741 seconds (4780808 bytes allocated)
+99995
+
+sjulia> countprimes = Count(_:?(PrimeQ))   # Currying, like in Mma 10
+
+sjulia> countprimes(b)
+elapsed time: 0.167145648 seconds (16778920 bytes allocated)
+9592
+
+```
+
+Like, Mma, SJulia does evaluation to a fixed point, always effectivley re-evaluating in the
+current environment. There are pros and cons to this approach. In Mma there are a host
+of `HoldXXX` symbols to prevent evaluation, and in
+[Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
+functions and options to force it.
+
+Evaluation to a fixed point can be expensive. Here is an example in [Mathics](http://www.mathics.org/)
+
+```
+In[1]:= Timing[ m = Expand[(a+b)^1000];]
+Out[1]= {6.282803, Null}
+
+In[2]:= Timing[ m[[1]] ]
+Out[2]= {3.203408, a ^ 1000}
+```
+
+Every time an element of `m` is accessed, the entire expression is reevaluated.
+SJulia is about 700 times faster generating `m`, and 85000 times
+faster retrieving a value. The latter time is mostly the difference between
+an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
+is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation)
+Mathematica 3 is about two times faster than
+SJulia generating `m`. (There are caveats interpreting these results of course.
+Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
+heavy on calculations with big integers. 2) SymPy `expand` handles more cases,
+which may increase time complexity.
+3) It seems that SymPy caches results, which consumes time. Caching is currently
+disabled in SJulia.
+
+Here is SJulia doing expansion.
+We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
 sjulia> m = Expand((a+b)^BI(1000));   # expand with BigInt exponent
 elapsed time: 0.008785756 seconds
