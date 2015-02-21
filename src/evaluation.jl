@@ -432,7 +432,7 @@ function do_GenHead(mx,f::Function)
     f(margs(mx)...)
 end
 
-# This feature was added to Mma sometime after 3.0: actually, in 2014
+# This feature was added to Mma sometime after 3.0: (actually, in 2014)
 # Assume operator version of an SJulia "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is
