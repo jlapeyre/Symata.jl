@@ -153,7 +153,7 @@ do_Increment(mx,args...) = mx
 #### TimesBy
 
 @sjdoc TimesBy "
-TimesBy(a,b) sets a to a * b and returns the new value. This is currently
+TimesBy(a,b), or a *= b, sets a to a * b and returns the new value. This is currently
 faster than a = a * b for numbers.
 "
 
@@ -173,7 +173,7 @@ do_TimesBy(mx,args...) = mx
 #### AddTo
 
 @sjdoc AddTo "
-AddTo(a,b) sets a to a + b and returns the new value. This is currently
+AddTo(a,b), or a += b, sets a to a + b and returns the new value. This is currently
 faster than a = a + b for numbers.
 "
 
@@ -478,7 +478,7 @@ The same can be acheived less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
-Julia types such as Array and Dict.
+Julia types such as Array, or the element with key 'n' for Dict's.
 "
 
 # Get part of expression. Julia :ref is mapped to :Part
