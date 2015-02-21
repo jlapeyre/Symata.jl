@@ -165,7 +165,7 @@ function do_TimesBy1(mx,x,xval::Number, val::Number)
     return r
 end
 function do_TimesBy1(mx,x,xval,val)
-    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Time,xval,val))))
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Times,xval,val))))
     return symval(x)
 end
 do_TimesBy(mx,args...) = mx
@@ -185,7 +185,7 @@ function do_AddTo1(mx,x,xval::Number, val::Number)
     return r
 end
 function do_AddTo1(mx,x,xval,val)
-    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Time,xval,val))))
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Plus,xval,val))))
     return symval(x)
 end
 do_AddTo(mx,args...) = mx
