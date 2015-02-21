@@ -186,19 +186,14 @@ _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from ex.
-# Copying Dict is inefficient!
 function patrule(ex,pat1::PatternT,pat2::PatternT)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
     # We need something more efficient than deepcopy !
     npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
-    cd = Dict{Any,Any}()   
-    for (p,c) in capt  # type inferred? move to aux function ?
-        storecapt(p,c,cd) # throw away condition information
-    end
-    nnpat = patsubst!(npat.ast,cd) # do replacement
-    nnpat
+    nnpat = patsubst!(npat.ast,capt) # do replacement
+    return nnpat
 end
 patrule(ex,pat1::ExSym,pat2::ExSym) = patrule(ex,pattern(pat1),pattern(pat2))
 
