@@ -74,10 +74,14 @@ PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
 ==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
 ==(a::PatternT, b::PatternT) = (a.ast == b.ast)
 prule(x,y) = PRule(x,y)
+
 # syntax for creating a rule. collides with Dict syntax sometimes.
-=>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
-=>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
-=>(lhs::ExSym,rhs::Number) = prule(pattern(lhs),pattern(rhs))
+# Turn this off.
+# =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
+# =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
+# =>(lhs::ExSym,rhs::Number) = prule(pattern(lhs),pattern(rhs))
+
+
 prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
 prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
@@ -151,7 +155,6 @@ function matchpat(cvar,ex)
     res = apprules(cc)  # we decide that apprules (builtin) overrides and up or down values.
     res == true && return true
     res == false && return false
-#    if (length(downvalues(mhead(cc))) != 0)
     if has_downvalues(cc)
         return infseval(applydownvalues(cc)) == true  # or maybe just return what infseval gives
     else
