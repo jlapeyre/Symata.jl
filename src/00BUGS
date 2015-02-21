@@ -32,3 +32,4 @@ We should have this:
 m = a ^ 3 + 3 * (a ^ 2) * b + 3 * a * (b ^ 2) + b ^ 3
 ReplaceRepeated(m1, x_Integer => 1) == a + a*b + b
 But we get a + 2*a*b + b instead
+We have a workaround in place, but it is not really a fix.

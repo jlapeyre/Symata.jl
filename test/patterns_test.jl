@@ -8,11 +8,11 @@ using Base.Test
 @testex ReplaceAll( [b,a,[a,b]] , [x_,y_,[x_,y_]] => 1 ) == [b,a,[a,b]]
 
 # This is broken. Tried for hours to fix it.
-# Mma Does this successfully
-# @ex     ClearAll(a,b)
-# @ex     m = a ^ 3 + 3 * (a ^ 2) * b + 3 * a * (b ^ 2) + b ^ 3
-# @testex ReplaceRepeated(m1, x_Integer => 1) == a + a*b + b
-# @ex     ClearAll(a,b)
+# Mma Does this successfully. We use a workaround in apprules.jl
+@ex     ClearAll(a,b)
+@ex     m = a ^ 3 + 3 * (a ^ 2) * b + 3 * a * (b ^ 2) + b ^ 3
+@testex ReplaceRepeated(m1, x_Integer => 1) == a + a*b + b
+@ex     ClearAll(a,b)
 
 @testex MatchQ( 1, _Integer) == true
 @testex MatchQ( 1.0, _Integer) == false

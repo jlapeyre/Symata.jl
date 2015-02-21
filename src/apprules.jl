@@ -646,18 +646,17 @@ doreplaceall(mx,a,b) = mx
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
 apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
-# Repeating doeval and doreplacerepeated is a workaround for
-# a bug.
+# Doing the meval stuff below is a workaround for a bug.
 # All the integers should be gone in the following:
 # m1 = Expand((a+b)^3)  --> a^3 + 3*(a^2)*b + 3*a*(b^2) + b^3
 # m2 = ReplaceRepeated(m1, x_Integer => 1)  --> a + 2*a*b + b
-# ... hmm could be because 1 is an integer too.
-# So, we remove the work around, more reasonable rules like  x_Integer => d
-# do work correctly.
+# Mma 3 does this correctly. We insert an expensive workaround.
 function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
     ex1 = replacerepeated(expr,Rule_to_PRule(r))
-#    ex1 = doeval(ex1)
-#    ex1 = replacerepeated(ex1,Rule_to_PRule(r))
+    ex1 = meval_arguments(ex1)        # 
+    ex1 = meval_apply_all_rules(ex1)    
+#    ex1 = meval(ex1)
+    ex1 = replacerepeated(ex1,Rule_to_PRule(r))
 end
 doreplacerepeated(mx,a,b) = mx
 
