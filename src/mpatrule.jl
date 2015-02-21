@@ -13,7 +13,8 @@ typealias CondT Union(ExSym,DataType,Function)
 # matches based on its context in an AST.
 type Pvar
     name::Symbol  # name
-    head::Symbol  # head to match
+#    head::Union(Symbol,DataType)  # head to match
+    head::Any
     ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 typealias ExSymPvar Union(ExSym,Pvar)
@@ -125,16 +126,20 @@ havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 # For instance, in x_Integer, we match Integer.
 function match_head(head::Symbol,ex)
     head == :All && return true
-    if isdefined(head)    # Julia symbol represents data type ?
-        hhe = eval(head)  # This way seems wasteful and error prone. Maybe do SJulia binding of :Integer to Integer, etc.
-        if is_type(hhe,DataType)
-            return is_type_less(ex,hhe)
-        end
-    end
+    # if isdefined(head)    # Julia symbol represents data type ?
+    #     hhe = eval(head)  # This way seems wasteful and error prone. Maybe do SJulia binding of :Integer to Integer, etc.
+    #     if is_type(hhe,DataType)
+    #         return is_type_less(ex,hhe)
+    #     end
+    # end
     return is_Mxpr(ex,head)
 end
 
-match_head(head,ex) = error("matchpat: Head to match is not a symbol. Not implemented.")
+function match_head(head::DataType,ex)
+    is_type_less(ex,head)
+end
+
+match_head(head,ex) = error("matchpat: Can't match Head of type ", typeof(head))
 
 # check if restriction on Head and pattern test
 # are satisfied.
@@ -149,7 +154,7 @@ function matchpat(cvar,ex)
     match_head(head,ex) || return false
     cc = getpvarptest(cvar) # This is an Mxpr or :None
     cc == :None && return true
-    is_type_less(cc,Mxpr) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
+    is_Mxpr(cc) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
     cc.args[1] = ex  # we reuse a stored Mxpr.
     # This is likely not robust. Works for what we have now, but what about upvalues, ... ?
     res = apprules(cc)  # we decide that apprules (builtin) overrides and up or down values.

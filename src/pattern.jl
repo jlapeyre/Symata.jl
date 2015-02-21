@@ -37,7 +37,7 @@ function patterntopvar(mx::Mxpr)
         nx = patterntopvar(x)
         push!(nargs,nx)
     end
-    nmx = mxpr(mx.head,nargs...)
+    nmx = mxpr(mhead(mx), nargs...)
     nmx
 end
 
@@ -72,7 +72,10 @@ function patterntopvar(mx::Mxpr{:Pattern})
     if length(blank) == 0 # match any head
        res = Pvar(symname(var),:All,:None)
     else # match only if head is blank[1]
-       res = Pvar(symname(var),symname(blank[1]),:None)
+        head = blank[1]
+        ehead = eval(head)  # Symbol may eval to DataType
+        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+        res = Pvar(symname(var),head,:None)
     end
     res
 end
@@ -86,7 +89,10 @@ function patterntopvar(mx::Mxpr{:Blank})
     if length(blank) == 0 # match any head
        res = Pvar(var,:All,:None)
     else
-       res = Pvar(var,symname(blank[1]),:None)
+        head = blank[1]
+        ehead = eval(head)  # Symbol may eval to DataType
+        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+        res = Pvar(symname(var),head,:None)
     end
     res    
 end
