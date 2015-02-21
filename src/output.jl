@@ -226,7 +226,7 @@ function show_infix(io::IO, mx::Mxpr)
         if np
             print(io,")")
         end
-        print(io, opspc, sepsym)
+        print(io, opspc, sepsym, opspc)
     end
     if ! isempty(args)
         if needsparen(args[end]) #  && wantparens
