@@ -35,7 +35,7 @@ sjulia> Count(b, _:?(EvenQ))
 elapsed time: 0.075666716 seconds (3984008 bytes allocated)
 50000
 
-sjulia> Count(b, _:?( :( (x) -> x > 5 ) ) )    # Use a Julia function as the test
+sjulia> Count(b, _:?( :( x -> x > 5 ) ) )    # Use a Julia function as the test
 elapsed time: 0.076713741 seconds (4780808 bytes allocated)
 99995
 
