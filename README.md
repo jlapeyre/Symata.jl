@@ -331,9 +331,17 @@ as `Mxpr{:Power}`.
 
 ### Documented Symbols and Commands
 
+
 ##### Abs
 
 Abs(z) represents the absolute value of z.
+
+
+
+##### AddTo
+
+AddTo(a,b), or a += b, sets a to a + b and returns the new value. This is currently
+faster than a = a + b for numbers.
 
 
 
@@ -361,7 +369,7 @@ in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
 
 ##### AtomQ
 
-AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
+AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 
 See also EvenQ and OddQ.
@@ -464,9 +472,39 @@ returns the result of only the final evaluation.
 
 
 
+##### ConstantArray
+
+ConstantArray(expr,n) creates a list of n copies of expr.
+
+
+
+##### Count
+
+Count(expr,pattern) returns the number of arguments in expr than match pattern.
+Only matching on one level is supported. This is for testing the performance
+of pattern matching. Count(pattern) can be used as the head of an expression,
+as an operator. For instance cop = Count(_^2) defines a function that counts
+the number of arguments that have the form of a square. Count also works when
+expr is a Julia Dict.
+
+
+Examples
+
+```
+sjulia> Count(Range(10), _Integer)
+10
+
+sjulia> Count(_Integer)(Range(10))
+10
+
+sjulia> Count(Range(10), 2)
+1
+```
+
+
 ##### Depth
 
-Depth(expr) gives the maximum number of indices required to specify
+Depth(expr) gives the maximum number of indicies required to specify
 any part of expr, plus 1.
 
 
@@ -522,7 +560,7 @@ See also DumpHold.
 ##### DumpHold
 
 DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
+Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 
 See also Dump.
@@ -576,7 +614,9 @@ See also Age, DirtyQ, HAge, Syms, and Unfix.
 
 ##### For
 
-For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, i = i + 1 , Println(i))
+For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment[i] , Println(i))
+Using Increment[i] is currently much faster than i = i + 1. There is no special syntax yet for
+Increment.
 
 
 
@@ -619,8 +659,12 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 
 ##### Help
 
-Help(sym) prints documentation for the symbol sym. Eg: Help(Expand).
-.Help() lists all documented symbols.
+Help(sym) or Help("sym") prints documentation for the symbol sym. Eg: Help(Expand).
+Help() lists all documented symbols. Due to parsing restrictions at the repl, for some
+topics, the input must be a string. The same help can be accessed with
+h"topic", which is implemented as a Julia special string literal.
+Help(regex) prints a list of topics whose documentation text matches the
+regular expression regex.
 Help(All -> true) prints all of the documentation.
 
 
@@ -634,6 +678,12 @@ I is the imaginary unit
 ##### If
 
 If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch
+
+
+
+##### Increment
+
+Increment(n) increments the value of n by 1 and returns the old value.
 
 
 
@@ -793,7 +843,7 @@ sjulia> Pack(f(1,2,3))
 
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be achieved less efficiently with expr[n1][n2]...
+The same can be acheived less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
@@ -803,7 +853,7 @@ Julia types such as Array and Dict.
 
 ##### Permutations
 
-Permutations(expr) give a list of all permutations of elements in expr.
+Permutations(expr) give a list of all permuations of elements in expr.
 
 
 
@@ -840,6 +890,25 @@ Println(expr1,expr2,...) prints the expressions and a newline.
 
 
 
+##### Push!
+
+Push!(a,val) pushes val onto the expression that symbol a evaluates to.
+Push! is outside the Mma programming model, which requires immutable
+expressions. Re-evaluation, and updating metadata is not implemented.
+Re-evaluation can be forced with Unfix(a).
+
+
+Examples
+
+```
+sjulia> ClearAll(a,b)
+
+sjulia> a = []
+
+sjulia> For(i=1, i < 1000, Increment(i), Push!(a,Symbol("b$i")))
+```
+
+
 ##### Range
 
 Range(n) returns the List of integers from 1 through n.
@@ -848,6 +917,12 @@ Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
 di may be negative. Floats and some symbolic arguments are supported.
 You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
 This uses embedded Julia to create a typed Array and then unpacks it to a List.
+
+
+
+##### Regex
+
+r"expr" creates a regular expression (PCRE). This is a Julia DataType.
 
 
 
@@ -1015,6 +1090,13 @@ after each evaluation of command line input.
 See also Allocated, TimeOff, Timing, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
 
 
+##### TimesBy
+
+TimesBy(a,b), or a *= b,  sets a to a * b and returns the new value. This is currently
+faster than a = a * b for numbers.
+
+
+
 ##### Timing
 
 Timing(expr) evaluates expr and returns a list of the elapsed CPU time
@@ -1135,6 +1217,18 @@ all user defined symbols.
 
 While(test,body) evaluates test then body in a loop until test does not return true.
 
+
+
+##### macros
+
+If SJulia encounters a macro call in input, it first Julia-evaluates all the
+arguments then Julia-evaluates the macro and inserts it into the SJulia expression
+tree. For instance, big numbers and regular expressions are constructed this way.
+
+
+
+elapsed time: 0.465900797 seconds (11631384 bytes allocated)
+tryrule count: downvalue 0, upvalue 0
 
 <!--  LocalWords:  julia src sjulia repl ClearAll SetJ DownValues jl
  -->
