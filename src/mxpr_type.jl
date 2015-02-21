@@ -329,6 +329,8 @@ function dohash(mx::Mxpr, h::UInt64)
     hout
 end
 
+# We are not using this now. This is what Maple did when memory was scarce.
+# But, Mma and Maple still say they compute a hash of everything.
 # Input is Mxpr, output is the unique "copy" (can't really be a copy if it is unique)
 # 1. Check if mx already has a hash key, then it is good one, return
 # 2. Compute hash code of mx, look it up. Return unique copy, or make mx unique copy
@@ -345,7 +347,6 @@ function checkhash(mx::Mxpr)
     mx
 end
 checkhash(x) = x
-
 
 # function checknewhash(mx::Mxpr)
 #     mx.key != 0 && return mx
@@ -390,7 +391,6 @@ function mxpr(s,args::MxprArgs)
     mx
 end
 
-
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,iargs...)
     len = length(iargs)
@@ -401,15 +401,12 @@ function mxpr(s,iargs...)
     mxpr(s,args)
 end
 
-
 # set fixed point and clean bits
 # not used much
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
-    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
-#    checkhash(mx)
-    mx
+    mxprcf(s,args)
 end
 
 @inline function mxprcf(s::SJSym,args::MxprArgs)
