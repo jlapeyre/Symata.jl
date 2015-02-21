@@ -82,9 +82,14 @@ function extomx(ex::Expr)
                 (a[2].args)[1] == :(?)
                 ptargs = a[2].args
                 length(ptargs) != 2 && error("extomx: too many args to PatternTest")
-                is_type(ptargs[2],Symbol) || error("extomx: argument to PatternTest must be a Symbol")
+                pt = ptargs[2]
+                if is_type(pt,Expr)  # assume it is a Function
+                    pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
+                end
+                (is_type(pt,Symbol) || is_type(pt,Function) )  ||
+                        error("extomx: argument to PatternTest must be a Symbol or a Function")
                 head = :PatternTest
-                push!(newa,extomx(a[1]),getsym(ptargs[2]))
+                push!(newa,extomx(a[1]),pt)
             else
                 # something here later
                 head = :Span

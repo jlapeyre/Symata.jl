@@ -43,11 +43,27 @@ end
 
 patterntopvar(x) = x
 
+# function patterntopvar(mx::Mxpr{:PatternTest})
+#     pvar = patterntopvar(mx[1])
+#     cond = mx[2]
+#     pvar.ptest = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
+#     pvar
+# end
+
 function patterntopvar(mx::Mxpr{:PatternTest})
-    pvar = patterntopvar(mx[1])
-    cond = mx[2]
-    pvar.ptest = mxpr(symname(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
-    pvar
+    patterntopvar(mx,margs(mx)...)
+end
+
+function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Symbol)
+    pvar = patterntopvar(pattern)
+    pvar.ptest = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
+    return pvar
+end
+
+function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Function)
+    pvar = patterntopvar(pattern)
+    pvar.ptest = mxpr(cond,0)
+    return pvar
 end
 
 function patterntopvar(mx::Mxpr{:Pattern})
@@ -75,13 +91,11 @@ function patterntopvar(mx::Mxpr{:Blank})
     res    
 end
 
-
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     prule = RuleDelayed_to_PRule(rd)
     res = replacefail(mx,prule)
     res
 end
-
 
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mhead(mx))
