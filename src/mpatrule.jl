@@ -236,8 +236,12 @@ replaceall(ex, r::PRule) = replaceall(ex,r.lhs,r.rhs)
 # Continue after first match for each expression.
 function replaceall(ex,rules::Array{PRule,1})
     if is_Mxpr(ex)
-        ex = mxpr(mhead(ex),
-                    map((x)->replaceall(x,rules),margs(ex))...)
+        args = margs(ex)
+        nargs = newargs(length(args))
+        for i in 1:length(args)  # uglier than map((x)->...
+            nargs[i] = replaceall(args[i],rules)
+        end
+        ex = mxpr(mhead(ex),nargs)
     end
     for r in rules
         res = patrule(ex,r.lhs,r.rhs)
