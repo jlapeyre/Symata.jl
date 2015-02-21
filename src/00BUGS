@@ -18,3 +18,17 @@ Completing \gamma at the CLI with sjulia (modified repl)
 causes Julia to quit with BoundsError. This happens in
 julia mode and sjulia mode.
 ------------
+This ordered expression
+a + a * b + b
+should be ordered this way:
+a + b + a*b
+
+This:
+a + a * b + b + c
+Should be this:
+a + b + a * b + c
+-----------------
+We should have this:
+m = a ^ 3 + 3 * (a ^ 2) * b + 3 * a * (b ^ 2) + b ^ 3
+ReplaceRepeated(m1, x_Integer => 1) == a + a*b + b
+But we get a + 2*a*b + b instead

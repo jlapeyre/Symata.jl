@@ -276,7 +276,7 @@ patsubst!(pat,cd) = pat
 ## ReplaceRepeated
 
 # This applies the rules to all sub-expressions, and the expression.
-# Repeat till we reach a fixed point
+# Repeat till we reach a fixed point.
 function replacerepeated(ex, rules::Array{PRule,1})
     _replacerepeated(ex,rules,0)
 end
