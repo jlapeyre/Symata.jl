@@ -69,12 +69,14 @@ faster retrieving a value. The latter time is mostly the difference between
 an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
 is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation)
 Mathematica 3 is about two times faster than
-SJulia generating `m`. (There are caveats interpreting these results of course.
+SJulia generating `m`.
+
+(There are caveats interpreting these results of course.
 Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
 heavy on calculations with big integers. 2) SymPy `expand` handles more cases,
 which may increase time complexity.
 3) It seems that SymPy caches results, which consumes time. Caching is currently
-disabled in SJulia.
+disabled in SJulia.)
 
 Here is SJulia doing expansion.
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
