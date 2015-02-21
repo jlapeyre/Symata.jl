@@ -146,14 +146,14 @@ function push_upvalue(ins::SJSym,val)
     uv = s.upvalues
     isnewrule = true
     @inbounds for i in 1:length(uv)
-        if val[1] == uv[i][1]
+        if val[1] == uv[i][1] # need more sophistication than '=='
             uv[i] = val
             isnewrule = false
             break
         end
     end
     isnewrule && push!(s.upvalues,val)
-#    sort!(s.downvalues,lt=isless_patterns)  need to work on sorting these!
+#    sort!(s.downvalues,lt=isless_patterns)
     s.age = increvalage()    
 end
 
