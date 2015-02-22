@@ -349,9 +349,25 @@ end
 
 #### Complex
 
+@sjdoc Complex "
+Complex(a,b) returns a complex number when a and b are Reals. This is done when the
+expression is parsed, so it is much faster than 'a + I*b'.
+"
+
+# Complex with two numerical arguments is converted at parse time. But, the
+# arguments may evaluate to numbers only at run time, so this is needed.
 # mkapprule requires that the first parameter do_Complex be annotated with the Mxpr type.
 mkapprule("Complex")  
 do_Complex(mx::Mxpr{:Complex},a::Number,b::Number) = complex(a,b)
+
+@sjdoc Rational "
+Rationa(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
+expression is parsed, so it is much faster than 'a/b'.
+"
+    
+# Same here. But we need to use mdiv to reduce rationals to ints if possible.
+mkapprule("Rational")  
+do_Rational(mx::Mxpr{:Rational},a::Number,b::Number) = mdiv(a,b)
 
 #### Rationalize
 

@@ -26,13 +26,3 @@ arguments then Julia-evaluates the macro and inserts it into the SJulia expressi
 tree. For instance, big numbers and regular expressions are constructed this way.
 "
 
-@sjdoc Complex "
-Complex(a,b) returns a complex number when a and b are Reals. This is done when the
-expression is parsed, so it is much faster than 'a + I*b'.
-"
-
-@sjdoc Rational "
-Rational numbers are entered with 'a//b', for Integers a and b.  This is done when the
-expression is parsed, so it is much faster than 'a/b'. The form
-'Rational(a,b)' is not yet implemented.
-"
