@@ -62,10 +62,7 @@ function do_range(iter::SJIterA2)
         if is_Number(imin[1])  # number is always first in canon order.
             b = imin[1]  # extract number
             r = imin[2:end]  # the rest of the sum
-            for i in 2:iter.num_iters
-                args[i] = mxpr(:Plus,b+i-1,r...) # only a little slower than Mma if disable gc
-                setfixed(args[i])
-            end
+            _do_range_A2(args,b,r,iter.num_iters)
         else  # imin is a sum with no numbers, so we put a number in front
             sargs = margs(s)
             for i in 2:iter.num_iters
@@ -82,6 +79,14 @@ function do_range(iter::SJIterA2)
     #  we don't handle counting down case.
     return args
 end    
+
+function _do_range_A2(args,b,r,n)
+    for i in 2:n
+        args[i] = mxpr(:Plus,b+i-1,r...) # only a little slower than Mma if disable gc
+        setfixed(args[i])
+    end
+    return args
+end
 
 # seems to be little penalty for mplus instead of +
 function do_range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
@@ -297,7 +302,7 @@ function apprules(mx::Mxpr{:Table})
     end
     iter = make_sjiter(mx[2])
     ex = deepcopy(expr)
-    args = do_table_new(ex,iter)
+    args = do_Table(ex,iter)
     mx1 = mxpr(:List,args) # takes no time
 #    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
@@ -321,13 +326,13 @@ function set_all_part_specs2(expr,specs,val)
     end    
 end
 
-function do_table_new(expr,iter::SJIter2)
+function do_Table(expr,iter::SJIter2)
     exprpos = expression_positions(expr,iter.i)
     imax = iter.imax # meval(plainiter[2])
-    do_table_new(imax,iter.i,expr,exprpos)
+    do_Table(imax,iter.i,expr,exprpos)
 end
 
-function do_table_new(expr,iter::SJIter1)
+function do_Table(expr,iter::SJIter1)
     imax = iter.imax
     val = doeval(expr)
     args = newargs(imax)
@@ -339,11 +344,12 @@ function do_table_new(expr,iter::SJIter1)
     return args
 end
 
-function do_table_new{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
+function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     exprpos = expression_positions(expr,iter.i)
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
     args = newargs(imax-imin+1)
+#    if iter.i == expr
     for i in imin:imax
         set_all_part_specs2(expr,exprpos,i)
         unsetfixed(expr)
@@ -352,7 +358,7 @@ function do_table_new{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     return args
 end
 
-function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
+function do_Table{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)
     clearsyms(exin) # Clear the iterator variable
     ex = exin
@@ -370,7 +376,7 @@ function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
 end
 
 # For symbols, either the iterator, or not.
-function do_table_new{T<:Integer}(imax::T,isym,ex::SJSym,exprpos)
+function do_Table{T<:Integer}(imax::T,isym,ex::SJSym,exprpos)
     args = newargs(imax)
     if isym == ex
         @inbounds for i in 1:imax
@@ -402,7 +408,7 @@ function do_table_set_arg_const_copy(args,val,imax)
 end
 
 # ex is anything other than Mxpr or Symbol
-function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
+function do_Table{T<:Integer}(imax::T,isym,ex,exprpos)
     args = newargs(imax)
     @inbounds for i in 1:imax
         args[i] = ex
