@@ -375,8 +375,18 @@ end
 Keys(d) returns a list of the keys in Dict d
 "
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
-do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d)))
+do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d))...)
 do_keys(mx,x) = (warn("Can't return keys of $mx"); mx)
+
+@sjdoc Values "
+Values(d) returns a list of the values in Dict d
+"
+
+# mkapprule("Values") ... broken
+apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
+do_values(mx,d::Dict) = mxpr(:List,collect(values(d))...)
+do_values(mx,x) = (warn("Can't return values of $mx"); mx)
+
 
 #### Symbol
 
