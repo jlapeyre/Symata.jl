@@ -19,11 +19,20 @@ setcanon(_moosq2)
 setfixed(_oosq2)
 setcanon(_oosq2)
 
-## Do multiples of pi/2 and pi/4
+## Do multiples of pi/2, pi/3, and pi/4
 function Cos_pi_coeff(mx::Mxpr{:Cos},c::Rational)
     n = c.num
     d = c.den
     d == 2 && return zero(d)
+    if d == 3
+        md = mod(n,6)
+        if (md == 2 || md == 4)
+            nmx = -1//2
+        else
+            nmx = 1//2
+        end
+        return nmx
+    end
     if d == 4
         md = mod(n,8)
         if (md == 3 || md == 5)
