@@ -912,9 +912,11 @@ apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint{T<:Number}(mx,x::T) = BigInt(x)
 dobigint{T<:AbstractString}(mx,x::T) = BigInt(x)
+
 apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
+dobigfloat{T<:AbstractString}(mx,x::T) = BigFloat(x)
 
 apprules(mx::Mxpr{:Big}) = do_Big(mx,mx[1])
 do_Big(mx,x) = mx
