@@ -376,7 +376,7 @@ Keys(d) returns a list of the keys in Dict d
 "
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d))...)
-do_keys(mx,x) = (warn("Can't return keys of $mx"); mx)
+do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
 
 @sjdoc Values "
 Values(d) returns a list of the values in Dict d
