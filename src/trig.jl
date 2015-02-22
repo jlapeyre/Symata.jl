@@ -4,7 +4,7 @@
 # rules, for instance.
 
 # They always should have one arg.
-apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,mx.args[1]) : mx
+apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,margs(mx)...) : mx
 Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
 
 ## 1/Sqrt(2) and -1/Sqrt(2)
@@ -61,19 +61,17 @@ function cos_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:Times})
     mx
 end
 function Cos_factor_arg(mx::Mxpr{:Cos},f1::Number,f2::SJSym)
-    if f2 == getsym(:Pi)
+    if f2 == :Pi
         return Cos_pi_coeff(mx,f1)
     else
         return mx
     end
 end
 Cos_factor_arg(mx::Mxpr{:Cos},f1,f2) = mx
-cos_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
-cos_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
-
-
-cos_one_arg(mx::Mxpr{:Cos},x::FloatingPoint) = cos(x)
-cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
+@inline cos_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
+@inline cos_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
+@inline cos_one_arg(mx::Mxpr{:Cos},x::FloatingPoint) = cos(x)
+@inline cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
 function cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin})
     res = mpow((1-mpow(x[1],2)),(1//2))
     return res
