@@ -225,7 +225,6 @@ function do_N(n::Rational,p::Integer)
     float_with_precision(n,p)
 end
 
-
 # p is number of decimal digits of precision
 # Julia doc says set_bigfloat_precision uses
 # binary digits, but it looks more like decimal.
@@ -254,6 +253,8 @@ function float_with_precision(x,p)
     end    
 end
 
+# These rely on fixed-point evaluation to continue with N, this is not efficient
+# We need to do it all here.
 function do_N(m::Mxpr)
     len = length(m)
     args = margs(m)
@@ -345,6 +346,28 @@ function do_Im_imag_int(m,f)
         return mxpr(:Times,imag(f),mxpr(:Re,mxpr(:Times,nargs)))
     end    
 end
+
+#### Rationalize
+
+@sjdoc Rationalize "
+Rationalize(x) returns a Rational approximation of x.
+Rationalize(x,tol) returns an approximation differing from x by no more than tol.
+"
+
+mkapprule("Rationalize")
+do_Rationalize(mx::Mxpr{:Rationalize},x::FloatingPoint) = rationalize(x)
+do_Rationalize(mx::Mxpr{:Rationalize},x::FloatingPoint,tol::Number) = rationalize(x,tol=float(tol))
+function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic)
+    r = doeval(mxpr(:N,x))  # we need to redesign do_N so that we can call it directly. See above
+    return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r) : x
+end
+function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic,tol::Number)
+    ndig = int(-log10(tol))      # This is not quite correct.
+    r = doeval(mxpr(:N,x,ndig))  # we need to redesign do_N so that we can call it directly. See above.
+    return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r,tol) : x
+end
+do_Rationalize(mx::Mxpr{:Rationalize},x) = x
+
 
 # apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
 # do_Numerator(mx::Mxpr{:Numerator},args...) = mx
