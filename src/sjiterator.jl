@@ -76,7 +76,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
             # do we need deepcopy here ?
             loopmax = doeval(mxpr(:Plus, args[3], -1 * args[2]))
             if is_type_less(loopmax, Number) # args3 - args2
-                return SJIter3(args[1],args[2],args[3],floor(Int,loopmax)) # use splat ?
+                return SJIter3(args[1],doeval(args[2]),doeval(args[3]),floor(Int,loopmax)) # use splat ?
             else
                 itererror(mx)
             end
