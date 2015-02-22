@@ -347,6 +347,12 @@ function do_Im_imag_int(m,f)
     end    
 end
 
+#### Complex
+
+# mkapprule requires that the first parameter do_Complex be annotated with the Mxpr type.
+mkapprule("Complex")  
+do_Complex(mx::Mxpr{:Complex},a::Number,b::Number) = complex(a,b)
+
 #### Rationalize
 
 @sjdoc Rationalize "
