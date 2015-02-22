@@ -191,6 +191,8 @@ casecmp(a::Symbol, b::Symbol) = int(sign(ccall(:strcasecmp, Int32, (Ptr{UInt8}, 
 jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) > 0 : r < 0)
 jslexless(x::SJSym, y::SJSym) = jsisless(x,y)
 jslexless(x::Number, y::SJSym) = true
+jslexless(x::Number, y::Mxpr) = true
+jslexless(x::Mxpr, y::Number) = false
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 

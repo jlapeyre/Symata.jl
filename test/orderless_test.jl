@@ -81,6 +81,8 @@ using Base.Test
 @testex Apply(List,A*z) == [A,z]
 @testex Apply(List,A*a) == [a,A]
 
+@testex Apply(List,(x^2)*(1//2) + x) == [x,(1//2) * (x ^ 2)]
+
 @ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y,z,A,Z)
 
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
