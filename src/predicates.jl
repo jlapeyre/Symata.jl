@@ -16,6 +16,8 @@ is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
 is_Mxpr(x,s::Symbol) = false
 is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
+is_Real{T<:Real}(mx::T) = true
+is_Real(x) = false
 is_Complex(x::Complex) = true
 is_Complex(x) = false
 

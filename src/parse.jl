@@ -144,6 +144,11 @@ function is_rational(ex::Expr)
         is_Number(ex.args[3])
 end
 
+function is_complex(ex::Expr)
+    is_call(ex, :Complex, 3) && is_Number(ex.args[2]) &&
+        is_Number(ex.args[3])
+end
+
 # In extomx, we first rewrite some Math to canonical forms
 # a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
@@ -178,7 +183,14 @@ function rewrite_expr(ex::Expr)
     elseif is_call(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
     elseif is_rational(ex)
-        return eval(ex)
+        return eval(ex)  # TODO: don't do eval, use //
+    elseif is_complex(ex)
+        (real,imag) = (ex.args[2],ex.args[3])
+        if is_Real(real) && is_Real(imag)
+            return complex(real,imag)
+        else
+            return ex
+        end
     end
     return ex
 end
