@@ -339,6 +339,19 @@ function do_table_new(expr,iter::SJIter1)
     return args
 end
 
+function do_table_new{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
+    exprpos = expression_positions(expr,iter.i)
+    imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
+    imin = doeval(iter.imin)
+    args = newargs(imax-imin+1)
+    for i in imin:imax
+        set_all_part_specs2(expr,exprpos,i)
+        unsetfixed(expr)
+        args[i-imin+1] = doeval(expr)
+    end
+    return args
+end
+
 function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     args = newargs(imax)
     clearsyms(exin) # Clear the iterator variable
