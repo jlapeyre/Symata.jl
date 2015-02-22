@@ -276,8 +276,10 @@ end
 # faster. Still don't understand.
 
 @sjdoc Table "
+Table(expr,[imax]) returns a list of imax copies of expr.
 Table(expr,[i,imax]) returns a list of expr evaluated imax times with
-i set successively to 1 through imax. Other Table features are not implemented.
+i set successively to 1 through imax.
+
 Unusual examples:
 This calls an anonymous Julia function. It is currently very slow
 Table( (:((x)->(x^2))(i) ),[i,10])
@@ -293,13 +295,9 @@ function apprules(mx::Mxpr{:Table})
     if is_Mxpr(expr,:Jxpr)
         expr = eval(expr)
     end
-#    plainiter = mx[2]
     iter = make_sjiter(mx[2])
-#    exprpos = expression_positions(expr,plainiter[1])
-#    imax = meval(plainiter[2])
     ex = deepcopy(expr)
     args = do_table_new(ex,iter)
-#    args = do_table_new(imax,plainiter[1],ex,exprpos) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
 #    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
@@ -327,6 +325,18 @@ function do_table_new(expr,iter::SJIter2)
     exprpos = expression_positions(expr,iter.i)
     imax = iter.imax # meval(plainiter[2])
     do_table_new(imax,iter.i,expr,exprpos)
+end
+
+function do_table_new(expr,iter::SJIter1)
+    imax = iter.imax
+    val = doeval(expr)
+    args = newargs(imax)
+    if is_Mxpr(val)
+        do_table_set_arg_const_copy(args,val,imax)
+    else
+        do_table_set_arg_const(args,val,imax)
+    end
+    return args
 end
 
 function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
