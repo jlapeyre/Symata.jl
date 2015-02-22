@@ -128,20 +128,20 @@ function infseval(mxin::Mxpr)
     end                  # This might be good for iterating over list of args in Mxpr.
     if is_fixed(mxin)  # If mxin was already fixed and none of its free vars changed, just return.
         # if is_Mxpr(mx) setage(mx) ; println("2 setting age of $mx") end
-        exitcounts[1] += 1
+#        exitcounts[1] += 1
 #        println("1 Returning ckh $mxin")
         return lcheckhash(mxin)
     end
     mx = meval(mxin) # Do the first evaluation
     if is_Mxpr(mx)
         if is_fixed(mx)         # The first meval may have set the fixed point flag. 
-            exitcounts[2] += 1  # Eg, an Mxpr with only numbers, does not need another eval.
+#            exitcounts[2] += 1  # Eg, an Mxpr with only numbers, does not need another eval.
 #            println("2 Returning ckh $mx")
             return lcheckhash(mx)  # Only a few exits here
         elseif mx == mxin  # meval did not set fixed flag, but we see that it is at fixed point.
             setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
             setfixed(mxin)  # Do we need to do this to both ?
-            exitcounts[3] += 1
+#            exitcounts[3] += 1
 #            println("3 Returning ckh $mx")
             return lcheckhash(mx)
         end
@@ -166,7 +166,7 @@ function infseval(mxin::Mxpr)
         setfixed(mxin)
         setfixed(mx)
     end
-    exitcounts[4] += 1
+#    exitcounts[4] += 1
 #    println("4 Returning ckh $mx")
     return lcheckhash(mx)  # checking hash code is disbled.
 end
