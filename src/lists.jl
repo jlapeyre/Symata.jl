@@ -293,11 +293,13 @@ function apprules(mx::Mxpr{:Table})
     if is_Mxpr(expr,:Jxpr)
         expr = eval(expr)
     end
-    iter = mx[2]
-    exprpos = expression_positions(expr,iter[1])
-    imax = meval(iter[2])
+#    plainiter = mx[2]
+    iter = make_sjiter(mx[2])
+#    exprpos = expression_positions(expr,plainiter[1])
+#    imax = meval(plainiter[2])
     ex = deepcopy(expr)
-    args = do_table_new(imax,iter[1],ex,exprpos) # creating a symbol is pretty slow
+    args = do_table_new(ex,iter)
+#    args = do_table_new(imax,plainiter[1],ex,exprpos) # creating a symbol is pretty slow
     mx1 = mxpr(:List,args) # takes no time
 #    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
@@ -319,6 +321,12 @@ function set_all_part_specs2(expr,specs,val)
     @inbounds for j in 1:length(specs)
         set_part_spec2(expr,specs[j],val)
     end    
+end
+
+function do_table_new(expr,iter::SJIter2)
+    exprpos = expression_positions(expr,iter.i)
+    imax = iter.imax # meval(plainiter[2])
+    do_table_new(imax,iter.i,expr,exprpos)
 end
 
 function do_table_new{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
