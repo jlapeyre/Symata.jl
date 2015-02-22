@@ -348,14 +348,27 @@ function do_table_new{T<:Integer}(imax::T,isym,ex::SJSym,exprpos)
             setcanon(args[i])
         end
     else
-        @inbounds for i in 1:imax
-            args[i] = doeval(ex)
-            setfixed(args[i])
-            setcanon(args[i])
+        symv = doeval(ex)
+        if is_Mxpr(symv)
+            @inbounds for i in 1:imax
+#                args[i] = recursive_copy(symv) correct ? Just as slow as doeval in any case.
+                args[i] = doeval(ex)
+                setfixed(args[i])
+                setcanon(args[i])
+            end            
+        else
+            do_table_set_arg_const(args,symv,imax) # much faster to use kernel function here
         end
     end
     return args
 end
+
+function do_table_set_arg_const(args,val,imax)
+    @inbounds for i in 1:imax
+        args[i] = val
+    end    
+end
+    
 
 # ex is anything other than Mxpr or Symbol
 function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
