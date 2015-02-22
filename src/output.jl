@@ -46,6 +46,8 @@ end
 function Base.show(io::IO, s::SJSym)
     if symname(s) == :Pi
         Base.show_unquoted(io,:π)
+    elseif symname(s) == :EulerGamma
+        Base.show_unquoted(io,:γ)
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
@@ -53,6 +55,12 @@ function Base.show(io::IO, s::SJSym)
     end
 end
 
+# This may break. It will only work if the value of s
+# is the symbol name in the symbol table that is associated
+# with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
+# This is only stored as the key to the symbol table.
+Base.show(io::IO, s::SSJSym) = Base.show(symname(s))
+    
 # We display real part if it is 0.0
 function Base.show{T<:Real}(io::IO, z::Complex{T})
     show(io,real(z))
@@ -80,20 +88,6 @@ Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
 # Not sure this is a good idea, confusing symbols with boolean values
 function Base.show(io::IO, v::Bool)
     v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)
-end
-
-# This may break. It will only work if the value of s
-# is the symbol name in the symbol table that is associated
-# with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
-# This is only stored as the key to the symbol table.
-function Base.show(io::IO, s::SSJSym)
-    if symname(s) == :Pi
-        Base.show_unquoted(io,:π)
-    else
-        ss = string(symname(s))
-        ss = de_gensym(ss)
-        Base.show_unquoted(io,symbol(ss))
-    end
 end
 
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
