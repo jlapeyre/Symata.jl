@@ -370,8 +370,6 @@ function do_table_set_arg_const_copy(args,val,imax)
     end    
 end
 
-
-
 # ex is anything other than Mxpr or Symbol
 function do_table_new{T<:Integer}(imax::T,isym,ex,exprpos)
     args = newargs(imax)
