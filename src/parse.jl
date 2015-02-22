@@ -113,8 +113,10 @@ function extomx(ex::Expr)
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
+#    mxex = :(mxpr($head,$newa))
+#    println(mxex)
+#    mx = eval(mxex)
     mx = mxpr(head,newa)  # Create the Mxpr
-    return mx
 end
 
 is_call(ex::Expr) = ex.head == :call
