@@ -10,6 +10,8 @@ using Base.Test
 @testex  Abs(-z) == Abs(z)
 @testex  Abs(-z^(1/2))^2 == Abs(z)
 
+@testex N(Cos(E),100) == :( cos(big(e)))
+
 @ex ClearAll(z)
 
 # Conflict between
