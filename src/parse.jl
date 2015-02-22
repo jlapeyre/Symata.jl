@@ -67,6 +67,8 @@ function extomx(ex::Expr)
     if ex.head == :call
         head = jtomsym(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
+#    elseif ex.head == :$
+#        return a[1]
     elseif ex.head == :block
         mx = extomx(a[2]) # Can't remember, I think this is Expr with head :call
         return mx
@@ -91,15 +93,12 @@ function extomx(ex::Expr)
                 head = :PatternTest
                 push!(newa,extomx(a[1]),pt)
             else
-                # something here later
                 head = :Span
                 extomxarr(a,newa)
-                # error("extomx: No translation for $ex, can't use colon this way")
             end
         else
             head = :Span
             extomxarr(a,newa)
-           # error("extomx: No translation for $ex can't use colon this way")
         end
     elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
         head = :Jxpr           # This allows running Julia code from within SJulia.
