@@ -93,8 +93,8 @@ function extomx(ex::Expr)
                 head = :PatternTest
                 push!(newa,extomx(a[1]),pt)
             else
-                head = :Span
-                extomxarr(a,newa)
+                head = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
+                extomxarr(a,newa) # We may have to change the syntax
             end
         else
             head = :Span
