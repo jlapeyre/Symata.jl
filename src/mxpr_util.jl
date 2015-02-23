@@ -7,7 +7,7 @@ macro mdebug(level, a...)
 end
 
 using Base.Test
-using Mxprs
+using SJulia
 
 # For use in ../test/
 macro testex(expr)

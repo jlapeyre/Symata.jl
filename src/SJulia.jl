@@ -1,4 +1,4 @@
-module Mxprs
+module SJulia
 
 export @ex, @testex, symval
 

@@ -18,7 +18,7 @@
 # Rational, we can do Head(1//1) == Int64T
 function bind_types()
     for x in ("Int","Float64","Int64")  # etc.
-        t = Mxprs.eval(parse(x))
+        t = SJulia.eval(parse(x))
         s = symbol(x * "T")  # ie Int64T , etc
         setsymval(s,t)  #  SJulia symbol  Int64T is bound to Julia data type Int64
     end
@@ -27,7 +27,7 @@ bind_types()
 
 # We want to put things into modules eventually
 function evalmath(x)
-    Mxprs.eval(x)
+    SJulia.eval(x)
 end
 
 function make_math()
@@ -156,7 +156,7 @@ function get_sjstr(x)
 end
 
 function do_common(sjf)
-    aprs = "Mxprs.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
+    aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))

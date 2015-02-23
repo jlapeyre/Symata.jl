@@ -1,6 +1,6 @@
 module SJuliaIO
 
-import Mxprs: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
+import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
        symname, mhead, margs, is_type, getoptype,
        mtojsym
 
