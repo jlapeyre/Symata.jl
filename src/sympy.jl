@@ -33,6 +33,11 @@ function sympy2mxpr(exp_tree)
     if (pytypeof(exp_tree) in keys(conv_dict))
         return SJulia.mxpr(conv_dict[pytypeof(exp_tree)], map(sympy2mxpr, exp_tree[:args])...)
     end
+    if exp_tree[:is_Function]       # perhaps a user defined function
+        objstr = split(string(pytypeof(exp_tree)))
+        head = symbol(objstr[end])  # The string is "PyObject bb"
+        return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
+    end
     if pytypeof(exp_tree) == SympySymbol
         return Symbol(exp_tree[:name])
     end
@@ -81,6 +86,8 @@ function mxpr2sympy(mex)
     if mex.head in keys(conv_rev)
         return conv_rev[mex.head](map(mxpr2sympy, mex.args)...)
     end
+    pyfunc = sympy.Function(string(mex.head))  # Don't recognize the head, so make it a user function
+    return pyfunc(map(mxpr2sympy, mex.args)...)
 end
 
 # TEST
