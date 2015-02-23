@@ -390,32 +390,51 @@ function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic,tol::Number)
 end
 do_Rationalize(mx::Mxpr{:Rationalize},x) = x
 
+#### Numerator
 
-# apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
-# do_Numerator(mx::Mxpr{:Numerator},args...) = mx
-# function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})
-#     nargsn = newargs()
-#     nargsd = newargs()
-#     args = margs(m)
-#     for i in 1:length(args)
-#         res = find_numerator(args[i])
-#         if res
-#             push!(nargsn,res)
-#         else 
-#             res = find_denominator(args[i])
-#             if res
-#                 push!(nargsd,res)
-#             else
-#                 push!(nargsn,args[i])
-#             end
-#         end
-#     end
-#     mxpr(mhead(m),nargsn)
-# end
+@sjdoc Numerator "
+Numerator(expr) returns the numerator of expr.
+"
 
-# find_numerator(x::Rational) = num(x)
-# find_numerator(x::Power) = 
-# find_numerator(x) = false
+apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
+do_Numerator(mx::Mxpr{:Numerator},args...) = mx
+
+do_Numerator(mx::Mxpr{:Numerator},x::Rational) = num(x)
+do_Numerator(mx::Mxpr{:Numerator},x) = x
+function do_Numerator(mx::Mxpr{:Numerator},x::Mxpr{:Power})
+    find_numerator(x)
+end
+
+function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})
+    nargsn = newargs()
+    args = margs(m)
+    for i in 1:length(args)
+        arg = args[i]
+        res = find_numerator(arg)
+        if res != 1
+            push!(nargsn,res)
+        end
+    end
+    if isempty(nargsn)
+        return 1  # which one ?
+    end
+    if length(nargsn) == 1
+        return nargsn[1]
+    end
+    return mxpr(mhead(m),nargsn)
+end
+
+find_numerator(x::Rational) = num(x)
+find_numerator(x::Mxpr{:Power}) = pow_sign(x,expt(x)) > 0 ? x : 1
+
+function pow_sign(x, texpt::Mxpr{:Times})
+    fac = texpt[1]
+    return is_Number(fac) && fac < 0 ? -1 : 1
+end
+
+pow_sign(x, texpt::Number) = texpt < 0 ? -1 : 1
+pow_sign(x, texpt) = 1
+find_numerator(x) = x
 
 
 nothing
