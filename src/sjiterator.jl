@@ -22,7 +22,7 @@ type SJIter3{T,V} <: AbstractSJIter
     i::Symbol
     imin::T
     imax::V
-    loopmax::Int
+    num_iters::Int
 end
 
 type SJIter4{T,V,W} <: AbstractSJIter
@@ -74,9 +74,9 @@ function make_sjiter{T}(mx,args::Array{T,1})
             end
         elseif len == 3        # We need to overload ops to make these easier to write
             # do we need deepcopy here ?
-            loopmax = doeval(mxpr(:Plus, args[3], -1 * args[2]))
-            if is_type_less(loopmax, Number) # args3 - args2
-                return SJIter3(args[1],doeval(args[2]),doeval(args[3]),floor(Int,loopmax)) # use splat ?
+            num_iters = doeval(mxpr(:Plus, args[3], -1 * args[2]))
+            if is_type_less(num_iters, Number) # args3 - args2
+                return SJIter3(args[1],doeval(args[2]),doeval(args[3]),floor(Int,num_iters)) # use splat ?
             else
                 itererror(mx)
             end

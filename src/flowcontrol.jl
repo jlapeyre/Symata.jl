@@ -133,7 +133,7 @@ function do_doloop(expr,iter::SJIter3)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)    
-    for i in 1:(iter.loopmax)
+    for i in 1:(iter.num_iters)
         doeval(ex)
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
     end
