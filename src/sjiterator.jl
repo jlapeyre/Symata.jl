@@ -92,7 +92,10 @@ function make_sjiter{T}(mx,args::Array{T,1})
 #            println(mxpr(:FullForm,tst))
             num_iters = doeval(tst)
             if is_type_less(num_iters, Number)
-                return SJIter4(args...,floor(Int,num_iters)+1)
+                nargs[2] = doeval(args[2])
+                nargs[3] = doeval(args[3])
+                nargs[4] = doeval(args[4])
+                return SJIter4(nargs...,floor(Int,num_iters)+1)
             else
                 itererror(mx)
             end
