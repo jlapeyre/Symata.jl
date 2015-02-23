@@ -6,10 +6,13 @@ macro mdebug(level, a...)
     end
 end
 
+using Base.Test
+using Mxprs
+
 # For use in ../test/
 macro testex(expr)
     mx = Expr(:macrocall, symbol("@ex"), expr)
-    Expr(:macrocall,symbol("@test"),mx)
+    Expr(:macrocall,symbol("@test"),eval(mx))
 end
 
 ## For compatibility with older code.

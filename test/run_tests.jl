@@ -1,5 +1,7 @@
 using Base.Test
 
+import Base.Test: @test
+
 @ex TimeOff()   # don't print hundreds of diagnostic lines
 include("lists_test.jl")
 include("somemath_test.jl")

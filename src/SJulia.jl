@@ -1,3 +1,7 @@
+module Mxprs
+
+export @ex, @testex, symval
+
 include("mxpr_util.jl")
 include("mxpr_type.jl")
 include("sjiterator.jl")
@@ -32,4 +36,7 @@ include("math_functions.jl")
 include("strings.jl")
 # This last file loads slowly because it has to jit a lot of code
 #include("code_in_SJulia.jl")
+
+end # module Mxprs
+
 nothing

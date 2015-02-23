@@ -77,7 +77,7 @@ using Base.Test
 
 ## Set a Julia variable
 @ex(SetJ(a,"cat"))
-@test Main.a == "cat"
+@test Mxprs.a == "cat"
 
 ## Test compound expression
 

@@ -1,2 +1,2 @@
 #
-sjulia -q -P 'include("src/SJulia.jl")'
+sjulia -q -P 'include("src/SJulia.jl"); using Mxprs'
