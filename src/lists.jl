@@ -293,8 +293,6 @@ f = :( g(x) = x^2 )
 Table( f(i), [i,10])
 "
 
-# This is also rather limited
-#set_attribute(:TableNew, :HoldAll)
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
     if is_Mxpr(expr,:Jxpr)
@@ -349,13 +347,41 @@ function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
     args = newargs(imax-imin+1)
-#    if iter.i == expr
-    for i in imin:imax
-        set_all_part_specs2(expr,exprpos,i)
-        unsetfixed(expr)
-        args[i-imin+1] = doeval(expr)
+    if iter.i == expr
+        for i in imin:imax
+            args[i-imin+1] = i
+        end
+    else
+        for i in imin:imax
+            set_all_part_specs2(expr,exprpos,i)
+            unsetfixed(expr)
+            args[i-imin+1] = doeval(expr)
+        end
     end
     return args
+end
+
+function do_Table{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
+    exprpos = expression_positions(expr,iter.i)
+    imax = iter.imax
+    imin = iter.imin
+    di = iter.di
+    args = newargs(iter.num_iters)
+    j::Int = 0
+    if iter.i == expr
+        for i in imin:di:imax
+            j += 1
+            args[j] = i
+        end
+    else
+        for i in imin:di:imax
+            j += 1
+            set_all_part_specs2(expr,exprpos,i)
+            unsetfixed(expr)
+            args[j] = doeval(expr)
+        end
+    end
+    return args    
 end
 
 function do_Table{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
