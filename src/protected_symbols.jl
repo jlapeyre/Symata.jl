@@ -61,7 +61,7 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
           "String", "StringLength", "ToString", "Protected", "TimeOn", "TimeOff",
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff", "Numerator",
-          "LeafCount","ByteCount","Depth","Permutations","FactorInteger","IntegerDigits",
+          "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
           "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
                  "ans" # protect ans to keep it out of user symbols
            ],

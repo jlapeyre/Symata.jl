@@ -1,3 +1,4 @@
+using SJulia
 using Base.Test
 
 import Base.Test: @test

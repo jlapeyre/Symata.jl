@@ -130,6 +130,10 @@ elapsed time: 0.005774109 seconds
 
 ### Installing
 
+*Note* SJulia depends on the Julia SymPy module. Currently, if you don't have
+this, you must comment out the last two modules in `src/SJulia.jl`
+
+SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 You can load and test SJulia like this
 
 ```julia
