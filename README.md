@@ -69,7 +69,8 @@ faster retrieving a value. The latter time is mostly the difference between
 an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
 is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation)
 Mathematica 3 is about two times faster than
-SJulia generating `m`.
+SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend, with just one function
+implemented.)
 
 (There are caveats interpreting these results of course.
 Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
@@ -130,8 +131,8 @@ elapsed time: 0.005774109 seconds
 
 ### Installing
 
-*Note* SJulia depends on the Julia SymPy module. Currently, if you don't have
-this, you must comment out the last two modules in `src/SJulia.jl`
+*Note*: SJulia depends on the Julia SymPy module. Currently, if you don't have
+SymPy installed, you must comment out the last two lines loading code in `src/SJulia.jl`.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 You can load and test SJulia like this
