@@ -387,7 +387,6 @@ end
 # code (commented out) created Mxpr every time.
 # This saves 30 percent of time and allocation in some tests.
 function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
-    println("In this domap")
     args = margs(expr)
     nargs = newargs(args)
     mx = mxpr(f,0) # reserve one argument
