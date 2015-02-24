@@ -108,6 +108,20 @@ function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
     sympy.solve(peqs,pyvars) |>  sympy2mxpr
 end
 
+#### Roots
+@sjdoc Roots "
+Roots(expr) solves for the roots of expr.
+"
+# could use a macro for these
+#apprules(mx::Mxpr{:Roots}) = do_Solve(mx,margs(mx)...)
+apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> sympy2mxpr
+
+#### RealRoots
+@sjdoc RealRoots "
+RealRoots(expr) solves for the real roots of expr.
+"
+apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> sympy2mxpr
+
 #### ExpandA
 
 @sjdoc ExpandA "

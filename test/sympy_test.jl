@@ -7,6 +7,7 @@ using Base.Test
 @testex Integrate(x,[x,0,1]) == 1//2
 @testex Integrate(x,[x,0,1],y) == 1//2 * y
 @testex D(x^2,x) == 2 * x
+@testex D(x^3,x,2) == 6 * x
 @ex     z = ( 1/x + 1/(x+1))
 @testex Together(z) == (x ^ -1) * ((1 + x) ^ -1) * (1 + 2 * x)
 @testex Apart(Together(z)) == z

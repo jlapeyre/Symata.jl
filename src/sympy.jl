@@ -76,6 +76,8 @@ const conv_dict = Dict(
 #     end
 # end
 
+sympy2mxpr(x) = x
+
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
 #    println("annot ", typeof(expr))
     if (pytypeof(expr) in keys(conv_dict))
