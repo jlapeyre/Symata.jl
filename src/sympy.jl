@@ -1,10 +1,11 @@
-module SymPy
+module JSymPy
 
 export sympy2mxpr, mxpr2sympy
 export sympy
 
 importall SJulia
 
+#import SymPy
 import SJulia: mxpr
 
 using PyCall
@@ -44,38 +45,88 @@ const conv_dict = Dict(
                        sympy.zoo => :ComplexInfinity
 )
 
-function sympy2mxpr(exp_tree)
-    if (pytypeof(exp_tree) in keys(conv_dict))
-        return SJulia.mxpr(conv_dict[pytypeof(exp_tree)], map(sympy2mxpr, exp_tree[:args])...)
+
+# function disablesympy2mxpr(exp_tree)
+#     println("plain ", typeof(exp_tree))
+#     if (pytypeof(exp_tree) in keys(conv_dict))
+#         return SJulia.mxpr(conv_dict[pytypeof(exp_tree)], map(sympy2mxpr, exp_tree[:args])...)
+#     end
+#     if exp_tree[:is_Function]       # perhaps a user defined function
+#         # objstr = split(string(pytypeof(exp_tree)))
+#         # head = symbol(objstr[end])  # The string is "PyObject bb"
+#         head = symbol(pytypeof(exp_tree)[:__name__])
+#         return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
+#     end
+#     if pyisinstance(exp_tree,SympyPi) return :Pi end
+#     if pytypeof(exp_tree) == SympySymbol
+#         return Symbol(exp_tree[:name])
+#     end
+#     if pyisinstance(exp_tree, SympyNumber)
+#         if exp_tree[:is_Integer]
+#             return convert(BigInt, exp_tree)
+#         end
+#         if exp_tree[:is_Rational]
+#             return Rational(exp_tree[:p],exp_tree[:q])  # These are Int64's. Don't know when or if they are BigInts
+#         end 
+#         return convert(FloatingPoint, exp_tree)
+#     end
+#     if isa(exp_tree,Tuple)
+#         println("tuple ", exp_tree)
+#         return SJulia.mxpr(:List,map(sympy2mxpr,exp_tree)...)
+#     end
+# end
+
+function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
+#    println("annot ", typeof(expr))
+    if (pytypeof(expr) in keys(conv_dict))
+        return SJulia.mxpr(conv_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
     end
-    if exp_tree[:is_Function]       # perhaps a user defined function
-        # objstr = split(string(pytypeof(exp_tree)))
+    if expr[:is_Function]       # perhaps a user defined function
+        # objstr = split(string(pytypeof(expr)))
         # head = symbol(objstr[end])  # The string is "PyObject bb"
-        head = symbol(pytypeof(exp_tree)[:__name__])
-        return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
+        head = symbol(pytypeof(expr)[:__name__])
+        return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
     end
-    if pyisinstance(exp_tree,SympyPi) return :Pi end
-    if pytypeof(exp_tree) == SympySymbol
-        return Symbol(exp_tree[:name])
+    if pyisinstance(expr,SympyPi) return :Pi end
+    if pytypeof(expr) == SympySymbol
+        return Symbol(expr[:name])
     end
-    if pyisinstance(exp_tree, SympyNumber)
-        if exp_tree[:is_Integer]
-            return convert(BigInt, exp_tree)
+    if pyisinstance(expr, SympyNumber)
+        if expr[:is_Integer]
+            return convert(BigInt, expr)
         end
-        if exp_tree[:is_Rational]
-            return Rational(exp_tree[:p],exp_tree[:q])  # These are Int64's. Don't know when or if they are BigInts
+        if expr[:is_Rational]
+            return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
         end 
-        return convert(FloatingPoint, exp_tree)
+        return convert(FloatingPoint, expr)
     end
-    if isa(exp_tree,Tuple)
-        println("tuple ", exp_tree)
-        return SJulia.mxpr(:List,map(sympy2mxpr,exp_tree)...)
+    println("sympy2mxpr: Unable to translate ", expr)
+    return expr
+#    if isa(expr,Tuple)
+#        println("tuple ", expr)
+#        return SJulia.mxpr(:List,map(sympy2mxpr,expr)...)
+#    end
+end
+
+#function sympy2mxpr(x::Tuple)
+#    return SJulia.mxpr(:List,map(sympy2mxpr,x)...)
+#end
+
+# By default, Dict goes to Dict
+function sympy2mxpr(expr::Dict)
+    ndict = Dict()
+    for (k,v) in expr
+        ndict[sympy2mxpr(k)] = sympy2mxpr(v)
     end
+    return ndict
 end
 
 function sympy2mxpr{T}(expr::Array{T,1})
+    println("array ", typeof(expr))
     return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
 end
+
+#sympy2mxpr(x) = x
 
 # TESTS
 
@@ -129,6 +180,9 @@ function mxpr2sympy(mex)
     if mex.head in keys(conv_rev)
         return conv_rev[mex.head](map(mxpr2sympy, mex.args)...)
     end
+    if SJulia.is_Mxpr(mex,:List)
+        return [map(mxpr2sympy, mex.args)...]
+    end
     pyfunc = sympy.Function(string(mex.head))  # Don't recognize the head, so make it a user function
     return pyfunc(map(mxpr2sympy, mex.args)...)
 end
@@ -142,4 +196,4 @@ function test_mxpr2sympy()
     @assert sympy2mxpr(mxpr2sympy(me2)) == me2
 end
 
-end  # module SJulia.SymPy
+end  # module SJulia.JSymPy

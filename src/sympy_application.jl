@@ -1,4 +1,4 @@
-using SJulia.SymPy
+using SJulia.JSymPy
 
 #### Factor
 
@@ -31,9 +31,9 @@ function apprules(mx::Mxpr{:Integrate})
     pymx = mxpr2sympy(args[1])
     varspecs = args[2:end]
     pyvarspecs = varspecs_to_tuples_of_sympy(varspecs)
-    println(pyvarspecs)
+#    println(pyvarspecs)
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
-    println(pyintegral)
+#    println(pyintegral)
     #    return pyintegral
     #    return mxpr(:List,pyintegral,sympy2mxpr(pyintegral))
     return sympy2mxpr(pyintegral)
@@ -102,13 +102,18 @@ function do_Solve(mx, expr, var::Symbol)
     sympy.solve(pyexpr,pyvar) |>  sympy2mxpr
 end
 
+function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
+    peqs = eqs |> mxpr2sympy
+    pyvars = vars |> mxpr2sympy
+    sympy.solve(peqs,pyvars) |>  sympy2mxpr
+end
+
 #### ExpandA
 
 @sjdoc ExpandA "
 ExpandA(expr) expands powers and products in expr.
 "
 apprules(mx::Mxpr{:ExpandA}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
-
 
 ## utility
 
