@@ -608,22 +608,24 @@ function apprules(mx::Mxpr{:Comparison})
 end
 
 function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
-    if comp == :<    # Test For loop shows this is much faster than evaling Expr
-        return a < b
-    elseif comp == :>
-        return a > b
-    elseif comp == :(==)
-        return a == b
-    elseif comp == :(>=)
-        return a >= b
-    elseif comp == :(<=)
-        return a <= b
-    elseif comp == :(!=)
-        return a != b
-    elseif comp == :(===)
-        return a === b        
-    end
-    eval(Expr(:comparison,a,comp,b)) # This will be slow.
+    _do_Comparison(a,comp,b)
+#    if comp == :<    # Test For loop shows this is much faster than evaling Expr
+#         return a < b
+#     elseif comp == :>
+#         return a > b
+#     elseif comp == :(==)
+#         return a == b
+#     elseif comp == :(>=)
+#         return a >= b
+#     elseif comp == :(<=)
+#         return a <= b
+#     elseif comp == :(!=)
+#         return a != b
+#     elseif comp == :(===)
+#         return a === b        
+#     end
+#     eval(Expr(:comparison,a,comp,b)) # This will be slow.
+# 
 end
 
 function _do_Comparison(a::Number, comp::Symbol, b::Number)
