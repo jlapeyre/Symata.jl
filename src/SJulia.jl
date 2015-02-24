@@ -1,6 +1,6 @@
 module SJulia
 
-export @ex, @testex, symval
+export @ex, @testex, symval, symname
 
 include("mxpr_util.jl")
 include("mxpr_type.jl")

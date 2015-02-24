@@ -48,7 +48,7 @@ set_pattributes(["Plus", "Times"],
 
 set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
-set_pattributes(["EvenQ","OddQ","Range"],[:Listable])
+set_pattributes(["EvenQ","OddQ","Range","Limit"],[:Listable])
 
 # Of course, these need to be organized!
 set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",

@@ -20,13 +20,26 @@ const SympyAdd = sympy_core.add["Add"]
 const SympyMul = sympy_core.mul["Mul"]
 const SympyPow = sympy_core.power["Pow"]
 const SympyNumber = sympy_core.numbers["Number"]
+const SympyPi  = sympy_core.numbers["Pi"]
 const SympySin = sympy.functions["sin"]
+const SympyCos = sympy.functions["cos"]
+const SympyTan = sympy.functions["tan"]
+const SympyExp = sympy.functions["exp"]
+const SympyLog = sympy.functions["log"]
+const SympySqrt = sympy.functions["sqrt"]
 
 const conv_dict = Dict(
     SympyAdd => :Plus,
     SympyMul => :Times,
     SympyPow => :Power,
-    SympySin => :Sin                   
+    SympySin => :Sin,
+    SympyCos => :Cos,
+                       SympyTan => :Tan,
+                       SympyExp => :Exp,
+                       sympy.E => :E,
+                       SympyLog => :Log,
+                       SympySqrt => :Sqrt,
+    sympy.oo => :Infinity
 )
 
 function sympy2mxpr(exp_tree)
@@ -38,6 +51,7 @@ function sympy2mxpr(exp_tree)
         head = symbol(objstr[end])  # The string is "PyObject bb"
         return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
     end
+    if pyisinstance(exp_tree,SympyPi) return :Pi end
     if pytypeof(exp_tree) == SympySymbol
         return Symbol(exp_tree[:name])
     end
@@ -46,9 +60,13 @@ function sympy2mxpr(exp_tree)
             return convert(BigInt, exp_tree)
         end
         if exp_tree[:is_Rational]
-            return convert(Rational{BigInt}, exp_tree)
+            return Rational(exp_tree[:p],exp_tree[:q])  # These are Int64's. Don't know when or if they are BigInts
         end 
         return convert(FloatingPoint, exp_tree)
+    end
+    if isa(exp_tree,Tuple)
+        println("tuple ", exp_tree)
+        return SJulia.mxpr(:List,map(sympy2mxpr,exp_tree)...)
     end
 end
 
@@ -71,13 +89,31 @@ const conv_rev = Dict(
     :Plus => sympy.Add,
     :Times => sympy.Mul,
     :Power => sympy.Pow,
-    :Sin => sympy.sin
+    :Sin => sympy.sin,
+                      :Cos => sympy.cos,
+                      :Tan => sympy.tan,
+                      :Exp => sympy.exp,
+                      :Sqrt => sympy.sqrt,
+                      :E => sympy.E,
+                      :Pi => SympyPi,
+    :Log => sympy.log,     
+    :Infinity => sympy.oo
 )   
 
 function mxpr2sympy(mex)
     if !isa(mex, SJulia.Mxpr)
         if isa(mex, Symbol)
+            if haskey(conv_rev,mex)
+                return conv_rev[mex]
+            end
             return sympy.Symbol(mex)
+        end
+        if SJulia.is_type_less(mex,SJulia.SSJSym)
+            name = symname(mex)
+            if haskey(conv_rev,name)
+                return conv_rev[name]
+            end
+            return sympy.Symbol(name)            
         end
         if isa(mex, Number)
             return mex
