@@ -626,20 +626,46 @@ function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
     eval(Expr(:comparison,a,comp,b)) # This will be slow.
 end
 
-function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::T)
-    if comp == :(==)
+function _do_Comparison(a::Number, comp::Symbol, b::Number)
+    if comp == :<    # Test For loop shows this is much faster than evaling Expr
+        return a < b
+    elseif comp == :>
+        return a > b
+    elseif comp == :(==)
         return a == b
+    elseif comp == :(>=)
+        return a >= b
+    elseif comp == :(<=)
+        return a <= b
     elseif comp == :(!=)
         return a != b
     elseif comp == :(===)
-        return a === b # probably not what we want
+        return a === b        
+    end
+    eval(Expr(:comparison,a,comp,b)) # This will be slow.    
+end
+
+# x == x -> True,  x != x -> False. Everything else don't know (no assumptions)
+function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::T)
+    if comp == :(==)
+        res = a == b
+        res && return res
+    elseif comp == :(!=)
+        res = a == b
+        res && return false
+    elseif comp == :(===)
+        return a === b
     end
     return mx
 end
 
+
 # This is pretty slow.
+# This is also wrong.
+# Do a chain of comparisons. Process them one by one. If a
+# comparison is true, remove it from the list
 function do_Comparison(mx::Mxpr{:Comparison},theargs...)
-#    println("Here $mx") A few still sneak through here
+#    println("Here $mx") # A few still sneak through here
     nargs1 = newargs()
     i = 1
     while i <= length(mx)  # do all the != and ==
@@ -649,6 +675,7 @@ function do_Comparison(mx::Mxpr{:Comparison},theargs...)
                     i += 1
                 else
                     return false
+#                    return mx
                 end
             elseif symname(mx[i]) == :(!=)
                 if mx[i-1] != mx[i+1]

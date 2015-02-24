@@ -1,5 +1,5 @@
+using SJulia
 using Base.Test
-
 
 @testex [1,2,3][2] == 2
 
@@ -12,15 +12,18 @@ using Base.Test
 @testex   g(3) == 9
 # The following works because we have defined ^ for Symbols in Julia
 @testex   g(c) == c^2
+
 @ex ClearAll(f,g,x,c)
 
 ## SetDelay for SJSym
 @ex Clear(a,b,c)
 @testex a == a
-@test  @ex(a == b) == false
-@testex  a != b
-@testex  a == a != b
-@testex  (a != a == b) == false
+@testex  (a == b) != False
+@testex  (a != b) != True
+@testex  (a != b) != False
+# Broken
+#@testex  (a == a != b) != True
+@testex  (a != a == b) == False
 @ex (a = 1)
 @ex (b = a)
 @ex (c := a)
