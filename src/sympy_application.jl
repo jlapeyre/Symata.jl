@@ -26,15 +26,13 @@ Integrate(expr, x) gives the indefinite integral of expr with respect to x.
 Integrate(expr, [x,a,b]) gives the definite integral.
 "
 
-# TODO, multiple integrals
 function apprules(mx::Mxpr{:Integrate})
-    varspec = mx[2]
-    pymx = mxpr2sympy(mx[1])    
-    if is_Mxpr(varspec,:List)
-        pyintegral = sympy.integrate(pymx,tuple(map(mxpr2sympy,margs(varspec))))
-    else
-        pyintegral = sympy.integrate(pymx,mxpr2sympy(varspec))
-    end
+    args = margs(mx)
+    pymx = mxpr2sympy(args[1])
+    varspecs = args[2:end]
+    pyvarspecs = varspecs_to_tuples_of_sympy(varspecs)
+    println(pyvarspecs)
+    pyintegral = sympy.integrate(pymx,pyvarspecs...)
     println(pyintegral)
     #    return pyintegral
     #    return mxpr(:List,pyintegral,sympy2mxpr(pyintegral))
@@ -62,8 +60,8 @@ function apprules(mx::Mxpr{:D})
             push!(pyspec,mxpr2sympy(dspec))
         end
     end
-    thederivative = sympy.diff(pymx,pyspec...)
-    return sympy2mxpr(thederivative)
+    pyderivative = sympy.diff(pymx,pyspec...)
+    return sympy2mxpr(pyderivative)
 end
 
 #### Together
@@ -71,17 +69,60 @@ end
 @sjdoc Together "
 Together(sum) rewrites a sum of terms as a product.
 "
+apprules(mx::Mxpr{:Together}) = mx[1] |> mxpr2sympy |> sympy.together |> sympy2mxpr
 
-function apprules(mx::Mxpr{:Together})
-    mx[1] |> mxpr2sympy |> sympy.together |> sympy2mxpr
-end
 
 #### Apart
 
 @sjdoc Apart "
 Together(product) rewrites a product as a sum of terms with mininmal denominators.
 "
+apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
 
-function apprules(mx::Mxpr{:Apart})
-    mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
+#### Simplify
+
+@sjdoc Simplify "
+Simplify(expr) rewrites expr in a simpler form.
+"
+apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> sympy2mxpr
+
+#### Solve
+
+@sjdoc Solve "
+Solves(expr) solves expr == 0 for one variable.
+Solves(expr,var) solves expr == 0 for var.
+"
+apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
+
+do_Solve(mx, expr) = expr |> mxpr2sympy |> sympy.solve |> sympy2mxpr
+
+function do_Solve(mx, expr, var::Symbol)
+    pyexpr = expr |> mxpr2sympy
+    pyvar = var |> mxpr2sympy
+    sympy.solve(pyexpr,pyvar) |>  sympy2mxpr
+end
+
+#### ExpandA
+
+@sjdoc ExpandA "
+ExpandA(expr) expands powers and products in expr.
+"
+apprules(mx::Mxpr{:ExpandA}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
+
+
+## utility
+
+# input -- Array of SJulia Lists and/or Symbols
+# output -- Array of tuples (from Lists) of SymPy objects, or single SymPy objects
+# Eg: For translating Integrate(expr,[x,a,b],y) --> integrate(expr,(x,a,b),y)
+function varspecs_to_tuples_of_sympy(args::Array)
+    oarr = []
+    for x in args
+        if is_Mxpr(x,:List)
+            push!(oarr, tuple(map(mxpr2sympy, margs(x))...))
+        else
+            push!(oarr,mxpr2sympy(x))
+        end
+    end
+    return oarr
 end
