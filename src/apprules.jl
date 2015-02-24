@@ -249,127 +249,7 @@ function do_set(mx,lhs::Mxpr, rhs)
     nothing
 end
 
-
-#### SetJ
-
-@sjdoc SetJ "
-SetJ(x,val) sets the Julia symbol x to val. Variables and functions in SJulia
-are separate from those in Julia, ie, their table of bindings to symbols are separate.
-"
-
-# This can also be done with a Jxpr
-# Bind a Julia symbol to the rhs
-function apprules(mx::Mxpr{:SetJ})
-    lhs = margs(mx,1)
-    rhs = margs(mx,2)
-    eval(Expr(:(=),symname(lhs),rhs))
-end
-
-#### Jxpr
-
-@sjdoc Jxpr "
-Jxpr allows embedding Julia expressions.
-A Jxpr is entered like this :( expr ) . expr is interpreted as a Julia expression and
-it is wrapped expression with head Jxpr, which is then evaluated when
-Jxpr is evaluated. You never see the head Jxpr. For example
- m = :( [1:10] )  creates a Julia array and binds it to the SJulia symbol m
-"
-
-@sjexamp( Jxpr,
-         "This creates a Julia Array{Int,1} and \"binds\" it to the SJulia symbol m.",
-         ("m = :( [1:3] )",
-          "3-element Array{Int64,1}:\n 1\n 2\n 3"))
-
-@sjexamp( Jxpr,
-         "Call a Julia function",
-         ("tf = :( time )",""),
-         ("tf()","1.424287593897437e9"))
-
-# quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
-# Mxpr with head Jxpr. It is evaluated here.
-# Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
-function apprules(mx::Mxpr{:Jxpr})
-    do_jxpr(mx,mx[1])
-end
-
-function do_jxpr(mx::Mxpr{:Jxpr}, ex::Union(Expr,Symbol))
-    return eval(ex)
-end
-
-function do_jxpr(mx::Mxpr{:Jxpr}, x)
-    error("Jxpr: Can't execute Julia code of type ", typeof(x))
-end
-
-
-#### Unpack
-
-@sjdoc Unpack "
-Unpack(a) unpacks a Julia typed array into an SJulia List expression.
-Only 1-d is supported. If a is a Julia Dict, then a list of lists of
-key,value pairs is returned.
-"
-
-@sjexamp( Unpack,
-         "This creates a List of three random Float64's.",
-         ("Unpack( :(rand(3)) )", "[0.5548766917324894,0.034964001133465095,0.9122052258982192]"))
-
-function apprules(mx::Mxpr{:Unpack})
-    obj = mx[1]
-    args = do_unpack(obj)
-    mx = mxpr(:List,args)
-    setfixed(mx)
-    setcanon(mx)
-    return mx
-end
-
-function do_unpack(obj)
-    args = newargs(length(obj))
-    @inbounds for i in 1:length(obj)
-        args[i] = obj[i]
-    end
-    return args
-end
-
-function do_unpack(dict::Dict)
-    args = newargs(length(dict))
-    i = 0
-    for (k,v) in dict
-        i += 1
-        args[i] = mxpr(:List,k,v)
-    end
-    return args
-end
-
-#### Pack
-
-@sjdoc Pack "
-Pack(mx) packs the args of the SJulia expression mx into a typed Julia array.
-The type of the array is the same as the first element in mx.
-"
-
-@sjexamp( Pack,
-         "This returns a Julia array of element type Int [1,2,3].",
-         ("ClearAll(f)",""),
-         ("Pack(f(1,2,3))","3-element Array{Int64,1}: [1,2,3]"))
-
-@sjseealso_group(Pack,Unpack)
-
-# 1-d unpack
-function apprules(mx::Mxpr{:Pack})
-    sjobj = margs(margs(mx,1))
-    T = typeof(sjobj[1]) # hope one exists
-    args = do_pack(T,sjobj)
-    return args
-end
-
-function do_pack(T,sjobj)
-    args = Array(T,length(sjobj))
-    @inbounds for i in 1:length(sjobj)
-        args[i] = sjobj[i]
-    end
-    return args
-end
-
+#### Keys
 
 @sjdoc Keys "
 Keys(d) returns a list of the keys in Dict d
@@ -377,6 +257,8 @@ Keys(d) returns a list of the keys in Dict d
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d))...)
 do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
+
+#### Values
 
 @sjdoc Values "
 Values(d) returns a list of the values in Dict d
@@ -386,7 +268,6 @@ Values(d) returns a list of the values in Dict d
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
 do_values(mx,d::Dict) = mxpr(:List,collect(values(d))...)
 do_values(mx,x) = (warn("Can't return values of $mx"); mx)
-
 
 #### Symbol
 
@@ -545,15 +426,6 @@ apprules(mx::Mxpr{:Head}) = gethead(margs(mx,1))
 gethead(mx::Mxpr) = mhead(mx)
 gethead(s::SJSym) = getsym(:Symbol)
 gethead(ex) = typeof(ex)
-
-@sjdoc JVar "
-JVar(x) returns the Julia value of the Symbol that x evaluates to. For example,
-if a = 1 in Julia and b = a in SJulia, then JVar(b) evaluates to 1.
-"
-
-@sjseealso_group(Jxpr,JVar)
-apprules(mx::Mxpr{:JVar}) = eval(symname(mx[1]))
-
 
 
 @sjdoc AtomQ "

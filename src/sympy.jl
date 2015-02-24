@@ -1,6 +1,7 @@
 module SymPy
 
 export sympy2mxpr, mxpr2sympy
+export sympy
 
 importall SJulia
 
@@ -39,7 +40,8 @@ const conv_dict = Dict(
                        sympy.E => :E,
                        SympyLog => :Log,
                        SympySqrt => :Sqrt,
-    sympy.oo => :Infinity
+                       sympy.oo => :Infinity,
+                       sympy.zoo => :ComplexInfinity
 )
 
 function sympy2mxpr(exp_tree)
@@ -47,8 +49,9 @@ function sympy2mxpr(exp_tree)
         return SJulia.mxpr(conv_dict[pytypeof(exp_tree)], map(sympy2mxpr, exp_tree[:args])...)
     end
     if exp_tree[:is_Function]       # perhaps a user defined function
-        objstr = split(string(pytypeof(exp_tree)))
-        head = symbol(objstr[end])  # The string is "PyObject bb"
+        # objstr = split(string(pytypeof(exp_tree)))
+        # head = symbol(objstr[end])  # The string is "PyObject bb"
+        head = symbol(pytypeof(exp_tree)[:__name__])
         return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
     end
     if pyisinstance(exp_tree,SympyPi) return :Pi end
@@ -90,14 +93,15 @@ const conv_rev = Dict(
     :Times => sympy.Mul,
     :Power => sympy.Pow,
     :Sin => sympy.sin,
-                      :Cos => sympy.cos,
-                      :Tan => sympy.tan,
-                      :Exp => sympy.exp,
-                      :Sqrt => sympy.sqrt,
-                      :E => sympy.E,
-                      :Pi => SympyPi,
+    :Cos => sympy.cos,
+    :Tan => sympy.tan,
+    :Exp => sympy.exp,
+    :Sqrt => sympy.sqrt,
+    :E => sympy.E,
+    :Pi => SympyPi,
     :Log => sympy.log,     
-    :Infinity => sympy.oo
+    :Infinity => sympy.oo,
+    :ComplexInfinity => sympy.zoo
 )   
 
 function mxpr2sympy(mex)

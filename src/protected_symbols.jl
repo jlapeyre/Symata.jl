@@ -1,4 +1,4 @@
-## These are the 'builtin' symbols
+# These are the 'builtin' symbols
 # They can by listed by giving `BuiltIn()'.
 # They all have the attribute `Protected'.
 
@@ -38,7 +38,7 @@ set_pattributes("I", [:ReadProtected,:Locked])
 
 set_pattributes(["CompoundExpression","Sum"],[:ReadProtected,:HoldAll])
 
-set_pattributes("Part",:ReadProtected)
+set_pattributes(["Part","D"],:ReadProtected)
 
 set_pattributes(["Cos", "ACos", "Sin", "ASin", "Tan", "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im"],
                 [:Listable,:NumericFunction])
@@ -48,7 +48,7 @@ set_pattributes(["Plus", "Times"],
 
 set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
-set_pattributes(["EvenQ","OddQ","Range","Limit"],[:Listable])
+set_pattributes(["EvenQ","OddQ","Range","Limit", "Together", "Apart"],[:Listable])
 
 # Of course, these need to be organized!
 set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
