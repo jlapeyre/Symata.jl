@@ -1,4 +1,3 @@
-using SJulia
 using Base.Test
 
 @testex [1,2,3][2] == 2

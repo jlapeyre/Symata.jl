@@ -609,23 +609,6 @@ end
 
 function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
     _do_Comparison(a,comp,b)
-#    if comp == :<    # Test For loop shows this is much faster than evaling Expr
-#         return a < b
-#     elseif comp == :>
-#         return a > b
-#     elseif comp == :(==)
-#         return a == b
-#     elseif comp == :(>=)
-#         return a >= b
-#     elseif comp == :(<=)
-#         return a <= b
-#     elseif comp == :(!=)
-#         return a != b
-#     elseif comp == :(===)
-#         return a === b        
-#     end
-#     eval(Expr(:comparison,a,comp,b)) # This will be slow.
-# 
 end
 
 function _do_Comparison(a::Number, comp::Symbol, b::Number)
@@ -649,6 +632,22 @@ end
 
 # x == x -> True,  x != x -> False. Everything else don't know (no assumptions)
 function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::T)
+    res = _do_Comparison(a,comp,b)
+    typeof(res) == Bool && return res
+    return mx
+    # if comp == :(==)
+    #     res = a == b
+    #     res && return res
+    # elseif comp == :(!=)
+    #     res = a == b
+    #     res && return false
+    # elseif comp == :(===)
+    #     return a === b
+    # end
+    # return mx
+end
+
+function _do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(a::T,comp::SJSym,b::T)
     if comp == :(==)
         res = a == b
         res && return res
@@ -658,7 +657,7 @@ function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparis
     elseif comp == :(===)
         return a === b
     end
-    return mx
+    return nothing
 end
 
 
@@ -671,7 +670,7 @@ function do_Comparison(mx::Mxpr{:Comparison},theargs...)
     nargs1 = newargs()
     i = 1
     while i <= length(mx)  # do all the != and ==
-        if is_SJSym(mx[i])
+        if is_SJSym(mx[i])  # we are looking at every symbol, no numbers
             if symname(mx[i]) == :(==)
                 if mx[i-1] == mx[i+1]
                     i += 1
