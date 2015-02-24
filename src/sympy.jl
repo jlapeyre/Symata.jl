@@ -73,6 +73,9 @@ function sympy2mxpr(exp_tree)
     end
 end
 
+function sympy2mxpr{T}(expr::Array{T,1})
+    return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
+end
 
 # TESTS
 
