@@ -5,11 +5,13 @@ symbolic computation.  It is largely based on pattern matching and an
 evaluation sequence modeled on Mathematica, although this by no means
 a fixed decision.
 
-The focus now is not on implementing specific mathematical
-computation, but rather on testing implementations of core features and
-subsystems that are efficient or can be made efficient. Some important
-features are pattern matching and the evaluation sequence and data
-structures that support it.
+The focus at present is not on implementing specific mathematical
+computation, although much of this is supplied (`Integrate`, `D`,
+`Limit`, `Together`, `Apart`, `Factor`) mostly by using
+[SymPy](http://www.sympy.org/en/index.html) as a backend. The
+emphasis is rather on testing implementations of core features and
+subsystems that are efficient or can be made efficient. These include
+core data structures, pattern matching, and the evaluation sequence.
 
 #### Here are some results.
 
@@ -69,8 +71,8 @@ faster retrieving a value. The latter time is mostly the difference between
 an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
 is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation)
 Mathematica 3 is about two times faster than
-SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend, with just one function
-implemented.)
+SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend, with a few
+functions implemented.)
 
 (There are caveats interpreting these results of course.
 Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
