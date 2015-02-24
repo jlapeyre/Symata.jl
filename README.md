@@ -133,8 +133,11 @@ elapsed time: 0.005774109 seconds
 
 ### Installing
 
-*Note*: SJulia depends on the Julia SymPy module. Currently, if you don't have
-SymPy installed, you must comment out the last two lines loading code in `src/SJulia.jl`.
+*Note*: `SJulia` depends on the Julia
+[`SymPy`](https://github.com/jverzani/SymPy.jl) module. Currently, if
+you don't have `SymPy` installed, you must comment out the last two
+lines loading code in `src/SJulia.jl`.  But, the dependence on SyPy
+will increase greatly in the short and medium term.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 You can load and test SJulia like this
@@ -144,10 +147,10 @@ include("src/SJulia.jl")
 include("src/run_tests.jl")
 ```
 
-I added a mode to the Julia repl to support this code (but it is not necessary)
-in this branch of a fork of Julia
+#### SJulia Repl
 
-https://github.com/jlapeyre/julia/tree/jl/symrepl
+I added a mode to the Julia repl to support this code (but it is not necessary)
+in this [branch of a fork of Julia](https://github.com/jlapeyre/julia/tree/jl/symrepl).
 
 In fact, the only file changed in this branch is base/REPL.jl.  To use
 this mode. Download the branch and build it and install it somewhere
@@ -157,6 +160,7 @@ Maple. For the most part, the SJulia mode just wraps input in the macro
 `ex`. So you can get the same thing by typing
 
 ```julia
+julia> using SJulia
 julia> @ex some SJulia expression
 julia> @ex(some expression that may look like two expressions)
 ```
@@ -222,7 +226,7 @@ a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 make Julia bindings of SJulia expressions to the symbols ex and m.
 
 Here are a few commands (or functions) (at the sjulia repl, or as a argument to the @ex macro).
-There are many more listed below, mostly to support experimenting with
+There are [many more listed below](#documented-functions-and-symbols), mostly to support experimenting with
 design of SJulia.
 
 * `SetJ(x,val)` set a Julia variable
@@ -281,7 +285,7 @@ is done. You should also be able to  associate automatic rules with `f` like thi
 
 You can see the evaluation sequence in `infseval` and `meval` in the code.
 
-#### Parsing
+#### Parsing and Syntax
 
 I use the Julia parser and reinterpret the results. Maybe there is an elegant enough
 way to get everything you need this way. But, copying and altering the
@@ -336,8 +340,7 @@ At the moment, the field `head` and the parameter T are the same. Evaluation of
 expressions is dispatched by functions with type annotations for each head, such
 as `Mxpr{:Power}`.
 
-### Documented Symbols and Commands
-
+### Documented Functions and Symbols
 
 ##### Abs
 
@@ -364,6 +367,12 @@ Allocated(expr) evaluates expr and returns a list of the memory allocated
 and the result of the evaluation.
 
 See also TimeOff, TimeOn, Timing, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
+
+
+##### Apart
+
+Together(product) rewrites a product as a sum of terms with mininmal denominators.
+
 
 
 ##### Apply
@@ -472,6 +481,13 @@ true
 ```
 
 
+##### Complex
+
+Complex(a,b) returns a complex number when a and b are Reals. This is done when the
+expression is parsed, so it is much faster than 'a + I*b'.
+
+
+
 ##### CompoundExpression
 
 CompoundExpression(expr1,expr2,...) or (expr1,expr2,...) evaluates each expression in turn and
@@ -507,6 +523,14 @@ sjulia> Count(_Integer)(Range(10))
 sjulia> Count(Range(10), 2)
 1
 ```
+
+
+##### D
+
+D(expr, x) gives the partial derivative of expr with respect to x.
+D(expr,[x,n]) gives the nth partial derivative.
+D(expr,[x,n1],y,[z,n2]) gives the mixed derivative.
+
 
 
 ##### Depth
@@ -601,6 +625,12 @@ documentation string, but are not evaluated.
 
 Expand(expr) expands products in expr. This is only partially implemented,
 mostly to test the efficiency of evaluation and evaluation control.
+
+
+
+##### Factor
+
+Factor(expr) factors expr. This function calls SymPy.
 
 
 
@@ -702,6 +732,13 @@ digits are at lower indexes.
 
 
 
+##### Integrate
+
+Integrate(expr, x) gives the indefinite integral of expr with respect to x.
+Integrate(expr, [x,a,b]) gives the definite integral.
+
+
+
 ##### JVar
 
 JVar(x) returns the Julia value of the Symbol that x evaluates to. For example,
@@ -763,6 +800,12 @@ Julia `length'.
 
 
 
+##### Limit
+
+Limit(expr, var => lim) gives the limit of expr as var approaches to lim.
+
+
+
 ##### Map
 
 Map(f,expr) returns f applied to each element in a copy of expr.
@@ -821,6 +864,12 @@ N(expr,p) tries to give p decimal digits of precision.
 
 
 
+##### Numerator
+
+Numerator(expr) returns the numerator of expr.
+
+
+
 ##### OddQ
 
 OddQ(expr) returns true if expr is an odd integer.
@@ -854,7 +903,7 @@ The same can be acheived less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
-Julia types such as Array and Dict.
+Julia types such as Array, or the element with key 'n' for Dict's.
 
 
 
@@ -924,6 +973,20 @@ Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
 di may be negative. Floats and some symbolic arguments are supported.
 You can get also get SJulia lists like using Unpack(:([1.0:10^5])).
 This uses embedded Julia to create a typed Array and then unpacks it to a List.
+
+
+
+##### Rational
+
+Rationa(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
+expression is parsed, so it is much faster than 'a/b'.
+
+
+
+##### Rationalize
+
+Rationalize(x) returns a Rational approximation of x.
+Rationalize(x,tol) returns an approximation differing from x by no more than tol.
 
 
 
@@ -1070,8 +1133,10 @@ See also Age, DirtyQ, Fixed, HAge, and Unfix.
 
 ##### Table
 
+Table(expr,[imax]) returns a list of imax copies of expr.
 Table(expr,[i,imax]) returns a list of expr evaluated imax times with
-i set successively to 1 through imax. Other Table features are not implemented.
+i set successively to 1 through imax.
+
 Unusual examples:
 This calls an anonymous Julia function. It is currently very slow
 Table( (:((x)->(x^2))(i) ),[i,10])
@@ -1099,7 +1164,7 @@ See also Allocated, TimeOff, Timing, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
 
 ##### TimesBy
 
-TimesBy(a,b), or a *= b,  sets a to a * b and returns the new value. This is currently
+TimesBy(a,b), or a *= b, sets a to a * b and returns the new value. This is currently
 faster than a = a * b for numbers.
 
 
@@ -1121,6 +1186,12 @@ ToExpression(str) converts string str to an expression.
 ##### ToString
 
 ToStringLength(expr) returns the string of the printed form or expr.
+
+
+
+##### Together
+
+Together(sum) rewrites a sum of terms as a product.
 
 
 
@@ -1220,6 +1291,12 @@ all user defined symbols.
 
 
 
+##### Values
+
+Values(d) returns a list of the values in Dict d
+
+
+
 ##### While
 
 While(test,body) evaluates test then body in a loop until test does not return true.
@@ -1232,10 +1309,6 @@ If SJulia encounters a macro call in input, it first Julia-evaluates all the
 arguments then Julia-evaluates the macro and inserts it into the SJulia expression
 tree. For instance, big numbers and regular expressions are constructed this way.
 
-
-
-elapsed time: 0.465900797 seconds (11631384 bytes allocated)
-tryrule count: downvalue 0, upvalue 0
 
 <!--  LocalWords:  julia src sjulia repl ClearAll SetJ DownValues jl
  -->
