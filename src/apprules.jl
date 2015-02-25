@@ -530,7 +530,7 @@ doreplaceall(mx,a,b) = mx
 apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
 # Doing the meval stuff below is a workaround for a bug.
 # All the integers should be gone in the following:
-# m1 = Expand((a+b)^3)  --> a^3 + 3*(a^2)*b + 3*a*(b^2) + b^3
+# m1 = ExpandA((a+b)^3)  --> a^3 + 3*(a^2)*b + 3*a*(b^2) + b^3
 # m2 = ReplaceRepeated(m1, x_Integer => 1)  --> a + 2*a*b + b
 # Mma 3 does this correctly. We insert an expensive workaround.
 function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
@@ -1093,10 +1093,11 @@ Println(expr1,expr2,...) prints the expressions and a newline.
 "
 apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 
-## Expand, only a bit is implemented
+## ExpandA, only a bit is implemented
 
-@sjdoc Expand "
-Expand(expr) expands products in expr. This is only partially implemented,
-mostly to test the efficiency of evaluation and evaluation control.
+@sjdoc ExpandA "
+ExpandA(expr) expands products in expr. This is only partially implemented,
+mostly to test the efficiency of evaluation and evaluation control. The
+sympy version Expand() is more capable, but slower.
 "
-apprules(mx::Mxpr{:Expand}) = _doexpand(mx[1])
+apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])

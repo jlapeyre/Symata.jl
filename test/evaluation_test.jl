@@ -4,9 +4,9 @@
 # m, requires evaluating neither m nor m1, but merely retrieving m[1].
 
 @ex Clear(m,a,b,c,d)
-@ex m = Expand((a+b)^2)
+@ex m = ExpandA((a+b)^2)
 @testex Syms(m) == HoldForm([a,b])
-@ex m = Expand((a*c + b*d)^2)
+@ex m = ExpandA((a*c + b*d)^2)
 # Following depends on whether we allow protected symbols in free symbol list
 # @testex Syms(m) == HoldForm([a,b,c,d])
 @testex Syms(m) == HoldForm([Times,a,b,c,d])

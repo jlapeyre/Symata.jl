@@ -122,12 +122,12 @@ RealRoots(expr) solves for the real roots of expr.
 "
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> sympy2mxpr
 
-#### ExpandA
+#### Expand
 
-@sjdoc ExpandA "
-ExpandA(expr) expands powers and products in expr.
+@sjdoc Expand "
+Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable.
 "
-apprules(mx::Mxpr{:ExpandA}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
+apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
 
 ## utility
 

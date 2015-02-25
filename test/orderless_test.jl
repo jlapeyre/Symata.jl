@@ -65,15 +65,15 @@ SJulia.@testex (a^2)^t == a^(2*t)
 @testex Head(m) == Times
 @testex Apply(List,m) == List(8,a^3,b^3)
 
-@ex m = Expand((2*a+2*b)^BI(4))
+@ex m = ExpandA((2*a+2*b)^BI(4))
 @testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
 
-@ex m = Expand((2*a+2*b)^4)
+@ex m = ExpandA((2*a+2*b)^4)
 @testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]
 
 # bug through commit e9c6803de51dab446a1f3e9bcc8d1e8cf19941d3
 # Causes infinite evaluation loop, due to ill-defined order.
-@ex m = (Expand((x+1)^2))^2
+@ex m = (ExpandA((x+1)^2))^2
 @ex m * (m+1)
 
 @ex ClearAll(a,A,Z,z)

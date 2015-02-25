@@ -1,7 +1,7 @@
 using Base.Test
 
 SJulia.@ex ClearAll(a,b)
-SJulia.@ex mx = Expand((a+b)^3)
+SJulia.@ex mx = ExpandA((a+b)^3)
 SJulia.@testex  mx == Plus(Power(a,3),Times(3,Power(a,2),b),Times(3,a,Power(b,2)),Power(b,3))
 SJulia.@testex Fixed(mx) == true
 SJulia.@ex a = 1
@@ -12,17 +12,17 @@ SJulia.@ex mx
 SJulia.@testex Fixed(mx) == true
 
 SJulia.@ex ClearAll(a,b,c,d,z)
-SJulia.@testex Expand(1) == 1
-SJulia.@testex Expand(a) == a
-SJulia.@testex Expand(a+b) == a+b
-SJulia.@testex Expand(a*b) == a*b
-SJulia.@testex (Expand(a*(b+c)) == a*b + a*c) == True
-SJulia.@testex Expand(z*(b+c)) == b*z + c*z  # tests diffent branch in doexpand because z < a,b,c.
-SJulia.@testex Expand(3*(b+c)) == 3*b + 3*c
-@testex Expand(z*(c+d)*(a+b)) == a*c*z + b*c*z + a*d*z + b*d*z
-SJulia.@testex Expand((a+1)^3) == 1 + 3*a + 3*(a^2) + a^3
-@testex Expand((a+b)*(c+d)) == a*c + b*c + a*d + b*d
-@testex Apply(List,Expand(z*a*(c+d)*(a+b))) == [(a^2)*c*z,a*b*c*z,(a^2)*d*z,a*b*d*z]
+SJulia.@testex ExpandA(1) == 1
+SJulia.@testex ExpandA(a) == a
+SJulia.@testex ExpandA(a+b) == a+b
+SJulia.@testex ExpandA(a*b) == a*b
+SJulia.@testex (ExpandA(a*(b+c)) == a*b + a*c) == True
+SJulia.@testex ExpandA(z*(b+c)) == b*z + c*z  # tests diffent branch in doexpand because z < a,b,c.
+SJulia.@testex ExpandA(3*(b+c)) == 3*b + 3*c
+@testex ExpandA(z*(c+d)*(a+b)) == a*c*z + b*c*z + a*d*z + b*d*z
+SJulia.@testex ExpandA((a+1)^3) == 1 + 3*a + 3*(a^2) + a^3
+@testex ExpandA((a+b)*(c+d)) == a*c + b*c + a*d + b*d
+@testex Apply(List,ExpandA(z*a*(c+d)*(a+b))) == [(a^2)*c*z,a*b*c*z,(a^2)*d*z,a*b*d*z]
 @ex ClearAll(a,b,c,d,z,mx)
 
 SJulia.@ex ClearAll(m,f,g)
