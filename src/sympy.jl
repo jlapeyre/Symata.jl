@@ -4,13 +4,11 @@ export sympy2mxpr, mxpr2sympy
 export sympy
 
 importall SJulia
-
-#import SymPy
-import SJulia: mxpr
+#import SJulia: mxpr
 
 using PyCall
 
-# Author: Francesco Bonazzi
+# Initial Author: Francesco Bonazzi
 
 ## Convert SymPy to Mxpr
 
@@ -23,12 +21,16 @@ const SympyMul = sympy_core.mul["Mul"]
 const SympyPow = sympy_core.power["Pow"]
 const SympyNumber = sympy_core.numbers["Number"]
 const SympyPi  = sympy_core.numbers["Pi"]
+const SympyI  = sympy_core.numbers["ImaginaryUnit"]
+#const SympyI  = sympy.I    # this is something, but not the right something
 const SympySin = sympy.functions["sin"]
 const SympyCos = sympy.functions["cos"]
 const SympyTan = sympy.functions["tan"]
 const SympyExp = sympy.functions["exp"]
 const SympyLog = sympy.functions["log"]
 const SympySqrt = sympy.functions["sqrt"]
+
+
 
 const conv_dict = Dict(
     SympyAdd => :Plus,
@@ -43,43 +45,16 @@ const conv_dict = Dict(
                        SympySqrt => :Sqrt,
                        sympy.oo => :Infinity,
                        sympy.zoo => :ComplexInfinity
+#                       SympyI => :I  # don't want these, they return functions.
 )
 
-
-# function disablesympy2mxpr(exp_tree)
-#     println("plain ", typeof(exp_tree))
-#     if (pytypeof(exp_tree) in keys(conv_dict))
-#         return SJulia.mxpr(conv_dict[pytypeof(exp_tree)], map(sympy2mxpr, exp_tree[:args])...)
-#     end
-#     if exp_tree[:is_Function]       # perhaps a user defined function
-#         # objstr = split(string(pytypeof(exp_tree)))
-#         # head = symbol(objstr[end])  # The string is "PyObject bb"
-#         head = symbol(pytypeof(exp_tree)[:__name__])
-#         return SJulia.mxpr(head, map(sympy2mxpr, exp_tree[:args])...)
-#     end
-#     if pyisinstance(exp_tree,SympyPi) return :Pi end
-#     if pytypeof(exp_tree) == SympySymbol
-#         return Symbol(exp_tree[:name])
-#     end
-#     if pyisinstance(exp_tree, SympyNumber)
-#         if exp_tree[:is_Integer]
-#             return convert(BigInt, exp_tree)
-#         end
-#         if exp_tree[:is_Rational]
-#             return Rational(exp_tree[:p],exp_tree[:q])  # These are Int64's. Don't know when or if they are BigInts
-#         end 
-#         return convert(FloatingPoint, exp_tree)
-#     end
-#     if isa(exp_tree,Tuple)
-#         println("tuple ", exp_tree)
-#         return SJulia.mxpr(:List,map(sympy2mxpr,exp_tree)...)
-#     end
-# end
+#const pymx_symbol_dict = Dict (
+#                               )
 
 sympy2mxpr(x) = x
 
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
-#    println("annot ", typeof(expr))
+#    println("annot ", typeof(expr), " ",expr )
     if (pytypeof(expr) in keys(conv_dict))
         return SJulia.mxpr(conv_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
     end
@@ -90,6 +65,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
     end
     if pyisinstance(expr,SympyPi) return :Pi end
+    if pyisinstance(expr,SympyI) return :I end
     if pytypeof(expr) == SympySymbol
         return Symbol(expr[:name])
     end
@@ -154,6 +130,7 @@ const conv_rev = Dict(
     :Exp => sympy.exp,
     :Sqrt => sympy.sqrt,
     :E => sympy.E,
+#    :I => SympyI,
     :Pi => SympyPi,
     :Log => sympy.log,     
     :Infinity => sympy.oo,
