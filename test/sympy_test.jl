@@ -16,5 +16,9 @@ using Base.Test
 @ex      res = Solve([x+y-1, x - y + 1], [x,y])
 @testex  res[x] == 0
 @testex  res[y] == 1
+@testex  Solve(x^4-1,x) == [-1,1,-1I,I]
+
+# Should be simplified
+# @testex  Solve(x^3-1,x) == [1,-1//2 + (0//1 + -1//2I) * (3 ^ (1//2)),-1//2 + (0//1 + 1//2I) * (3 ^ (1//2))]
 
 @ex ClearAll(a,b,x,y,z,rex)
