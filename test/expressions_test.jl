@@ -11,12 +11,12 @@ using Base.Test
 @ex mx
 @testex Fixed(mx) == true
 
-@ex Clear(a,b,c,d,z)
+@ex ClearAll(a,b,c,d,z)
 @testex Expand(1) == 1
 @testex Expand(a) == a
 @testex Expand(a+b) == a+b
 @testex Expand(a*b) == a*b
-@testex Expand(a*(b+c)) == a*b + a*c
+@testex (Expand(a*(b+c)) == a*b + a*c) == True
 @testex Expand(z*(b+c)) == b*z + c*z  # tests diffent branch in doexpand because z < a,b,c.
 @testex Expand(3*(b+c)) == 3*b + 3*c
 @testex Expand(z*(c+d)*(a+b)) == a*c*z + b*c*z + a*d*z + b*d*z

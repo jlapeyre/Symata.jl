@@ -10,6 +10,7 @@ using Base.Test
 # The apprule for head Function is to call it on the args
 @testex   g(3) == 9
 # The following works because we have defined ^ for Symbols in Julia
+@ex Println(g(c), " " , c^2)
 @testex   g(c) == c^2
 
 @ex ClearAll(f,g,x,c)
