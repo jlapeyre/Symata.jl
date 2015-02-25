@@ -4,7 +4,7 @@ export sympy2mxpr, mxpr2sympy
 export sympy
 
 importall SJulia
-#import SJulia: mxpr
+import SJulia: mxpr  # we need this even with importall
 
 using PyCall
 
@@ -48,8 +48,10 @@ const conv_dict = Dict(
 #                       SympyI => :I  # don't want these, they return functions.
 )
 
-#const pymx_symbol_dict = Dict (
-#                               )
+const pymx_special_symbol_dict = Dict (
+                                       SympyPi => :Pi,
+                                       SympyI => complex(0,1)
+                                       )
 
 sympy2mxpr(x) = x
 
@@ -64,8 +66,9 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         head = symbol(pytypeof(expr)[:__name__])
         return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
     end
-    if pyisinstance(expr,SympyPi) return :Pi end
-    if pyisinstance(expr,SympyI) return :I end
+    for k in keys(pymx_special_symbol_dict)
+        if pyisinstance(expr,k) return pymx_special_symbol_dict[k] end 
+    end
     if pytypeof(expr) == SympySymbol
         return Symbol(expr[:name])
     end
@@ -75,7 +78,8 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         end
         if expr[:is_Rational]
             return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
-        end 
+        end
+#        println("Doing floating point $expr")
         return convert(FloatingPoint, expr)
     end
     println("sympy2mxpr: Unable to translate ", expr)
@@ -130,14 +134,37 @@ const conv_rev = Dict(
     :Exp => sympy.exp,
     :Sqrt => sympy.sqrt,
     :E => sympy.E,
-#    :I => SympyI,
+    :I => SympyI,
     :Pi => SympyPi,
     :Log => sympy.log,     
     :Infinity => sympy.oo,
     :ComplexInfinity => sympy.zoo
-)   
+)
+
+function mxpr2sympy(z::Complex)
+#    println("Converting $z")
+    if real(z) == 0
+        res = mxpr(:Times, :I, imag(z))
+    else
+        res = mxpr(:Plus, real(z), mxpr(:Times, :I, imag(z)))
+    end
+#    println("got $res")
+    return mxpr2sympy(res)
+end
+
+function mxpr2sympy(mex::SJulia.Mxpr)
+    if mex.head in keys(conv_rev)
+        return conv_rev[mex.head](map(mxpr2sympy, mex.args)...)
+    end
+    if SJulia.is_Mxpr(mex,:List)
+        return [map(mxpr2sympy, mex.args)...]
+    end
+    pyfunc = sympy.Function(string(mex.head))  # Don't recognize the head, so make it a user function
+    return pyfunc(map(mxpr2sympy, mex.args)...)
+end
 
 function mxpr2sympy(mex)
+#   println("Doing $mex")            
     if !isa(mex, SJulia.Mxpr)
         if isa(mex, Symbol)
             if haskey(conv_rev,mex)
@@ -156,14 +183,14 @@ function mxpr2sympy(mex)
             return mex
         end
     end
-    if mex.head in keys(conv_rev)
-        return conv_rev[mex.head](map(mxpr2sympy, mex.args)...)
-    end
-    if SJulia.is_Mxpr(mex,:List)
-        return [map(mxpr2sympy, mex.args)...]
-    end
-    pyfunc = sympy.Function(string(mex.head))  # Don't recognize the head, so make it a user function
-    return pyfunc(map(mxpr2sympy, mex.args)...)
+    # if mex.head in keys(conv_rev)
+    #     return conv_rev[mex.head](map(mxpr2sympy, mex.args)...)
+    # end
+    # if SJulia.is_Mxpr(mex,:List)
+    #     return [map(mxpr2sympy, mex.args)...]
+    # end
+    # pyfunc = sympy.Function(string(mex.head))  # Don't recognize the head, so make it a user function
+    # return pyfunc(map(mxpr2sympy, mex.args)...)
 end
 
 # TEST

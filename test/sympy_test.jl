@@ -12,7 +12,9 @@ using Base.Test
 @testex Together(z) == (x ^ -1) * ((1 + x) ^ -1) * (1 + 2 * x)
 @testex Apart(Together(z)) == z
 @testex Simplify( Cos(x)^2 + Sin(x)^2) == 1
-@ex   res = Solve([x+y-1, x - y + 1], [x,y])
+
+@ex      res = Solve([x+y-1, x - y + 1], [x,y])
 @testex  res[x] == 0
 @testex  res[y] == 1
+
 @ex ClearAll(a,b,x,y,z,rex)
