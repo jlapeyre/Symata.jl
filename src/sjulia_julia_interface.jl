@@ -74,11 +74,18 @@ key,value pairs is returned.
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]
-    args = do_unpack(obj)
-    mx = mxpr(:List,args)
+#    args = do_unpack(obj)
+    #    mx = mxpr(:List,args)
+    mx = unpack_to_List(obj)
     setfixed(mx)
     setcanon(mx)
     return mx
+end
+
+
+function unpack_to_List(obj)
+    args = do_unpack(obj)
+    return mxpr(:List,args)
 end
 
 function do_unpack(obj)

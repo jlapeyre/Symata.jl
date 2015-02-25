@@ -29,10 +29,11 @@ const SympyTan = sympy.functions["tan"]
 const SympyExp = sympy.functions["exp"]
 const SympyLog = sympy.functions["log"]
 const SympySqrt = sympy.functions["sqrt"]
+const SymPyInfinity = sympy.oo
+const SymPyComplexInfinity = sympy.zoo
 
-
-
-const conv_dict = Dict(
+# try to fix emacs indenting at some point!
+const py_to_mx_dict = Dict(
     SympyAdd => :Plus,
     SympyMul => :Times,
     SympyPow => :Power,
@@ -43,9 +44,8 @@ const conv_dict = Dict(
                        sympy.E => :E,
                        SympyLog => :Log,
                        SympySqrt => :Sqrt,
-                       sympy.oo => :Infinity,
-                       sympy.zoo => :ComplexInfinity
-#                       SympyI => :I  # don't want these, they return functions.
+                       SymPyInfinity => :Infinity,
+                       SymPyComplexInfinity => :ComplexInfinity
 )
 
 const pymx_special_symbol_dict = Dict (
@@ -57,8 +57,8 @@ sympy2mxpr(x) = x
 
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
 #    println("annot ", typeof(expr), " ",expr )
-    if (pytypeof(expr) in keys(conv_dict))
-        return SJulia.mxpr(conv_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
+    if (pytypeof(expr) in keys(py_to_mx_dict))
+        return SJulia.mxpr(py_to_mx_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
     end
     if expr[:is_Function]       # perhaps a user defined function
         # objstr = split(string(pytypeof(expr)))
@@ -67,36 +67,35 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
     end
     for k in keys(pymx_special_symbol_dict)
-        if pyisinstance(expr,k) return pymx_special_symbol_dict[k] end 
+        if pyisinstance(expr,k)
+            return pymx_special_symbol_dict[k]
+        end 
     end
     if pytypeof(expr) == SympySymbol
         return Symbol(expr[:name])
     end
     if pyisinstance(expr, SympyNumber)
+        # Big ints are wrapped up in a bunch of stuff
+        # There is a function n._to_mpmath(m) (dont know what m means) that returns GMP number useable by Julia
+        # We need to check what kind of integer. searching methods. no luck
+        # we could try catch _to_mpmath
         if expr[:is_Integer]
-            return convert(BigInt, expr)
-        end
-        if expr[:is_complex]  # no idea how to find parts
-#            println("$expr is complex")
-#            println(expr[:re])
-#            return Complex(sympy2mxpr(
+            #  Between SymPy and PyCall, there is a huge variety of
+            #  ways that integers are wrapped in layers of classes. None if it is documented.
+            #  apparently, if the number is not really a bigint, a machine sized int is actually returned
+            #  Yes, tested this with Int64 and GMP ints and the correct thing is returned
+            num = expr[:_to_mpmath](-1)  #  works for some numbers at the command line
+            return num
         end
         if expr[:is_Rational]
             p = expr[:p]
             q = expr[:q]
-#            println("Rational numerator is ", p)
-#            if p == 0 return 0 end
             return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
         end
-#        println("Doing floating point $expr")
         return convert(FloatingPoint, expr)
     end
     println("sympy2mxpr: Unable to translate ", expr)
     return expr
-#    if isa(expr,Tuple)
-#        println("tuple ", expr)
-#        return SJulia.mxpr(:List,map(sympy2mxpr,expr)...)
-#    end
 end
 
 #function sympy2mxpr(x::Tuple)
@@ -113,7 +112,7 @@ function sympy2mxpr(expr::Dict)
 end
 
 function sympy2mxpr{T}(expr::Array{T,1})
-    println("array ", typeof(expr))
+#    println("array ", typeof(expr))
     return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
 end
 
@@ -133,7 +132,7 @@ end
 
 ## Convert Mxpr to SymPy
 
-const conv_rev = Dict(
+const mx_to_py_dict = Dict(
     :Plus => sympy.Add,
     :Times => sympy.Mul,
     :Power => sympy.Pow,
@@ -166,8 +165,8 @@ function mxpr2sympy(mx::SJulia.Mxpr{:List})
 end
 
 function mxpr2sympy(mx::SJulia.Mxpr)
-    if mx.head in keys(conv_rev)
-        return conv_rev[mx.head](map(mxpr2sympy, mx.args)...)
+    if mx.head in keys(mx_to_py_dict)
+        return mx_to_py_dict[mx.head](map(mxpr2sympy, mx.args)...)
     end
 #    if SJulia.is_Mxpr(mx,:List)
 #        return [map(mxpr2sympy, mx.args)...]
@@ -177,15 +176,15 @@ function mxpr2sympy(mx::SJulia.Mxpr)
 end
 
 function mxpr2sympy(mx::Symbol)
-    if haskey(conv_rev,mx)
-        return conv_rev[mx]
+    if haskey(mx_to_py_dict,mx)
+        return mx_to_py_dict[mx]
     end
     return sympy.Symbol(mx)
 end
 
 function mxpr2sympy(mx::SJulia.SSJSym)
     name = symname(mx)
-    if haskey(conv_rev,name)
+    if haskey(mx_to_py_dict,name)
         return conv_rev[name]
     end
     return sympy.Symbol(name)

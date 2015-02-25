@@ -7,6 +7,13 @@ Factor(expr) factors expr. This function calls SymPy.
 "
 apprules(mx::Mxpr{:Factor})  = mx[1] |> mxpr2sympy |> sympy.factor |> sympy2mxpr
 
+#### Expand
+
+@sjdoc Expand "
+Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable.
+"
+apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
+
 #### Limit
 
 @sjdoc Limit "
@@ -110,11 +117,12 @@ end
 
 #### Roots
 @sjdoc Roots "
-Roots(expr) solves for the roots of expr.
+Roots(expr) solves for the roots of expr. Roots returns a list
+of lists. The two elements of each sublist give the root and its multiplicity.
 "
 # could use a macro for these
 #apprules(mx::Mxpr{:Roots}) = do_Solve(mx,margs(mx)...)
-apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> sympy2mxpr
+apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> sympy2mxpr  |> SJulia.unpack_to_List
 
 #### RealRoots
 @sjdoc RealRoots "
@@ -122,12 +130,6 @@ RealRoots(expr) solves for the real roots of expr.
 "
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> sympy2mxpr
 
-#### Expand
-
-@sjdoc Expand "
-Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable.
-"
-apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
 
 ## utility
 

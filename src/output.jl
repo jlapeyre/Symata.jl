@@ -83,6 +83,19 @@ function Base.show{T<:Integer}(io::IO, z::Complex{T})
     end
 end
 
+function Base.show{T<:Integer}(io::IO, z::Complex{Rational{T}})
+    if real(z) != 0
+        show(io,real(z))
+        print(io," + ")
+    end
+    if imag(z) == 1
+        print(io,"I")
+    else
+        show(io,imag(z))
+        print(io,"I")
+    end
+end
+
 Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
 
 # Not sure this is a good idea, confusing symbols with boolean values
