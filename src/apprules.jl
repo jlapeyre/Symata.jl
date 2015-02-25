@@ -611,6 +611,26 @@ function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
     _do_Comparison(a,comp,b)
 end
 
+# Mma does this a == a != b  --->  a == a && a != b
+# and  a == a  -->  True
+# So, I think we should have a == a != b  --->  a != b,
+# or something else consistent. For now,
+# we follow Mma instead of weeding out comparisons known to
+# be true.
+function do_Comparison(mx::Mxpr{:Comparison},args...)
+    len = length(args)
+    for i in 2:2:len
+        a = args[i-1]
+        cmp = args[i]
+        b = args[i+1]
+        res = _do_Comparison(a,cmp,b)
+        res == false && return res
+        res != true && return mx
+    end
+    return true
+end
+
+
 function _do_Comparison(a::Number, comp::Symbol, b::Number)
     if comp == :<    # Test For loop shows this is much faster than evaling Expr
         return a < b
@@ -630,23 +650,6 @@ function _do_Comparison(a::Number, comp::Symbol, b::Number)
     eval(Expr(:comparison,a,comp,b)) # This will be slow.    
 end
 
-# x == x -> True,  x != x -> False. Everything else don't know (no assumptions)
-function do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::T)
-    res = _do_Comparison(a,comp,b)
-    typeof(res) == Bool && return res
-    return mx
-    # if comp == :(==)
-    #     res = a == b
-    #     res && return res
-    # elseif comp == :(!=)
-    #     res = a == b
-    #     res && return false
-    # elseif comp == :(===)
-    #     return a === b
-    # end
-    # return mx
-end
-
 function _do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(a::T,comp::SJSym,b::T)
     if comp == :(==)
         res = a == b
@@ -660,51 +663,57 @@ function _do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(a::T,comp::SJSym,
     return nothing
 end
 
-
-# This is pretty slow.
-# This is also wrong.
-# Do a chain of comparisons. Process them one by one. If a
-# comparison is true, remove it from the list
-function do_Comparison(mx::Mxpr{:Comparison},theargs...)
-#    println("Here $mx") # A few still sneak through here
-    nargs1 = newargs()
-    i = 1
-    while i <= length(mx)  # do all the != and ==
-        if is_SJSym(mx[i])  # we are looking at every symbol, no numbers
-            if symname(mx[i]) == :(==)
-                if mx[i-1] == mx[i+1]
-                    i += 1
-                else
-                    return false
-#                    return mx
-                end
-            elseif symname(mx[i]) == :(!=)
-                if mx[i-1] != mx[i+1]
-                    i += 1
-                else
-                    return false
-                end
-            else
-                push!(nargs1,mx[i])
-            end
-        else
-            push!(nargs1,mx[i])
-        end
-        i += 1
+# TODO: Try to find why the Unions don't work and condense these methods
+function _do_Comparison(a::Mxpr,comp::Symbol,b::Mxpr)
+    if comp == :(==)
+        res = a == b
+        res && return res
+    elseif comp == :(!=)
+        res = a == b
+        res && return false
+    elseif comp == :(===)
+        return a === b
     end
-    length(nargs1) == 1  && return true
-    nargs = newargs()    
-    for x in nargs1   # Do numeric inequalities
-        if is_Number(x)
-            push!(nargs,x)
-        elseif is_comparison_symbol(x)
-            push!(nargs,symname(x))
-        else
-            return mx
-        end
-    end
-    eval(Expr(:comparison,nargs...))
+    return nothing
 end
+
+function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
+    if comp == :(==)
+        res = a == b
+        res && return res
+    elseif comp == :(!=)
+        res = a == b
+        res && return false
+    elseif comp == :(===)
+        return a === b
+    end
+    return nothing
+end
+
+function _do_Comparison(a, comp::SJSym, b::Bool)
+#    println("In any cmp  bool $a $comp $b")    
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return false
+end
+
+function _do_Comparison(a, comp::SJSym, b::Number)
+#    println("In any cmp  bool $a $comp $b")    
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return false
+end
+
+function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
+#    println("In bool cmp  $a $comp $b")
+    comp == :(==) && return a == b
+    comp == :(!=) && return a != b
+    comp == :(===) && return a == b    
+    return false  # I guess this is good
+end
+
 
 ## A few Number rules
 
@@ -716,6 +725,8 @@ makerat(mx,n,d) = mx
 apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx[1],mx[2])
 makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
 makecomplex(mx,n,d) = mx
+
+#### Power
 
 # Probably faster to handle this in
 # canonicalization code

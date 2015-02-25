@@ -1,5 +1,6 @@
 using Base.Test
 
+@ex   ClearAll(a,c,z,za,zg,x,y,r,t,h,A,Z)
 @testex 0 == 0
 @testex -0  == 0
 @testex 1  == 1
@@ -26,9 +27,9 @@ using Base.Test
 @testex Apply(List,a + z + 10*a^2 + 2 * z^2) == [a,10*a^2,z,2*z^2]
 @testex (a+b)/(a+b) == 1
 @testex (a + b)^2/(a+b) == a + b
-@testex (a^2)^2 == a^4
-@testex (a^t)^2 == a^(2*t)
-@testex (a^2)^t == a^(2*t)
+SJulia.@testex (a^2)^2 == a^4
+SJulia.@testex (a^t)^2 == a^(2*t)
+SJulia.@testex (a^2)^t == a^(2*t)
 @testex Part((a^t)^z,2) == z
 @testex Apply(List,( y + z  + 1) * ( y + z)) == [(y + z),1 + y + z]  # bug fix
 

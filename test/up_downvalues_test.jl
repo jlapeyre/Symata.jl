@@ -41,32 +41,33 @@ using Base.Test
 
 ## Restrictions on patterns. Match head and/or "pattern test"
 
-@ex      ClearAll(stringgt4,g,gt5)
-@ex      stringgt4(x_) := StringLength(x) > 4
-@ex      gt5(x_) := x > 5
-@ex      g(x_Integer:?(EvenQ)) := x
-@ex      g(x_String:?(stringgt4)) = "Greater than 4"
-@ex      g(x_FloatingPoint:?(gt5)) = 1
-@testex  Head(g(3)) == g
-@testex  g(4) == 4
-@testex  Head(g(5)) == g
-@testex  Head(g("cat")) == g
-@testex  g("zebra") == "Greater than 4"
-@ex      ClearAll(a,b,stringgt4,g,gt5)
+SJulia.@ex      ClearAll(stringgt4,g,gt5)
+SJulia.@ex      stringgt4(x_) := StringLength(x) > 4
+SJulia.@ex      gt5(x_) := x > 5
+SJulia.@ex      g(x_Integer:?(EvenQ)) := x
+SJulia.@ex      g(x_String:?(stringgt4)) = "Greater than 4"
+SJulia.@ex      g(x_FloatingPoint:?(gt5)) = 1
+SJulia.@testex  Head(g(3)) == g
+SJulia.@testex  g(4) == 4
+SJulia.@testex  Head(g(5)) == g
+SJulia.@testex  Head(g("cat")) == g
+SJulia.@testex  g("zebra") == "Greater than 4"
+SJulia.@ex      ClearAll(a,b,stringgt4,g,gt5)
 
 ## UpValues
 
 # All subtypes of Integer match. All subtypes of FloatingPoint match.
-@ex ClearAll(a,p)
-@ex a^3 ^= p
-@testex a^3 == p
-@testex Apply(List,a^2) == [a,2]
-@testex a^BI(3) == p
-@ex ClearAll(a,p)
+SJulia.@ex ClearAll(a,p)
+SJulia.@ex a^3 ^= p
+SJulia.@testex a^3 == p
+SJulia.@testex Apply(List,a^2) == [a,2]
+SJulia.@testex a^BI(3) == p
+SJulia.@ex ClearAll(a,p)
 
-@ex ClearAll(a,p)
-@ex a^4.0 ^= p
-@testex a^4 != p
-@testex a^BF(4) == p
-@testex a^4.0 == p
-@ex ClearAll(a,p)
+SJulia.@ex ClearAll(a,p)
+SJulia.@ex a^4.0 ^= p
+# Fix this
+SJulia.@testex (a^4 == p) != True
+SJulia.@testex a^BF(4) == p
+SJulia.@testex a^4.0 == p
+SJulia.@ex ClearAll(a,p)

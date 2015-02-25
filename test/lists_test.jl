@@ -1,5 +1,7 @@
 using Base.Test
 
+#import SJulia: @testex
+
 @ex      ClearAll(a,x,y)
 
 # A gensym is added to user symbols somewhere here.
@@ -28,12 +30,11 @@ using Base.Test
 @testex  Range(3.0,1,-.5) == [3.0,2.5,2.0,1.5,1.0]
 @testex  Abs(Apply(Plus, Range(1,2,.2) -[1,1.2,1.4,1.6,1.8,2.0])) < 1e-15
 
-@testex  Range(x, x + 4,1) == [x,1 + x,2 + x,3 + x,4 + x]
-
+SJulia.@testex  Range(x, x + 4,1) == [x,1 + x,2 + x,3 + x,4 + x]
 
 # Not putting paren around argument to @testex causes gensym to appear
 # in UserSyms(). No idea why
-@testex(  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
+SJulia.@testex(  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
 
 # @testex  Syms(m) == [x]  FIXME
 @testex  Range(x+y, x + y  + 4) == [x + y,1 + x + y,2 + x + y,3 + x + y,4 + x + y]

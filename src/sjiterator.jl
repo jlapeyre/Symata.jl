@@ -127,8 +127,10 @@ type SJIterA3{T,V,W} <: AbstractSJIterA
     num_iters::Int
 end
 
-itererrora(a::Array) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator.")
-itererrora(mx::Mxpr) = error(mx, " does not have the form of a (single variable) iterator.")
+#itererrora(a::Array) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator.")
+itererrora(a::Array,s::String) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
+#itererrora(mx::Mxpr) = error(mx, " does not have the form of a (single variable) iterator.")
+itererrora(mx::Mxpr,s::String) = error(mx, " does not have the form of a (single variable) iterator. ",s)
 
 make_sjitera(x) = itererrora(x)
 
@@ -144,7 +146,7 @@ function make_sjitera{T}(args::Array{T,1})
         if is_type_less(imax,Real)
             return SJIterA1(imax,floor(Int,imax))
         else
-            itererrora(args)
+            itererrora(args,"imax is not a Real number.")
         end
     elseif len ==  2
         nargs = recursive_copy(args)
@@ -152,7 +154,7 @@ function make_sjitera{T}(args::Array{T,1})
         if is_type_less(num_iters, Real) # args2 - args1
             return SJIterA2(args[1],args[2],floor(Int,num_iters)+1)
         else
-            itererrora(args)
+            itererrora(args, "(imax-imin) is not a Real number.")
         end
     elseif len == 3
         nargs = recursive_copy(args) # needed if we do the computation below
@@ -162,10 +164,10 @@ function make_sjitera{T}(args::Array{T,1})
         if is_type_less(num_iters, Real)
             return SJIterA3(args...,floor(Int,num_iters)+1)
         else
-            itererrora(args)
+            itererrora(args,"(imax-imin)/di = $num_iters is not a Real number, but has type $(typeof(num_iters))")
         end
     else
-        itererrora(args)
+        itererrora(args,"Wrong number of arguments: $len")
     end
 end
 
