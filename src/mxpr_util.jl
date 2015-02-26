@@ -24,3 +24,6 @@ macro ma(mx,k)
 #    :((margs($(esc(mx)))[$(esc(k))]))
     :((($(esc(mx))).args[$(esc(k))]))
 end
+
+capitalize_first_character(s::String) = uppercase(string(s[1])) * s[2:end]
+

@@ -15,6 +15,7 @@ using PyCall
 @pyimport sympy
 @pyimport sympy.core as sympy_core
 
+# TODO: generate this code, like the functions below
 const SympySymbol = sympy_core.symbol["Symbol"]
 const SympyAdd = sympy_core.add["Add"]
 const SympyMul = sympy_core.mul["Mul"]
@@ -23,39 +24,46 @@ const SympyNumber = sympy_core.numbers["Number"]
 const SympyPi  = sympy_core.numbers["Pi"]
 const SympyI  = sympy_core.numbers["ImaginaryUnit"]
 #const SympyI  = sympy.I    # this is something, but not the right something
-const SympySin = sympy.functions["sin"]
-const SympyCos = sympy.functions["cos"]
-const SympyTan = sympy.functions["tan"]
-const SympyArcTan = sympy.functions["atan"]
-const SympyExp = sympy.functions["exp"]
-const SympyLog = sympy.functions["log"]
-const SympySqrt = sympy.functions["sqrt"]
 const SymPyInfinity = sympy.oo
 const SymPyComplexInfinity = sympy.zoo
 
-# try to fix emacs indenting at some point!
-const py_to_mx_dict = Dict(
-    SympyAdd => :Plus,
-    SympyMul => :Times,
-    SympyPow => :Power,
-    SympySin => :Sin,
-    SympyCos => :Cos,
-                           SympyTan => :Tan,
-                           SympyArcTan => :ArcTan,
-                       SympyExp => :Exp,
-#                       sympy.E => :E,
-#                       SympyExp => :Exp,
-                       SympyLog => :Log,
-                       SympySqrt => :Sqrt,
-                       SymPyInfinity => :Infinity,
-                       SymPyComplexInfinity => :ComplexInfinity
-)
+#### Convert SymPy to Mxpr
 
-const pymx_special_symbol_dict = Dict (
-                                       SympyPi => :Pi,
-                                       SympyI => complex(0,1)
-                                       )
+# I don't like the emacs indenting. try to fix this at some point!
+const py_to_mx_dict =
+    Dict(
+         SympyAdd => :Plus,
+         SympyMul => :Times,
+         SympyPow => :Power,
+         #                       sympy.E => :E,
+         SymPyInfinity => :Infinity,
+         SymPyComplexInfinity => :ComplexInfinity
+         )
 
+function mk_py_to_mx_funcs()
+    for (fstr,capstr) in
+        (("sin","Sin"),("cos","Cos"),("tan","Tan"),("atan","ArcTan"),("acos","ArcCos"),("asin","ArcSin"),
+         ("exp","Exp"),("log","Log"),("sqrt","Sqrt"),
+         ("hankel1","HankelH1"),("hankel2","HankelH2"),
+         ("besseli","BesselI"),("besselj","BesselJ"),("besselk","BesselK"),
+         ("gamma","Gamma"),("digamma","Digamma"))
+        csym = symbol("SymPy" * capstr)
+        @eval begin
+            const $csym = sympy.functions[$fstr]
+            py_to_mx_dict[$csym] =  symbol($capstr)
+        end
+    end
+end
+
+mk_py_to_mx_funcs()
+
+
+const pymx_special_symbol_dict =
+    Dict (
+          SympyPi => :Pi,
+          SympyI => complex(0,1)
+          )
+                                       
 sympy2mxpr(x) = x
 
 # Need to detect Exp here and convert it to E^x for Julia
@@ -100,10 +108,6 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
     return expr
 end
 
-#function sympy2mxpr(x::Tuple)
-#    return SJulia.mxpr(:List,map(sympy2mxpr,x)...)
-#end
-
 # By default, Dict goes to Dict
 function sympy2mxpr(expr::Dict)
     ndict = Dict()
@@ -114,11 +118,9 @@ function sympy2mxpr(expr::Dict)
 end
 
 function sympy2mxpr{T}(expr::Array{T,1})
-#    println("array ", typeof(expr))
     return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
 end
 
-#sympy2mxpr(x) = x
 
 # TESTS
 
@@ -132,25 +134,35 @@ function test_sympy2mxpr()
     @assert sympy2mxpr(add2) == mxpr(:Plus, :x, mxpr(:Times, -2, :x, :y, :z))
 end
 
-## Convert Mxpr to SymPy
+#### Convert Mxpr to SymPy
 
-const mx_to_py_dict = Dict(
-    :Plus => sympy.Add,
-    :Times => sympy.Mul,
-    :Power => sympy.Pow,
-    :Sin => sympy.sin,
-    :Cos => sympy.cos,
-    :Tan => sympy.tan,
-    :ArcTan => sympy.atan,                           
-    :Exp => sympy.exp, #  This works
-    :Sqrt => sympy.sqrt,
-    :E => sympy.E,
-    :I => SympyI,
-    :Pi => SympyPi,
-    :Log => sympy.log,     
-    :Infinity => sympy.oo,
-    :ComplexInfinity => sympy.zoo
-)
+# These should be generated... And why do we use instances here and classes above ?
+# (if that is what is happening. )
+const mx_to_py_dict =
+    Dict(
+         :Plus => sympy.Add,
+         :Times => sympy.Mul,
+         :Power => sympy.Pow,
+         :E => sympy.E,
+         :I => SympyI,
+         :Pi => SympyPi,
+         :Log => sympy.log, 
+         :Infinity => sympy.oo,
+         :ComplexInfinity => sympy.zoo
+         )
+
+for (sj,sp) in (("Exp","exp"),("Sqrt","sqrt"),("Sin","sin"),("Cos","cos"),("Tan","tan"),("ArcTan","atan"),
+                ("ArcCos","acos"),("ArcSin","asin"),("Cosh","cosh"),("Sinh","sinh"),("Tanh","tanh"),
+                ("Gamma","gamma"),("Digamma","digamma"),
+                ("BesselI","besseli"),("BesselJ","besselj"),
+                ("BesselK","besselk"),("BesselY","bessely"),
+                ("HankelH1","hankel1"),("HankelH2","hankel2"))
+    obj = eval(parse("sympy." * sp))
+    @eval begin
+        mx_to_py_dict[symbol($sj)] = $obj
+    end
+end
+
 
 function mxpr2sympy(z::Complex)
 #    println("Converting $z")
@@ -159,7 +171,6 @@ function mxpr2sympy(z::Complex)
     else
         res = mxpr(:Plus, real(z), mxpr(:Times, :I, imag(z)))
     end
-#    println("got $res")
     return mxpr2sympy(res)
 end
 
@@ -171,9 +182,6 @@ function mxpr2sympy(mx::SJulia.Mxpr)
     if mx.head in keys(mx_to_py_dict)
         return mx_to_py_dict[mx.head](map(mxpr2sympy, mx.args)...)
     end
-#    if SJulia.is_Mxpr(mx,:List)
-#        return [map(mxpr2sympy, mx.args)...]
-#    end
     pyfunc = sympy.Function(string(mx.head))  # Don't recognize the head, so make it a user function
     return pyfunc(map(mxpr2sympy, mx.args)...)
 end
