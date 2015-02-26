@@ -308,6 +308,14 @@ apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
 do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
 
+@sjdoc Re "
+Re(x) returns the real part of z.
+"
+
+@sjdoc Im "
+Im(x) returns the imaginary part of z.
+"
+
 # Mma allows complex numbers of mixed Real type. Julia does not.
 # Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
 mkapprule("Re")

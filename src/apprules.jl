@@ -1004,7 +1004,8 @@ Help() lists all documented symbols. Due to parsing restrictions at the repl, fo
 topics, the input must be a string. The same help can be accessed with
 h\"topic\", which is implemented as a Julia special string literal.
 Help(regex) prints a list of topics whose documentation text matches the
-regular expression regex.
+regular expression regex. For example Help(r\"Set\"i) lists all topics that
+match \"Set\" case-independently.
 Help(All -> true) prints all of the documentation.
 "
 
