@@ -425,7 +425,7 @@ expr is a Julia Dict.
          ("Count(_Integer)(Range(10))", "10"),
          ("Count(Range(10), 2)", "1"))
 
-set_attribute(:Count, :Count)
+set_attribute(:Count, :Protected)
 function apprules(mx::Mxpr{:Count})
     do_Count(mx,margs(mx)...)
 end
@@ -453,6 +453,50 @@ end
 function do_GenHead(mx,head::Mxpr{:Count})
     mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
+
+
+#### Cases
+
+@sjdoc Cases "
+Cases(expr,pattern) returns the elements in expr that match the pattern.
+Matching on only one level is supported. Cases(pattern) can be used as the head of an expression, as an operator.
+eg: getints = Cases(_Integer). The head of the returned object is the same as that of expr.
+"
+
+@sjexamp( Cases,
+         ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
+
+set_attribute(:Cases, :Protected)
+function apprules(mx::Mxpr{:Cases})
+    do_Cases(mx,margs(mx)...)
+end
+
+
+# Allocating outside loop and sending Dict as arg is 3x faster in one test
+function do_Cases(mx,expr,pat)
+    args = margs(expr)
+    nargs = newargs()
+    jp = just_pattern(pat)
+    capt = capturealloc()
+    for i in 1:length(args)
+        (gotmatch,capt) = cmppat(args[i],jp,capt)
+        gotmatch ? push!(nargs,copy(args[i])) : nothing
+    end
+    rmx = mxpr(mhead(expr),nargs)
+    return rmx
+end
+
+# for operator form.
+function do_Cases(mx,pat)
+    mx
+end
+
+# operator form of Cases
+function do_GenHead(mx,head::Mxpr{:Cases})
+    mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+end
+
+
 
 #### Push!
 
