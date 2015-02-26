@@ -12,7 +12,7 @@ apprules(mx::Mxpr{:Factor})  = mx[1] |> mxpr2sympy |> sympy.factor |> sympy2mxpr
 @sjdoc Expand "
 Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable.
 "
-apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand |> sympy2mxpr
+apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand  |> sympy2mxpr
 
 #### Limit
 
@@ -82,7 +82,7 @@ apprules(mx::Mxpr{:Together}) = mx[1] |> mxpr2sympy |> sympy.together |> sympy2m
 #### Apart
 
 @sjdoc Apart "
-Together(product) rewrites a product as a sum of terms with mininmal denominators.
+Together(product) computes a partial fraction decomposition of product
 "
 apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
 
@@ -92,6 +92,27 @@ apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
 Simplify(expr) rewrites expr in a simpler form.
 "
 apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> sympy2mxpr
+
+@sjdoc Simplify "
+TrigSimp(expr) does trigonometric simplification.
+"
+apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> sympy2mxpr
+
+@sjdoc Cancel "
+Cancel(expr) cancels common factors in the numerator and denominator.
+"
+#apprules(mx::Mxpr{:Cancel}) = sympy.cancel(mx[1] |> mxpr2sympy, extension=true) |> sympy2mxpr
+apprules(mx::Mxpr{:Cancel}) = mx[1] |> mxpr2sympy |> sympy.cancel |> sympy2mxpr
+
+@sjdoc Collect "
+Collect(expr,x) collects terms involving the same power of x.
+Collect(expr,[x,y]) collects terms involving first x, then y.
+"
+apprules(mx::Mxpr{:Collect}) = do_Collect(mx,margs(mx)...)
+
+do_Collect(mx,expr,x) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy ) |> sympy2mxpr
+do_Collect(mx,expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy , list |> mxpr2sympy) |> sympy2mxpr
+do_Collect(mx,args...) = mx
 
 #### Solve
 
