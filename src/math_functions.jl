@@ -436,5 +436,14 @@ pow_sign(x, texpt::Number) = texpt < 0 ? -1 : 1
 pow_sign(x, texpt) = 1
 find_numerator(x) = x
 
+## Exp
+
+# The parser normally takes care of this,
+# But, when converting expressions from Sympy, we get Exp, so we handle it here.
+
+function apprules(mx::Mxpr{:Exp})
+    mxpr(:Power,:E,mx[1])
+end
+
 
 nothing

@@ -41,7 +41,8 @@ const py_to_mx_dict = Dict(
     SympyCos => :Cos,
                        SympyTan => :Tan,
                        SympyExp => :Exp,
-                       sympy.E => :E,
+#                       sympy.E => :E,
+#                       SympyExp => :Exp,
                        SympyLog => :Log,
                        SympySqrt => :Sqrt,
                        SymPyInfinity => :Infinity,
@@ -55,6 +56,7 @@ const pymx_special_symbol_dict = Dict (
 
 sympy2mxpr(x) = x
 
+# Need to detect Exp here and convert it to E^x for Julia
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
 #    println("annot ", typeof(expr), " ",expr )
     if (pytypeof(expr) in keys(py_to_mx_dict))
@@ -139,7 +141,7 @@ const mx_to_py_dict = Dict(
     :Sin => sympy.sin,
     :Cos => sympy.cos,
     :Tan => sympy.tan,
-    :Exp => sympy.exp,
+    :Exp => sympy.exp, #  This works
     :Sqrt => sympy.sqrt,
     :E => sympy.E,
     :I => SympyI,

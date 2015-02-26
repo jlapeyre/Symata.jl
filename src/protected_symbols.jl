@@ -40,7 +40,8 @@ set_pattributes(["CompoundExpression","Sum"],[:ReadProtected,:HoldAll])
 
 set_pattributes(["Part","D"],:ReadProtected)
 
-set_pattributes(["Cos", "ACos", "Sin", "ASin", "Tan", "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im"],
+# We kinda need Exp, see the apprules.
+set_pattributes(["Cos", "ACos", "Sin", "ASin", "Tan", "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp"],
                 [:Listable,:NumericFunction])
 
 set_pattributes(["Plus", "Times"],
