@@ -103,7 +103,7 @@ SJulia.@test SJulia.a == "cat"
 
 ## Special rule
 
-@testex Cos(ACos(x)) == x
+@testex Cos(ArcCos(x)) == x
 @testex Attributes(Plus)  == [Flat,Listable,NumericFunction,OneIdentity,Orderless,Protected]
 
 ## Orderless

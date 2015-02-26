@@ -172,7 +172,11 @@ end
         # Note, this may slow things like pattern matching. Because
         # Julia bindings of symbols are sometimes checked and then evaluated.
         # But, the pattern test file shows no difference in speed.
-        !isdefined(s) && eval(:($s = true))
+        # Remove this for two reasons
+        # 1. We now use a module so Symbols are now SJulia.x and we don't get completion anyway (maybe could be fixed)
+        # 2. We sometimes want to do a Julia binding of a symbol to a Julia function. But, this fails if it already
+        #  is bound as a variable.
+#        !isdefined(s) && eval(:($s = true))
         return ns
     end
 end

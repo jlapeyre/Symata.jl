@@ -19,10 +19,10 @@ unset_attribute(:Csc,:Protected)
 # Unfix is a workaround for bugs that prevent evaluation
 @ex  Sin(-1*x_) := -1 * Sin(x)   
 @ex  Tan(-1*x_) := -1 * Tan(x)
-@ex  Tan(ACos(x_)) := Unfix(Sqrt(1-x^2)/x)
-@ex  Tan(ASin(x_)) := Unfix(x/Sqrt(1-x^2))
-@ex  Sin(ASin(x_)) := x
-@ex  Sin(ACos(x_)) := Unfix((1-x^2)^(1/2))  
+@ex  Tan(ArcCos(x_)) := Unfix(Sqrt(1-x^2)/x)
+@ex  Tan(ArcSin(x_)) := Unfix(x/Sqrt(1-x^2))
+@ex  Sin(ArcSin(x_)) := x
+@ex  Sin(ArcCos(x_)) := Unfix((1-x^2)^(1/2))  
 @ex  Cos(-1*x_) := Cos(x)
 
 @ex  Power(Cos(x_),-1) ^= Sec(x)

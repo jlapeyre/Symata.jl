@@ -41,7 +41,9 @@ function patterntopvar(mx::Mxpr)
     nmx
 end
 
-patterntopvar(x) = x
+function patterntopvar(x)
+    x
+end
 
 # function patterntopvar(mx::Mxpr{:PatternTest})
 #     pvar = patterntopvar(mx[1])
@@ -90,7 +92,7 @@ function patterntopvar(mx::Mxpr{:Blank})
        res = Pvar(var,:All,:None)
     else
         head = blank[1]
-        ehead = eval(head)  # Symbol may eval to DataType
+        ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
         head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
         res = Pvar(symname(var),head,:None)
     end

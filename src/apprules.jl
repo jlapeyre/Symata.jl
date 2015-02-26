@@ -558,8 +558,6 @@ be used in operator form. For example, myintq = MatchQ(_Integer).
 
 function apprules(mx::Mxpr{:MatchQ})
     do_MatchQ(mx,margs(mx)...)
-#    (gotmatch,cap) = cmppat(mx[1],just_pattern(mx[2]))
-#    gotmatch
 end
 
 function do_MatchQ(mx,expr,pat)
