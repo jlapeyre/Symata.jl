@@ -1,1 +1,14 @@
 *~
+devdocs/
+devtest/Speedresults.txt
+example/
+mod1.jl
+mod1a.jl
+papers/
+src/nomodule.jl
+src/tcode.jl
+src/testcode/
+src/tmp.jl
+symtest.jl
+why.txt
+workflowquestion
