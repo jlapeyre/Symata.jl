@@ -84,9 +84,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         # We need to check what kind of integer. searching methods. no luck
         # we could try catch _to_mpmath
         if expr[:is_Integer]
-            #  Between SymPy and PyCall, there is a huge variety of
-            #  ways that integers are wrapped in layers of classes. None if it is documented.
-            #  apparently, if the number is not really a bigint, a machine sized int is actually returned
+            #  Apparently, if the number is not really a bigint, a machine sized int is actually returned
             #  Yes, tested this with Int64 and GMP ints and the correct thing is returned
             num = expr[:_to_mpmath](-1)  #  works for some numbers at the command line
             return num
