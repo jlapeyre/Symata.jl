@@ -33,16 +33,19 @@ Integrate(expr, x) gives the indefinite integral of expr with respect to x.
 Integrate(expr, [x,a,b]) gives the definite integral.
 "
 
-function apprules(mx::Mxpr{:Integrate})
-    args = margs(mx)
-    pymx = mxpr2sympy(args[1])
-    varspecs = args[2:end]
-    pyvarspecs = varspecs_to_tuples_of_sympy(varspecs)
-#    println(pyvarspecs)
+apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
+
+# Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
+function do_Integrate(mx::Mxpr{:Integrate},expr)
+    pymx = mxpr2sympy(expr)    
+    pyintegral = sympy.integrate(pymx)
+    return sympy2mxpr(pyintegral)    
+end
+
+function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
+    pymx = mxpr2sympy(expr)
+    pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
-#    println(pyintegral)
-    #    return pyintegral
-    #    return mxpr(:List,pyintegral,sympy2mxpr(pyintegral))
     return sympy2mxpr(pyintegral)
 end
 
