@@ -136,6 +136,15 @@ function do_pack(T,sjobj)
     return args
 end
 
+
+# We really need to be able to Translate from SJulia back into Julia
+# There are conversion tables in
+# math_functions.jl
+# parse.jl
+# mxpr_top.jl
+# These should be organized better--- for translating in both directions.
+
+
 #### JFunc
 
 # function apprules(mxpr::Mxpr{:JFunc})

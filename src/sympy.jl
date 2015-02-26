@@ -96,7 +96,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
             q = expr[:q]
             return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
         end
-        return convert(FloatingPoint, expr)
+        return convert(FloatingPoint, expr) # Need to check for big floats
     end
     println("sympy2mxpr: Unable to translate ", expr)
     return expr
@@ -142,8 +142,8 @@ const mx_to_py_dict = Dict(
     :Power => sympy.Pow,
     :Sin => sympy.sin,
     :Cos => sympy.cos,
-                           :Tan => sympy.tan,
-                           :ArcTan => sympy.atan,                           
+    :Tan => sympy.tan,
+    :ArcTan => sympy.atan,                           
     :Exp => sympy.exp, #  This works
     :Sqrt => sympy.sqrt,
     :E => sympy.E,

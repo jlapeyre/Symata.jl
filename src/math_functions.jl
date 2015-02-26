@@ -30,6 +30,8 @@ function evalmath(x)
     SJulia.eval(x)
 end
 
+## We also need to use these to convert SJulia expressions to Julia
+
 function make_math()
     single_arg_float_complex =   # check, some of these can't take complex args
 #      
