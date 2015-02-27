@@ -1,6 +1,6 @@
 ## Symbolic manipulation code
 
-This is a partial, experimental, implementation of a language for
+This is an experimental implementation of a language for
 symbolic computation.  It is largely based on pattern matching and an
 evaluation sequence modeled on Mathematica, although this by no means
 a fixed decision.
