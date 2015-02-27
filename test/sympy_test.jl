@@ -23,14 +23,14 @@ SJulia.@testex Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)
 
 ## Integrate
 
-@ex ClearAll(r)
-@testex Integrate(x,x) == 1//2 * x^2
-@testex Integrate(x,[x,0,1]) == 1//2
-@testex Integrate(x,[x,0,1],y) == 1//2 * y
-@ex     r = Integrate(1/Cos(x + a), x)
-@testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
-@testex Simplify(D(r,x)) == 1/Cos(x+a)
-@ex ClearAll(r)
+SJulia.@ex ClearAll(r)
+SJulia.@testex Integrate(x,x) == 1//2 * x^2
+SJulia.@testex Integrate(x,[x,0,1]) == 1//2
+SJulia.@testex Integrate(x,[x,0,1],y) == 1//2 * y
+SJulia.@ex     r = Integrate(1/Cos(x + a), x)
+SJulia.@testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
+SJulia.@testex Simplify(D(r,x)) == 1/Cos(x+a)
+SJulia.@ex ClearAll(r)
 
 ## D
 

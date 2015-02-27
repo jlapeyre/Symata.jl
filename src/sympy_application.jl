@@ -70,7 +70,9 @@ function apprules(mx::Mxpr{:D})
             push!(pyspec,mxpr2sympy(dspec))
         end
     end
+#    println("$pymx, $pyspec")
     pyderivative = sympy.diff(pymx,pyspec...)
+#    println("$pyderivative")
     return sympy2mxpr(pyderivative)
 end
 

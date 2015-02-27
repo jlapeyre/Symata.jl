@@ -15,6 +15,41 @@ using PyCall
 @pyimport sympy
 @pyimport sympy.core as sympy_core
 
+# Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
+const SYMPY_TO_SJULIA_FUNCTIONS =
+    Dict{Symbol,Symbol}(
+                        :sin => :Sin,
+                        :cos => :Cos,
+                        :tan => :Tan,
+                        :sinh => :Sinh,
+                        :cosh => :Cosh,
+                        :tanh => :Tanh,
+                        :asin => :ArcSin,
+                        :acos => :ArcCos,
+                        :atan => :ArcTan,
+                        :asinh => :ArcSinh,
+                        :acosh => :ArcCosh,
+                        :atanh => :ArcTanh,
+                        :exp => :Exp,
+                        :log => :Log,
+                        :sqrt => :Sqrt,
+                        :hankel1 => :HankelH1,
+                        :hankel2 => :HankelH2,
+                        :besseli => :BesselI,
+                        :besselj => :BesselJ,
+                        :besselk => :BesselK,
+                        :gamma => :Gamma,
+                        :digamma => :DiGamma,
+                        :polygamma => :PolyGamma
+                        )
+
+const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
+
+for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
+    SJULIA_TO_SYMPY_FUNCTIONS[v] = k
+end
+
+
 # TODO: generate this code, like the functions below
 const SympySymbol = sympy_core.symbol["Symbol"]
 const SympyAdd = sympy_core.add["Add"]
@@ -52,22 +87,18 @@ const py_to_mx_dict =
          )
 
 function mk_py_to_mx_funcs()
-    for (fstr,capstr) in
-        (("sin","Sin"),("cos","Cos"),("tan","Tan"),("atan","ArcTan"),("acos","ArcCos"),("asin","ArcSin"),
-         ("exp","Exp"),("log","Log"),("sqrt","Sqrt"),
-         ("hankel1","HankelH1"),("hankel2","HankelH2"),
-         ("besseli","BesselI"),("besselj","BesselJ"),("besselk","BesselK"),
-         ("gamma","Gamma"),("digamma","Digamma"))
-        csym = symbol("SymPy" * capstr)
+    for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
+        pystr = string(pysym)
+        sjstr = string(sjsym)
+        csym = symbol("SymPy" * sjstr)
         @eval begin
-            const $csym = sympy.functions[$fstr]
-            py_to_mx_dict[$csym] =  symbol($capstr)
+            const $csym = sympy.functions[$pystr]
+            py_to_mx_dict[$csym] =  symbol($sjstr)
         end
     end
 end
 
 mk_py_to_mx_funcs()
-
 
 const pymx_special_symbol_dict =
     Dict (
@@ -162,21 +193,20 @@ const mx_to_py_dict =
          :ComplexInfinity => sympy.zoo
          )
 
-for (sj,sp) in (("Exp","exp"),("Sqrt","sqrt"),("Sin","sin"),("Cos","cos"),("Tan","tan"),("ArcTan","atan"),
-                ("ArcCos","acos"),("ArcSin","asin"),("Cosh","cosh"),("Sinh","sinh"),("Tanh","tanh"),
-                ("Gamma","gamma"),("Digamma","digamma"),
-                ("BesselI","besseli"),("BesselJ","besselj"),
-                ("BesselK","besselk"),("BesselY","bessely"),
-                ("HankelH1","hankel1"),("HankelH2","hankel2"))
-    obj = eval(parse("sympy." * sp))
-    @eval begin
-        mx_to_py_dict[symbol($sj)] = $obj
+function mk_py_to_mx_funcs()
+    for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
+        pystr = string(pysym)
+        sjstr = string(sjsym)
+        obj = eval(parse("sympy." * pystr))
+        @eval begin
+            mx_to_py_dict[symbol($sjstr)] = $obj
+        end        
     end
 end
 
+mk_py_to_mx_funcs()
 
 function mxpr2sympy(z::Complex)
-#    println("Converting $z")
     if real(z) == 0
         res = mxpr(:Times, :I, imag(z))
     else
