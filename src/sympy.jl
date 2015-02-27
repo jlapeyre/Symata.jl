@@ -20,10 +20,13 @@ const SympySymbol = sympy_core.symbol["Symbol"]
 const SympyAdd = sympy_core.add["Add"]
 const SympyMul = sympy_core.mul["Mul"]
 const SympyPow = sympy_core.power["Pow"]
+
+const SympyIntegral = sympy.integrals["Integral"]
+const SympyTuple = sympy.containers["Tuple"]
+
 const SympyNumber = sympy_core.numbers["Number"]
 const SympyPi  = sympy_core.numbers["Pi"]
 const SympyI  = sympy_core.numbers["ImaginaryUnit"]
-#const SympyI  = sympy.I    # this is something, but not the right something
 const SymPyInfinity = sympy.oo
 const SymPyComplexInfinity = sympy.zoo
 
@@ -35,6 +38,8 @@ const py_to_mx_dict =
          SympyAdd => :Plus,
          SympyMul => :Times,
          SympyPow => :Power,
+         SympyIntegral => :Integrate,
+         SympyTuple => :List,
          #                       sympy.E => :E,
          SymPyInfinity => :Infinity,
          SymPyComplexInfinity => :ComplexInfinity
@@ -205,8 +210,11 @@ function mxpr2sympy(mx::Number)
     return mx
 end
 
+# Don't error, but only warn. Then return x so that we
+# can capture and inspect it.
 function mxpr2sympy(x)
-    error("Can't convert $x from SJulia to SymPy")
+    warn("Can't convert $x from SJulia to SymPy")
+    return x
 end
 
 # TEST
