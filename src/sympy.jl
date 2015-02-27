@@ -20,8 +20,14 @@ const SympySymbol = sympy_core.symbol["Symbol"]
 const SympyAdd = sympy_core.add["Add"]
 const SympyMul = sympy_core.mul["Mul"]
 const SympyPow = sympy_core.power["Pow"]
-
-const SympyIntegral = sympy.integrals["Integral"]
+# Following is the strategy that I thought of at the very beginning.
+# It seems bassackwards, but it is more general than searching for each
+# peculiar way of encoding a head:
+# 1. a python instance is returned. we have no idea in general how to check
+# other objects for its type.
+# 2. construct an object and find it's type and assign to a constant.
+const SympyD = pytypeof(sympy_core.Derivative(:x))
+const Sympyintegrate = sympy.integrals["Integral"]
 const SympyTuple = sympy.containers["Tuple"]
 
 const SympyNumber = sympy_core.numbers["Number"]
@@ -38,9 +44,9 @@ const py_to_mx_dict =
          SympyAdd => :Plus,
          SympyMul => :Times,
          SympyPow => :Power,
-         SympyIntegral => :Integrate,
+         SympyD => :D,
+         Sympyintegrate => :Integrate,
          SympyTuple => :List,
-         #                       sympy.E => :E,
          SymPyInfinity => :Infinity,
          SymPyComplexInfinity => :ComplexInfinity
          )
