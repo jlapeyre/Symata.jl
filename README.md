@@ -78,7 +78,7 @@ functions implemented.)
 Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
 heavy on calculations with big integers. 2) SymPy `expand` handles more cases,
 which may increase time complexity.
-3) It seems that SymPy caches results, which consumes time. Caching is currently
+3) It seems that SymPy caches results, which consumes time upfront, but saves time later. Caching is currently
 disabled in SJulia.)
 
 Here is SJulia doing expansion.
