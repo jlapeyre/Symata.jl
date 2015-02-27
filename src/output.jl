@@ -48,6 +48,8 @@ function Base.show(io::IO, s::SJSym)
         Base.show_unquoted(io,:π)
     elseif symname(s) == :EulerGamma
         Base.show_unquoted(io,:γ)
+    elseif symname(s) == :Infinity
+        Base.show_unquoted(io,:∞)
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
