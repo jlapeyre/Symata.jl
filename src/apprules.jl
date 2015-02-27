@@ -427,13 +427,6 @@ gethead(mx::Mxpr) = mhead(mx)
 gethead(s::SJSym) = getsym(:Symbol)
 gethead(ex) = typeof(ex)
 
-
-@sjdoc AtomQ "
-AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
-However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
-"
-apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
-
 @sjdoc Attributes "
 Attributes(s) returns attributes associated with symbol s. Builtin symbols have
 the attribute Protected, and may have others.
@@ -978,14 +971,6 @@ function apprules(mx::Mxpr{:Syms})
     mxpr(:HoldForm,do_syms(mx[1]))
 end
 
-@sjdoc DirtyQ "
-DirtyQ(m) returns true if the timestamp of any symbol that m depends on
-is more recent than the timestamp of m. This is for diagnostics.
-"
-apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
-do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
-do_syms(s) = mxpr(:List,)
-
 @sjdoc BuiltIns "
 BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symbols that
 have the Protected attribute.
@@ -1033,28 +1018,6 @@ end
 function do_Help(mx,r::Regex)
     print_matching_topics(r)
 end
-
-@sjdoc EvenQ "
-EvenQ(expr) returns true if expr is an even integer.
-"
-@sjdoc OddQ "
-OddQ(expr) returns true if expr is an odd integer.
-"
-
-@sjseealso_group(AtomQ,EvenQ,OddQ)
-apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
-apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
-
-@sjdoc StringLength "
-StringLength(s) returns the length of the string s.
-"
-apprules(mx::Mxpr{:StringLength}) = length(mx[1])
-
-@sjdoc ToString "
-ToStringLength(expr) returns the string of the printed form or expr.
-"
-apprules(mx::Mxpr{:ToString}) = string(mx[1])
-
 
 @sjdoc Module "
 Module creates a lexical scope block for variables. Warning, this is broken

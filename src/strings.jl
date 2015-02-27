@@ -6,3 +6,13 @@ set_pattributes(["StringInterpolation"],[:Protected])
 function apprules(mx::Mxpr{:StringInterpolation})
     string(margs(mx)...)
 end
+
+@sjdoc StringLength "
+StringLength(s) returns the length of the string s.
+"
+apprules(mx::Mxpr{:StringLength}) = length(mx[1])
+
+@sjdoc ToString "
+ToStringLength(expr) returns the string of the printed form or expr.
+"
+apprules(mx::Mxpr{:ToString}) = string(mx[1])
