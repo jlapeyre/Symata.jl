@@ -144,7 +144,7 @@ You can load and test SJulia like this
 
 ```julia
 include("src/SJulia.jl")
-include("test/run_tests.jl")
+include("test/runtests.jl")
 ```
 
 #### SJulia Repl
