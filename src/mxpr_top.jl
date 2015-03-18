@@ -20,7 +20,7 @@ const JTOMSYM  =
       :(=>) => :Rule, # Mma uses ->  (hmmm)
       :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
       #      :(:) => :Span, # this is done specially in extomx. colon means various things
-      :vcat => :List,
+      :vect => :List,
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
       :comparison => :Comparison,
