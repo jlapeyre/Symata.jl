@@ -136,7 +136,7 @@ elapsed time: 0.005774109 seconds
 *Note*: `SJulia` depends on the Julia
 [`SymPy`](https://github.com/jverzani/SymPy.jl) module. Currently, if
 you don't have `SymPy` installed, you must comment out the last two
-lines loading code in `src/SJulia.jl`.  But, the dependence on SyPy
+lines loading code in `src/SJulia.jl`.  But, the dependence on SymPy
 will increase greatly in the short and medium term.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
@@ -144,7 +144,7 @@ You can load and test SJulia like this
 
 ```julia
 include("src/SJulia.jl")
-include("src/run_tests.jl")
+include("test/run_tests.jl")
 ```
 
 #### SJulia Repl
