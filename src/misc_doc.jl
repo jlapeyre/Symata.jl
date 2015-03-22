@@ -4,18 +4,6 @@
 All is a symbol used in options.
 "
 
-@sjdoc I "
-I is the imaginary unit
-"
-
-@sjdoc E "
-E is the base of the natural logarithm
-"
-
-@sjdoc Pi "
-Pi is the trigonometric constant π.
-"
-
 @sjdoc Regex "
 r\"expr\" creates a regular expression (PCRE). This is a Julia DataType.
 "

@@ -455,5 +455,16 @@ function apprules(mx::Mxpr{:Exp})
     mxpr(:Power,:E,mx[1])
 end
 
+@sjdoc I "
+I is the imaginary unit
+"
+
+@sjdoc E "
+E is the base of the natural logarithm
+"
+
+@sjdoc Pi "
+Pi is the trigonometric constant π.
+"
 
 nothing
