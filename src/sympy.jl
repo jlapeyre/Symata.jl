@@ -67,6 +67,7 @@ const SympyTuple = sympy.containers["Tuple"]
 
 const SympyNumber = sympy_core.numbers["Number"]
 const SympyPi  = sympy_core.numbers["Pi"]
+#const SympyE  = pytypeof(sympy_core.numbers["E"])
 const SympyI  = sympy_core.numbers["ImaginaryUnit"]
 const SymPyInfinity = sympy.oo
 const SymPyComplexInfinity = sympy.zoo
@@ -103,6 +104,7 @@ mk_py_to_mx_funcs()
 const pymx_special_symbol_dict =
     Dict (
           SympyPi => :Pi,
+#          SympyPi => :E,
           SympyI => complex(0,1)
           )
                                        
