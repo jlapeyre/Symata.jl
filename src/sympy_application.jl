@@ -103,6 +103,8 @@ TrigSimp(expr) does trigonometric simplification.
 "
 apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> sympy2mxpr
 
+#### FullSimplify
+
 @sjdoc FullSimplify "
 FullSimplify(expr) rewrites expr in a simpler form, algorithm is more extensive than Simplify(expr),
 but likely to be slower.
@@ -110,10 +112,9 @@ but likely to be slower.
 apprules(mx::Mxpr{:FullSimplify}) = do_FullSimplify(mx)
 
 function do_FullSimplify(mx::Mxpr{:FullSimplify})
-    @pyimport sympy.strategies.tree as strategies_tree
     funcs = [sympy.simplify, sympy.expand, sympy.fu, sympy.powsimp, sympy.sqrtdenest]
     objective = pyeval("lambda x: len(str(x))")
-    megasimp = strategies_tree.greedy((funcs, funcs), objective)
+    megasimp = sympy.strategies[:tree][:greedy]((funcs, funcs), objective)
     mx[1] |> mxpr2sympy |> megasimp |> sympy2mxpr
 end
 
