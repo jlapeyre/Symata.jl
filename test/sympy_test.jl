@@ -53,6 +53,10 @@ SJulia.@ex ClearAll(r)
 
 @testex Simplify( Cos(x)^2 + Sin(x)^2) == 1
 
+## FullSimplify
+
+@testex FullSimplify( -Sqrt(-2*Sqrt(2)+3)+Sqrt(2*Sqrt(2)+3) ) == 2
+
 ## Solve
 
 @ex      res = Solve([x+y-1, x - y + 1], [x,y])
