@@ -13,6 +13,29 @@ emphasis is rather on testing implementations of core features and
 subsystems that are efficient or can be made efficient. These include
 core data structures, pattern matching, and the evaluation sequence.
 
+### Installing
+
+*Note*: `SJulia` depends on the Julia
+[`SymPy`](https://github.com/jverzani/SymPy.jl) module. Currently, if
+you don't have `SymPy` installed, you must comment out the last two
+lines loading code in `src/SJulia.jl`.  But, the dependence on SymPy
+will increase greatly in the short and medium term.  `SJulia` requires
+the 0.4 (master) branch of Julia, not the 0.3 (release) branch.
+
+SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
+Instead, it can be installed and tested as follows
+
+```julia
+Pkg.clone("https://github.com/jlapeyre/SJulia.git")
+Pkg.test("SJulia")
+```
+
+#### SJulia Repl
+
+UPDATE: There is now an SJulia command line (REPL) mode included in this package. You enter
+the mode by typing `<` as the first character on a line.
+You no longer need to build a fork of Julia.
+
 #### Here are some results.
 
 Here is counting with patterns. The execution time is about the same as Mma 3.
@@ -150,13 +173,19 @@ Pkg.test("SJulia")
 
 #### SJulia Repl
 
-I added a mode to the Julia repl to support this code (but it is not necessary)
+UPDATE: There is now an SJulia mode included in this package. You enter
+the mode by typing `<` as the first character on a line.
+You do not need to build a fork of Julia.
+
+OBSOLETE: I added a mode to the Julia repl to support this code (but it is not necessary)
 in this [branch of a fork of Julia](https://github.com/jlapeyre/julia/tree/jl/symrepl).
 
-In fact, the only file changed in this branch is base/REPL.jl.  To use
+OBSOLETE: In fact, the only file changed in this branch is base/REPL.jl.  To use
 this mode. Download the branch and build it and install it somewhere
-as, say, sjulia. You enter and exit the SJulia mode with '.' Working
-from this mode is similar to working from Mathematica or Maxima or
+as, say, sjulia. You enter and exit the SJulia mode with '.' (The built in
+mode is entered with `<`, not `.`)
+
+NOT OBSOLETE: Working from this mode is similar to working from Mathematica or Maxima or
 Maple. For the most part, the SJulia mode just wraps input in the macro
 `ex`. So you can get the same thing by typing
 
@@ -342,6 +371,8 @@ expressions is dispatched by functions with type annotations for each head, such
 as `Mxpr{:Power}`.
 
 ### Documented Functions and Symbols
+
+The following is generated from SJulia's online help.
 
 ##### Abs
 
