@@ -23,17 +23,25 @@ will increase greatly in the short and medium term.  `SJulia` requires
 the 0.4 (master) branch of Julia, not the 0.3 (release) branch.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
-Instead, it can be installed and tested as follows
+Instead, it can be installed and used as follows
 
 ```julia
-Pkg.clone("https://github.com/jlapeyre/SJulia.git")
+julia> Pkg.clone("https://github.com/jlapeyre/SJulia.git")
+julia> using SJulia
+```
+
+The package can be tested with
+```julia
 Pkg.test("SJulia")
 ```
 
 #### SJulia Repl
 
 UPDATE: There is now an SJulia command line (REPL) mode included in this package. You enter
-the mode by typing `<` as the first character on a line.
+the mode by typing `<` as the first character on a line. Type backspace to exit the SJulia
+mode. Working from this mode is similar to working from Mathematica or Maxima or
+Maple. The input is not interpreted as Julia code, but rather SJulia code.
+
 You no longer need to build a fork of Julia.
 
 #### Here are some results.
