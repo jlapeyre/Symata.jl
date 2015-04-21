@@ -38,7 +38,7 @@ Pkg.test("SJulia")
 #### SJulia Repl
 
 UPDATE: There is now an SJulia command line (REPL) mode included in this package. You enter
-the mode by typing `<` as the first character on a line. Type backspace to exit the SJulia
+the mode by typing `=` as the first character on a line. Type backspace to exit the SJulia
 mode. Working from this mode is similar to working from Mathematica or Maxima or
 Maple. The input is not interpreted as Julia code, but rather SJulia code.
 
@@ -165,7 +165,7 @@ elapsed time: 0.005774109 seconds
 #### SJulia Repl
 
 UPDATE: There is now an SJulia mode included in this package. You enter
-the mode by typing `<` as the first character on a line.
+the mode by typing `=` as the first character on a line.
 You do not need to build a fork of Julia.
 
 OBSOLETE: I added a mode to the Julia repl to support this code (but it is not necessary)
@@ -174,7 +174,7 @@ in this [branch of a fork of Julia](https://github.com/jlapeyre/julia/tree/jl/sy
 OBSOLETE: In fact, the only file changed in this branch is base/REPL.jl.  To use
 this mode. Download the branch and build it and install it somewhere
 as, say, sjulia. You enter and exit the SJulia mode with '.' (The built in
-mode is entered with `<`, not `.`)
+mode is entered with `=`, not `.`)
 
 NOT OBSOLETE: Working from this mode is similar to working from Mathematica or Maxima or
 Maple. For the most part, the SJulia mode just wraps input in the macro
