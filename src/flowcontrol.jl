@@ -22,8 +22,8 @@ end
 #### For
 
 @sjdoc For "
-For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment[i] , Println(i))
-Using Increment[i] is currently much faster than i = i + 1. There is no special syntax yet for
+For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment(i) , Println(i))
+Using Increment(i) is currently much faster than i = i + 1. There is no special syntax yet for
 Increment.
 "
 
