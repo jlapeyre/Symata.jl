@@ -162,23 +162,6 @@ elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
 
-### Installing
-
-*Note*: `SJulia` depends on the Julia
-[`SymPy`](https://github.com/jverzani/SymPy.jl) module. Currently, if
-you don't have `SymPy` installed, you must comment out the last two
-lines loading code in `src/SJulia.jl`.  But, the dependence on SymPy
-will increase greatly in the short and medium term.  `SJulia` requires
-the 0.4 (master) branch of Julia, not the 0.3 (release) branch.
-
-SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
-Instead, it can be installed and tested as follows
-
-```julia
-Pkg.clone("https://github.com/jlapeyre/SJulia.git")
-Pkg.test("SJulia")
-```
-
 #### SJulia Repl
 
 UPDATE: There is now an SJulia mode included in this package. You enter
