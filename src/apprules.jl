@@ -681,6 +681,14 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
     return nothing
 end
 
+function _do_Comparison(a::Number, comp::SJSym, b::Bool)
+#    println("In any cmp  bool $a $comp $b")    
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return false
+end
+
 function _do_Comparison(a, comp::SJSym, b::Bool)
 #    println("In any cmp  bool $a $comp $b")    
     comp == :(==) && return false
