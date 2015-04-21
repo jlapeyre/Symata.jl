@@ -199,7 +199,7 @@ do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
 # This is probably quite slow, but might be correct in many cases
 # The same idea could be used for other functions, such as sqrts etc.
 function do_Log(mx::Mxpr{:Log},b::Integer,x::Integer)
-    res = int(log(b,x))
+    res = round(Int,log(b,x))
     return b^res == x ? res : mx
 end
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
@@ -244,7 +244,7 @@ end
 function float_with_precision(x,p)
     if p > 16
         pr = get_bigfloat_precision()
-        dig = int(p*3.322)  
+        dig = round(Int,p*3.322)
         # dig = int(p)        
         set_bigfloat_precision(dig)
         res = BigFloat(x)
@@ -394,7 +394,7 @@ function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic)
     return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r) : x
 end
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic,tol::Number)
-    ndig = int(-log10(tol))      # This is not quite correct.
+    ndig = round(Int,-log10(tol))      # This is not quite correct.
     r = doeval(mxpr(:N,x,ndig))  # we need to redesign do_N so that we can call it directly. See above.
     return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r,tol) : x
 end
