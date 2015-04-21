@@ -1,12 +1,11 @@
 ## Symbolic manipulation code
 
-This is an experimental implementation of a language for
-symbolic computation.  It is largely based on pattern matching and an
-evaluation sequence modeled on Mathematica, although this by no means
-a fixed decision.
+SJulia is a partial implementation of a language for symbolic
+computation.  It is largely modeled on the pattern matching and
+evaluation sequence of Mathematica.
 
 The focus at present is not on implementing specific mathematical
-computation, although much of this is supplied (`Integrate`, `D`,
+computation. However, much of this is supplied (`Integrate`, `D`,
 `Limit`, `Together`, `Apart`, `Factor`) mostly by using
 [SymPy](http://www.sympy.org/en/index.html) as a backend. The
 emphasis is rather on testing implementations of core features and
