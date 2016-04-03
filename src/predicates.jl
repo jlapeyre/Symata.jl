@@ -37,7 +37,7 @@ is_blankxxx(x::Mxpr) = false
 ###  SJulia Predicates
 
 @sjdoc AtomQ "
-AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
+AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 "
 apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])

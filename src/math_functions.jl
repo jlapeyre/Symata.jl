@@ -371,7 +371,7 @@ mkapprule("Complex")
 do_Complex(mx::Mxpr{:Complex},a::Number,b::Number) = complex(a,b)
 
 @sjdoc Rational "
-Rationa(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
+Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
 expression is parsed, so it is much faster than 'a/b'.
 "
     

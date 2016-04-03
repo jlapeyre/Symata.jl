@@ -345,7 +345,7 @@ end
 #### Permutations
 
 @sjdoc Permutations "
-Permutations(expr) give a list of all permuations of elements in expr.
+Permutations(expr) give a list of all permutations of elements in expr.
 "
 
 function apprules(mx::Mxpr{:Permutations})

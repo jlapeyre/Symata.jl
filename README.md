@@ -4,22 +4,7 @@ SJulia is a partial implementation of a language for symbolic
 computation.  It is largely modeled on the pattern matching and
 evaluation sequence of Mathematica.
 
-The focus at present is not on implementing specific mathematical
-computation. However, much of this is supplied (`Integrate`, `D`,
-`Limit`, `Together`, `Apart`, `Factor`) mostly by using
-[SymPy](http://www.sympy.org/en/index.html) as a backend. The
-emphasis is rather on testing implementations of core features and
-subsystems that are efficient or can be made efficient. These include
-core data structures, pattern matching, and the evaluation sequence.
-
 ### Installing
-
-*Note*: `SJulia` depends on the Julia
-[`SymPy`](https://github.com/jverzani/SymPy.jl) module. Currently, if
-you don't have `SymPy` installed, you must comment out the last two
-lines loading code in `src/SJulia.jl`.  But, the dependence on SymPy
-will increase greatly in the short and medium term.  `SJulia` requires
-the 0.4 (master) branch of Julia, not the 0.3 (release) branch.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 Instead, it can be installed and used as follows
@@ -27,23 +12,23 @@ Instead, it can be installed and used as follows
 ```julia
 julia> Pkg.clone("https://github.com/jlapeyre/SJulia.git")
 julia> using SJulia
+sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-The package can be tested with
-```julia
-Pkg.test("SJulia")
-```
+*Note*: `SJulia` depends on the Julia
+[`SymPy`](https://github.com/jverzani/SymPy.jl) module.
+
+`SJulia` requires the v0.4 branch of Julia, it will not work with v0.3 or v0.5.
+
+You can test  with `include("test/runtests.jl")`. This `Pkg.test("SJulia")` currently does not work well,
 
 #### SJulia Repl
 
-UPDATE: There is now an SJulia command line (REPL) mode included in this package. You enter
+There is an SJulia command line (REPL) mode. You enter
 the mode by typing `=` as the first character on a line. Type backspace to exit the SJulia
-mode. Working from this mode is similar to working from Mathematica or Maxima or
-Maple. The input is not interpreted as Julia code, but rather SJulia code.
+mode.  In this mode, the input is not interpreted as Julia code, but rather SJulia code.
 
-You no longer need to build a fork of Julia.
-
-#### Here are some results.
+#### Some results.
 
 Here is counting with patterns. The execution time is about the same as Mma 3.
 
@@ -78,6 +63,18 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 9592
 
 ```
+
+#### What is implemented
+
+The focus at present is not on implementing specific mathematical
+computation. However, much of this is supplied (`Integrate`, `D`,
+`Limit`, `Together`, `Apart`, `Factor`) mostly by using
+[SymPy](http://www.sympy.org/en/index.html) as a backend. The
+emphasis is rather on testing implementations of core features and
+subsystems that are efficient or can be made efficient. These include
+core data structures, pattern matching, and the evaluation sequence.
+
+#### Evaluation
 
 Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
 current environment. There are pros and cons to this approach. In Mma there are a host
@@ -161,23 +158,10 @@ elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
 
-#### SJulia Repl
+#### Alternate way to evaluate SJulia expressions
 
-UPDATE: There is now an SJulia mode included in this package. You enter
-the mode by typing `=` as the first character on a line.
-You do not need to build a fork of Julia.
-
-OBSOLETE: I added a mode to the Julia repl to support this code (but it is not necessary)
-in this [branch of a fork of Julia](https://github.com/jlapeyre/julia/tree/jl/symrepl).
-
-OBSOLETE: In fact, the only file changed in this branch is base/REPL.jl.  To use
-this mode. Download the branch and build it and install it somewhere
-as, say, sjulia. You enter and exit the SJulia mode with '.' (The built in
-mode is entered with `=`, not `.`)
-
-NOT OBSOLETE: Working from this mode is similar to working from Mathematica or Maxima or
-Maple. For the most part, the SJulia mode just wraps input in the macro
-`ex`. So you can get the same thing by typing
+Instead of working with the SJulia REPL (by typing `=`)
+You can get the same thing by typing
 
 ```julia
 julia> using SJulia
@@ -187,7 +171,7 @@ julia> @ex(some expression that may look like two expressions)
 
 ### Finding Help and Examples
 
-Symbols that are associated with some functionality can be listed with
+Try `Help()`. Symbols that are associated with some functionality can be listed with
 `BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
 prompt.
 
@@ -268,7 +252,7 @@ There are also two older experiments in this distribution. Each one
 has test files that run and serve as examples. The instructions for
 loading the code and running the tests, are in the subdirs.
 
-#### Evaluation
+#### More on Evaluation
 
 There are lines at the top of the file `src/mxpr.jl` to control evaluation. You can
 choose infinite or single evaluation. The test suite relies on infinite evaluation being
@@ -311,10 +295,7 @@ I use the Julia parser and reinterpret the results. Maybe there is an elegant en
 way to get everything you need this way. But, copying and altering the
 parser might be better even though it adds more complication. Eg. Now, I can use curly
 braces for literal construction of lists, but get a deprecation warning. So I use
-square brackets. Once you change the parser, you can ask whether you want full Mma
-syntax. OTOH, staying close to Julia (and everyone else's) syntax is also reasonable.
-OTOOH, Julia tries to make it easy to come from matlab. So making it easy to
-come from Mma might be good (if this ultimately will look like Mma).
+square brackets.
 
 #### Data and dispatch
 
@@ -393,7 +374,7 @@ See also TimeOff, TimeOn, Timing, TrDownOff, TrDownOn, TrUpOff, and TrUpOn.
 
 ##### Apart
 
-Together(product) rewrites a product as a sum of terms with mininmal denominators.
+Together(product) rewrites a product as a sum of terms with minimal denominators.
 
 
 
@@ -407,7 +388,7 @@ in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
 
 ##### AtomQ
 
-AtomQ(expr), in principle, returns true if expr has no parts accesible with Part.
+AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 
 See also EvenQ and OddQ.
@@ -557,7 +538,7 @@ D(expr,[x,n1],y,[z,n2]) gives the mixed derivative.
 
 ##### Depth
 
-Depth(expr) gives the maximum number of indicies required to specify
+Depth(expr) gives the maximum number of indices required to specify
 any part of expr, plus 1.
 
 
@@ -613,7 +594,7 @@ See also DumpHold.
 ##### DumpHold
 
 DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
+Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 
 See also Dump.
@@ -921,7 +902,7 @@ sjulia> Pack(f(1,2,3))
 
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be acheived less efficiently with expr[n1][n2]...
+The same can be achieved less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
@@ -931,7 +912,7 @@ Julia types such as Array, or the element with key 'n' for Dict's.
 
 ##### Permutations
 
-Permutations(expr) give a list of all permuations of elements in expr.
+Permutations(expr) give a list of all permutations of elements in expr.
 
 
 
@@ -1000,7 +981,7 @@ This uses embedded Julia to create a typed Array and then unpacks it to a List.
 
 ##### Rational
 
-Rationa(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
+Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
 expression is parsed, so it is much faster than 'a/b'.
 
 
@@ -1372,5 +1353,6 @@ tree. For instance, big numbers and regular expressions are constructed this way
  -->
 <!--  LocalWords:  DownRules UpRules unsets Unprotect PrimeQ HoldXXX
  -->
-<!--  LocalWords:  eval Mathics SymPy SJulia's GMP
+<!--  LocalWords:  eval Mathics SymPy SJulia's GMP backend AddTo lim
  -->
+LocalWords:  ConstantArray regex metadata tol PCRE DataType TimesBy

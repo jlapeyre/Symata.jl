@@ -87,7 +87,7 @@ apprules(mx::Mxpr{:Together}) = mx[1] |> mxpr2sympy |> sympy.together |> sympy2m
 #### Apart
 
 @sjdoc Apart "
-Together(product) computes a partial fraction decomposition of product
+Apart(product) computes a partial fraction decomposition of product
 "
 apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
 

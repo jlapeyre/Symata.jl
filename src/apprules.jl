@@ -321,7 +321,7 @@ Julia `dump'.
 
 @sjdoc DumpHold "
 DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In constrast to `Dump', expr is not evaluated before it's internal
+Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
 representation is printed.
 "
 
@@ -355,7 +355,7 @@ ByteCount(expr) gives number of bytes in expr.
 apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
 
 @sjdoc Depth "
-Depth(expr) gives the maximum number of indicies required to specify
+Depth(expr) gives the maximum number of indices required to specify
 any part of expr, plus 1.
 "
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
@@ -365,7 +365,7 @@ apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
 Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be acheived less efficiently with expr[n1][n2]...
+The same can be achieved less efficiently with expr[n1][n2]...
 expr[n] = val sets the nth part of expr to val. n and val are evaluated
 normally. expr is evaluated once.
 expr[n] also returns the nth element of instances of several
