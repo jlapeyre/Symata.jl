@@ -2,8 +2,8 @@
 
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
-is_type(x,t::UnionType) = typeof(x) == t
-is_type_less(x,t::UnionType) = typeof(x) <: t
+is_type(x,t::Union) = typeof(x) == t
+is_type_less(x,t::Union) = typeof(x) <: t
 
 #is_SJSym{T<:SJSym}(s::T) = true
 is_SSJSym(s::SSJSym) = true
@@ -30,7 +30,7 @@ atomq(x) = true
 #function is_indexable(x)
 #end
 
-typealias BlankXXX Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
+typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 is_blankxxx(mx::BlankXXX) = true
 is_blankxxx(x::Mxpr) = false
 

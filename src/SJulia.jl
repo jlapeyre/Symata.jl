@@ -1,5 +1,7 @@
 module SJulia
 
+
+import Base: /, *, +, -, ^, setindex!, getindex
 export @ex, @testex, symval, symname
 
 include("mxpr_util.jl")

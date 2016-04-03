@@ -25,5 +25,5 @@ macro ma(mx,k)
     :((($(esc(mx))).args[$(esc(k))]))
 end
 
-capitalize_first_character(s::String) = uppercase(string(s[1])) * s[2:end]
+capitalize_first_character(s::AbstractString) = uppercase(string(s[1])) * s[2:end]
 

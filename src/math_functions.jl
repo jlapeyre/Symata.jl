@@ -86,8 +86,8 @@ function make_math()
     for x in single_arg_float_complex
         jf,sjf = get_sjstr(x)
         do_common(sjf)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::FloatingPoint) = $jf(x)"
-        aprs3 = "do_$sjf{T<:FloatingPoint}(mx::Mxpr{:$sjf},x::Complex{T}) = $jf(x)"
+        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
+        aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::Complex{T}) = $jf(x)"
         evalmath(parse(aprs2))
         evalmath(parse(aprs3))
     end
@@ -95,7 +95,7 @@ function make_math()
     for x in single_arg_float
         jf,sjf = get_sjstr(x)
         do_common(sjf)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::FloatingPoint) = $jf(x)"
+        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
         evalmath(parse(aprs2))
     end
 
@@ -131,15 +131,15 @@ function make_math()
     for x in two_arg_float
         jf,sjf = get_sjstr(x)
         do_common(sjf)
-        aprs2 = "do_$sjf{T<:FloatingPoint,V<:FloatingPoint}(mx::Mxpr{:$sjf},x::T,y::V) = $jf(x,y)"
+        aprs2 = "do_$sjf{T<:AbstractFloat,V<:AbstractFloat}(mx::Mxpr{:$sjf},x::T,y::V) = $jf(x,y)"
         evalmath(parse(aprs2))
     end    
 
     for x in two_arg_float_and_float_or_complex
         jf,sjf = get_sjstr(x)
         do_common(sjf)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::FloatingPoint,y::FloatingPoint) = $jf(x,y)"
-        aprs3 = "do_$sjf{T<:FloatingPoint}(mx::Mxpr{:$sjf},x::FloatingPoint,y::Complex{T}) = $jf(x,y)"
+        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat,y::AbstractFloat) = $jf(x,y)"
+        aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::AbstractFloat,y::Complex{T}) = $jf(x,y)"
         evalmath(parse(aprs2))
         evalmath(parse(aprs3))
     end                    
@@ -193,8 +193,8 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
-do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
-do_Log{T<:FloatingPoint}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
+do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
+do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
 
 # This is probably quite slow, but might be correct in many cases
 # The same idea could be used for other functions, such as sqrts etc.
@@ -306,7 +306,7 @@ effective number of bits in the mantissa.
 "
 apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
-do_Precision(mx::Mxpr{:Precision},x::FloatingPoint) = precision(x)
+do_Precision(mx::Mxpr{:Precision},x::AbstractFloat) = precision(x)
 
 @sjdoc Re "
 Re(x) returns the real part of z.
@@ -387,16 +387,16 @@ Rationalize(x,tol) returns an approximation differing from x by no more than tol
 "
 
 mkapprule("Rationalize")
-do_Rationalize(mx::Mxpr{:Rationalize},x::FloatingPoint) = rationalize(x)
-do_Rationalize(mx::Mxpr{:Rationalize},x::FloatingPoint,tol::Number) = rationalize(x,tol=float(tol))
+do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat) = rationalize(x)
+do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat,tol::Number) = rationalize(x,tol=float(tol))
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic)
     r = doeval(mxpr(:N,x))  # we need to redesign do_N so that we can call it directly. See above
-    return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r) : x
+    return is_type_less(r,AbstractFloat) ? do_Rationalize(mx,r) : x
 end
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic,tol::Number)
     ndig = round(Int,-log10(tol))      # This is not quite correct.
     r = doeval(mxpr(:N,x,ndig))  # we need to redesign do_N so that we can call it directly. See above.
-    return is_type_less(r,FloatingPoint) ? do_Rationalize(mx,r,tol) : x
+    return is_type_less(r,AbstractFloat) ? do_Rationalize(mx,r,tol) : x
 end
 do_Rationalize(mx::Mxpr{:Rationalize},x) = x
 

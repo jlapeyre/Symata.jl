@@ -24,7 +24,7 @@
 # Single doc string for a symbol. Retrieved by:
 # sjulia>?, SomeHead
 # NOTE THE COMMA. it is just there so that Julia will parse the command.
-const SJDOCS = Dict{Symbol,String}()
+const SJDOCS = Dict{Symbol,AbstractString}()
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 
@@ -51,7 +51,7 @@ function check_doc_query(ex)
     end
 end
 
-print_doc(s::String) = print_doc(symbol(s))
+print_doc(s::AbstractString) = print_doc(symbol(s))
 
 function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
@@ -277,11 +277,11 @@ end
 
 # Push a string onto history in sjulia (symjulia) mode
 # modified from add_history in REPL.jl
-function sj_add_history(s::String)
+function sj_add_history(s::AbstractString)
     sj_add_history(Base.active_repl.interface.modes[2].hist,s)
 end
 
-function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::String)
+function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
 #    str = rstrip(bytestring(s.input_buffer))  # original line
     str = rstrip(bytestring(s))
     isempty(strip(str)) && return

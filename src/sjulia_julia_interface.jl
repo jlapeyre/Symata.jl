@@ -52,7 +52,7 @@ function apprules(mx::Mxpr{:Jxpr})
     do_jxpr(mx,mx[1])
 end
 
-function do_jxpr(mx::Mxpr{:Jxpr}, ex::Union(Expr,Symbol))
+function do_jxpr(mx::Mxpr{:Jxpr}, ex::Union{Expr,Symbol})
     return eval(ex)
 end
 

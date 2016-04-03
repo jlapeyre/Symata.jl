@@ -211,7 +211,7 @@ function expand_binomial(a,b,n::Integer)
 end
 
 # Big increase in efficiency (> 10x) for both these types
-typealias ExpNoCanon Union(SJSym,Number)
+typealias ExpNoCanon Union{SJSym,Number}
 
 # Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
 function _expand_mulpowers(fac,b1,e1,b2,e2)
@@ -405,7 +405,7 @@ ToExpression(str) converts string str to an expression.
 "
 set_attribute(:ToExpression, :Protected)
 apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
-do_ToExpression(mx,s::String) = eval(parse("@ex " * mx[1]))
+do_ToExpression(mx,s::AbstractString) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
 

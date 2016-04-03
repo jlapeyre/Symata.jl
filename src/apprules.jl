@@ -279,7 +279,7 @@ then Symbol(\"a\") returns 1.
 function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
-dosymbol(mx,s::String) = getsym(symbol(s))
+dosymbol(mx,s::AbstractString) = getsym(symbol(s))
 dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
 
 @sjdoc Clear "
@@ -328,7 +328,7 @@ representation is printed.
 @sjseealso_group(Dump,DumpHold)
 
 # DumpHold does not evaluate args before dumping
-apprules(mx::Union(Mxpr{:Dump},Mxpr{:DumpHold})) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
+apprules(mx::Union{Mxpr{:Dump},Mxpr{:DumpHold}}) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
@@ -386,7 +386,7 @@ function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     return texpr
 end
 
-function get_part_one_ind(texpr::Union(Mxpr,Array),ind::Integer)
+function get_part_one_ind(texpr::Union{Mxpr,Array},ind::Integer)
 #    ind::Int = tind
     ind = ind < 0 ? length(texpr)+ind+1 : ind
     texpr = ind == 0 ? mhead(texpr) : texpr[ind]
@@ -641,7 +641,7 @@ function _do_Comparison(a::Number, comp::Symbol, b::Number)
     eval(Expr(:comparison,a,comp,b)) # This will be slow.    
 end
 
-function _do_Comparison{T<:Union(Mxpr,Symbol,String,DataType)}(a::T,comp::SJSym,b::T)
+function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
     if comp == :(==)
         res = a == b
         res && return res
@@ -740,8 +740,8 @@ do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), mmul(exp
 do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), mmul(exp,expt(b)))
 do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-do_Power(mx::Mxpr{:Power},b::SJSym,expt::FloatingPoint) = b == :E ? exp(expt) : mx
-do_Power{T<:FloatingPoint}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+do_Power(mx::Mxpr{:Power},b::SJSym,expt::AbstractFloat) = b == :E ? exp(expt) : mx
+do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
 #
 # Check if the exact answer is an integer.

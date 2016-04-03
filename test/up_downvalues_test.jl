@@ -45,8 +45,8 @@ SJulia.@ex      ClearAll(stringgt4,g,gt5)
 SJulia.@ex      stringgt4(x_) := StringLength(x) > 4
 SJulia.@ex      gt5(x_) := x > 5
 SJulia.@ex      g(x_Integer:?(EvenQ)) := x
-SJulia.@ex      g(x_String:?(stringgt4)) = "Greater than 4"
-SJulia.@ex      g(x_FloatingPoint:?(gt5)) = 1
+SJulia.@ex      g(x_AbstractString:?(stringgt4)) = "Greater than 4"
+SJulia.@ex      g(x_AbstractFloat:?(gt5)) = 1
 SJulia.@testex  Head(g(3)) == g
 SJulia.@testex  g(4) == 4
 SJulia.@testex  Head(g(5)) == g

@@ -28,7 +28,7 @@ end
 # they signify part of a pattern. This follows Mma,
 # and we don't consume and Julia syntax to signify patterns.
 # We don't yet parse three blanks in a row.
-function parseblank(s::String)
+function parseblank(s::AbstractString)
     a = split(s,['_'], keep=true)
     length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
     if length(a) == 2

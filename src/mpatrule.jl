@@ -3,9 +3,9 @@
 
 typealias UExpr  Mxpr  # annotation for expressions in Unions
 # pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union(UExpr,Symbol,SJSym)
+typealias ExSym Union{UExpr,Symbol,SJSym}
 # TODO: need to split this up and separate them by dispatch, or just make this Any
-typealias CondT Union(ExSym,DataType,Function)
+typealias CondT Union{ExSym,DataType,Function}
 
 # Pattern variable. name is the name, ending in underscore cond is a
 # condition that must be satisfied to match But, cond may be :All,
@@ -13,11 +13,11 @@ typealias CondT Union(ExSym,DataType,Function)
 # matches based on its context in an AST.
 type Pvar
     name::Symbol  # name
-#    head::Union(Symbol,DataType)  # head to match
+#    head::Union{Symbol,DataType}  # head to match
     head::Any
     ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
-typealias ExSymPvar Union(ExSym,Pvar)
+typealias ExSymPvar Union{ExSym,Pvar}
 
 # we could allow non-underscored names
 function Pvar(name::Symbol)
@@ -187,7 +187,7 @@ end
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 # Allow different kinds of integers and floats to match
 _cmppat{T<:Integer,V<:Integer}(mx::T,pat::V,captures) = mx == pat
-_cmppat{T<:FloatingPoint,V<:FloatingPoint}(mx::T,pat::V,captures) = mx == pat
+_cmppat{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
 _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 

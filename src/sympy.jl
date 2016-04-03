@@ -102,7 +102,7 @@ end
 mk_py_to_mx_funcs()
 
 const pymx_special_symbol_dict =
-    Dict (
+    Dict(
           SympyPi => :Pi,
 #          SympyPi => :E,
           SympyI => complex(0,1)
@@ -146,7 +146,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
             q = expr[:q]
             return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
         end
-        return convert(FloatingPoint, expr) # Need to check for big floats
+        return convert(AbstractFloat, expr) # Need to check for big floats
     end
     println("sympy2mxpr: Unable to translate ", expr)
     return expr

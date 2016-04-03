@@ -31,7 +31,7 @@ needsparen(x::Rational) = true
 needsparen(x::Complex) = true
 needsparen(x) = false
 
-function de_gensym(str::String)
+function de_gensym(str::AbstractString)
     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
         return split(str,['#'],keep=false)[1]
     else

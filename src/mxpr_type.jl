@@ -180,7 +180,7 @@ end
         return ns
     end
 end
-@inline getssym(ss::String) = getssym(symbol(ss))
+@inline getssym(ss::AbstractString) = getssym(symbol(ss))
 
 @inline function createssym(s::Symbol,T::DataType)
     ns = ssjsym(s,T)
@@ -238,7 +238,7 @@ type Mxpr{T} <: AbstractMxpr
     key::UInt64
     typ::DataType
 end
-typealias Symbolic Union(Mxpr,SJSym)
+typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs() = Array(Any,0)
 @inline newargs(n::Integer) = Array(Any,n)
 @inline newargs(m::Mxpr) = newargs(length(m))
@@ -604,5 +604,5 @@ end
 
 ## Some types of Heads of Mxpr's
 
-typealias Orderless Union(Mxpr{:Plus},Mxpr{:Times})
-typealias Blanks Union(Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence})
+typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
+typealias Blanks Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}

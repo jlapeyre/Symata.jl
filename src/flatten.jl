@@ -3,7 +3,7 @@
 # eg   (a + b + (c + d)) --> (a + b + c + d)
 
 # FlatT because Flat is already a symbol
-typealias FlatT Union(Mxpr{:Plus},Mxpr{:Times})
+typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times}}
 
 # Might be faster to interleave the terms
 # because they may need less ordering then.

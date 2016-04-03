@@ -1,2 +1,2 @@
 #
-sjulia -q -P 'include("src/SJulia.jl"); using SJulia'
+julia -q -P 'include("src/SJulia.jl"); using SJulia'

@@ -22,8 +22,10 @@ end
 
 function do_range(iter::SJIterA1)  # iter is parameterized, so we hope type of n is inferred.
     n = iter.num_iters
+#    println("Typeof n is " * string(typeof(n)))
     args = newargs(n);
     j = one(iter.imax)
+#    println("Typeof j is " * string(typeof(j)))
     @inbounds for i in 1:n
         args[i] = j
         j += 1
@@ -38,7 +40,7 @@ function do_range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
 #        args = newargs(abs(nd))
         args = newargs(iter.num_iters)
         for i in zero(iter.imin):nd-1
-            args[i+1] = mplus(i,iter.imin)
+            args[i+1] = mplus(i,iter.imin)  # Bug here, if iter.imin is not of type Int.
         end
     else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1
         nd = -nd + 2
@@ -185,7 +187,7 @@ function range_args1{T<:Integer}(n::T)
     return args
 end
 
-function range_args1{T<:FloatingPoint}(n::T)
+function range_args1{T<:AbstractFloat}(n::T)
     ni = floor(Int,n)
     args = newargs(ni);
     @inbounds for i in 1:ni
@@ -251,7 +253,7 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     setfixed(mxpr(:List,nargs))
 end
 
-function do_ConstantArray(mx,expr::Union(Number,Symbol),n)
+function do_ConstantArray(mx,expr::Union{Number,Symbol},n)
     nargs = newargs(n)
     for i in 1:n
         nargs[i] = expr
@@ -259,7 +261,7 @@ function do_ConstantArray(mx,expr::Union(Number,Symbol),n)
     setfixed(mxpr(:List,nargs))
 end
 
-function do_ConstantArray(mx,expr::String,n)
+function do_ConstantArray(mx,expr::AbstractString,n)
     nargs = newargs(n)
     for i in 1:n
         nargs[i] = copy(expr)

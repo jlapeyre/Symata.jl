@@ -16,8 +16,8 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 
 @testex MatchQ( 1, _Integer) == true
 @testex MatchQ( 1.0, _Integer) == false
-@testex MatchQ( "zebra", _String) == true
-@testex MatchQ( 1.0, _String) == false
+@testex MatchQ( "zebra", _AbstractString) == true
+@testex MatchQ( 1.0, _AbstractString) == false
 @ex Clear(a,b,gg,xx)
 @ex a = 1
 @testex MatchQ( a^2, x_^2) == false
@@ -51,5 +51,5 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 
 @testex Count(Range(10), 2) == 1
 @testex Count(Range(10), _Integer) == 10
-@testex Count(Range(10), _String) == 0
+@testex Count(Range(10), _AbstractString) == 0
 

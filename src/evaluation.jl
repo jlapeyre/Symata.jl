@@ -210,7 +210,7 @@ function meval(mx::Mxpr)
     if get_meval_count() > 200
         error("Too many meval entries ", get_meval_count())
     end
-    local ind::String = ""  # some places get complaint that its not defined. other places no !?
+    local ind::AbstractString = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ get_meval_count()
         println(ind,"<<", get_meval_count(), " " , mx)
@@ -412,7 +412,7 @@ end
 
 mkapprule(head::Symbol) = mkapprule(string(head))
 
-function mkapprule(head::String)
+function mkapprule(head::AbstractString)
     s1 = ":" * head
     s2 = "do_" * head
     a1 = "apprules(mx::Mxpr{$s1}) = $s2(mx,margs(mx)...)"

@@ -45,7 +45,7 @@ function Cos_pi_coeff(mx::Mxpr{:Cos},c::Rational)
     return mx
 end
 
-Cos_pi_coeff(mx::Mxpr{:Cos},c::FloatingPoint) = cospi(c)
+Cos_pi_coeff(mx::Mxpr{:Cos},c::AbstractFloat) = cospi(c)
 Cos_pi_coeff(mx::Mxpr{:Cos},c) = mx
 
 function cos_one_arg(mx::Mxpr{:Cos},arg::Mxpr{:Times})
@@ -70,7 +70,7 @@ end
 Cos_factor_arg(mx::Mxpr{:Cos},f1,f2) = mx
 @inline cos_one_arg(mx::Mxpr{:Cos},arg::Symbol) = arg == :Pi ? -1 : mx
 @inline cos_one_arg(mx::Mxpr{:Cos},arg::Integer) = arg == 0 ? 0 : mx
-@inline cos_one_arg(mx::Mxpr{:Cos},x::FloatingPoint) = cos(x)
+@inline cos_one_arg(mx::Mxpr{:Cos},x::AbstractFloat) = cos(x)
 @inline cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ArcCos}) = length(x) == 1 ? x[1] : mx
 function cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ArcSin})
     res = mpow((1-mpow(x[1],2)),(1//2))
