@@ -171,6 +171,9 @@ make_math()
 do_Abs2(mx::Mxpr{:Abs2},x::Integer) = x*x
 do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y)
 
+do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
+do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
+
 @sjdoc IntegerDigits "
 IntegerDigits(n,[, base][, pad]) Returns an array of the digits of \"n\" in the given base,
 optionally padded with zeros to a specified size. In contrast to Julia, more significant
@@ -193,6 +196,9 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
+do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
+do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
+
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
 
@@ -205,6 +211,7 @@ end
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b,e) = mx
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx
+do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
 
 @sjdoc N "
 N(expr) tries to give a the numerical value of expr.

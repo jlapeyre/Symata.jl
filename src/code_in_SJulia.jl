@@ -82,3 +82,11 @@ Log(b,x) represents the base \"b\" logarithm of x.
 unprotect(:Zeta)
 @ex Zeta(1) := ComplexInfinity
 protect(:Zeta)
+
+unprotect(:StringQ)
+@ex StringQ = MatchQ(_AbstractString)
+protect(:StringQ)
+
+unprotect(:ListQ)
+@ex ListQ = MatchQ(_List)
+protect(:ListQ)

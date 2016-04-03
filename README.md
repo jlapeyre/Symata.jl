@@ -20,7 +20,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 
 `SJulia` requires the v0.4 branch of Julia, it will not work with v0.3 or v0.5.
 
-You can test  with `include("test/runtests.jl")`. This `Pkg.test("SJulia")` currently does not work well,
+You can test  with `include("test/runtests.jl")`. This: `Pkg.test("SJulia")` currently does not work well,
 
 #### SJulia Repl
 

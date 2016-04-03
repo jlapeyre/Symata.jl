@@ -41,7 +41,7 @@ include("sympy.jl")
 include("sympy_application.jl")
 include("sjulia_repl.jl")
 # This last file loads slowly because it has to jit a lot of code
-#include("code_in_SJulia.jl")
+include("code_in_SJulia.jl")
 
 end # module Mxprs
 

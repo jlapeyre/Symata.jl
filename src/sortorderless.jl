@@ -2,6 +2,9 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
+## TODO:
+## Handle expressions like: 2.0 * Pi
+
 ### !! This file has other canonicalizing code.: for Power
 
 # There are four (more or less) steps:
