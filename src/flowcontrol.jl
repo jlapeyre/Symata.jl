@@ -1,4 +1,4 @@
-# For, While, Do, If, CompoundExpressoin
+# For, While, Do, If, CompoundExpression
 
 # Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
