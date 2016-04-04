@@ -284,8 +284,15 @@ sjulia> f(a+b)
 
 When `f` is encountered as the head of an expression, a list of such rules is
 tried. The first that succeeds makes the transformation and that round of evaluation
-is done. You should also be able to  associate automatic rules with `f` like this
-`g(f(x_)) ^= x^2`. But, this is not done yet.
+is done.
+
+#### Upvalues
+
+```julia
+sjulia> g(f(x_)) ^= x^2
+sjulia > g(f(z))
+ z ^ 2
+```
 
 You can see the evaluation sequence in `infseval` and `meval` in the code.
 
