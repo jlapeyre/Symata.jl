@@ -34,7 +34,7 @@ end
 
 function make_math()
     single_arg_float_complex =   # check, some of these can't take complex args
-#      
+#
         [ (:sin,), (:tan,), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
          (:sinpi,:SinPi), (:cospi,:CosPi), (:sinh,),(:cosh,),
          (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),
@@ -43,7 +43,7 @@ function make_math()
          (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
          (:csch,),(:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
          (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth),
-         (:sinc,),(:cosc,),(:log,),
+         (:sinc,),(:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
          (:erf,),(:erfc,),(:erfi,),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
          (:angle,:Arg),(:cis,),(:gamma,),(:lgamma,:LogGamma),
@@ -53,11 +53,13 @@ function make_math()
          (:eta,),(:zeta,)
          ]
 
+# (:log,),   removed from list above, because it must be treated specially (and others probably too!)
+
     single_arg_float_int_complex =
         [
          (:conj,:Conjugate)
          ]
-    
+
     single_arg_float = [(:cbrt,),(:erfinv,:ErfInv),(:erfcinv,:ErfcInv),(:invdigamma,:InvDigamma)
                         ]
 
@@ -65,7 +67,7 @@ function make_math()
 
     single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
                       (:isprime,:PrimeQ)
-                        ]    
+                        ]
 
     two_arg_int = [(:binomial,),(:ndigits,:NDigits)
                    ]
@@ -82,7 +84,7 @@ function make_math()
     two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
 
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
-    
+
     for x in single_arg_float_complex
         jf,sjf = get_sjstr(x)
         do_common(sjf)
@@ -112,7 +114,7 @@ function make_math()
         do_common(sjf)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Number) = $jf(x)" # may not work for rational
         evalmath(parse(aprs2))
-    end    
+    end
 
     for x in single_arg_int
         jf,sjf = get_sjstr(x)
@@ -133,7 +135,7 @@ function make_math()
         do_common(sjf)
         aprs2 = "do_$sjf{T<:AbstractFloat,V<:AbstractFloat}(mx::Mxpr{:$sjf},x::T,y::V) = $jf(x,y)"
         evalmath(parse(aprs2))
-    end    
+    end
 
     for x in two_arg_float_and_float_or_complex
         jf,sjf = get_sjstr(x)
@@ -142,7 +144,7 @@ function make_math()
         aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::AbstractFloat,y::Complex{T}) = $jf(x,y)"
         evalmath(parse(aprs2))
         evalmath(parse(aprs3))
-    end                    
+    end
 
 end
 
@@ -163,7 +165,7 @@ function do_common(sjf)
     evalmath(parse(aprs))
     evalmath(parse(aprs1))
     set_attribute(symbol(sjf),:Protected)
-    set_attribute(symbol(sjf),:Listable)    
+    set_attribute(symbol(sjf),:Listable)
 end
 
 make_math()
@@ -199,8 +201,11 @@ do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
 do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
 
+do_common("Log")
+do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
+do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
-do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = log(b,z)
+do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = z > 0 ? log(b,z) : log(b,complex(z))
 
 # This is probably quite slow, but might be correct in many cases
 # The same idea could be used for other functions, such as sqrts etc.
@@ -252,14 +257,14 @@ function float_with_precision(x,p)
     if p > 16
         pr = get_bigfloat_precision()
         dig = round(Int,p*3.322)
-        # dig = int(p)        
+        # dig = int(p)
         set_bigfloat_precision(dig)
         res = BigFloat(x)
         set_bigfloat_precision(pr)
         return res
     else
         return float(x)
-    end    
+    end
 end
 
 # These rely on fixed-point evaluation to continue with N, this is not efficient
@@ -292,7 +297,7 @@ function do_N(s::Symbol)
         return float(e)
     elseif s == :EulerGamma
         return float(eulergamma)
-    end    
+    end
     return s
 end
 
@@ -303,7 +308,7 @@ function do_N(s::SJSym,pr::Integer)
         return float_with_precision(e,pr)
     elseif s == :EulerGamma
         return float_with_precision(eulergamma,pr)
-    end    
+    end
     return s
 end
 
@@ -331,7 +336,7 @@ do_Re(mx::Mxpr{:Re}, x::Real) = x
 
 function do_Re(mx::Mxpr{:Re}, m::Mxpr{:Times})
     f = m[1]
-    return is_imaginary_integer(f) ? do_Re_imag_int(m,f) : mx    
+    return is_imaginary_integer(f) ? do_Re_imag_int(m,f) : mx
 end
 
 # dispatch on type of f. Maybe this is worth something.
@@ -342,7 +347,7 @@ function do_Re_imag_int(m,f)
         return mxpr(:Times,-imag(f),mxpr(:Im,nargs))
     else
         return mxpr(:Times,-imag(f),mxpr(:Im,mxpr(:Times,nargs)))
-    end    
+    end
 end
 
 mkapprule("Im")
@@ -361,7 +366,7 @@ function do_Im_imag_int(m,f)
         return mxpr(:Times,imag(f),mxpr(:Re,nargs))
     else
         return mxpr(:Times,imag(f),mxpr(:Re,mxpr(:Times,nargs)))
-    end    
+    end
 end
 
 #### Complex
@@ -374,16 +379,16 @@ expression is parsed, so it is much faster than 'a + I*b'.
 # Complex with two numerical arguments is converted at parse time. But, the
 # arguments may evaluate to numbers only at run time, so this is needed.
 # mkapprule requires that the first parameter do_Complex be annotated with the Mxpr type.
-mkapprule("Complex")  
+mkapprule("Complex")
 do_Complex(mx::Mxpr{:Complex},a::Number,b::Number) = complex(a,b)
 
 @sjdoc Rational "
 Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
 expression is parsed, so it is much faster than 'a/b'.
 "
-    
+
 # Same here. But we need to use mdiv to reduce rationals to ints if possible.
-mkapprule("Rational")  
+mkapprule("Rational")
 do_Rational(mx::Mxpr{:Rational},a::Number,b::Number) = mdiv(a,b)
 
 #### Rationalize
