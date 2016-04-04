@@ -3,7 +3,7 @@
 # There are at least two kinds of "standard" iterators that
 # require different Julia types.
 # We have AbstractSJIter and AbstractSJIterA.
-# "Do" is a prototype uisng the former, and "Range using the latter.
+# "Do" is a prototype using the former, and "Range using the latter.
 
 ## Standard iterator used, for instance, by Do
 
