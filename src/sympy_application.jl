@@ -98,10 +98,24 @@ Simplify(expr) rewrites expr in a simpler form.
 "
 apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> sympy2mxpr
 
-@sjdoc Simplify "
+@sjdoc TrigSimp "
 TrigSimp(expr) does trigonometric simplification.
 "
 apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> sympy2mxpr
+
+@sjdoc RatSimp "
+Put an expression over a common denominator, cancel and reduce.
+"
+apprules(mx::Mxpr{:RatSimp}) = mx[1] |> mxpr2sympy |> sympy.ratsimp |> sympy2mxpr
+
+@sjdoc RadSimp "
+Rationalize the denominator.
+"
+apprules(mx::Mxpr{:RadSimp}) = mx[1] |> mxpr2sympy |> sympy.radsimp |> sympy2mxpr
+
+apprules(mx::Mxpr{:PowSimp}) = mx[1] |> mxpr2sympy |> sympy.powsimp |> sympy2mxpr
+apprules(mx::Mxpr{:LogCombine}) = mx[1] |> mxpr2sympy |> sympy.logcombine |> sympy2mxpr
+apprules(mx::Mxpr{:Separate}) = mx[1] |> mxpr2sympy |> sympy.separate |> sympy2mxpr
 
 #### FullSimplify
 
@@ -155,6 +169,11 @@ function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
     pyvars = vars |> mxpr2sympy
     sympy.solve(peqs,pyvars) |>  sympy2mxpr
 end
+
+# This is broken
+apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
+do_DSolve(mx, expr) = expr |> mxpr2sympy |> sympy.dsolve |> sympy2mxpr
+
 
 #### Roots
 @sjdoc Roots "
