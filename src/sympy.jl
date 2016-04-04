@@ -21,6 +21,8 @@ const SYMPY_TO_SJULIA_FUNCTIONS =
                         :sin => :Sin,
                         :cos => :Cos,
                         :tan => :Tan,
+                        :sec => :Sec,
+                        :csc => :Csc,
                         :sinh => :Sinh,
                         :cosh => :Cosh,
                         :tanh => :Tanh,
@@ -107,7 +109,7 @@ const pymx_special_symbol_dict =
 #          SympyPi => :E,
           SympyI => complex(0,1)
           )
-                                       
+
 sympy2mxpr(x) = x
 
 # Need to detect Exp here and convert it to E^x for Julia
@@ -125,7 +127,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
     for k in keys(pymx_special_symbol_dict)
         if pyisinstance(expr,k)
             return pymx_special_symbol_dict[k]
-        end 
+        end
     end
     if pytypeof(expr) == SympySymbol
         return Symbol(expr[:name])
@@ -190,8 +192,8 @@ const mx_to_py_dict =
          :E => sympy.E,
          :I => SympyI,
          :Pi => sympy.pi,
-#         :Pi => SympyPi,         
-         :Log => sympy.log, 
+#         :Pi => SympyPi,
+         :Log => sympy.log,
          :Infinity => sympy.oo,
          :ComplexInfinity => sympy.zoo
          )
@@ -203,7 +205,7 @@ function mk_py_to_mx_funcs()
         obj = eval(parse("sympy." * pystr))
         @eval begin
             mx_to_py_dict[symbol($sjstr)] = $obj
-        end        
+        end
     end
 end
 
