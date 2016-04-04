@@ -1,5 +1,13 @@
-module SJulia
+# VERSION >= v"0.4.0-dev+6521" && __precompile__()
+# compiling does not really work.
+# 1. must comment out RunSJuliaREPL() at end of sjulia_repl.jl
+#    otherwise compilation fails
+# 2. Very often (eg. 1+1), we find
+#    ERROR: TypeError: subtype: expected Type{T}, got Int64
+#    But, repeat the command 3 or 4 times and it works, with no error.
+# 3. Integrate, which calls SymPy, causes a segfault
 
+module SJulia
 
 import Base: /, *, +, -, ^, setindex!, getindex
 export @ex, @testex, symval, symname

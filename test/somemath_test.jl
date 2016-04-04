@@ -31,6 +31,8 @@ using Base.Test
 @testex Log(2,8) == 3
 @testex Apply(List,Log(2,9)) == [2,9]
 
+@testex Cos(0) == 1
+
 # see top of math_functions.jl
 # Currently, either this works, or pattern matching:
 # Some code relies on :Float64 being unbound in SJulia
