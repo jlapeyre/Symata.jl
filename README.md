@@ -18,7 +18,8 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 *Note*: `SJulia` depends on the Julia
 [`SymPy`](https://github.com/jverzani/SymPy.jl) module.
 
-`SJulia` requires the v0.4 branch of Julia, it will not work with v0.3 or v0.5.
+`SJulia` works best with the  v0.4 branch of Julia. It will not work with v0.3, but
+mostly works with v0.5.
 
 You can test  with `include("test/runtests.jl")`. This: `Pkg.test("SJulia")` currently does not work well,
 
