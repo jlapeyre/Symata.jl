@@ -56,5 +56,3 @@ function RunSJuliaREPL()
     main_mode.keymap_dict = LineEdit.keymap_merge(main_mode.keymap_dict, sjulia_keymap);
     nothing
 end
-
-RunSJuliaREPL()

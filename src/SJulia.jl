@@ -47,10 +47,13 @@ include("math_functions.jl")
 include("strings.jl")
 include("sympy.jl")
 include("sympy_application.jl")
+include("code_in_SJulia.jl")   # This file loads slowly because it has to jit a lot of code
 include("sjulia_repl.jl")
-# This last file loads slowly because it has to jit a lot of code
-include("code_in_SJulia.jl")
 
-end # module Mxprs
+function __init__()
+    if isinteractive() RunSJuliaREPL()  end # this will be needed if we get compilation working
+end
+    
+end # module SJulia
 
 nothing
