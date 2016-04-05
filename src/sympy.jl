@@ -198,7 +198,22 @@ const mx_to_py_dict =
          :ComplexInfinity => sympy.zoo
          )
 
-function mk_py_to_mx_funcs()
+# !!! this overwrites function above. I forgot to change the name
+# function mk_py_to_mx_funcs()
+#     for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
+#         pystr = string(pysym)
+#         sjstr = string(sjsym)
+#         obj = eval(parse("sympy." * pystr))
+#         @eval begin
+#             mx_to_py_dict[symbol($sjstr)] = $obj
+#         end
+#     end
+# end
+
+# mk_py_to_mx_funcs()
+
+# This should be correct! Compare commented out method above
+function mk_mx_to_py_funcs()
     for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
@@ -209,7 +224,8 @@ function mk_py_to_mx_funcs()
     end
 end
 
-mk_py_to_mx_funcs()
+mk_mx_to_py_funcs()
+
 
 function mxpr2sympy(z::Complex)
     if real(z) == 0

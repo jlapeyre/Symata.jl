@@ -200,6 +200,7 @@ do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
 do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
 do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
+do_Zeta(mx::Mxpr{:Zeta}, b::Integer) = b == 0 ? -1//2 : b == -1 ? 1//12 : b == 4 ? 1//90 * :Pi^4 : mx
 
 do_common("Log")
 do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))

@@ -228,7 +228,8 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
 end
 
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
-jslexless(x::SJSym, y::Mxpr) = true
+# compiler notes that the next method overwrites one above (they are identical)
+# jslexless(x::SJSym, y::Mxpr) = true
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
 _jslexless(x::DataType,y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions

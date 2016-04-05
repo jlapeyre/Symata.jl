@@ -116,14 +116,15 @@ function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     val
 end
 
+# compiler notes that this is overwritten below
 # we are assuming this is a "function" definition
-function do_set(mx,lhs::Mxpr, rhs)
-    checkprotect(lhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    push_downvalue(mhead(lhs),rule) # push DownValue
-    rule
-    nothing
-end
+# function do_set(mx,lhs::Mxpr, rhs)
+#     checkprotect(lhs)
+#     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+#     push_downvalue(mhead(lhs),rule) # push DownValue
+#     rule
+#     nothing
+# end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))

@@ -1,5 +1,7 @@
 using Base.Test
 
+# Fails in 0.5.0-dev+3385, probably because the parser has changed
+# ==(2,2) is an expression with Head '=='
 @testex [1,2,3][2] == 2
 
 ## Head of Mxpr is Julia function

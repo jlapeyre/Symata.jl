@@ -43,7 +43,8 @@ jtomsym(x) = extomx(x)
 MTOJSYM[:Span] = :(:)
 
 # Inverse of translations already present in MTOJSYM will be recorded
-mtojsym(s::SJSym) = mtojsym(symname(s))
+# (compiler reports that the second method overwrites the first, which seems to be true.
+#mtojsym(s::SJSym) = mtojsym(symname(s))
 function mtojsym(x::Symbol)
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]
@@ -72,7 +73,8 @@ for op in (:Plus, :Times, :Span)
     OPTYPE[op] = :infix
 end
 
-getoptype(s::SJSym) = getoptype(symname(s))
+# This was overwritten below as well!
+#getoptype(s::SJSym) = getoptype(symname(s))
 
 # Nonsymbolic Heads, Integer, etc. assume they are prefix ops
 getoptype(x) = :prefix

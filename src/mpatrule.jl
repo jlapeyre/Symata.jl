@@ -95,7 +95,8 @@ function cmppat(ex,pat::PatternT)
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures    
 end
-cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
+# compiler notes that this is overwritten a few lines below
+# cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 # pre-allocate the capture Dict. This can be much faster in a loop.
 function cmppat(ex,pat::PatternT, capt)

@@ -81,6 +81,7 @@ cos_one_arg(mx::Mxpr{:Cos},x) = mx
 
 #### Sin
 
+# This is overwritten somewhere
 apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,mx.args[1]) : mx
 
 function sin_one_arg(mx::Mxpr{:Sin},arg::Mxpr{:Times})
