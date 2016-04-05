@@ -1,5 +1,36 @@
 ## First pass at math functions. There are more domain restrictions to be implemented.
 
+# Taken from compat.jl
+# Pull Request https://github.com/JuliaLang/julia/pull/13232
+# Rounding and precision functions:
+if VERSION >= v"0.5.0-dev+1182"
+    import Base:
+        setprecision, setrounding, rounding
+
+else  # if VERSION < v"0.5.0-dev+1182"
+
+    export setprecision
+    export setrounding
+    export rounding
+
+    setprecision(f, ::Type{BigFloat}, prec) = with_bigfloat_precision(f, prec)
+    setprecision(::Type{BigFloat}, prec) = set_bigfloat_precision(prec)
+
+    # assume BigFloat if type not explicit:
+    setprecision(prec) = setprecision(BigFloat, prec)
+    setprecision(f, prec) = setprecision(f, BigFloat, prec)
+
+    Base.precision(::Type{BigFloat}) = get_bigfloat_precision()
+
+    setrounding(f, T, rounding_mode) =
+        with_rounding(f, T, rounding_mode)
+
+    setrounding(T, rounding_mode) = set_rounding(T, rounding_mode)
+
+    rounding(T) = get_rounding(T)
+
+end
+
 # Bind SJulia symbols to Julia types so that, eg.
 # Head(1.0) == Float64  is true
 # But, this breaks the pattern matching code,
@@ -254,14 +285,17 @@ end
 # precision.
 # So N(2*Pi,1000) does not do what we want.
 # It may be expensive to change it on the fly.
+
 function float_with_precision(x,p)
     if p > 16
-        pr = get_bigfloat_precision()
+#        pr = precision(BigFloat)
+        pr = precision(BigFloat)
         dig = round(Int,p*3.322)
-        # dig = int(p)
-        set_bigfloat_precision(dig)
+#        set_bigfloat_precision(dig)  # deprecated
+        setprecision( BigFloat, dig) # new form 
         res = BigFloat(x)
-        set_bigfloat_precision(pr)
+#        set_bigfloat_precision(pr)        
+        setprecision(BigFloat, pr)
         return res
     else
         return float(x)

@@ -77,7 +77,7 @@ function extomx(ex::Expr)
         extomxarr(a,newa)
     elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
         head = :Set
-        extomxarr(a,newa)        
+        extomxarr(a,newa)
     elseif ex.head == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
             if is_type(a[1], Symbol) && is_type(a[2], Expr) &&
@@ -109,7 +109,7 @@ function extomx(ex::Expr)
     elseif ex.head == :string
         head = :StringInterpolation
         extomxarr(a,newa)
-    else        
+    else
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
@@ -131,7 +131,7 @@ is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_unary_minus(ex::Expr) = is_call(ex, :-, 2)
 # number of args != 3 will pass through. But probably can't be used
-is_division(ex::Expr) = is_call(ex, :/,3)  
+is_division(ex::Expr) = is_call(ex, :/,3)
 is_power(ex::Expr) = is_call(ex, :^)
 
 is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
@@ -157,6 +157,11 @@ rewrite_unary_minus(ex::Expr) = Expr(:call, :*, -1 , ex.args[2])
 # a / b -->  a * b^(-1)
 rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
 
+# not need in julia v0.4, but the parser has changed
+# ==(a,b) --> comparison  a,==,b
+# also,  '<:' is the head in v0.5. We don't yet handle this
+rewrite_to_comparison(ex::Expr) = Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
+
 # Not used
 #rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
 #rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
@@ -172,7 +177,9 @@ function rewrite_expr(ex::Expr)
             ex.args[i] = eval(x)
         end
     end
-    if is_unary_minus(ex)    #  - b --> -1 * b
+    if length(ex.args) > 0 && is_comparison_symbol(ex.args[1])  # should probably check that head is 'call'
+        ex = rewrite_to_comparison(ex)
+    elseif is_unary_minus(ex)    #  - b --> -1 * b
         ex = rewrite_unary_minus(ex)
     elseif is_binary_minus(ex)  #  a - b --> a + -b.
         ex = rewrite_binary_minus(ex)
