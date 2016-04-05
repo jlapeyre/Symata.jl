@@ -51,28 +51,33 @@ for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
     SJULIA_TO_SYMPY_FUNCTIONS[v] = k
 end
 
+function mk_py_to_mx_funcs2()
+    @eval begin    
+    # TODO: generate this code, like the functions below
+        const SympySymbol = sympy_core.symbol["Symbol"]
+        const SympyAdd = sympy_core.add["Add"]
+        const SympyMul = sympy_core.mul["Mul"]
+        const SympyPow = sympy_core.power["Pow"]
+        # Following is the strategy that I # TODO: hought of at the very beginning.
+        # It seems bassackwards, but it is more general than searching for each
+        # peculiar way of encoding a head:
+        # 1. a python instance is returned. we have no idea in general how to check
+        # other objects for its type.
+        # 2. construct an object and find it's type and assign to a constant.
+        const SympyD = pytypeof(sympy_core.Derivative(:x))
+        const Sympyintegrate = sympy.integrals["Integral"]
+        const SympyTuple = sympy.containers["Tuple"]
+        
+        const SympyNumber = sympy_core.numbers["Number"]
+        const SympyPi  = sympy_core.numbers["Pi"]
+        #const SympyE  = pytypeof(sympy_core.numbers["E"])
+        const SympyI  = sympy_core.numbers["ImaginaryUnit"]
+        const SymPyInfinity = sympy.oo
+        const SymPyComplexInfinity = sympy.zoo
+    end
+end
 
-# TODO: generate this code, like the functions below
-const SympySymbol = sympy_core.symbol["Symbol"]
-const SympyAdd = sympy_core.add["Add"]
-const SympyMul = sympy_core.mul["Mul"]
-const SympyPow = sympy_core.power["Pow"]
-# Following is the strategy that I thought of at the very beginning.
-# It seems bassackwards, but it is more general than searching for each
-# peculiar way of encoding a head:
-# 1. a python instance is returned. we have no idea in general how to check
-# other objects for its type.
-# 2. construct an object and find it's type and assign to a constant.
-const SympyD = pytypeof(sympy_core.Derivative(:x))
-const Sympyintegrate = sympy.integrals["Integral"]
-const SympyTuple = sympy.containers["Tuple"]
-
-const SympyNumber = sympy_core.numbers["Number"]
-const SympyPi  = sympy_core.numbers["Pi"]
-#const SympyE  = pytypeof(sympy_core.numbers["E"])
-const SympyI  = sympy_core.numbers["ImaginaryUnit"]
-const SymPyInfinity = sympy.oo
-const SymPyComplexInfinity = sympy.zoo
+mk_py_to_mx_funcs2()
 
 #### Convert SymPy to Mxpr
 
@@ -102,6 +107,7 @@ function mk_py_to_mx_funcs()
 end
 
 mk_py_to_mx_funcs()
+
 
 const pymx_special_symbol_dict =
     Dict(
