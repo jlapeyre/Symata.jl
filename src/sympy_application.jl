@@ -50,6 +50,21 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     return sympy2mxpr(pyintegral)
 end
 
+#### Sum
+
+@sjdoc Sum "
+Sum(expr, [x,a,b]) sums over x from a to b
+"
+
+apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
+
+function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
+    pymx = mxpr2sympy(expr)
+    pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
+    pysum = sympy.summation(pymx,pyvarspecs...)
+    return sympy2mxpr(pysum)
+end
+
 #### Series
 
 @sjdoc Series "
@@ -71,7 +86,6 @@ function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
         end
     end    
     pyseries = sympy.series(pymx,pyspec...)    
-    println(pyseries)
     return sympy2mxpr(pyseries)
 end
 

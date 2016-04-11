@@ -30,6 +30,10 @@ SJulia.@testex Integrate(x,[x,0,1],y) == 1//2 * y
 
 SJulia.@ex     r = Integrate(1/Cos(x + a), x)
 SJulia.@testex r == Log(Sec(a + x) + Tan(a + x))
+
+@testex Integrate(E^(-x^2),x) == (1//2) * (π ^ (1//2)) * Erf(x)
+@testex Integrate(E^(x^2),x) == (1//2) * (π ^ (1//2)) * Erfi(x)
+
 # Following works if 1/cos does not go to sec
 # SJulia.@testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
 
@@ -77,3 +81,7 @@ SJulia.@ex ClearAll(r)
 @testex  Roots(q) == [[4 + -2 * (2 ^ (1//2)),1],[4 + 2 * (2 ^ (1//2)),1]]
 
 @ex ClearAll(a,b,x,y,z,p,q,rex,f)
+
+## Series
+
+@testex Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x

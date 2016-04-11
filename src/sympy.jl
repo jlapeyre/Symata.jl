@@ -8,6 +8,9 @@ import SJulia: mxpr  # we need this even with importall
 
 using PyCall
 
+# With code as it is now, we cannot import or using SymPy
+# import SymPy: sympy_meth
+
 # Initial Author: Francesco Bonazzi
 
 ## Convert SymPy to Mxpr
@@ -33,6 +36,8 @@ const SYMPY_TO_SJULIA_FUNCTIONS =
                         :acosh => :ArcCosh,
                         :atanh => :ArcTanh,
                         :exp => :Exp,
+                        :erfi => :Erfi,
+                        :erf => :Erf,
                         :log => :Log,
                         :sqrt => :Sqrt,
                         :hankel1 => :HankelH1,
@@ -118,7 +123,6 @@ const pymx_special_symbol_dict =
 
 sympy2mxpr(x) = x
 
-# Need to detect Exp here and convert it to E^x for Julia
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
 #    println("annot ", typeof(expr), " ",expr )
     if (pytypeof(expr) in keys(py_to_mx_dict))
@@ -156,8 +160,10 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         end
         return convert(AbstractFloat, expr) # Need to check for big floats
     end
-    println("sympy2mxpr: Unable to translate ", expr)
-    return expr
+    head = symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
+    return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
+#    println("sympy2mxpr: Unable to translate ", expr)
+#    return expr
 end
 
 # By default, Dict goes to Dict
@@ -245,6 +251,17 @@ end
 function mxpr2sympy(mx::SJulia.Mxpr{:List})
     return [map(mxpr2sympy, mx.args)...]
 end
+
+# We should rewrite what is written in sympy to generate the following methods.
+# Following does not work because we don't have SymPy.jl
+#mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy_meth(:Order, map(mxpr2sympy, mx.args))
+# this should work
+mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy.Order(map(mxpr2sympy, mx.args)...)
+
+# Following does not work because we don't have SymPy.jl
+# mxpr2sympy(mx::SJulia.Mxpr{:Factorial}) = sympy_meth(:factorial, map(mxpr2sympy, mx.args))
+# This does work. 
+mxpr2sympy(mx::SJulia.Mxpr{:Factorial}) = sympy.factorial(map(mxpr2sympy, mx.args)...)
 
 function mxpr2sympy(mx::SJulia.Mxpr)
     if mx.head in keys(mx_to_py_dict)
