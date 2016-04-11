@@ -67,10 +67,10 @@ function mk_py_to_mx_funcs2()
         const SympyD = pytypeof(sympy_core.Derivative(:x))
         const Sympyintegrate = sympy.integrals["Integral"]
         const SympyTuple = sympy.containers["Tuple"]
-        
         const SympyNumber = sympy_core.numbers["Number"]
         const SympyPi  = sympy_core.numbers["Pi"]
-        #const SympyE  = pytypeof(sympy_core.numbers["E"])
+        # Why did I comment the following out ? It seems to be needed
+        const SympyE  = pytypeof(sympy_core.numbers["E"])
         const SympyI  = sympy_core.numbers["ImaginaryUnit"]
         const SymPyInfinity = sympy.oo
         const SymPyComplexInfinity = sympy.zoo
@@ -112,7 +112,7 @@ mk_py_to_mx_funcs()
 const pymx_special_symbol_dict =
     Dict(
           SympyPi => :Pi,
-#          SympyPi => :E,
+          SympyE => :E,
           SympyI => complex(0,1)
           )
 

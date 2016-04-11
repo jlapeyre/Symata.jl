@@ -50,6 +50,32 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     return sympy2mxpr(pyintegral)
 end
 
+#### Series
+
+@sjdoc Series "
+Series(expr,[x,x0,n]) gives the Taylor series expansion of expr.
+"
+
+apprules(mx::Mxpr{:Series}) = do_Series(mx,margs(mx)...)
+
+function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
+    pymx = mxpr2sympy(expr)
+    pyspec = []
+    for dspec in margs(mx)[2:end]    # Following is more than neccessary. Also, maybe we could use tuples instead of lists
+        if is_Mxpr(dspec,:List)
+            for xdspec in margs(dspec)
+                push!(pyspec,mxpr2sympy(xdspec))
+            end
+        else
+            push!(pyspec,mxpr2sympy(dspec))
+        end
+    end    
+    pyseries = sympy.series(pymx,pyspec...)    
+    println(pyseries)
+    return sympy2mxpr(pyseries)
+end
+
+
 #### D  (derivative)
 
 
