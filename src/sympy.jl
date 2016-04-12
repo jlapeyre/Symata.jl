@@ -94,8 +94,8 @@ make_sympy_to_sjulia()
 
 
 # looks like this is executed at compile time
-function mk_py_to_mx_funcs2()
-    @eval begin     
+#function mk_py_to_mx_funcs2()
+#    @eval begin     
     # TODO: generate this code, like the functions below
 #        const SympySymbol = sympy_core.symbol["Symbol"]
 #        const SympyAdd = sympy_core.add["Add"] # test removing
@@ -116,12 +116,11 @@ function mk_py_to_mx_funcs2()
 #        const SympyE  = pytypeof(sympy_core.numbers["E"])
 #        const SympyE  = sympy.numbers["Exp1"])        
 #        const SympyI  = sympy_core.numbers["ImaginaryUnit"]
-        const SymPyInfinity = sympy.oo
-        const SymPyComplexInfinity = sympy.zoo
-    end
-end
-
-mk_py_to_mx_funcs2()
+#        const SymPyInfinity = sympy.oo
+#        const SymPyComplexInfinity = sympy.zoo
+#    end
+#end
+# mk_py_to_mx_funcs2()
 
 #### Convert SymPy to Mxpr
 
@@ -130,28 +129,26 @@ mk_py_to_mx_funcs2()
 # populate..., then we get test errors. no idea why
 const py_to_mx_dict =
     Dict(
-#         SympyAdd => :Plus,
          sympy.Add => :Plus,         
          sympy.Mul => :Times,
          sympy.Pow => :Power,
          sympy.Derivative => :D,
          sympy.integrals["Integral"] => :Integrate,
          sympy.containers["Tuple"] => :List,
-         SymPyInfinity => :Infinity,
-         SymPyComplexInfinity => :ComplexInfinity
+         sympy.oo => :Infinity,
+         sympy.zoo => :ComplexInfinity
          )
 
 function populate_py_to_mx_dict()
     for onepair in (
-#                    (SympyAdd, :Plus),
                     (sympy.Add, :Plus),                    
                     (sympy.Mul, :Times),
          (sympy.Pow ,:Power),
          (sympy.Derivative, :D),
          (sympy.integrals["Integral"], :Integrate),
          (sympy.containers["Tuple"], :List),
-         (SymPyInfinity, :Infinity),
-                     (SymPyComplexInfinity,:ComplexInfinity))
+         (sympy.oo, :Infinity),
+                     (sympy.zoo,:ComplexInfinity))
         py_to_mx_dict[onepair[1]] = onepair[2]
     end
 end
