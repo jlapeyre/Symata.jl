@@ -74,13 +74,13 @@ function make_sympy_to_sjulia()
      two_arg_float = [ (:beta,)]
 
     symbolic_misc = [ (:Order, :Order), (:harmonic,), (:laplace_transform, :LaplaceTransform) ]
-    
+
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
                      single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float,
                      symbolic_misc)
         for x in funclist
             sympy_func, sjulia_func = SJulia.get_sjstr(x)
-            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func            
+            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
         end
     end
     for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
@@ -92,36 +92,6 @@ make_sympy_to_sjulia()
 
 ####################
 
-
-# looks like this is executed at compile time
-#function mk_py_to_mx_funcs2()
-#    @eval begin     
-    # TODO: generate this code, like the functions below
-#        const SympySymbol = sympy_core.symbol["Symbol"]
-#        const SympyAdd = sympy_core.add["Add"] # test removing
-#        const SympyMul = sympy_core.mul["Mul"]
-#        const SympyPow = sympy_core.power["Pow"]
-        # Following is the strategy that I # TODO: hought of at the very beginning.
-        # It seems bassackwards, but it is more general than searching for each
-        # peculiar way of encoding a head:
-        # 1. a python instance is returned. we have no idea in general how to check
-        # other objects for its type.
-        # 2. construct an object and find it's type and assign to a constant.
-#        const SympyD = pytypeof(sympy_core.Derivative(:x))
-#        const Sympyintegrate = sympy.integrals["Integral"]
-#        const SympyTuple = sympy.containers["Tuple"]
-#        const SympyNumber = sympy_core.numbers["Number"]
-#        const SympyPi  = sympy_core.numbers["Pi"]
-        # Why did I comment the following out ? It seems to be needed
-#        const SympyE  = pytypeof(sympy_core.numbers["E"])
-#        const SympyE  = sympy.numbers["Exp1"])        
-#        const SympyI  = sympy_core.numbers["ImaginaryUnit"]
-#        const SymPyInfinity = sympy.oo
-#        const SymPyComplexInfinity = sympy.zoo
-#    end
-#end
-# mk_py_to_mx_funcs2()
-
 #### Convert SymPy to Mxpr
 
 # I don't like the emacs indenting. try to fix this at some point!
@@ -129,7 +99,7 @@ make_sympy_to_sjulia()
 # populate..., then we get test errors. no idea why
 const py_to_mx_dict =
     Dict(
-         sympy.Add => :Plus,         
+         sympy.Add => :Plus,
          sympy.Mul => :Times,
          sympy.Pow => :Power,
          sympy.Derivative => :D,
@@ -141,7 +111,7 @@ const py_to_mx_dict =
 
 function populate_py_to_mx_dict()
     for onepair in (
-                    (sympy.Add, :Plus),                    
+                    (sympy.Add, :Plus),
                     (sympy.Mul, :Times),
          (sympy.Pow ,:Power),
          (sympy.Derivative, :D),
@@ -160,25 +130,18 @@ function mk_py_to_mx_funcs()
         pystr = string(pysym)
         sjstr = string(sjsym)
         csym = symbol("SymPy" * sjstr)
-        @eval begin
-            if haskey(sympy.functions, $pystr)
-                const $csym = sympy.functions[$pystr]
-                py_to_mx_dict[$csym] =  symbol($sjstr)                
-            end
+        if haskey(sympy.functions, pystr)
+            py_to_mx_dict[sympy.functions[pystr]] =  symbol(sjstr)
         end
     end
 end
 
 mk_py_to_mx_funcs()
 
-# I think these are not useful.
 const pymx_special_symbol_dict = Dict()
-          # SympyPi => :Pi,
-          # SympyE => :E,
-          # SympyI => complex(0,1)
 
 function populate_special_symbol_dict()
-    for onepair in ( 
+    for onepair in (
           (sympy_core.numbers["Pi"], :Pi),
           (sympy.numbers["Exp1"],  :E),
           (sympy_core.numbers["ImaginaryUnit"], complex(0,1)))
@@ -207,7 +170,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         end
     end
 #    if pytypeof(expr) == SympySymbol
-    if pytypeof(expr) == sympy.Symbol        
+    if pytypeof(expr) == sympy.Symbol
         return Symbol(expr[:name])
     end
     if pyisinstance(expr, sympy.Number)
@@ -267,7 +230,7 @@ const mx_to_py_dict =
          )
 
 function populate_mx_to_py_dict()
-    for onepair in ( 
+    for onepair in (
          (:Plus,sympy.Add),
          (:Times, sympy.Mul),
          (:Power, sympy.Pow),
@@ -283,21 +246,6 @@ function populate_mx_to_py_dict()
 end
 
 populate_mx_to_py_dict()
-
-
-# !!! this overwrites function above. I forgot to change the name
-# function mk_py_to_mx_funcs()
-#     for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
-#         pystr = string(pysym)
-#         sjstr = string(sjsym)
-#         obj = eval(parse("sympy." * pystr))
-#         @eval begin
-#             mx_to_py_dict[symbol($sjstr)] = $obj
-#         end
-#     end
-# end
-
-# mk_py_to_mx_funcs()
 
 # This should be correct! Compare commented out method above
 function mk_mx_to_py_funcs()
