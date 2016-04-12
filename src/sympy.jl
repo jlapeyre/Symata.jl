@@ -8,23 +8,22 @@ import SJulia: mxpr  # we need this even with importall
 
 using PyCall
 
-# With code as it is now, we cannot import or using SymPy
-# import SymPy: sympy_meth
-
 # Initial Author: Francesco Bonazzi
 
 ## Convert SymPy to Mxpr
 
 # Trying to import these later, via the function. But, no luck
-#function import_sympy()
-    @pyimport sympy
-    @pyimport sympy.core as sympy_core
-#end
-#import_sympy()
+function import_sympy()
+    eval(parse("@pyimport sympy"))
+    eval(parse("@pyimport sympy.core as sympy_core"))
+end
+import_sympy()
 
 # Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
 const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
+const mx_to_py_dict =  Dict()   # Can we specify types ?
+const pymx_special_symbol_dict = Dict()
 
 # Functions to include
 # SineTransform, should be automatically converted, there is also sine_transform
@@ -95,30 +94,22 @@ make_sympy_to_sjulia()
 #### Convert SymPy to Mxpr
 
 # I don't like the emacs indenting. try to fix this at some point!
-# Must populate this dict here. If use only the function
-# populate..., then we get test errors. no idea why
-const py_to_mx_dict =
-    Dict(
-         sympy.Add => :Plus,
-         sympy.Mul => :Times,
-         sympy.Pow => :Power,
-         sympy.Derivative => :D,
-         sympy.integrals["Integral"] => :Integrate,
-         sympy.containers["Tuple"] => :List,
-         sympy.oo => :Infinity,
-         sympy.zoo => :ComplexInfinity
-         )
+# If this is Dict{Any,Any}, then nothing is translated until the
+# catchall branch at the end of sympyt2mxpr. Why ?
+#const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()
+#const py_to_mx_dict = Dict()
 
 function populate_py_to_mx_dict()
+    eval(parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
     for onepair in (
-                    (sympy.Add, :Plus),
-                    (sympy.Mul, :Times),
+         (sympy.Add, :Plus),
+         (sympy.Mul, :Times),
          (sympy.Pow ,:Power),
          (sympy.Derivative, :D),
          (sympy.integrals["Integral"], :Integrate),
-         (sympy.containers["Tuple"], :List),
+         (sympy.containers[:Tuple], :List),
          (sympy.oo, :Infinity),
-                     (sympy.zoo,:ComplexInfinity))
+         (sympy.zoo,:ComplexInfinity))
         py_to_mx_dict[onepair[1]] = onepair[2]
     end
 end
@@ -129,7 +120,7 @@ function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
-        csym = symbol("SymPy" * sjstr)
+#        csym = symbol("SymPy" * sjstr)
         if haskey(sympy.functions, pystr)
             py_to_mx_dict[sympy.functions[pystr]] =  symbol(sjstr)
         end
@@ -138,7 +129,6 @@ end
 
 mk_py_to_mx_funcs()
 
-const pymx_special_symbol_dict = Dict()
 
 function populate_special_symbol_dict()
     for onepair in (
@@ -154,8 +144,8 @@ populate_special_symbol_dict()
 sympy2mxpr(x) = x
 
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
-#    println("annot ", typeof(expr), " ",expr )
-    if (pytypeof(expr) in keys(py_to_mx_dict))
+#    println("annot ", typeof(expr), " ",expr, " pytypeof ", pytypeof(expr) )
+    if haskey(py_to_mx_dict, pytypeof(expr))
         return SJulia.mxpr(py_to_mx_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
     end
     if expr[:is_Function]       # perhaps a user defined function
@@ -169,7 +159,6 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
             return pymx_special_symbol_dict[k]
         end
     end
-#    if pytypeof(expr) == SympySymbol
     if pytypeof(expr) == sympy.Symbol
         return Symbol(expr[:name])
     end
@@ -210,25 +199,10 @@ function sympy2mxpr{T}(expr::Array{T,1})
     return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
 end
 
-
-
 #### Convert Mxpr to SymPy
 
 # These should be generated... And why do we use instances here and classes above ?
 # (if that is what is happening. )
-const mx_to_py_dict =
-    Dict(
-         # :Plus => sympy.Add,
-         # :Times => sympy.Mul,
-         # :Power => sympy.Pow,
-         # :E => sympy.E,
-         # :I => SympyI,
-         # :Pi => sympy.pi,
-         # :Log => sympy.log,
-         # :Infinity => sympy.oo,
-         # :ComplexInfinity => sympy.zoo
-         )
-
 function populate_mx_to_py_dict()
     for onepair in (
          (:Plus,sympy.Add),
@@ -252,9 +226,6 @@ function mk_mx_to_py_funcs()
         pystr = string(pysym)
         sjstr = string(sjsym)
         obj = eval(parse("sympy." * pystr))
-        # @eval begin
-        #     mx_to_py_dict[symbol($sjstr)] = $obj
-        # end
         mx_to_py_dict[symbol(sjstr)] = obj
     end
 end
