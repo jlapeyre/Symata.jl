@@ -50,6 +50,7 @@ end
 
 
 # TODO: Organize these. They are largely copied from ./math_functions.jl
+# These should be pulled out of the appropriate lists in ./math_functions.jl
 function make_sympy_to_sjulia()
     single_arg_float_complex =
         [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SinIntegral), (:Ci, :CosIntegral),
@@ -62,7 +63,7 @@ function make_sympy_to_sjulia()
          (:arg,:Arg),(:gamma,),(:loggamma,:LogGamma),
          (:digamma,),(:trigamma,),(:polygamma,), (:airyai,:AiryAi),
          (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
-         (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),
+         (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),(:bessely,:BesselY),
          (:zeta,), (:LambertW, :LambertW)
          ]
 
@@ -287,6 +288,10 @@ function mxpr2sympy(mx::SJulia.SSJSym)
         return conv_rev[name]
     end
     return sympy.Symbol(name)
+end
+
+function mxpr2sympy(mx::Rational)
+    return sympy.Rational(num(mx),den(mx))
 end
 
 function mxpr2sympy(mx::Number)

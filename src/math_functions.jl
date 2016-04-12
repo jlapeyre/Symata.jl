@@ -63,6 +63,23 @@ end
 
 ## We also need to use these to convert SJulia expressions to Julia
 
+## This function writes apprules for math functions. Usally dispatches floating point
+## args to Julia functions. Some have a fall through to SymPy
+
+## These tuples have 1,2, or 3 members. Symbols are for Julia, SJulia, and SymPy
+## If only one member is present, the second is constructed by putting an inital capital on the first.
+## If only one or two members are present, we do not fall back to SymPy.
+## The last list has tuples with 2 args for which we do not use any Julia function.
+
+## This is far from complete
+
+# Typical symbols for Julia, SJulia, SymPy
+function mtr(sym::Symbol)
+    s = string(sym)
+    sjf = uppercase(string(s[1])) * s[2:end]
+    (sym, symbol(sjf), sym)
+end
+
 function make_math()
     single_arg_float_complex =   # check, some of these can't take complex args
 #
@@ -76,12 +93,13 @@ function make_math()
          (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth),
          (:sinc,),(:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
-         (:erf,),(:erfc,),(:erfi,),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
+         mtr(:erf), mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
          (:angle,:Arg),(:cis,),(:gamma, :Gamma, :gamma), (:lgamma, :LogGamma),
-         (:lfact,:LogFactorial),(:digamma,),(:trigamma,),(:airyai,:AiryAi),
-         (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
+    (:lfact,:LogFactorial), mtr(:digamma), mtr(:trigamma),
+    (:airyai,:AiryAi,:airyai),
+         (:airybi,:AiryBi,:airybi),(:airyaiprime,:AiryAiPrime,:airyaiprime),(:airybiprime,:AiryBiPrime,:airybiprime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
-         (:eta,),(:zeta,)
+         (:eta,), (:zeta,:Zeta,:zeta)
          ]
 
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
@@ -91,7 +109,7 @@ function make_math()
          (:conj,:Conjugate)
          ]
 
-    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf),(:erfcinv,:InverseErfc),(:invdigamma,:InverseDigamma)
+    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf,:erfinv),(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
                         ]
 
     single_arg_float_int = [(:factorial,),(:sign,),(:signbit,:SignBit)]
@@ -105,19 +123,25 @@ function make_math()
 
     two_arg_float_and_float_or_complex =
      [
-      (:besselj,:BesselJ),(:besseljx,:BesselJx),(:bessely,:BesselY),
-      (:besselyx,:BesselYx),(:hankelh1,:HankelH1),(:hankelh1x,:HankelH1x),
-      (:hankelh2,:HankelH2),(:hankelh2x,:HankelH2x),(:besseli,:BesselI),
-      (:besselix,:BesselIx),(:besselk,:BesselK),(:besselkx,:BesselKx),
+      (:besselj,:BesselJ, :besselj), (:besseljx,:BesselJx), (:bessely,:BesselY,:bessely),
+      (:besselyx,:BesselYx), (:hankelh1,:HankelH1,:hankel1), (:hankelh1x,:HankelH1x),
+      (:hankelh2,:HankelH2,:hankel2), (:hankelh2x,:HankelH2x), (:besseli,:BesselI, :besseli),
+      (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx),
       ]
-
 
     two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
 
-    no_julia_function = [(:LambertW, :LambertW)]
+    ## There are no Julia functions for these (or at least we are not using them).
+    ## First symbol is for  SJulia, Second is SymPy
+    
+    no_julia_function = [(:LambertW, :LambertW), (:Harmonic, :harmonic)] # There is LambertW Julia code, but we do not use it.
     
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
 
+    for x in no_julia_function
+        set_up_sympy_default(x...)
+    end
+    
     for x in single_arg_float_complex
         jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
@@ -242,9 +266,12 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 
-do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
-do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
-do_Zeta(mx::Mxpr{:Zeta}, b::Integer) = b == 0 ? -1//2 : b == -1 ? 1//12 : b == 4 ? 1//90 * :Pi^4 : mx
+# use SymPy instead
+# do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
+# do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
+
+# use SymPy instead
+# do_Zeta(mx::Mxpr{:Zeta}, b::Integer) = b == 0 ? -1//2 : b == -1 ? 1//12 : b == 4 ? 1//90 * :Pi^4 : mx
 
 do_common("Log")
 do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
