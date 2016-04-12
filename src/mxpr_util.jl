@@ -12,7 +12,14 @@ using SJulia
 # For use in ../test/
 macro testex(expr)
     mx = Expr(:macrocall, symbol("@ex"), expr)
-    Expr(:macrocall,symbol("@test"),eval(mx))
+    result = eval(mx)
+    retresult::Bool = true
+    if typeof(result) <: Bool
+        retresult = result
+    else
+        retresult = false
+    end
+    Expr(:macrocall,symbol("@test"),retresult)
 end
 
 ## For compatibility with older code.

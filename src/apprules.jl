@@ -946,14 +946,14 @@ implemented feature.
 @sjseealso_group(HAge,Age,Fixed,Syms,DirtyQ,Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
-hdo_getage(mx,s::Symbol) = int(symage(s))
-hdo_getage(mx,s::Mxpr) = int(getage(s))
+hdo_getage(mx,s::Symbol) = Int(symage(s))
+hdo_getage(mx,s::Mxpr) = Int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 hdo_getage(mx,x) = mx
 
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
-do_getage(mx,s::Symbol) = int(symage(s))
-do_getage(mx,s::Mxpr) = int(getage(s))
+do_getage(mx,s::Symbol) = Int(symage(s))
+do_getage(mx,s::Mxpr) = Int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
 

@@ -40,16 +40,16 @@ include("math_functions.jl")
 include("strings.jl")
 include("sympy.jl")
 include("sympy_application.jl")
-# include("sympy_math.jl")
-include("code_in_SJulia.jl")   # This file loads slowly because it has to jit a lot of code
+#include("code_in_SJulia.jl")   # This file loads slowly because it has to jit a lot of code
 include("sjulia_repl.jl")
 
 function __init__()
-    SJulia.JSymPy.init_sympy()    
-    if isinteractive() RunSJuliaREPL()  end # this will be needed if we get compilation working
+    SJulia.JSymPy.init_sympy()
+     if isinteractive() RunSJuliaREPL()  end # this will be needed if we get compilation working
+#    include("code_in_SJulia.jl")   # This file loads slowly because it has to jit a lot of code    
     # I can't get this rule to stick, except if eval'd after SJulia starts.
     # The same rule for Cos does work.
-    apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ?  sin_one_arg(mx,margs(mx)...) : mx
+#    apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ?  sin_one_arg(mx,margs(mx)...) : mx
 end
     
 end # module SJulia

@@ -20,34 +20,35 @@ using Base.Test
 
 ## Limit
 
-SJulia.@testex Limit(x, x => 0) == 0
-SJulia.@testex Limit(Sin(x)/x, x => Infinity) == 0
-SJulia.@ex     f = :( fff(x) = x^10 )
-SJulia.@testex Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
+@testex Limit(x, x => 0) == 0
+@testex Limit(Sin(x)/x, x => Infinity) == 0
+@ex     f = :( fff(x) = x^10 )
+@testex Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
 # We need to fix this. Inf is a Float64. Convert it to SJulia
-SJulia.@testex Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == :( Inf )
+@testex Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == :( Inf )
 # Mma 3 cannot do the following:
-SJulia.@testex Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infinity) == 0
+@testex Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infinity) == 0
 
 ## Integrate
 
-SJulia.@ex ClearAll(r)
-SJulia.@testex Integrate(x,x) == 1//2 * x^2
-SJulia.@testex Integrate(x,[x,0,1]) == 1//2
-SJulia.@testex Integrate(x,[x,0,1],y) == 1//2 * y
+@ex ClearAll(r)
+@testex Integrate(x,x) == 1//2 * x^2
+@testex Integrate(x,[x,0,1]) == 1//2
+@testex Integrate(x,[x,0,1],y) == 1//2 * y
 
-SJulia.@ex     r = Integrate(1/Cos(x + a), x)
-SJulia.@testex r == Log(Sec(a + x) + Tan(a + x))
+@ex     r = Integrate(1/Cos(x + a), x)
+# @testex r == Log(Sec(a + x) + Tan(a + x))  # if not loading code_in_SJulia.jl
+@testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x)) # are loading code_in_SJulia.jl
 
 @testex Integrate(E^(-x^2),x) == (1//2) * (π ^ (1//2)) * Erf(x)
 @testex Integrate(E^(x^2),x) == (1//2) * (π ^ (1//2)) * Erfi(x)
 
 # Following works if 1/cos does not go to sec
-# SJulia.@testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
+# @testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
 
 # Following works if 1/cos does not go to sec
-#SJulia.@testex Simplify(D(r,x)) == 1/Cos(x+a)
-SJulia.@ex ClearAll(r)
+#@testex Simplify(D(r,x)) == 1/Cos(x+a)
+@ex ClearAll(r)
 
 ## D
 

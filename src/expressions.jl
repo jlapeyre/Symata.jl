@@ -1,5 +1,7 @@
 ## Expand, Apply, Reverse
 
+import Combinatorics: permutations
+
 function _doexpand(x)
     ! is_Mxpr(x) && return x
     n = length(x)
