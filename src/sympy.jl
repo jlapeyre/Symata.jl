@@ -17,12 +17,11 @@ function import_sympy()
     eval(parse("@pyimport sympy"))
     eval(parse("@pyimport sympy.core as sympy_core"))
 end
-import_sympy()
 
 # Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
 const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
-const mx_to_py_dict =  Dict()   # Can we specify types ?
+const mx_to_py_dict =  Dict()   # Can we specify types for these Dicts ?
 const pymx_special_symbol_dict = Dict()
 
 # Functions to include
@@ -87,7 +86,7 @@ function make_sympy_to_sjulia()
     end
 end
 
-make_sympy_to_sjulia()
+### make_sympy_to_sjulia()
 
 ####################
 
@@ -114,7 +113,7 @@ function populate_py_to_mx_dict()
     end
 end
 
-populate_py_to_mx_dict()
+## populate_py_to_mx_dict()
 
 function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
@@ -127,7 +126,7 @@ function mk_py_to_mx_funcs()
     end
 end
 
-mk_py_to_mx_funcs()
+## mk_py_to_mx_funcs()
 
 
 function populate_special_symbol_dict()
@@ -139,7 +138,7 @@ function populate_special_symbol_dict()
     end
 end
 
-populate_special_symbol_dict()
+## populate_special_symbol_dict()
 
 sympy2mxpr(x) = x
 
@@ -218,7 +217,7 @@ function populate_mx_to_py_dict()
     end
 end
 
-populate_mx_to_py_dict()
+## populate_mx_to_py_dict()
 
 # This should be correct! Compare commented out method above
 function mk_mx_to_py_funcs()
@@ -230,7 +229,7 @@ function mk_mx_to_py_funcs()
     end
 end
 
-mk_mx_to_py_funcs()
+## mk_mx_to_py_funcs()
 
 
 function mxpr2sympy(z::Complex)
@@ -282,6 +281,21 @@ function mxpr2sympy(x)
     warn("Can't convert $x from SJulia to SymPy")
     return x
 end
+
+
+function init_sympy()
+    import_sympy()
+    make_sympy_to_sjulia()
+    populate_py_to_mx_dict()
+    mk_py_to_mx_funcs()
+    populate_special_symbol_dict()
+    populate_mx_to_py_dict()
+    mk_mx_to_py_funcs()
+end
+
+# function __init__()
+#     init_sympy()
+# end
 
 
 # TESTS
