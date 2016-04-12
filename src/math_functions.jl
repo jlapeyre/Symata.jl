@@ -244,6 +244,9 @@ do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y
 do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
 do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
 
+do_Gamma(mx::Mxpr{:Gamma},x) = sympy2mxpr(sympy.gamma(mxpr2sympy(x)))
+do_Gamma(mx::Mxpr{:Gamma},x,y) = sympy2mxpr(sympy.uppergamma(mxpr2sympy(x),mxpr2sympy(y)))
+
 @sjdoc IntegerDigits "
 IntegerDigits(n,[, base][, pad]) Returns an array of the digits of \"n\" in the given base,
 optionally padded with zeros to a specified size. In contrast to Julia, more significant

@@ -30,7 +30,8 @@ const pymx_special_symbol_dict = Dict()
 #    head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
 #    return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
 const py_to_mx_symbol_dict = Dict(
-                                  :StrictLessThan => :<
+                                  :StrictLessThan => :<,
+                                  :uppergamma => :Gamma
                                   )
 
 # sympy has erf and erf2. we need to check number of args.
@@ -107,6 +108,7 @@ function make_sympy_to_sjulia()
     for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
         SJULIA_TO_SYMPY_FUNCTIONS[v] = k
     end
+    SYMPY_TO_SJULIA_FUNCTIONS[:uppergamma] = :Gamma  # :Gamma corresponds to two sympy funcs
 end
 
 ####################
@@ -266,6 +268,20 @@ end
 function mxpr2sympy(mx::SJulia.Mxpr{:List})
     return [map(mxpr2sympy, mx.args)...]
 end
+
+# This is never used
+function mxpr2sympy(mx::SJulia.Mxpr{:Gamma})
+    ma = margs(mx)
+    if length(ma) == 1
+        sympy.gamma(mxpr2sympy(ma[1]))
+    elseif length(ma) == 2
+        sympy.uppergamma(map(mxpr2sympy,ma)...)
+    else
+        # This will fail!
+        sympy.gamma(map(mxpr2sympy,ma)...)
+    end
+end
+
 
 function mxpr2sympy(mx::SJulia.Mxpr)
     if mx.head in keys(mx_to_py_dict)
