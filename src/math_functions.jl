@@ -91,7 +91,7 @@ function make_math()
          (:conj,:Conjugate)
          ]
 
-    single_arg_float = [(:cbrt,),(:erfinv,:ErfInv),(:erfcinv,:ErfcInv),(:invdigamma,:InvDigamma)
+    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf),(:erfcinv,:InverseErfc),(:invdigamma,:InverseDigamma)
                         ]
 
     single_arg_float_int = [(:factorial,),(:sign,),(:signbit,:SignBit)]

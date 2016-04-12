@@ -64,8 +64,7 @@ SJulia.@ex ClearAll(r)
 
 ## FullSimplify
 
-# Disabled because FullSimplify is broken at the moment.
-# @testex FullSimplify( -Sqrt(-2*Sqrt(2)+3)+Sqrt(2*Sqrt(2)+3) ) == 2
+@testex FullSimplify( -Sqrt(-2*Sqrt(2)+3)+Sqrt(2*Sqrt(2)+3) ) == 2
 
 ## Solve
 

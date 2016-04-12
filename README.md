@@ -16,7 +16,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
 *Note*: `SJulia` depends on the Julia
-[`SymPy`](https://github.com/jverzani/SymPy.jl) module.
+[`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
 `SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
 

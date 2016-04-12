@@ -19,38 +19,85 @@ using PyCall
 @pyimport sympy.core as sympy_core
 
 # Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
-const SYMPY_TO_SJULIA_FUNCTIONS =
-    Dict{Symbol,Symbol}(
-                        :sin => :Sin,
-                        :cos => :Cos,
-                        :tan => :Tan,
-                        :sec => :Sec,
-                        :csc => :Csc,
-                        :sinh => :Sinh,
-                        :cosh => :Cosh,
-                        :tanh => :Tanh,
-                        :asin => :ArcSin,
-                        :acos => :ArcCos,
-                        :atan => :ArcTan,
-                        :asinh => :ArcSinh,
-                        :acosh => :ArcCosh,
-                        :atanh => :ArcTanh,
-                        :exp => :Exp,
-                        :erfi => :Erfi,
-                        :erf => :Erf,
-                        :log => :Log,
-                        :sqrt => :Sqrt,
-                        :hankel1 => :HankelH1,
-                        :hankel2 => :HankelH2,
-                        :besseli => :BesselI,
-                        :besselj => :BesselJ,
-                        :besselk => :BesselK,
-                        :gamma => :Gamma,
-                        :digamma => :DiGamma,
-                        :polygamma => :PolyGamma
-                        )
+const SYMPY_TO_SJULIA_FUNCTIONS =  Dict{Symbol,Symbol}()
+
+# Functions apparently not in sympy:
+# sind, cosd, etc.
+# asech, etc.
+# cis ??
+
+# Functions to include
+# Si, SineIntegral  # also call this for numeric value... Julia does not implement this
+# harmonic, Harmonic
+# erfinv, InverseErf
+# SineTransform, should be automatically converted, there is also sine_transform
+#
+# sympy has erf and erf2. we need to check number of args.
+# sympy can do some special values of bessel functions, Arg, etc.
+
+function make_sympy_to_sjulia()
+    single_arg_float_complex =
+        [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SineIntegral), (:Ci, :CosIntegral),
+          (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),(:atan,:ArcTan),(:atan2,:ArcTan2),
+         (:sec,),(:csc,),(:cot,), (:exp,), (:sqrt,),(:log,),
+         (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
+         (:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
+         (:acoth,:ArcCoth),
+         (:erf,),(:erfc,),(:erfi,),(:re,:Re),(:im,:Im),
+         (:arg,:Arg),(:gamma,),(:loggamma,:LogGamma),
+         (:digamma,),(:trigamma,),(:polygamma,), (:airyai,:AiryAi),
+         (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
+         (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),
+         (:zeta,), (:LambertW, :LambertW)
+         ]
+
+    single_arg_float_int_complex =
+        [
+         (:conjugate,)
+         ]
+
+    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf),(:erfcinv,:InverseErfc)
+                        ]
+
+    single_arg_float_int = [(:factorial,),(:sign,)]
+
+    single_arg_int = [(:integer_nthroot,:IntegerNthRoot),(:nextprime, :NextPrime), (:prevprime, :PrevPrime),
+                      (:isprime,:PrimeQ)
+                        ]
+
+    two_arg_int = [(:binomial,)
+                   ]
+
+    two_arg_float_and_float_or_complex =
+     [
+      (:besselj,:BesselJ),(:bessely,:BesselY),
+      (:hankel1,:HankelH1),
+      (:hankel2,:HankelH2),(:besseli,:BesselI),
+      (:besselk,:BesselK)
+      ]
+
+     two_arg_float = [ (:beta,)]
+
+    symbolic = [ (:Order, :Order) ]
+    
+    for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
+                     single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float)
+        for x in funclist
+#            println(x)
+            sympy_func, sjulia_func = SJulia.get_sjstr(x)
+            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func            
+        end
+    end
+    
+end
+
+make_sympy_to_sjulia()
+
+####################
 
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
+
+
 
 for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
     SJULIA_TO_SYMPY_FUNCTIONS[v] = k
@@ -105,8 +152,10 @@ function mk_py_to_mx_funcs()
         sjstr = string(sjsym)
         csym = symbol("SymPy" * sjstr)
         @eval begin
-            const $csym = sympy.functions[$pystr]
-            py_to_mx_dict[$csym] =  symbol($sjstr)
+            if haskey(sympy.functions, $pystr)
+                const $csym = sympy.functions[$pystr]
+                py_to_mx_dict[$csym] =  symbol($sjstr)                
+            end
         end
     end
 end
@@ -252,16 +301,8 @@ function mxpr2sympy(mx::SJulia.Mxpr{:List})
     return [map(mxpr2sympy, mx.args)...]
 end
 
-# We should rewrite what is written in sympy to generate the following methods.
-# Following does not work because we don't have SymPy.jl
-#mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy_meth(:Order, map(mxpr2sympy, mx.args))
-# this should work
-mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy.Order(map(mxpr2sympy, mx.args)...)
 
-# Following does not work because we don't have SymPy.jl
-# mxpr2sympy(mx::SJulia.Mxpr{:Factorial}) = sympy_meth(:factorial, map(mxpr2sympy, mx.args))
-# This does work. 
-mxpr2sympy(mx::SJulia.Mxpr{:Factorial}) = sympy.factorial(map(mxpr2sympy, mx.args)...)
+# mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy.Order(map(mxpr2sympy, mx.args)...)
 
 function mxpr2sympy(mx::SJulia.Mxpr)
     if mx.head in keys(mx_to_py_dict)
