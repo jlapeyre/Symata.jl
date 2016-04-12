@@ -98,7 +98,8 @@ function Base.show{T<:Integer}(io::IO, z::Complex{Rational{T}})
     end
 end
 
-Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
+# This is causing stack overflow in some cases.
+# Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
 
 # Not sure this is a good idea, confusing symbols with boolean values
 function Base.show(io::IO, v::Bool)
