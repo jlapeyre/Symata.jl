@@ -133,8 +133,9 @@ function make_math()
 
     ## There are no Julia functions for these (or at least we are not using them).
     ## First symbol is for  SJulia, Second is SymPy
-    
-    no_julia_function = [(:LambertW, :LambertW), (:Harmonic, :harmonic)] # There is LambertW Julia code, but we do not use it.
+
+    # There is LambertW Julia code, but we do not use it.
+    no_julia_function = [(:LambertW, :LambertW), (:Harmonic, :harmonic), (:ExpIntegralE, :expint)]
     
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
 

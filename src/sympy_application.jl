@@ -53,11 +53,29 @@ end
 #### LaplaceTransform
 
 @sjdoc LaplaceTransform "
-Integrate(expr, t, s) gives the Laplace transform of expr.
+LaplaceTransform(expr, t, s) gives the Laplace transform of expr.
 This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>a is the half-plane of convergence, and cond are auxiliary convergence conditions.
 "
 
 apprules(mx::Mxpr{:LaplaceTransform}) = sympy.laplace_transform(mxpr2sympy(margs(mx))...) |> sympy2mxpr
+
+#### InverseLaplaceTransform
+
+@sjdoc InverseLaplaceTransform "
+InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
+"
+
+function apprules(mx::Mxpr{:InverseLaplaceTransform})
+    result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
+    sjresult = sympy2mxpr(result)
+    if mhead(sjresult) == :InverseLaplaceTransform
+        setfixed(sjresult)  
+        if mhead(margs(sjresult)[end]) == :Dummy
+            pop!(margs(sjresult)) # we may also want to strip the Dummy()
+        end
+    end
+    sjresult
+end
 
 #### Sum
 

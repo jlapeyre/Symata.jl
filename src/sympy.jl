@@ -65,7 +65,7 @@ function make_sympy_to_sjulia()
          (:digamma,),(:trigamma,),(:polygamma,), (:airyai,:AiryAi),
          (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
          (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),(:bessely,:BesselY),
-         (:zeta,), (:LambertW, :LambertW)
+         (:zeta,), (:LambertW, :LambertW), ( :expint, :ExpIntegralE)
          ]
 
     single_arg_float_int_complex =
@@ -95,7 +95,9 @@ function make_sympy_to_sjulia()
 
      two_arg_float = [ (:beta,)]
 
-    symbolic_misc = [ (:Order, :Order), (:harmonic,), (:laplace_transform, :LaplaceTransform) ]
+    symbolic_misc = [ (:Order, :Order), (:harmonic,), (:laplace_transform, :LaplaceTransform),
+                      (:inverse_laplace_transform, :LaplaceTransform)
+                      ]
 
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
                      single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float,
@@ -109,6 +111,7 @@ function make_sympy_to_sjulia()
         SJULIA_TO_SYMPY_FUNCTIONS[v] = k
     end
     SYMPY_TO_SJULIA_FUNCTIONS[:uppergamma] = :Gamma  # :Gamma corresponds to two sympy funcs
+    SYMPY_TO_SJULIA_FUNCTIONS[:InverseLaplaceTransform] = :InverseLaplaceTransform
 end
 
 ####################
@@ -269,13 +272,18 @@ function mxpr2sympy(mx::SJulia.Mxpr{:List})
     return [map(mxpr2sympy, mx.args)...]
 end
 
-# This is never used
+# This is never used. (Yes it is!)
 function mxpr2sympy(mx::SJulia.Mxpr{:Gamma})
-    ma = margs(mx)
+    ma = SJulia.margs(mx)
     if length(ma) == 1
         sympy.gamma(mxpr2sympy(ma[1]))
     elseif length(ma) == 2
-        sympy.uppergamma(map(mxpr2sympy,ma)...)
+        pyargs = map(mxpr2sympy,ma)
+#        println(mx)
+#        println(pyargs)        
+        result = sympy.uppergamma(pyargs...)
+#        println(result)
+        result
     else
         # This will fail!
         sympy.gamma(map(mxpr2sympy,ma)...)
