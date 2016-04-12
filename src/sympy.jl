@@ -15,32 +15,27 @@ using PyCall
 
 ## Convert SymPy to Mxpr
 
-@pyimport sympy
-@pyimport sympy.core as sympy_core
+# Trying to import these later, via the function. But, no luck
+#function import_sympy()
+    @pyimport sympy
+    @pyimport sympy.core as sympy_core
+#end
+#import_sympy()
 
 # Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
-const SYMPY_TO_SJULIA_FUNCTIONS =  Dict{Symbol,Symbol}()
-
-# Functions apparently not in sympy:
-# sind, cosd, etc.
-# asech, etc.
-# cis ??
+const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
+const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
 # Functions to include
-# Si, SineIntegral  # also call this for numeric value... Julia does not implement this
-# harmonic, Harmonic
-# erfinv, InverseErf
 # SineTransform, should be automatically converted, there is also sine_transform
-#
 # sympy has erf and erf2. we need to check number of args.
-# sympy can do some special values of bessel functions, Arg, etc.
 
 function make_sympy_to_sjulia()
     single_arg_float_complex =
-        [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SineIntegral), (:Ci, :CosIntegral),
+        [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SinIntegral), (:Ci, :CosIntegral),
           (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),(:atan,:ArcTan),(:atan2,:ArcTan2),
          (:sec,),(:csc,),(:cot,), (:exp,), (:sqrt,),(:log,),
-         (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
+         (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),
          (:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
          (:acoth,:ArcCoth),
          (:erf,),(:erfc,),(:erfi,),(:re,:Re),(:im,:Im),
@@ -78,52 +73,49 @@ function make_sympy_to_sjulia()
 
      two_arg_float = [ (:beta,)]
 
-    symbolic = [ (:Order, :Order) ]
+    symbolic_misc = [ (:Order, :Order), (:harmonic,), (:laplace_transform, :LaplaceTransform) ]
     
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
-                     single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float)
+                     single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float,
+                     symbolic_misc)
         for x in funclist
-#            println(x)
             sympy_func, sjulia_func = SJulia.get_sjstr(x)
             SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func            
         end
     end
-    
+    for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
+        SJULIA_TO_SYMPY_FUNCTIONS[v] = k
+    end
 end
 
 make_sympy_to_sjulia()
 
 ####################
 
-const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
-
-
-for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
-    SJULIA_TO_SYMPY_FUNCTIONS[v] = k
-end
-
+# looks like this is executed at compile time
 function mk_py_to_mx_funcs2()
-    @eval begin    
+    @eval begin     
     # TODO: generate this code, like the functions below
-        const SympySymbol = sympy_core.symbol["Symbol"]
-        const SympyAdd = sympy_core.add["Add"]
-        const SympyMul = sympy_core.mul["Mul"]
-        const SympyPow = sympy_core.power["Pow"]
+#        const SympySymbol = sympy_core.symbol["Symbol"]
+#        const SympyAdd = sympy_core.add["Add"] # test removing
+#        const SympyMul = sympy_core.mul["Mul"]
+#        const SympyPow = sympy_core.power["Pow"]
         # Following is the strategy that I # TODO: hought of at the very beginning.
         # It seems bassackwards, but it is more general than searching for each
         # peculiar way of encoding a head:
         # 1. a python instance is returned. we have no idea in general how to check
         # other objects for its type.
         # 2. construct an object and find it's type and assign to a constant.
-        const SympyD = pytypeof(sympy_core.Derivative(:x))
-        const Sympyintegrate = sympy.integrals["Integral"]
-        const SympyTuple = sympy.containers["Tuple"]
-        const SympyNumber = sympy_core.numbers["Number"]
-        const SympyPi  = sympy_core.numbers["Pi"]
+#        const SympyD = pytypeof(sympy_core.Derivative(:x))
+#        const Sympyintegrate = sympy.integrals["Integral"]
+#        const SympyTuple = sympy.containers["Tuple"]
+#        const SympyNumber = sympy_core.numbers["Number"]
+#        const SympyPi  = sympy_core.numbers["Pi"]
         # Why did I comment the following out ? It seems to be needed
-        const SympyE  = pytypeof(sympy_core.numbers["E"])
-        const SympyI  = sympy_core.numbers["ImaginaryUnit"]
+#        const SympyE  = pytypeof(sympy_core.numbers["E"])
+#        const SympyE  = sympy.numbers["Exp1"])        
+#        const SympyI  = sympy_core.numbers["ImaginaryUnit"]
         const SymPyInfinity = sympy.oo
         const SymPyComplexInfinity = sympy.zoo
     end
@@ -134,17 +126,37 @@ mk_py_to_mx_funcs2()
 #### Convert SymPy to Mxpr
 
 # I don't like the emacs indenting. try to fix this at some point!
+# Must populate this dict here. If use only the function
+# populate..., then we get test errors. no idea why
 const py_to_mx_dict =
     Dict(
-         SympyAdd => :Plus,
-         SympyMul => :Times,
-         SympyPow => :Power,
-         SympyD => :D,
-         Sympyintegrate => :Integrate,
-         SympyTuple => :List,
+#         SympyAdd => :Plus,
+         sympy.Add => :Plus,         
+         sympy.Mul => :Times,
+         sympy.Pow => :Power,
+         sympy.Derivative => :D,
+         sympy.integrals["Integral"] => :Integrate,
+         sympy.containers["Tuple"] => :List,
          SymPyInfinity => :Infinity,
          SymPyComplexInfinity => :ComplexInfinity
          )
+
+function populate_py_to_mx_dict()
+    for onepair in (
+#                    (SympyAdd, :Plus),
+                    (sympy.Add, :Plus),                    
+                    (sympy.Mul, :Times),
+         (sympy.Pow ,:Power),
+         (sympy.Derivative, :D),
+         (sympy.integrals["Integral"], :Integrate),
+         (sympy.containers["Tuple"], :List),
+         (SymPyInfinity, :Infinity),
+                     (SymPyComplexInfinity,:ComplexInfinity))
+        py_to_mx_dict[onepair[1]] = onepair[2]
+    end
+end
+
+populate_py_to_mx_dict()
 
 function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
@@ -162,13 +174,22 @@ end
 
 mk_py_to_mx_funcs()
 
+# I think these are not useful.
+const pymx_special_symbol_dict = Dict()
+          # SympyPi => :Pi,
+          # SympyE => :E,
+          # SympyI => complex(0,1)
 
-const pymx_special_symbol_dict =
-    Dict(
-          SympyPi => :Pi,
-          SympyE => :E,
-          SympyI => complex(0,1)
-          )
+function populate_special_symbol_dict()
+    for onepair in ( 
+          (sympy_core.numbers["Pi"], :Pi),
+          (sympy.numbers["Exp1"],  :E),
+          (sympy_core.numbers["ImaginaryUnit"], complex(0,1)))
+        pymx_special_symbol_dict[onepair[1]] = onepair[2]
+    end
+end
+
+populate_special_symbol_dict()
 
 sympy2mxpr(x) = x
 
@@ -188,10 +209,11 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
             return pymx_special_symbol_dict[k]
         end
     end
-    if pytypeof(expr) == SympySymbol
+#    if pytypeof(expr) == SympySymbol
+    if pytypeof(expr) == sympy.Symbol        
         return Symbol(expr[:name])
     end
-    if pyisinstance(expr, SympyNumber)
+    if pyisinstance(expr, sympy.Number)
         # Big ints are wrapped up in a bunch of stuff
         # There is a function n._to_mpmath(m) (dont know what m means) that returns GMP number useable by Julia
         # We need to check what kind of integer. searching methods. no luck
@@ -229,17 +251,6 @@ function sympy2mxpr{T}(expr::Array{T,1})
 end
 
 
-# TESTS
-
-function test_sympy2mxpr()
-    x, y, z = sympy.symbols("x y z")
-    add1 = sympy.Add(x, y, z, 3)
-    @assert sympy2mxpr(add1) == mxpr(:Plus, 3, :x, :y, :z)
-    mul1 = sympy.Mul(x, y, z, -2)
-    @assert sympy2mxpr(mul1) == mxpr(:Times, -2, :x, :y, :z)
-    add2 = sympy.Add(x, mul1)
-    @assert sympy2mxpr(add2) == mxpr(:Plus, :x, mxpr(:Times, -2, :x, :y, :z))
-end
 
 #### Convert Mxpr to SymPy
 
@@ -247,17 +258,35 @@ end
 # (if that is what is happening. )
 const mx_to_py_dict =
     Dict(
-         :Plus => sympy.Add,
-         :Times => sympy.Mul,
-         :Power => sympy.Pow,
-         :E => sympy.E,
-         :I => SympyI,
-         :Pi => sympy.pi,
-#         :Pi => SympyPi,
-         :Log => sympy.log,
-         :Infinity => sympy.oo,
-         :ComplexInfinity => sympy.zoo
+         # :Plus => sympy.Add,
+         # :Times => sympy.Mul,
+         # :Power => sympy.Pow,
+         # :E => sympy.E,
+         # :I => SympyI,
+         # :Pi => sympy.pi,
+         # :Log => sympy.log,
+         # :Infinity => sympy.oo,
+         # :ComplexInfinity => sympy.zoo
          )
+
+function populate_mx_to_py_dict()
+    for onepair in ( 
+         (:Plus,sympy.Add),
+         (:Times, sympy.Mul),
+         (:Power, sympy.Pow),
+         (:E, sympy.E),
+         (:I,sympy_core.numbers["ImaginaryUnit"]),
+         (:Pi,  sympy.pi),
+#         :Pi => SympyPi,
+         (:Log, sympy.log),
+         (:Infinity, sympy.oo),
+         (:ComplexInfinity, sympy.zoo))
+        mx_to_py_dict[onepair[1]] = onepair[2]
+    end
+end
+
+populate_mx_to_py_dict()
+
 
 # !!! this overwrites function above. I forgot to change the name
 # function mk_py_to_mx_funcs()
@@ -338,7 +367,18 @@ function mxpr2sympy(x)
     return x
 end
 
-# TEST
+
+# TESTS
+
+function test_sympy2mxpr()
+    x, y, z = sympy.symbols("x y z")
+    add1 = sympy.Add(x, y, z, 3)
+    @assert sympy2mxpr(add1) == mxpr(:Plus, 3, :x, :y, :z)
+    mul1 = sympy.Mul(x, y, z, -2)
+    @assert sympy2mxpr(mul1) == mxpr(:Times, -2, :x, :y, :z)
+    add2 = sympy.Add(x, mul1)
+    @assert sympy2mxpr(add2) == mxpr(:Plus, :x, mxpr(:Times, -2, :x, :y, :z))
+end
 
 function test_mxpr2sympy()
     me1 = mxpr(:Plus, :a, :b,  mxpr(:Times, -3, :z, mxpr(:Power, :x, 2)))

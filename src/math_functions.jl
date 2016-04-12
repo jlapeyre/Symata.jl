@@ -173,8 +173,10 @@ function make_math()
         do_common(sjf)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat,y::AbstractFloat) = $jf(x,y)"
         aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::AbstractFloat,y::Complex{T}) = $jf(x,y)"
+        aprs4 = "do_$sjf(mx::Mxpr{:$sjf},x::Int,y::AbstractFloat) = $jf(x,y)"        
         evalmath(parse(aprs2))
         evalmath(parse(aprs3))
+        evalmath(parse(aprs4))        
     end
 
 end
