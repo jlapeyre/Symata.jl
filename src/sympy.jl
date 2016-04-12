@@ -237,7 +237,6 @@ function populate_mx_to_py_dict()
          (:E, sympy.E),
          (:I,sympy_core.numbers["ImaginaryUnit"]),
          (:Pi,  sympy.pi),
-#         :Pi => SympyPi,
          (:Log, sympy.log),
          (:Infinity, sympy.oo),
          (:ComplexInfinity, sympy.zoo))
@@ -253,9 +252,10 @@ function mk_mx_to_py_funcs()
         pystr = string(pysym)
         sjstr = string(sjsym)
         obj = eval(parse("sympy." * pystr))
-        @eval begin
-            mx_to_py_dict[symbol($sjstr)] = $obj
-        end
+        # @eval begin
+        #     mx_to_py_dict[symbol($sjstr)] = $obj
+        # end
+        mx_to_py_dict[symbol(sjstr)] = obj
     end
 end
 
