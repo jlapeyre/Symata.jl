@@ -1,6 +1,6 @@
 using Base.Test
 
-@ex ClearAll(a,b,x,y,z,p,q,res,f)
+@ex ClearAll(a,b,x,y,z,p,q,s,t,res,f)
 
 ## Factor, Expand
 
@@ -9,6 +9,14 @@ using Base.Test
 @ex      p = Expand((x-1)*(x-2)*(x-3)*(x^2 + x + 1))
 @testex  p == -6 + 5 * x + -1 * (x ^ 2) + 6 * (x ^ 3) + -5 * (x ^ 4) + x ^ 5
 @testex  Factor(p) == (-3 + x) * (-2 + x) * (-1 + x) * (1 + x + x ^ 2)
+
+## LaplaceTransform
+
+@testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
+@testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
+@testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
+# This works for Cos
+# TODO:  LaplaceTransform(Exp(b*t),t,s), sympy fails to do this as well. perhaps we need hints or massaging.
 
 ## Limit
 
@@ -51,6 +59,7 @@ SJulia.@ex ClearAll(r)
 @testex  D(Exp(x),x) == Exp(x)
 @testex  D(Exp(Exp(x)),x) == Exp(x) * Exp(Exp(x))
 @testex  D(ArcTan(x),x) == (1 + x ^ 2) ^ -1
+@testex  D(BesselJ(1,x),x) == (1//2) * (BesselJ(0,x)) + (-1//2) * (BesselJ(2,x))
 
 ## Together, Apart
 

@@ -50,6 +50,15 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     return sympy2mxpr(pyintegral)
 end
 
+#### LaplaceTransform
+
+@sjdoc LaplaceTransform "
+Integrate(expr, t, s) gives the Laplace transform of expr.
+This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>a is the half-plane of convergence, and cond are auxiliary convergence conditions.
+"
+
+apprules(mx::Mxpr{:LaplaceTransform}) = sympy.laplace_transform(mxpr2sympy(margs(mx))...) |> sympy2mxpr
+
 #### Sum
 
 @sjdoc Sum "

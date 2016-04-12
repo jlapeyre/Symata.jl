@@ -5,6 +5,10 @@
 
 # They always should have one arg.
 apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,margs(mx)...) : mx
+
+# This does not work. But, If I eval it after starting SJulia, it does work
+apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,margs(mx)...) : mx
+
 Cos_pi_coeff(mx::Mxpr{:Cos},c::Integer) = iseven(c) ? 1 : -1
 
 ## 1/Sqrt(2) and -1/Sqrt(2)
@@ -81,8 +85,10 @@ cos_one_arg(mx::Mxpr{:Cos},x) = mx
 
 #### Sin
 
-# This is overwritten somewhere
-apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,mx.args[1]) : mx
+# This is overwritten somewhere. Does not work
+
+
+sin_one_arg(mx::Mxpr{:Sin}, arg::Integer) = arg == 0 ? 0 : mx
 
 function sin_one_arg(mx::Mxpr{:Sin},arg::Mxpr{:Times})
     if is_Complex(arg[1])
@@ -96,6 +102,7 @@ function sin_one_arg(mx::Mxpr{:Sin},arg::Mxpr{:Times})
 #    todo
     mx
 end
+
 sin_one_arg(mx::Mxpr{:Sin},x) = mx
 
 ####

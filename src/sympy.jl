@@ -10,9 +10,10 @@ using PyCall
 
 # Initial Author: Francesco Bonazzi
 
+# We do not use SymPy.jl, but rather PyCall directly
+
 ## Convert SymPy to Mxpr
 
-# Trying to import these later, via the function. But, no luck
 function import_sympy()
     eval(parse("@pyimport sympy"))
     eval(parse("@pyimport sympy.core as sympy_core"))
@@ -24,10 +25,31 @@ const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 const mx_to_py_dict =  Dict()   # Can we specify types for these Dicts ?
 const pymx_special_symbol_dict = Dict()
 
-# Functions to include
-# SineTransform, should be automatically converted, there is also sine_transform
+# TODO: populate this Dict. Collect the translation into fewer Dicts.
+# Use this Dict to rely more on these lines:
+#    head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
+#    return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
+const py_to_mx_symbol_dict = Dict(
+                                  :StrictLessThan => :<
+                                  )
+
 # sympy has erf and erf2. we need to check number of args.
 
+function get_sympy_math(x)
+    if length(x) == 1
+        jf = x[1]
+        st = string(jf)
+        sjf = uppercase(string(st[1])) * st[2:end]
+    elseif length(x) == 2
+        (jf,sjf) = x
+    else
+        error("get_sympy_math: wrong number of args in $x")
+    end
+    return jf,sjf
+end
+
+
+# TODO: Organize these. They are largely copied from ./math_functions.jl
 function make_sympy_to_sjulia()
     single_arg_float_complex =
         [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SinIntegral), (:Ci, :CosIntegral),
@@ -77,7 +99,7 @@ function make_sympy_to_sjulia()
                      single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float,
                      symbolic_misc)
         for x in funclist
-            sympy_func, sjulia_func = SJulia.get_sjstr(x)
+            sympy_func, sjulia_func = get_sympy_math(x)
             SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
         end
     end
@@ -86,19 +108,15 @@ function make_sympy_to_sjulia()
     end
 end
 
-### make_sympy_to_sjulia()
-
 ####################
 
 #### Convert SymPy to Mxpr
 
 # I don't like the emacs indenting. try to fix this at some point!
-# If this is Dict{Any,Any}, then nothing is translated until the
-# catchall branch at the end of sympyt2mxpr. Why ?
-#const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()
-#const py_to_mx_dict = Dict()
 
 function populate_py_to_mx_dict()
+    # If this is Dict{Any,Any}, then nothing is translated until the
+    # catchall branch at the end of sympyt2mxpr. Why ?    
     eval(parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
     for onepair in (
          (sympy.Add, :Plus),
@@ -106,7 +124,7 @@ function populate_py_to_mx_dict()
          (sympy.Pow ,:Power),
          (sympy.Derivative, :D),
          (sympy.integrals["Integral"], :Integrate),
-         (sympy.containers[:Tuple], :List),
+         (sympy.containers[:Tuple], :List),  # Problem, a List may be huge, Tuple not... but this is a sympy Tuple
          (sympy.oo, :Infinity),
          (sympy.zoo,:ComplexInfinity))
         py_to_mx_dict[onepair[1]] = onepair[2]
@@ -119,14 +137,11 @@ function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
-#        csym = symbol("SymPy" * sjstr)
         if haskey(sympy.functions, pystr)
             py_to_mx_dict[sympy.functions[pystr]] =  symbol(sjstr)
         end
     end
 end
-
-## mk_py_to_mx_funcs()
 
 
 function populate_special_symbol_dict()
@@ -138,18 +153,24 @@ function populate_special_symbol_dict()
     end
 end
 
-## populate_special_symbol_dict()
+# Convert symbol if it is on a list
+function sympy_to_mxpr_symbol(s::Symbol)
+    if haskey(py_to_mx_symbol_dict, s)
+        py_to_mx_symbol_dict[s]
+    else
+        s
+    end
+end
+
+sympy_to_mxpr_symbol(s::AbstractString) = sympy_to_mxpr_symbol(Symbol(s))
 
 sympy2mxpr(x) = x
 
 function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
-#    println("annot ", typeof(expr), " ",expr, " pytypeof ", pytypeof(expr) )
     if haskey(py_to_mx_dict, pytypeof(expr))
         return SJulia.mxpr(py_to_mx_dict[pytypeof(expr)], map(sympy2mxpr, expr[:args])...)
     end
     if expr[:is_Function]       # perhaps a user defined function
-        # objstr = split(string(pytypeof(expr)))
-        # head = symbol(objstr[end])  # The string is "PyObject bb"
         head = symbol(pytypeof(expr)[:__name__])
         return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
     end
@@ -159,7 +180,8 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         end
     end
     if pytypeof(expr) == sympy.Symbol
-        return Symbol(expr[:name])
+#        return Symbol(expr[:name])
+        return sympy_to_mxpr_symbol(expr[:name])
     end
     if pyisinstance(expr, sympy.Number)
         # Big ints are wrapped up in a bunch of stuff
@@ -179,7 +201,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
         end
         return convert(AbstractFloat, expr) # Need to check for big floats
     end
-    head = symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
+    head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
     return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
 #    println("sympy2mxpr: Unable to translate ", expr)
 #    return expr
@@ -195,6 +217,10 @@ function sympy2mxpr(expr::Dict)
 end
 
 function sympy2mxpr{T}(expr::Array{T,1})
+    return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
+end
+
+function sympy2mxpr(expr::Tuple)
     return SJulia.mxpr(:List,map(sympy2mxpr, expr)...)
 end
 
@@ -217,8 +243,6 @@ function populate_mx_to_py_dict()
     end
 end
 
-## populate_mx_to_py_dict()
-
 # This should be correct! Compare commented out method above
 function mk_mx_to_py_funcs()
     for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
@@ -228,9 +252,6 @@ function mk_mx_to_py_funcs()
         mx_to_py_dict[symbol(sjstr)] = obj
     end
 end
-
-## mk_mx_to_py_funcs()
-
 
 function mxpr2sympy(z::Complex)
     if real(z) == 0
@@ -244,9 +265,6 @@ end
 function mxpr2sympy(mx::SJulia.Mxpr{:List})
     return [map(mxpr2sympy, mx.args)...]
 end
-
-
-# mxpr2sympy(mx::SJulia.Mxpr{:Order}) = sympy.Order(map(mxpr2sympy, mx.args)...)
 
 function mxpr2sympy(mx::SJulia.Mxpr)
     if mx.head in keys(mx_to_py_dict)
@@ -275,14 +293,17 @@ function mxpr2sympy(mx::Number)
     return mx
 end
 
+# For our LaplaceTransform code, (etc.)
+mxpr2sympy(a::Array{Any,1}) =  map(mxpr2sympy, a)
+
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function mxpr2sympy(x)
-    warn("Can't convert $x from SJulia to SymPy")
+    warn("mxpr2sympy: Can't convert $x from SJulia to SymPy")
     return x
 end
 
-
+# We call init_sympy() from __init__
 function init_sympy()
     import_sympy()
     make_sympy_to_sjulia()
@@ -293,28 +314,21 @@ function init_sympy()
     mk_mx_to_py_funcs()
 end
 
-# function __init__()
-#     init_sympy()
-# end
-
-
 # TESTS
-
-function test_sympy2mxpr()
-    x, y, z = sympy.symbols("x y z")
-    add1 = sympy.Add(x, y, z, 3)
-    @assert sympy2mxpr(add1) == mxpr(:Plus, 3, :x, :y, :z)
-    mul1 = sympy.Mul(x, y, z, -2)
-    @assert sympy2mxpr(mul1) == mxpr(:Times, -2, :x, :y, :z)
-    add2 = sympy.Add(x, mul1)
-    @assert sympy2mxpr(add2) == mxpr(:Plus, :x, mxpr(:Times, -2, :x, :y, :z))
-end
-
-function test_mxpr2sympy()
-    me1 = mxpr(:Plus, :a, :b,  mxpr(:Times, -3, :z, mxpr(:Power, :x, 2)))
-    me2 = mxpr(:Times, 2, :x, :y)
-    @assert sympy2mxpr(mxpr2sympy(me1)) == me1
-    @assert sympy2mxpr(mxpr2sympy(me2)) == me2
-end
+# function test_sympy2mxpr()
+#     x, y, z = sympy.symbols("x y z")
+#     add1 = sympy.Add(x, y, z, 3)
+#     @assert sympy2mxpr(add1) == mxpr(:Plus, 3, :x, :y, :z)
+#     mul1 = sympy.Mul(x, y, z, -2)
+#     @assert sympy2mxpr(mul1) == mxpr(:Times, -2, :x, :y, :z)
+#     add2 = sympy.Add(x, mul1)
+#     @assert sympy2mxpr(add2) == mxpr(:Plus, :x, mxpr(:Times, -2, :x, :y, :z))
+# end
+# function test_mxpr2sympy()
+#     me1 = mxpr(:Plus, :a, :b,  mxpr(:Times, -3, :z, mxpr(:Power, :x, 2)))
+#     me2 = mxpr(:Times, 2, :x, :y)
+#     @assert sympy2mxpr(mxpr2sympy(me1)) == me1
+#     @assert sympy2mxpr(mxpr2sympy(me2)) == me2
+# end
 
 end  # module SJulia.JSymPy

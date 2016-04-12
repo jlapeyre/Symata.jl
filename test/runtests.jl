@@ -4,6 +4,7 @@ using Base.Test
 import Base.Test: @test
 
 @ex TimeOff()   # don't print hundreds of diagnostic lines
+include("comparison_test.jl")
 include("mxpr_test.jl")
 include("sympy_test.jl")
 include("lists_test.jl")

@@ -77,7 +77,7 @@ function make_math()
          (:sinc,),(:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
          (:erf,),(:erfc,),(:erfi,),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
-         (:angle,:Arg),(:cis,),(:gamma,),(:lgamma,:LogGamma),
+         (:angle,:Arg),(:cis,),(:gamma, :Gamma, :gamma), (:lgamma, :LogGamma),
          (:lfact,:LogFactorial),(:digamma,),(:trigamma,),(:airyai,:AiryAi),
          (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
@@ -114,11 +114,12 @@ function make_math()
 
     two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
 
+    no_julia_function = [(:LambertW, :LambertW)]
+    
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
 
     for x in single_arg_float_complex
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
         aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::Complex{T}) = $jf(x)"
         evalmath(parse(aprs2))
@@ -126,51 +127,44 @@ function make_math()
     end
 
     for x in single_arg_float
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
         evalmath(parse(aprs2))
     end
 
     for x in single_arg_float_int
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Real) = $jf(x)" # may not work for rational
         evalmath(parse(aprs2))
     end
 
     # This is all numbers, I suppose
     for x in single_arg_float_int_complex
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Number) = $jf(x)" # may not work for rational
         evalmath(parse(aprs2))
     end
 
     for x in single_arg_int
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Integer) = $jf(x)"
         evalmath(parse(aprs2))
     end
 
     for x in two_arg_int
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Integer,y::Integer) = $jf(x,y)"
         evalmath(parse(aprs2))
     end
 
     for x in two_arg_float
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf{T<:AbstractFloat,V<:AbstractFloat}(mx::Mxpr{:$sjf},x::T,y::V) = $jf(x,y)"
         evalmath(parse(aprs2))
     end
 
     for x in two_arg_float_and_float_or_complex
-        jf,sjf = get_sjstr(x)
-        do_common(sjf)
+        jf,sjf = get_sjstr(x...)
         aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat,y::AbstractFloat) = $jf(x,y)"
         aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::AbstractFloat,y::Complex{T}) = $jf(x,y)"
         aprs4 = "do_$sjf(mx::Mxpr{:$sjf},x::Int,y::AbstractFloat) = $jf(x,y)"        
@@ -178,20 +172,37 @@ function make_math()
         evalmath(parse(aprs3))
         evalmath(parse(aprs4))        
     end
-
+    
 end
 
-function get_sjstr(x)
-    if length(x) == 1
-        jf = x[1]
-        st = string(jf)
-        sjf = uppercase(string(st[1])) * st[2:end]
-    else
-        (jf,sjf) = x
-    end
-    return jf,sjf
+function get_sjstr(jf,sjf)
+    do_common(sjf)    
+    return jf, sjf
+end
+                
+function get_sjstr(jf)
+    st = string(jf)
+    sjf = uppercase(string(st[1])) * st[2:end]
+    do_common(sjf)
+    return jf, sjf    
 end
 
+# Handle functions that fall back on SymPy
+function get_sjstr(jf, sjf, sympyf)
+    set_up_sympy_default(sjf, sympyf)
+    return jf, sjf
+end
+
+function set_up_sympy_default(sjf, sympyf)
+    aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
+    aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = (sympy.$sympyf(map(mxpr2sympy,x)...) |> sympy2mxpr)"
+    evalmath(parse(aprs))
+    evalmath(parse(aprs1))
+    set_attribute(symbol(sjf),:Protected)
+    set_attribute(symbol(sjf),:Listable)        
+end
+
+# Handle functions that do *not* fall back on SymPy
 function do_common(sjf)
     aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"

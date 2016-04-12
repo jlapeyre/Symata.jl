@@ -394,9 +394,8 @@ function get_part_one_ind(texpr::Union{Mxpr,Array},ind::Integer)
     return texpr
 end
 
-function get_part_one_ind(texpr::Dict,tind)
-    return texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
-end
+get_part_one_ind(texpr::Dict,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
+get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
 
 function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
     spanargs = margs(tind)
@@ -682,6 +681,11 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
     return nothing
 end
 
+_do_Comparison(a::Symbol, comp::Symbol, b::SJReal) = nothing
+_do_Comparison(a::SJReal, comp::Symbol, b::Symbol) = nothing
+_do_Comparison(a::SJReal, comp::Symbol, b::Mxpr) = nothing
+_do_Comparison(a::Mxpr, comp::Symbol, b::SJReal) = nothing
+
 function _do_Comparison(a::Number, comp::SJSym, b::Bool)
 #    println("In any cmp  bool $a $comp $b")    
     comp == :(==) && return false
@@ -714,6 +718,8 @@ function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
     return false  # I guess this is good
 end
 
+## These allow converting values returned by sympy, although we could do it differntly
+apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])
 
 ## A few Number rules
 
