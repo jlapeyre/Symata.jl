@@ -36,6 +36,14 @@ using Base.Test
 
 @testex Cos(0) == 1
 
+@testex Abs(Cos(1.0 + 2.0 * I) - (2.0327230070196656 + -3.0518977991518 * I)) < 10.0^(-5)
+@testex Cos(Pi) == -1
+@testex Cos(Pi/2) == 0
+@testex Cos(3*Pi/2) == 0
+# Cos is handled in SJulia. It follows Mma...
+@testex Cos(z * I) == Cosh(z)
+# Sin is done by sympy, which leave this untouched
+
 # see top of math_functions.jl
 # Currently, either this works, or pattern matching:
 # Some code relies on :Float64 being unbound in SJulia

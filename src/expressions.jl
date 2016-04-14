@@ -406,7 +406,7 @@ ToExpression(str) converts string str to an expression.
 "
 set_attribute(:ToExpression, :Protected)
 apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
-do_ToExpression(mx,s::AbstractString) = eval(parse("@ex " * mx[1]))
+do_ToExpression{T<:AbstractString}(mx,s::T) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
 

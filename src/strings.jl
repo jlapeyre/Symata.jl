@@ -20,4 +20,5 @@ apprules(mx::Mxpr{:ToString}) = string(mx[1])
 @sjdoc StringJoin "
 StringJoin(s1,s2,...) returns the concatendated strings.
 "
+
 apprules(mx::Mxpr{:StringJoin}) = join(margs(mx))

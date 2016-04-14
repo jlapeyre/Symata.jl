@@ -27,11 +27,11 @@ fullform(io::IO,x) = show(io,x)
 fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
-needsparen(x::Rational) = true
-needsparen(x::Complex) = true
+needsparen{T<:Integer}(x::Rational{T}) = true
+needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
 
-function de_gensym(str::AbstractString)
+function de_gensym{T<:AbstractString}(str::T)
     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
         return split(str,['#'],keep=false)[1]
     else

@@ -102,4 +102,4 @@ using Base.Test
 @testex JacobiP(1,2,3,x)  == -1//2 + (7//2) * x
 
 ## Trig 
-@testx Sin(Pi/4) == (1//2) * (2 ^ (1//2))
+@testex Sin(Pi/4) == (1//2) * (2 ^ (1//2))

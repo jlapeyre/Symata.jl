@@ -71,8 +71,7 @@ end
 
 # mpow for Rational is wrong often wrong.
 # so this will be broken, too.
-# How to avoid generic types here ?
-function mabs{T<:Rational}(x::Complex{T})
+function mabs{T<:Integer}(x::Complex{Rational{T}})
     r,i = reim(x)
     sq = mplus(mmul(r,r),mmul(i,i))
     return mpow(sq,1//2)

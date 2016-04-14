@@ -57,6 +57,7 @@ end
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
+# Don't need T<:DataType here
 @inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]  

@@ -3,7 +3,10 @@
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
 is_type(x,t::Union) = typeof(x) == t
-is_type_less(x,t::Union) = typeof(x) <: t
+
+# These should all be fixed
+#is_type_less(x,t::Union) = typeof(x) <: t
+is_type_less{T}(x::T,t::Union) = T <: t
 
 #is_SJSym{T<:SJSym}(s::T) = true
 is_SSJSym(s::SSJSym) = true
@@ -18,7 +21,7 @@ is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
 is_Real{T<:Real}(mx::T) = true
 is_Real(x) = false
-is_Complex(x::Complex) = true
+is_Complex{T<:Real}(x::Complex{T}) = true
 is_Complex(x) = false
 
 is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
@@ -31,7 +34,7 @@ atomq(x) = true
 #end
 
 typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
-is_blankxxx(mx::BlankXXX) = true
+is_blankxxx{T<:BlankXXX}(mx::T) = true
 is_blankxxx(x::Mxpr) = false
 
 ###  SJulia Predicates

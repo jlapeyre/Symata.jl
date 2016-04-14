@@ -68,7 +68,7 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer", "ListQ",
           "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
           "<", "<=","nothing","N","Unfix", "ExpToTrig",
-          "String", "StringLength", "StringQ", "ToString", "Protected", "TimeOn", "TimeOff",
+          "String", "StringLength", "StringQ", "ToString", "StringJoin", "Protected", "TimeOn", "TimeOff",
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff", "Numerator",
           "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
           "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
