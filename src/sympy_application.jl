@@ -77,6 +77,49 @@ function apprules(mx::Mxpr{:InverseLaplaceTransform})
     sjresult
 end
 
+#### InverseLaplaceTransform
+
+@sjdoc InverseLaplaceTransform "
+InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
+"
+
+function apprules(mx::Mxpr{:InverseLaplaceTransform})
+    result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
+    sjresult = sympy2mxpr(result)
+    if mhead(sjresult) == :InverseLaplaceTransform
+        setfixed(sjresult)  
+        if mhead(margs(sjresult)[end]) == :Dummy
+            pop!(margs(sjresult)) # we may also want to strip the Dummy()
+        end
+    end
+    sjresult
+end
+
+#### FourierTransform
+# TODO, pass options (rules)
+
+@sjdoc FourierTransform "
+FourierTransform(expr, x, k) gives the Fourier transform of expr.
+This function returns (F, cond) where F is the Fourier transform of f, and cond are auxiliary convergence conditions.
+"
+
+apprules(mx::Mxpr{:FourierTransform}) = sympy.fourier_transform(mxpr2sympy(margs(mx))...) |> sympy2mxpr
+
+
+#### InverseFourierTransform
+
+function apprules(mx::Mxpr{:InverseFourierTransform})
+    result = sympy.inverse_fourier_transform(map(mxpr2sympy, margs(mx))...)
+    sjresult = sympy2mxpr(result)
+    if mhead(sjresult) == :InverseFourierTransform
+        setfixed(sjresult)  
+        if mhead(margs(sjresult)[end]) == :Dummy
+            pop!(margs(sjresult)) # we may also want to strip the Dummy()
+        end
+    end
+    sjresult
+end
+
 #### Sum
 
 @sjdoc Sum "
@@ -91,6 +134,23 @@ function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
     pysum = sympy.summation(pymx,pyvarspecs...)
     return sympy2mxpr(pysum)
 end
+
+
+#### Product
+
+@sjdoc Product "
+Product(expr, [x,a,b]) computes the product of expr over x from a to b
+"
+
+apprules(mx::Mxpr{:Product}) = do_Product(mx,margs(mx)...)
+
+function do_Product(mx::Mxpr{:Product}, expr, varspecs...)
+    pymx = mxpr2sympy(expr)
+    pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
+    pysum = sympy.product(pymx,pyvarspecs...)
+    return sympy2mxpr(pysum)
+end
+
 
 #### Series
 
@@ -257,6 +317,28 @@ apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> sympy2mxpr  |
 RealRoots(expr) solves for the real roots of expr.
 "
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> sympy2mxpr
+
+
+#### ToSymPy
+
+@sjdoc ToSymPy "
+ToSymPy(expr) converts expr to a (python) PyObject.
+"
+
+apprules(mx::Mxpr{:ToSymPy}) = mxpr2sympy(mx[1])
+
+#### ToSJulia
+
+@sjdoc ToSJulia "
+ToSJulia(expr) converts the python PyObject expr to an SJulia expression.
+"
+
+@mkapprule1 ToSJulia
+
+do_ToSJulia(mx::Mxpr,expr::PyCall.PyObject) = sympy2mxpr(expr)
+do_ToSJulia(mx::Mxpr,expr) = expr
+do_ToSJulia(mx::Mxpr,x...) = mxpr(:List,x)
+
 
 
 ## utility

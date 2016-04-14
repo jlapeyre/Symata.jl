@@ -12,6 +12,9 @@ using Base.Test
 
 @testex N(Cos(E),100) == :( cos(big(e)))
 
+@testex Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
+@testex Head(Arg(Complex(1,1))) == Arg
+
 @ex ClearAll(z)
 
 # Conflict between

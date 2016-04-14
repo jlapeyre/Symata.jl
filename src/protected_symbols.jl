@@ -36,14 +36,21 @@ set_pattributes(["EulerGamma"],[:Protected,:Constant])
 
 set_pattributes("I", [:ReadProtected,:Locked])
 
-set_pattributes(["CompoundExpression","Sum"],[:ReadProtected,:HoldAll])
+set_pattributes(["CompoundExpression","Sum","Product"],[:ReadProtected,:HoldAll])
 
-set_pattributes(["Part","D"],:ReadProtected)
+set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
+                 "FourierTransform","InverseFourierTransform", "Integrate", "DSolve"
+                 ],:ReadProtected)
 
 # We kinda need Exp, see the apprules.
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
-                 "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp"],
+                 "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp",
+                 "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi"
+                 ],
                 [:Listable,:NumericFunction])
+
+set_pattributes(["HeavisideTheta"],
+                [:Listable, :Orderless])
 
 set_pattributes(["Plus", "Times"],
             [:Flat,:Listable,:NumericFunction,:OneIdentity,:Orderless])
@@ -65,7 +72,8 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "TrUpOn","TrUpOff","TrDownOn","TrDownOff", "Numerator",
           "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
           "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
-          "TrigSimp", "Cancel","Collect",
+          "Simplify", "FullSimplify","RatSimp", "Solve", "Roots", "RealRoots",
+          "TrigSimp", "Cancel","Collect", "ToSJulia", "ToSymPy", "Series",
                  "ans" # protect ans to keep it out of user symbols
            ],
                 :Protected)

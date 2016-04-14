@@ -22,7 +22,7 @@ function get_localized_symbol(s::Symbol)
 end
 
 # putting this in mxpr_type is better.
-function ==(ax::Mxpr, bx::Mxpr)
+function =={T<:Mxpr,V<:Mxpr}(ax::T, bx::V)
     mhead(ax) != mhead(bx)  && return false
     a = margs(ax)
     b = margs(bx)
@@ -177,8 +177,8 @@ function infseval(s::SJSym)
 end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 @inline infseval(x) = x
-@inline infseval(x::Complex) = x.im == 0 ? x.re : x
-infseval(x::Rational) = x.den == 1 ? x.num : x
+@inline infseval{T<:Real}(x::Complex{T}) = x.im == zero(x.im) ? x.re : x
+infseval{T<:Integer}(x::Rational{T}) = den(x) == one(den(x)) ? num(x) : x
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
@@ -200,8 +200,8 @@ infseval(x::Rational) = x.den == 1 ? x.num : x
 #################################################################################
 
 # These are normally not called, but rather are caught by infseval.
-@inline meval(x::Complex) = x.im == 0 ? x.re : x  # probably never called because
-meval(x::Rational) = x.den == 1 ? x.num : x
+@inline meval{T<:Real}(x::Complex{T}) = x.im == 0 ? x.re : x  # probably never called because
+meval{T<:Integer}(x::Rational{T}) = x.den == 1 ? x.num : x
 @inline meval(x) = x
 
 @inline meval(s::SJSym) = symval(s) # this is where var subst happens
@@ -410,33 +410,17 @@ function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol
     end
 end
 
-mkapprule(head::Symbol) = mkapprule(string(head))
-
-function mkapprule(head::AbstractString)
-    s1 = ":" * head
-    s2 = "do_" * head
-    a1 = "apprules(mx::Mxpr{$s1}) = $s2(mx,margs(mx)...)"
-    a2 = "$s2(mx::Mxpr{$s1},args...) = mx"
-#    println(a1)
-    #    println(a2)
-    set_pattributes([head],[:Protected])
-    eval(parse(a1))
-    eval(parse(a2))
-end
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
-function do_GenHead(mx,f::Function)
-    f(margs(mx)...)
-end
+do_GenHead(mx,f::Function) = f(margs(mx)...)
 
+# Currying
 # This feature was added to Mma sometime after 3.0: (actually, in 2014)
 # Assume operator version of an SJulia "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is
-# the second
-function do_GenHead(mx,head::Mxpr)
-    mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
-end
+# the second.
+do_GenHead(mx,head::Mxpr) = mxpr(mhead(head),margs(head)...,copy(margs(mx))...)

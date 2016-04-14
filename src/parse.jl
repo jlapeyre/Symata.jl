@@ -5,7 +5,25 @@
 
 # At the command line h"topic" prints help
 macro h_str(s)
-    print_doc(s)
+    reg = eval(Expr(:macrocall, symbol("@r_str"), strip(s), "i"))
+    print_matching_topics(reg)
+end
+
+macro bf_str(s)
+    parse(BigFloat,s)
+end
+
+macro bi_str(s)
+    parse(BigInt,s)
+end
+
+macro BI_str(s)
+    parse(BigInt,s)
+end
+
+
+macro BF_str(s)
+    parse(BigFloat,s)
 end
 
 extomx(x) = x

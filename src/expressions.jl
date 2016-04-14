@@ -7,7 +7,7 @@ function _doexpand(x)
     n = length(x)
     args = margs(x)
     nargs = newargs(n)
-    for i in 1:n
+    @inbounds for i in 1:n
         nargs[i] = doexpand(args[i])
     end
     return doexpand(mxpr(mhead(x),nargs))
@@ -18,12 +18,12 @@ doexpand(p::Mxpr{:Power}) = do_expand_power(p,base(p),expt(p))
 function doexpand(prod::Mxpr{:Times})
     a = margs(prod)
     len = length(a)
-    for i in 1:len
+    @inbounds for i in 1:len
         a[i] = doexpand(a[i])
     end
     have_sum = false
     j = 0
-    for i in 1:len # check if we have anything to do
+    @inbounds for i in 1:len # check if we have anything to do
         j += 1
         if is_Mxpr(a[i],:Plus)
             have_sum = true
@@ -32,12 +32,12 @@ function doexpand(prod::Mxpr{:Times})
     end
     ! have_sum && return prod
     nonsums = newargs()
-    for i in 1:j-1  # none of these are sums
+    @inbounds for i in 1:j-1  # none of these are sums
         push!(nonsums,a[i])
     end
     sums = newargs()
     push!(sums,a[j]) # already know its a sum
-    for i in j+1:len   # push more sums, if there are any
+    @inbounds for i in j+1:len   # push more sums, if there are any
         if is_Mxpr(a[i],:Plus)
             push!(sums,a[i])
         else
@@ -69,7 +69,7 @@ do_expand_binomial(a,b,n) = p
 
 function doexpand(s::Mxpr{:Plus})
     args = margs(s)
-    for i in 1:length(args)
+    @inbounds for i in 1:length(args)
         args[i] = doexpand(args[i])
     end
     return s
@@ -89,7 +89,7 @@ function mulfacs(a::Mxpr{:Plus},b::Mxpr{:Plus})
             mergesyms(t,ax)
             mergesyms(t,bx)
             setfixed(t)
-            terms[i] = t
+           @inbounds  terms[i] = t
         end
     end
     mx = flatcanon!(mxpr(:Plus,terms))
@@ -112,7 +112,6 @@ function _pushfacs!(facs,mx::Mxpr{:Times})
     append!(facs,margs(mx))
 end
 
-# Make this more efficient. numbers, symbols, etc.
 function _pushfacs!(facs,b)
     push!(facs,b)    
 end
@@ -176,7 +175,7 @@ end
 # Assume a < b in canonical order
 # This is the only place we are testing meta data in Mxpr giving which
 # symbols it depends on.
-function expand_binomial(a,b,n::Integer)
+function expand_binomial{T<:Integer}(a,b,n::T)
     args = newargs(n+1)
     args[1] = canonpower(a,n)
     mergesyms(args[1],a)
@@ -226,7 +225,7 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
 end
 
-function _expand_mulpowers(fac,b1::ExpNoCanon,e1,b2::ExpNoCanon,e2)
+function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
     m1 = b1^e1
     m2 = b2^e2
     setfixed(m1)
@@ -236,7 +235,7 @@ function _expand_mulpowers(fac,b1::ExpNoCanon,e1,b2::ExpNoCanon,e2)
     return mxpr(:Times, fac, m1, m2)
 end
 
-function _expand_mulpowers(fac,b1::ExpNoCanon,e1,b2,e2)
+function _expand_mulpowers{T<:ExpNoCanon}(fac,b1::T,e1,b2,e2)
     m1 = b1^e1
 #    m2 = b2^e2    
     m2 = canonpower(b2,e2)
@@ -247,7 +246,7 @@ function _expand_mulpowers(fac,b1::ExpNoCanon,e1,b2,e2)
     return flatcanon!(mxpr(:Times, fac, m1, m2))    
 end
 
-function _expand_mulpowers(fac,b1,e1,b2::ExpNoCanon,e2)
+function _expand_mulpowers{T<:ExpNoCanon}(fac,b1,e1,b2::T,e2)
     m1 = canonpower(b1,e1)
 #    m1 = b1^e1    
     m2 = b2^e2    
@@ -355,7 +354,7 @@ function apprules(mx::Mxpr{:Permutations})
     h = mhead(mx[1])
     len = length(perms)
     nargs = newargs(len)
-    for i in 1:len
+    @inbounds for i in 1:len
         nargs[i] = setfixed(mxpr(:List,perms[i]))
     end
     setfixed(mxpr(:List,nargs))
@@ -374,12 +373,12 @@ f can be an SJulia object or a Julia function. Map can be used in
 an operator form. For example Map(f)(expr).
 "
 
-mkapprule("Map")
+@mkapprule Map
 
 function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
-    for i in 1:length(args)
+    @inbounds for i in 1:length(args)
         nargs[i] = f(args[i]) # Probably need more evaluation
     end
     mxpr(mhead(expr),nargs)
@@ -392,7 +391,7 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
     mx = mxpr(f,0) # reserve one argument
-    for i in 1:length(args)
+    @inbounds for i in 1:length(args)
         mx.args[1] = args[i]  # map f of one argument
         nargs[i] = doeval(mx)
 #        nargs[i] = doeval(mxpr(f,args[i]))
@@ -439,7 +438,7 @@ function do_Count(mx,expr,pat)
     c = 0
     jp = just_pattern(pat)
     capt = capturealloc()
-    for i in 1:length(args)
+    @inbounds for i in 1:length(args)
         (gotmatch,capt) = cmppat(args[i],jp,capt)
         gotmatch ? c += 1 : nothing
     end
@@ -480,7 +479,7 @@ function do_Cases(mx,expr,pat)
     nargs = newargs()
     jp = just_pattern(pat)
     capt = capturealloc()
-    for i in 1:length(args)
+    @inbounds for i in 1:length(args)
         (gotmatch,capt) = cmppat(args[i],jp,capt)
         gotmatch ? push!(nargs,copy(args[i])) : nothing
     end
@@ -520,3 +519,17 @@ do_Push(mx,args...) = mx
 do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
 do_Push1(mx,x,val) = mx
 do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); val)
+
+
+@sjdoc Pop! "
+Pop!(expr) pops a value from the arguments of expr. This mutates expr.
+Re-evaluation, and updating metadata is not implemented.
+Re-evaluation can be forced with Unfix(a).
+"
+
+set_pattributes(["Pop!"],[:HoldFirst])
+apprules(mx::Mxpr{:Pop!}) = do_Pop(mx,margs(mx)...)
+do_Pop(mx,args...) = mx
+do_Pop(mx,x::SJSym,val) = do_Pop1(mx,symval(x),val)
+do_Pop1(mx,x,val) = mx
+do_Pop1(mx,x::Mxpr,val) = pop!(x.args)

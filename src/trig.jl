@@ -1,11 +1,12 @@
 ## Test implementing some math logic
 
-# Symols like Cos should probably be treated not with apprules, but
-# rules, for instance.
+# The other trig functions are handled by sympy.
 
-# They always should have one arg.
-apprules(mx::Mxpr{:Cos}) = length(mx) == 1 ? cos_one_arg(mx,margs(mx)...) : mx
+@mkapprule Cos :nargs => 1
+do_Cos(mx::Mxpr{:Cos},x) = cos_one_arg(mx,x)
 
+
+# This is overwritten now anyway
 # This does not work. But, If I eval it after starting SJulia, it does work
 apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,margs(mx)...) : mx
 

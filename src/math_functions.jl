@@ -76,52 +76,57 @@ end
 # Typical symbols for Julia, SJulia, SymPy
 function mtr(sym::Symbol)
     s = string(sym)
-    sjf = uppercase(string(s[1])) * s[2:end]
+    sjf = capitalize_first_character(s)
     (sym, symbol(sjf), sym)
 end
 
-function make_math()
-    single_arg_float_complex =   # check, some of these can't take complex args
-#
-        [ (:sin,), (:tan,), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
-         (:sinpi,:SinPi), (:cospi,:CosPi), (:sinh,),(:cosh,),
-         (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),
-         (:atan,:ArcTan),(:atan2,:ArcTan2),(:acosd,:ArcCosD), (:asind,:ArcSinD),
-         (:atand,:ArcTanD),(:sec,),(:csc,),(:cot,),(:secd,:SecD),(:csc,:CscD),(:cot,:CotD),
+# TODO: FIX: sympy zeta may take two args
+# two arg both float or complex : zeta(s,z)  (with domain restrictions)
+
+   const single_arg_float_complex =   # check, some of these can't take complex args
+    [ mtr(:sin), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
+         (:sinpi,:SinPi), (:cospi,:CosPi), mtr(:sinh), mtr(:cosh),
+         mtr(:tanh), (:acos,:ArcCos,:acos), (:asin,:ArcSin,:asin),
+         (:atan,:ArcTan,:atan),(:atan2,:ArcTan2,:atan2),(:acosd,:ArcCosD), (:asind,:ArcSinD),
+         (:atand,:ArcTanD), mtr(:sec), mtr(:csc), mtr(:cot),(:secd,:SecD),(:csc,:CscD),(:cot,:CotD),
          (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
-         (:csch,),(:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
-         (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth),
+         (:csch,), mtr(:coth,),(:asinh,:ASinh,:asinh), (:acosh,:ACosh, :acosh),(:atanh,:ATanh, :atanh),
+         (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth, :acoth),
          (:sinc,),(:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
-         mtr(:erf), mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re),(:imag,:Im),
-         (:angle,:Arg),(:cis,),(:gamma, :Gamma, :gamma), (:lgamma, :LogGamma),
+         mtr(:erf), mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re, :re),(:imag,:Im, :im),
+         (:angle,:Arg,:arg), (:cis,),(:gamma, :Gamma, :gamma), (:lgamma, :LogGamma, :loggamma),
     (:lfact,:LogFactorial), mtr(:digamma), mtr(:trigamma),
     (:airyai,:AiryAi,:airyai),
          (:airybi,:AiryBi,:airybi),(:airyaiprime,:AiryAiPrime,:airyaiprime),(:airybiprime,:AiryBiPrime,:airybiprime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
-         (:eta,), (:zeta,:Zeta,:zeta)
+         (:eta,:DirichletEta,:dirichlet_eta), (:zeta,:Zeta,:zeta)
          ]
 
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
-    single_arg_float_int_complex =
+    const single_arg_float_int_complex =
         [
          (:conj,:Conjugate)
          ]
 
-    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf,:erfinv),(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
+    const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),(:erfinv,:InverseErf,:erfinv),
+                        (:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
                         ]
 
-    single_arg_float_int = [(:factorial,),(:sign,),(:signbit,:SignBit)]
+    const single_arg_float_int = [(:factorial,:Factorial, :factorial),(:sign,),(:signbit,:SignBit)]
 
-    single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
+    const single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
                       (:isprime,:PrimeQ)
                         ]
 
-    two_arg_int = [(:binomial,),(:ndigits,:NDigits)
-                   ]
+    const two_arg_int = [(:binomial,:Binomial,:binomial), (:ndigits,:NDigits)
+                         ]
 
-    two_arg_float_and_float_or_complex =
+# Complicated!
+    const one_or_two_args1 = [(:polygamma, :PolyGamma, :polygamma)]
+
+    const two_arg_float_and_float_or_complex =
      [
       (:besselj,:BesselJ, :besselj), (:besseljx,:BesselJx), (:bessely,:BesselY,:bessely),
       (:besselyx,:BesselYx), (:hankelh1,:HankelH1,:hankel1), (:hankelh1x,:HankelH1x),
@@ -129,87 +134,213 @@ function make_math()
       (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx),
       ]
 
-    two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
+    const  two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
 
     ## There are no Julia functions for these (or at least we are not using them).
     ## First symbol is for  SJulia, Second is SymPy
 
-    # There is LambertW Julia code, but we do not use it.
-    no_julia_function = [(:LambertW, :LambertW), (:Harmonic, :harmonic), (:ExpIntegralE, :expint)]
-    
-# two arg both float or complex : zeta(s,z)  (with domain restrictions)
+# There is LambertW Julia code, but we do not use it.
+# TODO: Migrate functions out this non-specific list
+    const no_julia_function = [  (:ExpIntegralE, :expint),
+                           (:GegenbauerC, :gegenbauer), (:HermiteH, :hermite),
+                           (:BellB, :bell), (:BernoulliB, :bernoulli), (:CatalanNumber, :catalan),
+                           (:EulerE, :euler), (:Subfactorial, :subfactorial), (:Factorial2, :factorial2),
+                           (:FactorialPower, :FallingFactorial), (:Pochhammer, :RisingFactorial),
+    (:Fibonacci, :fibonacci), (:LucasL, :lucas)
+                         ]
 
+const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,:Heaviside) ]
+
+# elliptic_e take more than ints!
+const no_julia_function_one_or_two_int = [ (:HarmonicNumber, :harmonic) , (:EllipticE, :elliptic_e) ]
+
+const no_julia_function_two_args = [(:LegendreP, :legendre_poly), (:EllipticF, :elliptic_f),
+                                    (:ChebyshevT, :chebyshevt), (:ChebyshevU, :chebyshevu)
+                                    ]
+
+const no_julia_function_two_or_three_args = [ (:EllipticPi, :elliptic_pi), (:LaguerreL, :laguerre_poly)]
+
+const no_julia_function_three_args = [ (:JacobiP, :jacobi) ]
+
+function make_math()
+
+# Note: in Mma and Julia, catalan and Catalan are Catalan's constant. In sympy catalan is the catalan number
+# can't find :stirling in sympy
+
+
+    for x in [(:LambertW, :LambertW)]  # second arg restricted
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf)))
+        write_sympy_apprule(x[1],x[2],1)
+        write_sympy_apprule(x[1],x[2],2)
+    end
+
+    for x in no_julia_function_one_arg
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf)))
+        write_sympy_apprule(x[1],x[2],1)
+    end
+
+    
+    for x in no_julia_function_two_args
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 2)))
+        write_sympy_apprule(x[1],x[2],2)
+    end
+
+    for x in no_julia_function_three_args
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 3)))
+        write_sympy_apprule(x[1],x[2],3)
+    end
+
+    
+    for x in no_julia_function_two_or_three_args
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf)))
+        write_sympy_apprule(x[1],x[2],2)
+        write_sympy_apprule(x[1],x[2],3)
+    end
+
+
+    for x in no_julia_function_one_or_two_int
+        sjf = x[1]
+        eval(macroexpand( :( @mkapprule $sjf)))
+        write_sympy_apprule(x[1],x[2],1)
+        write_sympy_apprule(x[1],x[2],2)
+    end
+    
+    
     for x in no_julia_function
         set_up_sympy_default(x...)
     end
-    
+
+    # Ok, this works. We need to clean it up
     for x in single_arg_float_complex
-        jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
-        aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::Complex{T}) = $jf(x)"
-        evalmath(parse(aprs2))
-        evalmath(parse(aprs3))
+        jf,sjf = only_get_sjstr(x...)
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        write_julia_numeric_rule(jf,sjf,"AbstractFloat")
+        write_julia_numeric_rule(jf,sjf,"CAbstractFloat")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],1)
+        end
+        set_attribute(symbol(sjf),:Listable)
     end
 
     for x in single_arg_float
-        jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat) = $jf(x)"
-        evalmath(parse(aprs2))
+        jf,sjf = only_get_sjstr(x...)
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        write_julia_numeric_rule(jf,sjf,"AbstractFloat")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],1)
+        end
+        set_attribute(symbol(sjf),:Listable)
     end
 
     for x in single_arg_float_int
         jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Real) = $jf(x)" # may not work for rational
-        evalmath(parse(aprs2))
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        write_julia_numeric_rule(jf,sjf,"Real")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],1)
+        end
     end
 
     # This is all numbers, I suppose
     for x in single_arg_float_int_complex
         jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Number) = $jf(x)" # may not work for rational
-        evalmath(parse(aprs2))
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        write_julia_numeric_rule(jf,sjf,"Real")
+        write_julia_numeric_rule(jf,sjf,"CReal")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],1)
+        end
     end
 
     for x in single_arg_int
         jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Integer) = $jf(x)"
-        evalmath(parse(aprs2))
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 :argtypes => [Integer] )))
+        write_julia_numeric_rule(jf,sjf,"Integer")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],1)
+        end
     end
 
     for x in two_arg_int
         jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::Integer,y::Integer) = $jf(x,y)"
-        evalmath(parse(aprs2))
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        write_julia_numeric_rule(jf,sjf,"Integer", "Integer")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],2)
+        end
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],2)
+        end
+    end
+
+    # Mma allows one arg, as well
+    for x in one_or_two_args1
+        jf,sjf = get_sjstr(x...)
+        eval(macroexpand(:( @mkapprule $sjf )))
+        write_julia_numeric_rule(jf,sjf,"Integer", "AbstractFloat")
+        write_julia_numeric_rule(jf,sjf,"Integer", "CAbstractFloat")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],2)
+        end
     end
 
     for x in two_arg_float
         jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf{T<:AbstractFloat,V<:AbstractFloat}(mx::Mxpr{:$sjf},x::T,y::V) = $jf(x,y)"
-        evalmath(parse(aprs2))
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        write_julia_numeric_rule(jf,sjf,"AbstractFloat", "AbstractFloat")
     end
 
     for x in two_arg_float_and_float_or_complex
-        jf,sjf = get_sjstr(x...)
-        aprs2 = "do_$sjf(mx::Mxpr{:$sjf},x::AbstractFloat,y::AbstractFloat) = $jf(x,y)"
-        aprs3 = "do_$sjf{T<:AbstractFloat}(mx::Mxpr{:$sjf},x::AbstractFloat,y::Complex{T}) = $jf(x,y)"
-        aprs4 = "do_$sjf(mx::Mxpr{:$sjf},x::Int,y::AbstractFloat) = $jf(x,y)"        
-        evalmath(parse(aprs2))
-        evalmath(parse(aprs3))
-        evalmath(parse(aprs4))        
+        jf,sjf = only_get_sjstr(x...)
+        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        write_julia_numeric_rule(jf,sjf,"AbstractFloat", "AbstractFloat")
+        write_julia_numeric_rule(jf,sjf,"AbstractFloat", "CAbstractFloat")
+        write_julia_numeric_rule(jf,sjf,"Integer", "AbstractFloat")
+        write_julia_numeric_rule(jf,sjf,"Integer", "CAbstractFloat")
+        if length(x) == 3
+            write_sympy_apprule(sjf,x[3],2)
+        end
     end
-    
+end
+
+Typei(i::Int)  =  "T" *string(i)
+complex_type(t::AbstractString) = "Complex{" * t * "}"
+function write_julia_numeric_rule(jf, sjf, types...)
+    annot = join(AbstractString[ "T" * string(i) * "<:" *
+                                 (types[i][1] == 'C' ? types[i][2:end] : types[i])  for i in 1:length(types)], ", ")
+    protargs = join(AbstractString[ "x" * string(i) * "::" *
+                                (types[i][1] == 'C' ? complex_type(Typei(i)) : Typei(i))
+                                    for i in 1:length(types)], ", ")
+    callargs = join(AbstractString[ "x" * string(i) for i in 1:length(types)], ", ")
+    appstr = "do_$sjf{$annot}(mx::Mxpr{:$sjf},$protargs) = $jf($callargs)"
+    eval(parse(appstr))
+end
+
+function only_get_sjstr(jf,sjf,args...)
+    return jf, sjf
+end
+
+function only_get_sjstr(jf)
+    st = string(jf)
+    sjf = capitalize_first_character(st)
+    return jf, sjf
 end
 
 function get_sjstr(jf,sjf)
-    do_common(sjf)    
+    do_common(sjf)
     return jf, sjf
 end
-                
+
 function get_sjstr(jf)
     st = string(jf)
-    sjf = uppercase(string(st[1])) * st[2:end]
+    sjf = capitalize_first_character(st)
     do_common(sjf)
-    return jf, sjf    
+    return jf, sjf
 end
 
 # Handle functions that fall back on SymPy
@@ -218,13 +349,41 @@ function get_sjstr(jf, sjf, sympyf)
     return jf, sjf
 end
 
+# Faster if we don't do interpolation
+function write_sympy_apprule(sjf, sympyf, nargs::Int)
+    callargs = Array(AbstractString,0)
+    sympyargs = Array(AbstractString,0)
+    for i in 1:nargs
+        xi = "x" * string(i)
+        push!(callargs, xi)
+        push!(sympyargs, "mxpr2sympy(" * xi * ")")
+        end
+    cstr = join(callargs, ", ")
+    sstr = join(sympyargs, ", ")
+    aprpy = "function do_$sjf(mx::Mxpr{:$sjf},$cstr)
+        try
+            (sympy.$sympyf($sstr) |> sympy2mxpr)
+        catch
+            mx
+        end
+    end"
+    evalmath(parse(aprpy))
+end
+
+
 function set_up_sympy_default(sjf, sympyf)
     aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
-    aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = (sympy.$sympyf(map(mxpr2sympy,x)...) |> sympy2mxpr)"
+    aprs1 = "function do_$sjf(mx::Mxpr{:$sjf},x...)
+               try
+                 (sympy.$sympyf(map(mxpr2sympy,x)...) |> sympy2mxpr)
+               catch
+                   mx
+               end
+           end"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))
     set_attribute(symbol(sjf),:Protected)
-    set_attribute(symbol(sjf),:Listable)        
+    set_attribute(symbol(sjf),:Listable)
 end
 
 # Handle functions that do *not* fall back on SymPy
@@ -242,8 +401,9 @@ make_math()
 do_Abs2(mx::Mxpr{:Abs2},x::Integer) = x*x
 do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y)
 
-do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
-do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
+# use sympy
+#do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
+#do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
 
 do_Gamma(mx::Mxpr{:Gamma},x) = sympy2mxpr(sympy.gamma(mxpr2sympy(x)))
 do_Gamma(mx::Mxpr{:Gamma},x,y) = sympy2mxpr(sympy.uppergamma(mxpr2sympy(x),mxpr2sympy(y)))
@@ -277,6 +437,7 @@ do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
 # use SymPy instead
 # do_Zeta(mx::Mxpr{:Zeta}, b::Integer) = b == 0 ? -1//2 : b == -1 ? 1//12 : b == 4 ? 1//90 * :Pi^4 : mx
 
+# TODO, use to symp
 do_common("Log")
 do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
@@ -299,21 +460,17 @@ N(expr) tries to give a the numerical value of expr.
 N(expr,p) tries to give p decimal digits of precision.
 "
 
+# N needs to be rewritten
 function apprules(mx::Mxpr{:N})
     do_N(margs(mx)...)
 end
 
 do_N(x,dig) = x
 do_N(x) = x
-do_N(n::Integer) = float(n)
-do_N(n::Rational) = float(n)
-
-function do_N(n::Integer,p::Integer)
-    float_with_precision(n,p)
-end
-function do_N(n::Rational,p::Integer)
-    float_with_precision(n,p)
-end
+do_N{T<:AbstractFloat}(n::T) = n
+do_N{T<:Real}(n::T) = float(n)
+do_N{T<:Real}(n::Complex{T}) = complex(float(real(n)), float(imag(n)))
+do_N{T<:Real,V<:Integer}(n::T,p::V)  = float_with_precision(n,p)
 
 # p is number of decimal digits of precision
 # Julia doc says set_bigfloat_precision uses
@@ -336,9 +493,9 @@ function float_with_precision(x,p)
         pr = precision(BigFloat)
         dig = round(Int,p*3.322)
 #        set_bigfloat_precision(dig)  # deprecated
-        setprecision( BigFloat, dig) # new form 
+        setprecision( BigFloat, dig) # new form
         res = BigFloat(x)
-#        set_bigfloat_precision(pr)        
+#        set_bigfloat_precision(pr)
         setprecision(BigFloat, pr)
         return res
     else
@@ -352,17 +509,17 @@ function do_N(m::Mxpr)
     len = length(m)
     args = margs(m)
     nargs = newargs(len)
-    for i in 1:len
+    @inbounds for i in 1:len
         nargs[i] = do_N(args[i])
     end
     return mxpr(mhead(m),nargs)
 end
 
-function do_N(m::Mxpr,p::Integer)
+function do_N{T<:Integer}(m::Mxpr,p::T)
     len = length(m)
     args = margs(m)
     nargs = newargs(len)
-    for i in 1:len
+    @inbounds for i in 1:len
         nargs[i] = do_N(args[i],p)
     end
     return mxpr(mhead(m),nargs)
@@ -380,7 +537,7 @@ function do_N(s::Symbol)
     return s
 end
 
-function do_N(s::SJSym,pr::Integer)
+function do_N{T<:Integer}(s::SJSym,pr::T)
     if s == :Pi || s == :π
         return float_with_precision(pi,pr)
     elseif s == :E
@@ -409,7 +566,9 @@ Im(x) returns the imaginary part of z.
 
 # Mma allows complex numbers of mixed Real type. Julia does not.
 # Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
-mkapprule("Re")
+
+@mkapprule1 Re
+
 do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
 do_Re(mx::Mxpr{:Re}, x::Real) = x
 
@@ -429,7 +588,7 @@ function do_Re_imag_int(m,f)
     end
 end
 
-mkapprule("Im")
+@mkapprule1 Im
 do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
 do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
 
@@ -458,7 +617,8 @@ expression is parsed, so it is much faster than 'a + I*b'.
 # Complex with two numerical arguments is converted at parse time. But, the
 # arguments may evaluate to numbers only at run time, so this is needed.
 # mkapprule requires that the first parameter do_Complex be annotated with the Mxpr type.
-mkapprule("Complex")
+
+@mkapprule Complex
 do_Complex(mx::Mxpr{:Complex},a::Number,b::Number) = complex(a,b)
 
 @sjdoc Rational "
@@ -467,7 +627,7 @@ expression is parsed, so it is much faster than 'a/b'.
 "
 
 # Same here. But we need to use mdiv to reduce rationals to ints if possible.
-mkapprule("Rational")
+@mkapprule Rational
 do_Rational(mx::Mxpr{:Rational},a::Number,b::Number) = mdiv(a,b)
 
 #### Rationalize
@@ -477,7 +637,7 @@ Rationalize(x) returns a Rational approximation of x.
 Rationalize(x,tol) returns an approximation differing from x by no more than tol.
 "
 
-mkapprule("Rationalize")
+@mkapprule Rationalize
 do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat) = rationalize(x)
 do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat,tol::Number) = rationalize(x,tol=float(tol))
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic)

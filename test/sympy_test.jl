@@ -15,6 +15,8 @@ using Base.Test
 @testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
 @testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
 @testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
+@testex InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
+
 # This works for Cos
 # TODO:  LaplaceTransform(Exp(b*t),t,s), sympy fails to do this as well. perhaps we need hints or massaging.
 

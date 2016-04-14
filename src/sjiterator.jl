@@ -128,7 +128,7 @@ type SJIterA3{T,V,W} <: AbstractSJIterA
 end
 
 #itererrora(a::Array) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator.")
-itererrora(a::Array,s::AbstractString) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
+itererrora{T<:Array}(a::T,s::AbstractString) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
 #itererrora(mx::Mxpr) = error(mx, " does not have the form of a (single variable) iterator.")
 itererrora(mx::Mxpr,s::AbstractString) = error(mx, " does not have the form of a (single variable) iterator. ",s)
 

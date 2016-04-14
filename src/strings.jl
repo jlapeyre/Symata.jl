@@ -13,6 +13,11 @@ StringLength(s) returns the length of the string s.
 apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 
 @sjdoc ToString "
-ToStringLength(expr) returns the string of the printed form or expr.
+ToString(expr) returns the string of the printed form or expr.
 "
 apprules(mx::Mxpr{:ToString}) = string(mx[1])
+
+@sjdoc StringJoin "
+StringJoin(s1,s2,...) returns the concatendated strings.
+"
+apprules(mx::Mxpr{:StringJoin}) = join(margs(mx))

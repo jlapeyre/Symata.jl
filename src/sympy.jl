@@ -40,7 +40,7 @@ function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
         st = string(jf)
-        sjf = uppercase(string(st[1])) * st[2:end]
+        sjf = SJulia.capitalize_first_character(st)
     elseif length(x) == 2
         (jf,sjf) = x
     else
@@ -53,60 +53,78 @@ end
 # TODO: Organize these. They are largely copied from ./math_functions.jl
 # These should be pulled out of the appropriate lists in ./math_functions.jl
 function make_sympy_to_sjulia()
-    single_arg_float_complex =
-        [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SinIntegral), (:Ci, :CosIntegral),
-          (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),(:atan,:ArcTan),(:atan2,:ArcTan2),
-         (:sec,),(:csc,),(:cot,), (:exp,), (:sqrt,),(:log,),
-         (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),
-         (:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
-         (:acoth,:ArcCoth),
-         (:erf,),(:erfc,),(:erfi,),(:re,:Re),(:im,:Im),
-         (:arg,:Arg),(:gamma,),(:loggamma,:LogGamma),
-         (:digamma,),(:trigamma,),(:polygamma,), (:airyai,:AiryAi),
-         (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
-         (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),(:bessely,:BesselY),
-         (:zeta,), (:LambertW, :LambertW), ( :expint, :ExpIntegralE)
-         ]
+    # single_arg_float_complex =
+    #     [ (:sin,), (:cos,), (:tan,), (:sinh,),(:cosh,), (:Si, :SinIntegral), (:Ci, :CosIntegral),
+    #       (:tanh,), (:acos,:ArcCos), (:asin,:ArcSin),(:atan,:ArcTan),(:atan2,:ArcTan2),
+    #      (:sec,),(:csc,),(:cot,), (:exp,), (:sqrt,),(:log,),
+    #      (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),
+    #      (:coth,),(:asinh,:ASinh),(:acosh,:ACosh),(:atanh,:ATanh),
+    #      (:acoth,:ArcCoth),
+    #      (:erf,),(:erfc,),(:erfi,),(:re,:Re),(:im,:Im),
+    #      (:arg,:Arg),(:gamma,),(:loggamma,:LogGamma),
+    #      (:digamma,),(:trigamma,),(:polygamma,), (:airyai,:AiryAi),
+    #      (:airybi,:AiryBi),(:airyaiprime,:AiryAiPrime),(:airybiprime,:AiryBiPrime),
+    #      (:besselj,:BesselJ),(:besseli,:BesselI),(:besselk,:BesselK),(:bessely,:BesselY),
+    #      (:zeta,), (:LambertW, :LambertW), ( :expint, :ExpIntegralE)
+    #      ]
 
-    single_arg_float_int_complex =
-        [
-         (:conjugate,)
-         ]
+    # single_arg_float_int_complex =
+    #     [
+    #      (:conjugate,)
+    #      ]
 
-    single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf),(:erfcinv,:InverseErfc)
-                        ]
+    # single_arg_float = [(:cbrt,:CubeRoot),(:erfinv,:InverseErf),(:erfcinv,:InverseErfc)
+    #                     ]
 
-    single_arg_float_int = [(:factorial,),(:sign,)]
+    # single_arg_float_int = [(:factorial,),(:sign,)]
 
-    single_arg_int = [(:integer_nthroot,:IntegerNthRoot),(:nextprime, :NextPrime), (:prevprime, :PrevPrime),
-                      (:isprime,:PrimeQ)
-                        ]
+    # single_arg_int = [(:integer_nthroot,:IntegerNthRoot),(:nextprime, :NextPrime), (:prevprime, :PrevPrime),
+    #                   (:isprime,:PrimeQ)
+    #                     ]
 
-    two_arg_int = [(:binomial,)
-                   ]
+    # two_arg_int = [(:binomial,)
+    #                ]
 
-    two_arg_float_and_float_or_complex =
-     [
-      (:besselj,:BesselJ),(:bessely,:BesselY),
-      (:hankel1,:HankelH1),
-      (:hankel2,:HankelH2),(:besseli,:BesselI),
-      (:besselk,:BesselK)
-      ]
+    # two_arg_float_and_float_or_complex =
+    #  [
+    #   (:besselj,:BesselJ),(:bessely,:BesselY),
+    #   (:hankel1,:HankelH1),
+    #   (:hankel2,:HankelH2),(:besseli,:BesselI),
+    #   (:besselk,:BesselK)
+    #   ]
 
-     two_arg_float = [ (:beta,)]
+    #  two_arg_float = [ (:beta,)]
 
-    symbolic_misc = [ (:Order, :Order), (:harmonic,), (:laplace_transform, :LaplaceTransform),
-                      (:inverse_laplace_transform, :LaplaceTransform)
+    # We put cos(), etc. here because it we are not using sympy to evaluate Cos
+    symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
+                      ( :InverseLaplaceTransform, :inverse_laplace_transform ),
+                      (:InverseFourierTransform, :inverse_fourier_transform ),
+                      (:FourierTransform, :fourier_transform),                      
+                      (:Cos, :cos), (:Log, :log), ( :Sqrt, :sqrt), (:LambertW, :LambertW),
+                      (:Exp, :exp), (:Abs, :Abs)
                       ]
 
-    for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
-                     single_arg_float_int, single_arg_int, two_arg_int, two_arg_float_and_float_or_complex, two_arg_float,
-                     symbolic_misc)
+    for funclist in (SJulia.single_arg_float_complex, SJulia.single_arg_float_int_complex, SJulia.single_arg_float,
+                     SJulia.single_arg_float_int, SJulia.single_arg_int, SJulia.two_arg_int,
+                     SJulia.two_arg_float_and_float_or_complex, SJulia.two_arg_float,
+                     SJulia.one_or_two_args1
+                     )
         for x in funclist
-            sympy_func, sjulia_func = get_sympy_math(x)
+            if length(x) != 3 continue end
+            (julia_func, sjulia_func, sympy_func) = x
             SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
         end
     end
+
+    for funclist in (symbolic_misc, SJulia.no_julia_function, SJulia.no_julia_function_one_or_two_int,
+                     SJulia.no_julia_function_two_args, SJulia.no_julia_function_two_or_three_args,
+                     SJulia.no_julia_function_three_args)
+        for x in funclist
+            sjulia_func, sympy_func = get_sympy_math(x)
+            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
+        end
+    end
+    
     for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
         SJULIA_TO_SYMPY_FUNCTIONS[v] = k
     end
@@ -178,7 +196,12 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
     end
     if expr[:is_Function]       # perhaps a user defined function
         head = symbol(pytypeof(expr)[:__name__])
-        return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
+        targs = expr[:args]
+        if targs[1] == dummy_arg
+            return SJulia.mxpr(head, [])
+        else
+            return SJulia.mxpr(head, map(sympy2mxpr, targs)...)
+        end
     end
     for k in keys(pymx_special_symbol_dict)
         if pyisinstance(expr,k)
@@ -296,7 +319,12 @@ function mxpr2sympy(mx::SJulia.Mxpr)
         return mx_to_py_dict[mx.head](map(mxpr2sympy, mx.args)...)
     end
     pyfunc = sympy.Function(string(mx.head))  # Don't recognize the head, so make it a user function
-    return pyfunc(map(mxpr2sympy, mx.args)...)
+    mxargs = SJulia.margs(mx)
+    if length(mxargs) == 0
+        return pyfunc(dummy_arg)
+    else
+        return pyfunc(map(mxpr2sympy, mxargs)...)
+    end
 end
 
 function mxpr2sympy(mx::Symbol)
@@ -335,6 +363,7 @@ end
 # We call init_sympy() from __init__
 function init_sympy()
     import_sympy()
+    eval(parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
     make_sympy_to_sjulia()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
@@ -342,6 +371,7 @@ function init_sympy()
     populate_mx_to_py_dict()
     mk_mx_to_py_funcs()
 end
+
 
 # TESTS
 # function test_sympy2mxpr()

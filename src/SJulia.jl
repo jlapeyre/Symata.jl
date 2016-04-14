@@ -40,7 +40,8 @@ include("math_functions.jl")
 include("strings.jl")
 include("sympy.jl")
 include("sympy_application.jl")
-#include("code_in_SJulia.jl")   # This file loads slowly because it has to jit a lot of code
+include("LambertW.jl")
+#include("code_in_SJulia.jl")   # This file probably conflicts with sympy math functions
 include("sjulia_repl.jl")
 
 function __init__()

@@ -1,0 +1,10 @@
+* expr(3:4) does not always work
+* ToSymPy(Sin(I)) throws error
+* If needs third branch
+
+* Not true, or no longer:
+  For instance cop = Count(_^2) defines a function that counts
+  the number of arguments that have the form of a square.
+  This does work: MatchQ( b^2, _^2)
+
+* implement Chop()

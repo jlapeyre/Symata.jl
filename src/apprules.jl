@@ -4,6 +4,102 @@
 
 ## Application of Rules for many heads of Mxpr
 
+function get_arg_dict(args)
+    d = Dict{Symbol,Any}()
+    for p in args
+        pe = eval(p)
+        d[pe[1]] = pe[2]
+    end
+    d
+end
+
+const NumWords = ["zero", "one", "two", "three", "four", "five", "six" ]
+
+function num_args_string(n::Int)
+    if n == 1
+        "one argument"
+    elseif n < length(NumWords)
+        return NumWords[n+1] * " arguments"
+    else
+        return string(n) * " arguments"
+    end
+end
+
+function warn_arg_number_string(headstr, nspec::Int)
+    "Wrong number or " * (nspec == 1 ? "type " : "types ") * "of argument. " * headstr * " requires exactly " * num_args_string(nspec)
+end
+
+function make_warn_code_from_string(wstr::AbstractString, nspec::Int)
+    :( begin
+       if length(margs(mx)) == $nspec
+         println(STDERR, "Wrong argument type.")
+       else
+         println(STDERR, $wstr)
+       end
+       mx
+       end)
+end
+
+function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
+    local warnstring::AbstractString
+    if nspec == 1
+        w1 = headstr * " requires exactly one"
+        if haskey(d, :argtypes)
+            warnstring = w1 * string(d[:argtypes][1]) * " argument."
+        else
+            warnstring = w1 * " argument."
+        end
+    else
+        warnstring = warn_arg_number_string(headstr, nspec)
+    end
+    make_warn_code_from_string(warnstring, nspec)
+end
+
+make_warn_code(headstr::AbstractString, d::Dict) = make_warn_code(headstr, d,  d[:nargs])
+
+
+macro mkapprule(args...)
+    n = length(args)
+    head = args[1]
+    headstr = string(head)    
+    mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
+    if n == 1
+        defmx = :( mx )
+    else
+        rargs = args[2:end]
+        d = get_arg_dict(rargs)
+        if haskey(d, :nargs)
+            defmx = make_warn_code(headstr, d)
+            # argwarn = get_warn_arg_number(headstr, d[:nargs])
+            # defmx = :( begin
+            #            $argwarn
+            #            mx
+            #            end
+            #             )
+        else
+            defmx = :( mx )            
+        end
+    end
+    fns = symbol("do_" * headstr)
+    esc(quote
+        set_pattributes([$headstr],[:Protected])        
+        apprules($mxarg) = $fns(mx, margs(mx)...)
+        $fns($mxarg, args...) = $defmx
+        end)
+end
+
+# Don't write the default rule
+macro mkapprule1(head)
+    headstr = string(head)
+    mxarg = parse("mx::Mxpr{:$headstr}") # something easier worked too.
+    fns = symbol("do_" * headstr)
+    esc(quote
+        set_pattributes([$headstr],[:Protected])        
+        apprules($mxarg) = $fns(mx, margs(mx)...)
+        end)
+end
+
+
 ## Head with no builtin or user defined evaluation code.
 # That is, no user defined Julia level code. There may be SJulia rules for x.
 apprules(x) = x
@@ -141,7 +237,7 @@ Increment(n) increments the value of n by 1 and returns the old value.
 
 apprules(mx::Mxpr{:Increment}) = do_Increment(mx,margs(mx)...)
 do_Increment(mx,x::SJSym) = do_Increment1(mx,x,symval(x))
-function do_Increment1(mx,x,xval::Number)
+function do_Increment1{T<:Number}(mx,x,xval::T)
     setsymval(x,mplus(xval,1))  # maybe + is ok here.
     return xval
 end
@@ -158,9 +254,12 @@ TimesBy(a,b), or a *= b, sets a to a * b and returns the new value. This is curr
 faster than a = a * b for numbers.
 "
 
-apprules(mx::Mxpr{:TimesBy}) = do_TimesBy(mx,margs(mx)...)
-do_TimesBy(mx,x::SJSym,val) = do_TimesBy1(mx,x,symval(x),val)
-function do_TimesBy1(mx,x,xval::Number, val::Number)
+# apprules(mx::Mxpr{:TimesBy}) = do_TimesBy(mx,margs(mx)...)
+# do_TimesBy(mx,args...) = mx
+@mkapprule TimesBy :nargs => 2
+
+do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val) = do_TimesBy1(mx,x,symval(x),val)
+function do_TimesBy1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
     r = mmul(xval,val)
     setsymval(x,r)
     return r
@@ -169,7 +268,8 @@ function do_TimesBy1(mx,x,xval,val)
     setsymval(x,doeval(mxpr(:Set,x, mxpr(:Times,xval,val))))
     return symval(x)
 end
-do_TimesBy(mx,args...) = mx
+
+
 
 #### AddTo
 
@@ -178,9 +278,12 @@ AddTo(a,b), or a += b, sets a to a + b and returns the new value. This is curren
 faster than a = a + b for numbers.
 "
 
-apprules(mx::Mxpr{:AddTo}) = do_AddTo(mx,margs(mx)...)
-do_AddTo(mx,x::SJSym,val) = do_AddTo1(mx,x,symval(x),val)
-function do_AddTo1(mx,x,xval::Number, val::Number)
+@mkapprule AddTo :nargs => 2
+#apprules(mx::Mxpr{:AddTo}) = do_AddTo(mx,margs(mx)...)
+#do_AddTo(mx,args...) = mx
+
+do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val) = do_AddTo1(mx,x,symval(x),val)
+function do_AddTo1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
     r = mplus(xval,val)
     setsymval(x,r)
     return r
@@ -189,7 +292,6 @@ function do_AddTo1(mx,x,xval,val)
     setsymval(x,doeval(mxpr(:Set,x, mxpr(:Plus,xval,val))))
     return symval(x)
 end
-do_AddTo(mx,args...) = mx
 
 #### UpSet
 
@@ -256,7 +358,7 @@ end
 Keys(d) returns a list of the keys in Dict d
 "
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
-do_keys(mx,d::Dict) = mxpr(:List,collect(keys(d))...)
+do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
 do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
 
 #### Values
@@ -265,9 +367,8 @@ do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
 Values(d) returns a list of the values in Dict d
 "
 
-# mkapprule("Values") ... broken
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
-do_values(mx,d::Dict) = mxpr(:List,collect(values(d))...)
+do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
 do_values(mx,x) = (warn("Can't return values of $mx"); mx)
 
 #### Symbol
@@ -329,7 +430,7 @@ representation is printed.
 @sjseealso_group(Dump,DumpHold)
 
 # DumpHold does not evaluate args before dumping
-apprules(mx::Union{Mxpr{:Dump},Mxpr{:DumpHold}}) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
+apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
@@ -376,9 +477,13 @@ Julia types such as Array, or the element with key 'n' for Dict's.
 # Get part of expression. Julia :ref is mapped to :Part
 # a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
 # a[i,j] parses to Part(a,i,j).
-function apprules(mx::Mxpr{:Part})
-    do_Part(mx,margs(mx)...)
-end
+
+@mkapprule Part
+
+# function apprules(mx::Mxpr{:Part})
+#     do_Part(mx,margs(mx)...)
+# end
+
 
 function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     for j in 1:length(tinds)
@@ -387,15 +492,15 @@ function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     return texpr
 end
 
-function get_part_one_ind(texpr::Union{Mxpr,Array},ind::Integer)
+function get_part_one_ind{T<:Integer, V<:Union{Mxpr,Array}}(texpr::V,ind::T)
 #    ind::Int = tind
     ind = ind < 0 ? length(texpr)+ind+1 : ind
     texpr = ind == 0 ? mhead(texpr) : texpr[ind]
     return texpr
 end
 
-get_part_one_ind(texpr::Dict,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
-get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
+get_part_one_ind{T<:Dict}(texpr::T,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
+get_part_one_ind{T<:Tuple}(texpr::T,tind) = texpr[tind]
 
 function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
     spanargs = margs(tind)
@@ -429,12 +534,18 @@ gethead(ex) = typeof(ex)
 
 @sjdoc Attributes "
 Attributes(s) returns attributes associated with symbol s. Builtin symbols have
-the attribute Protected, and may have others.
+the attribute Protected, and may have others, including HoldFirst, SequenceHold,
+HoldRest, HoldAll, ReadProtected, Constant, Locked, Flat, Listable, NumericFunction,
+OneIdentity.
 "
-apprules(mx::Mxpr{:Attributes}) = get_attributes(margs(mx,1))
+apprules(mx::Mxpr{:Attributes}) = get_attributesList(margs(mx,1))
 
 function get_attributes(sj::SJSym)
-    ks = sort!(collect(keys(symattr(sj))))
+    ks = sort!(collect(Any, keys(symattr(sj))))
+end
+
+function get_attributesList(sj::SJSym)
+    ks = get_attributes(sj)
     mxpr(:List,ks...) # need to splat because array ks is not of type Any
 end
 
@@ -598,7 +709,7 @@ function apprules(mx::Mxpr{:Comparison})
 #    do_Comparison(mx)
 end
 
-function do_Comparison(mx::Mxpr{:Comparison},a::Number,comp::SJSym,b::Number)
+function do_Comparison{T<:Number,V<:Number}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::V)
     _do_Comparison(a,comp,b)
 end
 
@@ -622,7 +733,7 @@ function do_Comparison(mx::Mxpr{:Comparison},args...)
 end
 
 
-function _do_Comparison(a::Number, comp::Symbol, b::Number)
+function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
     if comp == :<    # Test For loop shows this is much faster than evaling Expr
         return a < b
     elseif comp == :>
@@ -681,12 +792,12 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
     return nothing
 end
 
-_do_Comparison(a::Symbol, comp::Symbol, b::SJReal) = nothing
-_do_Comparison(a::SJReal, comp::Symbol, b::Symbol) = nothing
-_do_Comparison(a::SJReal, comp::Symbol, b::Mxpr) = nothing
-_do_Comparison(a::Mxpr, comp::Symbol, b::SJReal) = nothing
+_do_Comparison{T<:SJReal}(a::Symbol, comp::Symbol, b::T) = nothing
+_do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
+_do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
+_do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
 
-function _do_Comparison(a::Number, comp::SJSym, b::Bool)
+function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
 #    println("In any cmp  bool $a $comp $b")    
     comp == :(==) && return false
     comp == :(!=) && return true
@@ -702,7 +813,7 @@ function _do_Comparison(a, comp::SJSym, b::Bool)
     return false
 end
 
-function _do_Comparison(a, comp::SJSym, b::Number)
+function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
 #    println("In any cmp  bool $a $comp $b")    
     comp == :(==) && return false
     comp == :(!=) && return true
@@ -728,8 +839,8 @@ apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])
 apprules(mx::Mxpr{://}) = makerat(mx,mx[1],mx[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
 makerat(mx,n,d) = mx
-apprules(mx::Mxpr{:complex}) = makecomplex(mx,mx[1],mx[2])
-makecomplex(mx::Mxpr{:complex},n::Real,d::Real) = complex(n,d)
+apprules(mx::Mxpr{:Complex}) = makecomplex(mx,mx[1],mx[2])
+makecomplex{T<:Real,V<:Real}(mx::Mxpr{:complex},n::T,d::V) = complex(n,d)
 makecomplex(mx,n,d) = mx
 
 #### Power
@@ -741,18 +852,18 @@ function apprules(mx::Mxpr{:Power})
 end
 
 # TODO: Make sure Rationals are simplified
-do_Power(mx::Mxpr{:Power},b::Number,e::Number) = mpow(b,e)
-do_Power(mx::Mxpr{:Power},b::Symbolic,n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
-do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Integer) = mpow(base(b), mmul(exp,expt(b)))
-do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp::Real) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},b::T,e::V) = mpow(b,e)
+do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power},b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Real}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
 do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-do_Power(mx::Mxpr{:Power},b::SJSym,expt::AbstractFloat) = b == :E ? exp(expt) : mx
+do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::T) = b == :E ? exp(expt) : mx
 do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
 #
 # Check if the exact answer is an integer.
-function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
+function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,e::V)
     res = b^e
     ires = round(T,res)
     nrat = Rational(den(e),num(e))
@@ -769,21 +880,21 @@ function apprules(mx::Mxpr{:Abs})
     doabs(mx,mx[1])
 end
 
-doabs(mx,n::Number) = mabs(n)
+doabs{T<:Number}(mx,n::T) = mabs(n)
 
 # Abs(x^n) --> Abs(x)^n  for Real n
 function doabs(mx,pow::Mxpr{:Power})
     doabs_pow(mx,base(pow),expt(pow))
 end
 doabs_pow(mx,b,e) = mx
-doabs_pow(mx,b,e::Real) = mxpr(:Power,mxpr(:Abs,b),e)
+doabs_pow{T<:Real}(mx,b,e::T) = mxpr(:Power,mxpr(:Abs,b),e)
 
 
 doabs(mx,prod::Mxpr{:Times}) = doabs(mx,prod,prod[1])
 
 #doabs(mx,prod,s::Symbol)
 
-function doabs(mx,prod,f::Number)
+function doabs{T<:Number}(mx,prod,f::T)
     f >=0 && return mx
     if f == -1
         return doabsmone(mx,prod,f)
@@ -793,7 +904,7 @@ function doabs(mx,prod,f::Number)
     return mxpr(:Abs,mxpr(:Times,args))
 end
 
-function doabsmone(mx,prod,f::Integer)
+function doabsmone{T<:Integer}(mx,prod,f::T)
     args = copy(margs(prod))
     shift!(args)
     if length(args) == 1
@@ -804,7 +915,7 @@ function doabsmone(mx,prod,f::Integer)
 end
 
 # TODO Fix canonical routines so that 1.0 * a is not simplifed to a
-function doabsmone(mx,prod,f::Real)
+function doabsmone{T<:Real}(mx,prod,f::T)
     args = copy(margs(prod))
     shift!(args)
     if length(args) == 1
@@ -823,11 +934,15 @@ doabs(mx,x) = mx
 @sjdoc BI "
 BI(n) converts the number n to a BigInt. SJulia currently neither
 detects integer overflow, nor automatically promote integers to BigInts.
+But, a literal integer will automatically be given a large enough storage type without using
+BI.
 "
+
 @sjseealso_group(BI,BF,Big)
 @sjdoc BF "
-BF(n) converts the number, or string n to a BigFloat. SJulia currently neither
-detects overflow, nor automatically promotes types from fixed to arbitrary precision.
+BF(n), or BF\"n\", converts the number, or string n to a BigFloat. SJulia currently neither
+detects overflow, nor automatically promotes types from fixed to arbitrary precision. The form
+BF\"n\" is more efficient, being a julia macro that converts the string \"n\" upon parsing.
 "
 
 @sjdoc Big "
@@ -838,16 +953,16 @@ Convert a number to a maximum precision representation (typically
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint{T<:Number}(mx,x::T) = BigInt(x)
-dobigint{T<:AbstractString}(mx,x::T) = BigInt(x)
+dobigint{T<:AbstractString}(mx,x::T) = parse(BigInt,x)
 
 apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
-dobigfloat{T<:AbstractString}(mx,x::T) = BigFloat(x)
+dobigfloat{T<:AbstractString}(mx,x::T) = parse(BigFloat,x)
 
 apprules(mx::Mxpr{:Big}) = do_Big(mx,mx[1])
 do_Big(mx,x) = mx
-do_Big(mx,x::Number) = big(x)
+do_Big{T<:Number}(mx,x::T) = big(x)
 
 # This appears to be done by canonicalizer. So it is a waste of time.
 # function apprules(mx::Mxpr{:Plus})
@@ -899,7 +1014,12 @@ TimeOff() disables printing CPU time consumed and memory allocated
 after each evaluation of command line input.
 "
 
-apprules(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
+@mkapprule TimeOn  :nargs => 0
+
+do_TimeOn(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
+
+@mkapprule TimeOff  :nargs => 0
+
 apprules(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
 
 @sjdoc TrDownOn "
@@ -1001,12 +1121,18 @@ apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 @sjdoc Help "
 Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
 Help() lists all documented symbols. Due to parsing restrictions at the repl, for some
-topics, the input must be a string. The same help can be accessed with
-h\"topic\", which is implemented as a Julia special string literal.
+topics, the input must be a string. 
+
+h\"topic\" gives a case-insensitive regular expression search.
+
 Help(regex) prints a list of topics whose documentation text matches the
 regular expression regex. For example Help(r\"Set\"i) lists all topics that
 match \"Set\" case-independently.
-Help(All -> true) prints all of the documentation.
+
+In the REPL, hit TAB to see all the available completions.
+
+Help(All -> true) prints all of the documentation. \"?, topic\" is equivalent
+to Help(topic).
 "
 
 apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
@@ -1030,7 +1156,7 @@ function do_Help(mx,args...)
     end
 end
 
-function do_Help(mx,r::Regex)
+function do_Help{T<:Regex}(mx,r::T)
     print_matching_topics(r)
 end
 

@@ -22,7 +22,7 @@ typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times}}
 # Maxima generates the two sums much more slowly but adds
 # them much more quickly.
 function flatten!{T<:FlatT}(mx::T)
-    needsflat = false
+    needsflat::Bool = false
     for x in margs(mx)
         if is_type(x,T)
             needsflat = true

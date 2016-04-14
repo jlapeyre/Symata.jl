@@ -57,7 +57,7 @@ end
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
-@inline ssjsym(s::Symbol,T::DataType) = SSJSym{T}(zero(T),newattributes(),newdownvalues(),newupvalues(),0)
+@inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]  
 @inline symval(s::SJSym) = getssym(s).val[1]
@@ -180,10 +180,10 @@ end
         return ns
     end
 end
-@inline getssym(ss::AbstractString) = getssym(symbol(ss))
+@inline getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
 
-@inline function createssym(s::Symbol,T::DataType)
-    ns = ssjsym(s,T)
+@inline function createssym{T<:DataType}(s::Symbol,dT::T)
+    ns = ssjsym(s,dT)
     SYMTAB[s] = ns
     return ns
 end
@@ -240,7 +240,7 @@ type Mxpr{T} <: AbstractMxpr
 end
 typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs() = Array(Any,0)
-@inline newargs(n::Integer) = Array(Any,n)
+@inline newargs{T<:Integer}(n::T) = Array(Any,n)
 @inline newargs(m::Mxpr) = newargs(length(m))
 @inline newargs(a::Array) = newargs(length(a))
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
@@ -549,6 +549,15 @@ end
     else
         return margs(mx)[r]
     end
+end
+
+function protectedsymbols_strings()
+    symstrings = Array(ByteString,0)
+    for s in keys(SYMTAB)
+        if get_attribute(s,:Protected) && s != :ans
+            push!(symstrings,string(getsym(s))) end
+    end
+    sort!(symstrings)
 end
 
 function protectedsymbols()

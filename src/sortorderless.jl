@@ -57,7 +57,7 @@ end
 _mklexorder()
 
 # returns ordering precedence of Type, typ
-function mxtypeorder(typ::DataType)
+function mxtypeorder{T<:DataType}(typ::T)
     ! haskey(_jstypeorder,typ)  && return 5  # Any
     return _jstypeorder[typ]
 end
@@ -193,9 +193,9 @@ casecmp(a::Symbol, b::Symbol) = round(Int,sign(ccall(:strcasecmp, Int32, (Ptr{UI
 # *and* we invert order of upper to lower case.  we want  a < A.
 jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) > 0 : r < 0)
 jslexless(x::SJSym, y::SJSym) = jsisless(x,y)
-jslexless(x::Number, y::SJSym) = true
-jslexless(x::Number, y::Mxpr) = true
-jslexless(x::Mxpr, y::Number) = false
+jslexless{T<:Number}(x::T, y::SJSym) = true
+jslexless{T<:Number}(x::T, y::Mxpr) = true
+jslexless{T<:Number}(x::Mxpr, y::T) = false
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 
@@ -231,7 +231,7 @@ jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 # compiler notes that the next method overwrites one above (they are identical)
 # jslexless(x::SJSym, y::Mxpr) = true
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
-_jslexless(x::DataType,y::DataType) = x <: y
+_jslexless(x::DataType, y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
 #jslexless{T}(x::T,y::T) = !(x === y) && _jslexless(x,y)  # x === y may or may not be efficient.
 jslexless{T}(x::T,y::T) =  _jslexless(x,y)
@@ -287,7 +287,7 @@ end
 # for large sums with many (or all) numbers.
 # Singleton sequences may remain and they are sorted and removed with
 # compactsumlike!. Probably could analyze sum and choose a strategy.
-function loopnumsfirst!(mx::Orderless)
+function loopnumsfirst!{T<:Orderless}(mx::T)
     len = length(mx)
     m = 1
     while true
@@ -322,7 +322,7 @@ function distribute_minus_one_b(n,terms)
     end
     return newterms
 end
-function distribute_minus_one_a(mx, n::Integer, sum0::Mxpr{:Plus})
+function distribute_minus_one_a{T<:Integer}(mx, n::T, sum0::Mxpr{:Plus})
     n == -1 || return mx
     return mxpr(:Plus,distribute_minus_one_b(n,margs(sum0)))
 end
@@ -336,7 +336,7 @@ distribute_minus_one(x) = x
 
 #### canonexpr!
 
-canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
+canonexpr!{T<:Orderless}(mx::T) = canonexpr_orderless!(mx)
 
 function canonexpr!(mx::Mxpr)
     if get_attribute(mx,:Orderless)
@@ -457,18 +457,18 @@ end
 
 # Get numeric coefficient of expr. It is 1 if there is none.
 function numeric_coefficient(x::Mxpr{:Times})
-    local c::Number
+#    local c::Number  why is this here ?
     c = is_type_less(x[1],Number) ? x[1] : 1
 end
-numeric_coefficient(x::Number) = x
+numeric_coefficient{T<:Number}(x::T) = x
 numeric_coefficient(x) = 1
 
 # Get numeric exponent; may be 1 (zero never encountered, I hope)
 function numeric_expt(x::Mxpr{:Power})
-    local c::Number
+#    local c::Number
     c = is_type_less(expt(x),Number) ? expt(x) : 1
 end
-numeric_expt(x::Number) = 1
+numeric_expt{T<:Number}(x::T) = 1
 numeric_expt(x) = 1
 
 # TODO: Tests fail unless we copy. But, there may be a way around this

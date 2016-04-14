@@ -14,3 +14,31 @@ arguments then Julia-evaluates the macro and inserts it into the SJulia expressi
 tree. For instance, big numbers and regular expressions are constructed this way.
 "
 
+@sjdoc ans "
+'ans' holds the result of the most recent evaluation.
+"
+
+@sjdoc Sequence "
+Sequence represents a sequence of arguments to be spliced into function arguments.
+"
+
+@sjexamp(Sequence,
+         ("f(a,b,Sequence(c,d),e,g)", "f(a,b,c,d,e,g)"))
+
+
+@sjdoc bf "
+ bf\"str\" converts string str to a BigFloat
+"
+
+@sjdoc BF "
+ bf\"str\" converts string str to a BigFloat
+"
+
+@sjdoc bi "
+ bf\"str\" converts string str to a BigInt
+"
+
+@sjdoc BI "
+ bf\"str\" converts string str to a BigInt
+"
+

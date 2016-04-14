@@ -4,7 +4,7 @@ expr at which x occurs. Only literal values for x are supported, not
 patterns
 "
 
-mkapprule("Position")
+@mkapprule Position
 
 function do_Position(mx::Mxpr{:Position},expr,subx)
     ps = find_positions(expr,subx)

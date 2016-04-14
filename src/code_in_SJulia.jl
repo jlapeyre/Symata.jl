@@ -1,7 +1,6 @@
-# All code written in SJulia itself is here. It causes jit on loading
-# and slows loading of SJulia by several times. It is tested in the
-# file code_in_SJulia_test.jl. Both of these files can be omitted for
-# efficiency in testing.
+# All code written in SJulia itself is here.
+# It is tested in the  file code_in_SJulia_test.jl.
+# We disable this because we are doing most of these rules via sympy
 
 # Examples of using down values
 

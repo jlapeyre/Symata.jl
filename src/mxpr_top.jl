@@ -25,6 +25,7 @@ const JTOMSYM  =
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
       :comparison => :Comparison,
+      :... => :...  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
       )
 
 const MTOJSYM = Dict{Symbol,Symbol}()

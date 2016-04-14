@@ -37,7 +37,7 @@ Jxpr is evaluated. You never see the head Jxpr. For example
 
 @sjexamp( Jxpr,
          "This creates a Julia Array{Int,1} and \"binds\" it to the SJulia symbol m.",
-         ("m = :( [1:3] )",
+         ("m = :( collect(1:3) )",
           "3-element Array{Int64,1}:\n 1\n 2\n 3"))
 
 @sjexamp( Jxpr,

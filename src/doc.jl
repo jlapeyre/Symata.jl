@@ -63,14 +63,25 @@ function print_doc(qs...)
         else
             println("No documentation for '", string(q),"'.")
         end
+        as = get_attributes(q)
+        if length(as) > 0
+            println(string(q), " has attributes ", as)
+        end
     end
 end
 
 function print_matching_topics(r::Regex)
+    i = 0
+    lastt = :none
     for (t,doc) in SJDOCS
         if ismatch(r,doc)
+            i += 1
             println(t)
+            lastt = t
         end
+    end
+    if i == 1
+        println(SJDOCS[r])
     end
 end
 
@@ -100,8 +111,11 @@ end
 function list_documented_symbols()
     syms = sort!(collect(keys(SJDOCS)))
     len = length(syms)
-    args = newargs(len)
-    for i in 1:len args[i] = syms[i] end
+    args = newargs()
+    for i in 1:len
+        if syms[i] == :ans continue end
+        push!(args,syms[i])
+    end
     mxpr(:List,args)
 end
 

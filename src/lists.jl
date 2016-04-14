@@ -12,7 +12,7 @@ This uses embedded Julia to create a typed Array and then unpacks it to a List.
 # Need to check for uprules for free symbols
 function apprules(mx::Mxpr{:Range})
     iter = make_sjitera(margs(mx))
-    args = do_range(iter)
+    args = do_Range(iter)
     r = mxpr(:List,args)
     setfixed(r)
     setcanon(r)
@@ -20,7 +20,7 @@ function apprules(mx::Mxpr{:Range})
     return r
 end
 
-function do_range(iter::SJIterA1)  # iter is parameterized, so we hope type of n is inferred.
+function do_Range(iter::SJIterA1)  # iter is parameterized, so we hope type of n is inferred.
     n = iter.num_iters
 #    println("Typeof n is " * string(typeof(n)))
     args = newargs(n);
@@ -34,18 +34,18 @@ function do_range(iter::SJIterA1)  # iter is parameterized, so we hope type of n
 end
 
 # Fails for rationals. nd counting is wrong
-function do_range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
+function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
     nd = mplus(iter.imax,-iter.imin) + 1
     if nd > 1
 #        args = newargs(abs(nd))
         args = newargs(iter.num_iters)
-        for i in zero(iter.imin):nd-1
+         @inbounds for i in zero(iter.imin):nd-1
             args[i+1] = mplus(i,iter.imin)  # Bug here, if iter.imin is not of type Int.
         end
     else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1
         nd = -nd + 2
         args = newargs(iters.num_iters)
-        for i in zero(iter.imin):(nd - 1)
+        @inbounds for i in zero(iter.imin):(nd - 1)
             args[i+1] = mplus(iter.imin, -i)
         end
     end
@@ -55,7 +55,7 @@ end
 # Symbolic values
 # FIXME. We don't record free symbols and check for upvalues.
 # This is about as fast as Mma 3 (running on a somewhat slower cpu)
-function do_range(iter::SJIterA2)
+function do_Range(iter::SJIterA2)
     args = newargs(iter.num_iters)
     imin = iter.imin
     args[1] = imin
@@ -64,7 +64,7 @@ function do_range(iter::SJIterA2)
         if is_Number(imin[1])  # number is always first in canon order.
             b = imin[1]  # extract number
             r = imin[2:end]  # the rest of the sum
-            _do_range_A2(args,b,r,iter.num_iters)
+            _do_Range_A2(args,b,r,iter.num_iters)
         else  # imin is a sum with no numbers, so we put a number in front
             sargs = margs(s)
             for i in 2:iter.num_iters
@@ -73,7 +73,7 @@ function do_range(iter::SJIterA2)
             end
         end
     else  # imin is not a sum
-        for i in 2:iter.num_iters
+        @inbounds for i in 2:iter.num_iters
             args[i] = mxpr(:Plus,i-1,s)
             setfixed(args[i])
         end
@@ -82,8 +82,8 @@ function do_range(iter::SJIterA2)
     return args
 end    
 
-function _do_range_A2(args,b,r,n)
-    for i in 2:n
+function _do_Range_A2(args,b,r,n)
+    @inbounds for i in 2:n
         args[i] = mxpr(:Plus,b+i-1,r...) # only a little slower than Mma if disable gc
         setfixed(args[i])
     end
@@ -91,11 +91,11 @@ function _do_range_A2(args,b,r,n)
 end
 
 # seems to be little penalty for mplus instead of +
-function do_range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
+function do_Range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
     n = iter.num_iters
     args = newargs(n)
     j = iter.imin
-    for i in 1:n
+    @inbounds for i in 1:n
         args[i] = j
         j = mplus(j,iter.di)
     end
@@ -103,7 +103,7 @@ function do_range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
 end
 
 # Symbolic again
-function do_range(iter::SJIterA3)
+function do_Range(iter::SJIterA3)
     args = newargs(iter.num_iters)
     imin = iter.imin
     args[1] = imin
@@ -138,7 +138,7 @@ function do_range(iter::SJIterA3)
                 end
             else # imin is not a sum, so just create one
                 j = zero(iter.di)
-                for i in 2:iter.num_iters
+                @inbounds for i in 2:iter.num_iters
                     j += iter.di
                     args[i] = mxpr(:Plus,j,s)
                     setfixed(args[i])
@@ -235,7 +235,7 @@ do_ConstantArray(mx,args...) = mx
 # 'c^2' is 40 times slower than Symbol 'c'.
 function do_ConstantArray(mx,expr,n)
     nargs = newargs(n)
-    for i in 1:n
+    @inbounds for i in 1:n
 #        nargs[i] = deepcopy(expr)
         nargs[i] = recursive_copy(expr)
     end
@@ -245,7 +245,7 @@ end
 # We need to find something more efficient than deepcopy
 function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
-    for i in 1:n
+     @inbounds for i in 1:n
         nargs[i] = setfixed(recursive_copy(expr))
 #        nargs[i] = setfixed(deepcopy(expr))  slow 
 #        nargs[i] = setfixed(copy(expr))  incorrect
@@ -253,9 +253,9 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     setfixed(mxpr(:List,nargs))
 end
 
-function do_ConstantArray(mx,expr::Union{Number,Symbol},n)
+function do_ConstantArray{T<:Union{Number,Symbol}}(mx,expr::T,n)
     nargs = newargs(n)
-    for i in 1:n
+    @inbounds for i in 1:n
         nargs[i] = expr
     end
     setfixed(mxpr(:List,nargs))
@@ -263,7 +263,7 @@ end
 
 function do_ConstantArray(mx,expr::AbstractString,n)
     nargs = newargs(n)
-    for i in 1:n
+    @inbounds for i in 1:n
         nargs[i] = copy(expr)
     end
     setfixed(mxpr(:List,nargs))
@@ -349,12 +349,12 @@ function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
     args = newargs(imax-imin+1)
-    if iter.i == expr
+    @inbounds if iter.i == expr
         for i in imin:imax
             args[i-imin+1] = i
         end
     else
-        for i in imin:imax
+        @inbounds for i in imin:imax
             set_all_part_specs2(expr,exprpos,i)
             unsetfixed(expr)
             args[i-imin+1] = doeval(expr)
@@ -371,12 +371,12 @@ function do_Table{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     args = newargs(iter.num_iters)
     j::Int = 0
     if iter.i == expr
-        for i in imin:di:imax
+      @inbounds for i in imin:di:imax
             j += 1
             args[j] = i
         end
     else
-        for i in imin:di:imax
+      @inbounds for i in imin:di:imax
             j += 1
             set_all_part_specs2(expr,exprpos,i)
             unsetfixed(expr)
