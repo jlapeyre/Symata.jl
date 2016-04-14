@@ -2,7 +2,7 @@
 
 SJulia is a a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of
-Mathematica. Evaluation, pattern matching are written in Julia. Much
+Mathematica. Evaluation and pattern matching are written in Julia. Much
 of the mathematics and symbolic manipulation is achieved by wrapping SymPy.
 
 ### Installing
