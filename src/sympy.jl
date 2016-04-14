@@ -31,7 +31,8 @@ const pymx_special_symbol_dict = Dict()
 #    return SJulia.mxpr(head, map(sympy2mxpr, expr[:args])...)
 const py_to_mx_symbol_dict = Dict(
                                   :StrictLessThan => :<,
-                                  :uppergamma => :Gamma
+                                  :uppergamma => :Gamma,
+                                  :Equality => :(==)
                                   )
 
 # sympy has erf and erf2. we need to check number of args.

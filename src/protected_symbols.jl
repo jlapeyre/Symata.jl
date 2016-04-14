@@ -73,7 +73,8 @@ set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","B
           "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
           "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
           "Simplify", "FullSimplify","RatSimp", "Solve", "Roots", "RealRoots",
-          "TrigSimp", "Cancel","Collect", "ToSJulia", "ToSymPy", "Series", "Not", "Null",
+"TrigSimp", "Cancel","Collect", "ToSJulia", "ToSymPy", "Series", "Not", "Null",
+"None",
                  "ans" # protect ans to keep it out of user symbols
            ],
                 :Protected)
