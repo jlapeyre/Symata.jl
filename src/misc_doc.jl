@@ -42,3 +42,6 @@ Sequence represents a sequence of arguments to be spliced into function argument
  bf\"str\" converts string str to a BigInt
 "
 
+@sjdoc Unicode_Input "
+Unicode characters may be input at the SJulia REPL just as they are in Julia. Eg. \\alpha [TAB] will enter the greek letter α.
+"

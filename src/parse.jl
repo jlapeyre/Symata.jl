@@ -27,13 +27,15 @@ macro BF_str(s)
 end
 
 extomx(x) = x
+# We should use a Dict here, perhaps.
 function extomx(s::Symbol)
     s == :I && return complex(0,1)
-    s == :π && return :Pi
-    s == :γ && return :EulerGamma
+#    s == :π && return :Pi
+#    s == :γ && return :EulerGamma
     s == :∑ && return :Sum
     s == :True && return true
     s == :False && return false
+#    s == :Γ && return :Gamma
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)

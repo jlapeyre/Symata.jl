@@ -3,6 +3,8 @@
 
 ## Symbol correspondence/translation between Julia and SJulia
 
+# This should be separated better. Some symbols are translated
+# only on analyzing the ast, others, on both input and output.
 const JTOMSYM  =
  Dict(
       :(=) => :Set,
@@ -25,9 +27,14 @@ const JTOMSYM  =
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
       :comparison => :Comparison,
-      :... => :...  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
-      )
+      :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
+      :! => :Not,
+      :Γ => :Gamma,
+      :π => :Pi,
+      :γ => :EulerGamma
+)
 
+# MTOJSYM is only used in printing
 const MTOJSYM = Dict{Symbol,Symbol}()
 for (k,v) in JTOMSYM  MTOJSYM[v] = k end
 
@@ -40,8 +47,10 @@ end
 
 jtomsym(x) = extomx(x)
 
-# We need a better interface for doing this kind of thing.
+# These are only used for output
 MTOJSYM[:Span] = :(:)
+MTOJSYM[:>=] = :≥
+MTOJSYM[:<=] = :≤
 
 # Inverse of translations already present in MTOJSYM will be recorded
 # (compiler reports that the second method overwrites the first, which seems to be true.

@@ -693,7 +693,7 @@ Head(arg1,arg2,...). Normal output may use infix notation instead.
 
 @sjdoc Not "
 Not(expr) returns False if expr is True, and True if it is False. Not reduces some very simple logical expressions and otherwise
-remains unevaluated.
+remains unevaluated. Not(expr) may also be entered '! expr'.
 "
 
 @mkapprule Not :nargs => 1
@@ -704,6 +704,7 @@ remains unevaluated.
 do_Not(mx::Mxpr{:Not}, ex::Bool) = ex == true ? false : true
 
 do_Not{T<:Number}(mx::Mxpr{:Not}, ex::T) = mx
+do_Not{T}(mx::Mxpr{:Not}, ex::T) = mx
 
 const comparison_negations  = Dict(
                                :<   =>  :>=,

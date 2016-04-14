@@ -43,6 +43,9 @@ end
 # Hmm. Wrap all output in a type made just for that purpose.... no that won't work
 # sjshow(io::IO,x) = Base.show(io,x)
 
+# We translate <= below in show_Comparison.
+# Probably more efficient to do it here.
+# SJSym is just a symbol, so this translates everything
 function Base.show(io::IO, s::SJSym)
     if symname(s) == :Pi
         Base.show_unquoted(io,:π)
@@ -50,6 +53,8 @@ function Base.show(io::IO, s::SJSym)
         Base.show_unquoted(io,:γ)
     elseif symname(s) == :Infinity
         Base.show_unquoted(io,:∞)
+    elseif symname(s) == :Gamma
+        Base.show_unquoted(io,:Γ)        
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
@@ -126,7 +131,7 @@ end
 function Base.show(io::IO, mx::Mxpr{:Comparison})
     args = mx.args    
     for i in 1:length(args)-1
-        show(io,args[i])
+        show(io, mtojsym(args[i])) # we do mtojsym just to get ≥, etc.
         print(io," ")
     end
     isempty(args) || show(io,args[end])
@@ -163,7 +168,7 @@ function show_binary(io::IO, mx::Mxpr)
             print(io,")")
         else
             show(io,lop)
-        end        
+        end
         print(io, opspc, mtojsym(mx.head), opspc)
         rop = mx.args[2]
         if  needsparen(rop)
