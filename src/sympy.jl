@@ -118,7 +118,7 @@ function make_sympy_to_sjulia()
 
     for funclist in (symbolic_misc, SJulia.no_julia_function, SJulia.no_julia_function_one_or_two_int,
                      SJulia.no_julia_function_two_args, SJulia.no_julia_function_two_or_three_args,
-                     SJulia.no_julia_function_three_args)
+                     SJulia.no_julia_function_four_args)
         for x in funclist
             sjulia_func, sympy_func = get_sympy_math(x)
             SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func

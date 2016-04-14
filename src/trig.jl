@@ -1,6 +1,8 @@
 ## Test implementing some math logic
 
 # The other trig functions are handled by sympy.
+# We find than Cos(Pi) is about 50 time faster than Sin(Pi), etc. in some tests
+# So it would be good to implement more of this in Julia
 
 @mkapprule Cos :nargs => 1
 do_Cos(mx::Mxpr{:Cos},x) = cos_one_arg(mx,x)

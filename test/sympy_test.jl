@@ -96,3 +96,10 @@ using Base.Test
 ## Series
 
 @testex Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
+
+## Orthoganal Polynomials, etc.
+
+@testex JacobiP(1,2,3,x)  == -1//2 + (7//2) * x
+
+## Trig 
+@testx Sin(Pi/4) == (1//2) * (2 ^ (1//2))

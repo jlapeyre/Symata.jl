@@ -688,6 +688,40 @@ Head(arg1,arg2,...). Normal output may use infix notation instead.
          ("FullForm(a+b)","Plus(a,b)"))
 # FullForm is handled in io.jl
 
+
+## Not
+
+@sjdoc Not "
+Not(expr) returns False if expr is True, and True if it is False. Not reduces some very simple logical expressions and otherwise
+remains unevaluated.
+"
+
+@mkapprule Not :nargs => 1
+
+# probably don't  need this one
+#do_Not(mx::Mxpr{:Not},ex) = ex == true ? false : ex == false ? true : mx
+
+do_Not(mx::Mxpr{:Not}, ex::Bool) = ex == true ? false : true
+
+do_Not{T<:Number}(mx::Mxpr{:Not}, ex::T) = mx
+
+const comparison_negations  = Dict(
+                               :<   =>  :>=,
+                               :>   =>  :<=,
+                               :<=  =>  :>,
+                               :>=  =>  :<,
+                               :(==)  =>  :!=,
+                               :!=  =>  :(==)
+                               )
+
+function do_Not(mx::Mxpr{:Not},  ex::Mxpr{:Comparison})
+    if length(ex) == 3
+        return mxpr(:Comparison, ex[1], comparison_negations[ex[2]], ex[3])
+    end
+    return mx
+end
+
+
 ## Comparison
 
 @sjdoc Comparison "

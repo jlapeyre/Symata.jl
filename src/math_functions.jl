@@ -160,7 +160,7 @@ const no_julia_function_two_args = [(:LegendreP, :legendre_poly), (:EllipticF, :
 
 const no_julia_function_two_or_three_args = [ (:EllipticPi, :elliptic_pi), (:LaguerreL, :laguerre_poly)]
 
-const no_julia_function_three_args = [ (:JacobiP, :jacobi) ]
+const no_julia_function_four_args = [ (:JacobiP, :jacobi) ]
 
 function make_math()
 
@@ -188,10 +188,11 @@ function make_math()
         write_sympy_apprule(x[1],x[2],2)
     end
 
-    for x in no_julia_function_three_args
+    for x in no_julia_function_four_args
+        nargs = 4
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 3)))
-        write_sympy_apprule(x[1],x[2],3)
+        eval(macroexpand( :( @mkapprule $sjf :nargs => $nargs)))
+        write_sympy_apprule(x[1],x[2],nargs)
     end
 
     
