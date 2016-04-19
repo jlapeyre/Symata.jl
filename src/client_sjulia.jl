@@ -43,6 +43,7 @@ function SJulia_start()
         term = Terminals.TTYTerminal(get(ENV,"TERM",@windows? "" : "dumb"),STDIN,STDOUT,STDERR)
         global is_interactive = true
         color_set || (global have_color = Terminals.hascolor(term))
+        Base.eval(parse("global have_color = " * string(have_color)))  # get colors for warn and error
         quiet || REPL.banner(term,term)
         if term.term_type == "dumb"
             active_repl = REPL.BasicREPL(term)
@@ -56,8 +57,6 @@ function SJulia_start()
                 # REPLDisplay
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
-
-    Base.eval(parse("global have_color = true"))  # get colors for warn and error
 
     if !isa(STDIN,TTY)
         # note: currently IOStream is used for file STDIN
