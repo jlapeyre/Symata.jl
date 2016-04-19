@@ -23,7 +23,6 @@ atreplinit, _atreplinit
 
 # See base/client.jl
 
-
 function SJulia_start()
     opts = Base.JLOptions()    
     startup               = (opts.startupfile != 2)
@@ -37,8 +36,6 @@ function SJulia_start()
     global active_repl
     global active_repl_backend
 
-#    repl = true
-    
     if !isa(STDIN,TTY)
         global is_interactive |= !isa(STDIN,Union{File,IOStream})
         color_set || (global have_color = false)
@@ -59,6 +56,8 @@ function SJulia_start()
                 # REPLDisplay
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
+
+    Base.eval(parse("global have_color = true"))  # get colors for warn and error
 
     if !isa(STDIN,TTY)
         # note: currently IOStream is used for file STDIN
