@@ -2,8 +2,10 @@
 
 SJulia is a a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of
-Mathematica. Evaluation and pattern matching are written in Julia. Much
-of the mathematics and symbolic manipulation is achieved by wrapping SymPy.
+Mathematica. Evaluation and pattern matching are written in
+Julia. Much of the mathematics and symbolic manipulation is achieved
+by wrapping SymPy. There are more than 300 functions implemented,
+including integration, expression manipulation, etc.
 
 ### Installing
 
@@ -19,16 +21,20 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 *Note*: `SJulia` depends on the Julia
 [`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4 (may need to disable compilation) and v0.5 branches of Julia. It will probably not work with v0.3.
 
-You can test  `Pkg.test("SJulia")`.
+You can test it with `Pkg.test("SJulia")`.
 
 #### SJulia Repl
 
-There is an SJulia command line (REPL) mode. You enter
-the mode by typing `=` as the first character on a line. Type backspace to exit the SJulia
+There is an SJulia command line (REPL) mode.  To use the mode, there
+is an executable `sjulia` included in this distribution. It is a (unix
+sh) shell script that just starts julia and loads the module. The REPL is also
+available simply by loading the module in a julia session.
+
+You enter the mode by typing `=` as the first character on a line. Type backspace to exit the SJulia
 mode.  In this mode, the input is not interpreted as Julia code, but rather SJulia code.
-You can do tab completion for builtin, Protected, symbols.
+You can do tab completion to see a list of functions and symbols.
 
 #### Some results.
 
@@ -88,22 +94,17 @@ Every time an element of `m` is accessed, the entire expression is reevaluated.
 SJulia is about 700 times faster generating `m`, and 85000 times
 faster retrieving a value. The latter time is mostly the difference between
 an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
-is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation)
+is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation.)
 Mathematica 3 is about two times faster than
-SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend, with a few
-functions implemented.)
-
-(There are caveats interpreting these results of course.
-Just to name three; 1) Mma 3 did not yet use GMP numbers, and the expansion is
-heavy on calculations with big integers. 2) SymPy `expand` handles more cases,
-which may increase time complexity.
-3) It seems that SymPy caches results, which consumes time upfront, but saves time later. Caching is currently
-disabled in SJulia.)
+SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend for `Expand'.
+The more limited, but faster native Julia expansion is available as `ExpandA'.
+(In practice, the translation of large expressions between SJulia and SymPy takes far more time than
+the SymPy calculation.)
 
 Here is SJulia doing expansion.
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
-sjulia> m = Expand((a+b)^BI(1000));   # expand with BigInt exponent
+sjulia> m = ExpandA((a+b)^BI(1000));   # expand with BigInt exponent
 elapsed time: 0.008785756 seconds
 
 sjulia> m[2]             # get a single value without re-evaluating
@@ -149,6 +150,8 @@ sjulia> Apply(Plus,a)
 elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
+
+
 
 #### Alternate way to evaluate SJulia expressions
 
@@ -210,7 +213,7 @@ a + b
 Using the SJulia mode or the `@ex` macro is essentially using a language distinct
 from Julia. In particular, the evaluation sequence, and binding of symbols to
 storage is separate from Julia. But there is also some work done on allowing
-use of SJulia directly from Julia. For instance, these
+use of SJulia directly from Julia. For instance, these commands
 
 ```julia
 julia> ex = :x + 1
@@ -221,28 +224,6 @@ a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 
 make Julia bindings of SJulia expressions to the symbols ex and m.
 
-Here are a few commands (or functions) (at the sjulia repl, or as a argument to the @ex macro).
-About 300 functions (really 'Heads') are implemented, many of them wrapping SymPy functions.
-
-* `SetJ(x,val)` set a Julia variable
-* `Clear(), ClearAll()` clear a symbol's value, or all associated rules, too.
-* `DownValues(x)` rules associated with x
-* `Attributes(x)` attributes of symbol x
-* `Dump(x)`
-* `Cos(x)`
-* `Length(x)`
-* `TraceOn()`
-* `TraceOff()`
-* `Replace(expr,rule)`
-* `ReplaceAll(expr,rule)`
-* `a = b` assignment
-* `a := b` delayed assignment
-* `f(x_) := x` delayed rule assignment
-
-There are also two older experiments in this distribution. Each one
-has test files that run and serve as examples. The instructions for
-loading the code and running the tests, are in the subdirs.
-
 #### More on Evaluation
 
 There are lines at the top of the file `src/mxpr.jl` to control evaluation. You can
@@ -252,7 +233,7 @@ useful at the moment.
 
 #### Pattern matching.
 
-Patterns are used in several places. Eg, you can make a replacement rule. Eg
+Patterns are used in several places. For example you can make a replacement rule like this
 
 ```julia
 sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1;
@@ -264,8 +245,9 @@ sjulia> Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)
 1
 ```
 
-A replacement rule is associated with the symbol `f` like this
+But, in practice, you would use `TrigSimp` or `Simplify`.
 
+`Functions` are really replacement rules.  A replacement rule is associated with the symbol `f` like this
 ```julia
 sjulia> f(x_) := x^2
 
@@ -279,108 +261,9 @@ is done.
 
 #### Upvalues
 
+"Upvalues" are (partially) implemented:
 ```julia
 sjulia> g(f(x_)) ^= x^2
 sjulia > g(f(z))
  z ^ 2
 ```
-
-You can see the evaluation sequence in `infseval` and `meval` in the code.
-
-#### Parsing and Syntax
-
-I use the Julia parser and reinterpret the results. Maybe there is an elegant enough
-way to get everything you need this way. But, copying and altering the
-parser might be better even though it adds more complication. Eg. Now, I can use curly
-braces for literal construction of lists, but get a deprecation warning. So I use
-square brackets.
-
-#### Data and dispatch
-
-Big question: how to use best Julia features, (multiple dispatch, and
-others) with this language ? There are of course numerous other
-questions.  Eg, how to handle integer overflow.
-
-Another thing, Mma offers no way to write code except in Mma. It
-should be possible to write user or quasi-user level code easily in
-Julia.
-
-Symbols are currently done this way (this is a bit outdated)
-
-```julia
-type SSJSym{T}  <: AbstractSJSym
-    val::Array{T,1}
-    attr::Dict{Symbol,Bool}    # attributes associated with the symbol
-    downvalues::Array{Any,1}  # These are transformation rules for the symbol
-    age::UInt64             # Time stamp, last time assignment or other changes were made
-end
-```
-
-Of course the attributes should probably be a bit field, or stored somewhere
-else. The downvalues field is a list of definitions like `f(x_) := x`. I am not
-yet using the symbol subtype (parameter) for dispatch.
-
-Expressions are done like this
-
-```julia
-type Mxpr{T} <: AbstractMxpr
-    head::SJSym
-    args::MxprArgs
-    fixed::Bool    # Does Mxpr evaluate to itself in current environment ?
-    canon::Bool    # Is Mxpr in canonical form ?
-    syms::FreeSyms # List of free symbols, whose timestamps we check
-    age::UInt64    # Timestamp of this Mxpr
-    key::UInt64    # Hash code
-    typ::DataType  # Not used
-end
-```
-
-At the moment, the field `head` and the parameter T are the same. Evaluation of
-expressions is dispatched by functions with type annotations for each head, such
-as `Mxpr{:Power}`.
-
-
-<!--  LocalWords:  julia src sjulia repl ClearAll SetJ DownValues jl
- -->
-<!--  LocalWords:  TraceOn TraceOff expr ReplaceAll subdirs symrepl
- -->
-<!--  LocalWords:  newrepl wrappermacro premxprcode Mathematica Eg di
- -->
-<!--  LocalWords:  matcher replaceall Mxpr oldmxpr SJSym SJulia meval
- -->
-<!--  LocalWords:  canonicalizer Orderless cossinrule  Mma BigInt arg
- -->
-<!--  LocalWords:  Fateman IIRC OTOOH else's matlab AbstractSJSym eg
- -->
-<!--  LocalWords:  Bool symname sjsym downvalues subtype AbstractMxpr
- -->
-<!--  LocalWords:  RuleDelayed addone lexically FloatingPoint tryrule
- -->
-<!--  LocalWords:  BuiltIns downvalue upvalue Maxima BuiltIn SymName
- -->
-<!--  LocalWords:  infseval SSJSym timestamps Timestamp TimeOff AtomQ
- -->
-<!--  LocalWords:  TimeOn TrDownOff TrDownOn TrUpOff TrUpOn EvenQ sym
- -->
-<!--  LocalWords:  OddQ Builtin BigFloat BigInts builtin ByteCount tf
- -->
-<!--  LocalWords:  UserSyms CompoundExpression DirtyQ timestamp HAge
- -->
-<!--  LocalWords:  Syms imax imin SetDelayed UpSet UpValues DumpHold
- -->
-<!--  LocalWords:  HoldPattern SomeHead FactorInteger incr Println gg
- -->
-<!--  LocalWords:  FullForm tbranch fbranch IntegerDigits JVar Jxpr
- -->
-<!--  LocalWords:  LeafCount NodeCount Dict's MatchQ myintq mx args
- -->
-<!--  LocalWords:  zz ie StringInterpolation StringLength countprimes
- -->
-<!--  LocalWords:  str HoldForm ToExpression ToString ToStringLength
- -->
-<!--  LocalWords:  DownRules UpRules unsets Unprotect PrimeQ HoldXXX
- -->
-<!--  LocalWords:  eval Mathics SymPy SJulia's GMP backend AddTo lim
- -->
-LocalWords:  ConstantArray regex metadata tol PCRE DataType TimesBy
-LocalWords:  PyCall Upvalues

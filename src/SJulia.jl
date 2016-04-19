@@ -42,7 +42,8 @@ include("sympy.jl")
 include("sympy_application.jl")
 include("LambertW.jl")
 include("protected_symbols.jl")
-include("sjulia_repl.jl")
+include("REPL_sjulia.jl")
+include("client_sjulia.jl")
 
 #include("code_in_SJulia.jl")   # This file probably conflicts with sympy math functions
 

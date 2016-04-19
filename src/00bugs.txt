@@ -17,3 +17,8 @@
   strip out the 'from sympyt import' part
 
 * We can't disable infseval because it does some computation.
+
+* Translation to and from SymPy is slow. For `Integrate' this is
+usually not a problem. But, manipulation (eg Expand) of large expressions
+may be hundreds of times faster in SymPy than the translation of the
+result.
