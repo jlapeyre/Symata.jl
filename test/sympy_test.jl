@@ -12,9 +12,15 @@ using Base.Test
 
 ## LaplaceTransform
 
-@testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
-@testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
-@testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
+# Use these if noconds=false
+# @testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
+# @testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
+# @testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
+
+@testex LaplaceTransform(t^a,t,s) == (s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a)
+@testex LaplaceTransform(Cos(t),t,s) == s * ((1 + s ^ 2) ^ -1)
+@testex LaplaceTransform(Exp(3*t),t,s) == (-3 + s) ^ -1
+
 @testex InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
 
 # This works for Cos
@@ -103,3 +109,9 @@ using Base.Test
 
 ## Trig 
 @testex Sin(Pi/4) == (1//2) * (2 ^ (1//2))
+
+@testex Integrate(DiracDelta(x-1), [x,-Infinity, Infinity]) == 1
+@testex Integrate(DiracDelta(x-1), [x,2, Infinity]) == 0
+@testex Integrate(DiracDelta(x-1), [x,-1000, 1000]) == 1
+@testex Head(DiracDelta(0)) ==  DiracDelta
+@testex DiracDelta(1) == 0

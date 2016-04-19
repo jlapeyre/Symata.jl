@@ -86,4 +86,10 @@ SJulia.@testex (a^2)^t == a^(2*t)
 
 @ex ClearAll(a,b,m,t,x,r,z,za,zb,c,h,y,z,A,Z)
 
+#### Float contagion
+
+@testex Head(3 * π) == Times
+@testex Head(3.0 * π) == Float64
+
+
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented

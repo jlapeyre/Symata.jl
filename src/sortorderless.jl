@@ -51,7 +51,7 @@ function _mklexorder()
     # for op in (:Plus,:Times,:Power)
     #     _jsoporder[op] = i
     #     i += 1
-    # end    
+    # end
 end
 
 _mklexorder()
@@ -85,7 +85,7 @@ lessblanknoname(x::Mxpr{:BlankSequence},y::Mxpr{:BlankNullSequence}) = false
 jslexless(x::Mxpr{:Pattern}, y::Mxpr{:Pattern}) = jslexless(x[1],y[1])
 
 for b in ("Blank","BlankSequence","BlankNullSequence")
-    for b1 in ("Blank","BlankSequence","BlankNullSequence")    
+    for b1 in ("Blank","BlankSequence","BlankNullSequence")
         @eval begin
             function jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($b1)})
                 blankname(x) == blankname(y) == "" && return lessblanknoname(x,y)
@@ -114,14 +114,14 @@ end
 for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
         @eval begin
-            jslexless(x::Mxpr{symbol($o)},y::Mxpr{symbol($b)}) = false            
+            jslexless(x::Mxpr{symbol($o)},y::Mxpr{symbol($b)}) = false
             jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($o)}) = true
         end
     end
     @eval begin
         jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
         jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
-    end        
+    end
 end
 
 # Try using Union type BlankXXX here. No, this causes ambiguity errors.
@@ -251,7 +251,7 @@ end
 # Sum (multiply) sequence of numbers in expression before sorting.
 # This only removes one consecutive run of numbers, but we repeat.
 for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
-    @eval begin    
+    @eval begin
         function ($name)(mx::Mxpr, n0::Int)
             args = margs(mx)
             len = length(args)
@@ -294,11 +294,11 @@ function loopnumsfirst!{T<:Orderless}(mx::T)
         (mx,m) =  numsfirst!(mx,m)
         (is_Number(mx) || m >= len) && return mx
         nlen = length(mx)
-        p = len - m        
+        p = len - m
         m = nlen - p
         len = nlen
     end
-end 
+end
 
 numsfirst!(mx::Mxpr{:Times},n) = mulfirst!(mx,n)
 numsfirst!(mx::Mxpr{:Plus},n) = plusfirst!(mx,n)
@@ -336,24 +336,112 @@ distribute_minus_one(x) = x
 
 #### canonexpr!
 
-canonexpr!{T<:Orderless}(mx::T) = canonexpr_orderless!(mx)
 
-function canonexpr!(mx::Mxpr)
-    if get_attribute(mx,:Orderless)
-        orderexpr!(mx)
-    end
-    mx
+immutable Times_analysis
+    gotFloat::Bool
+    isZero::Bool
+    isIndeterminate::Bool
+    isInfinity::Bool
+    isComplexInfinity::Bool
 end
 
+# For Plus we don't need to search for zero. Fix this.
+function analyze_operands{T<:Orderless}(mx::T)
+    ma = margs(mx)
+    gotFloat::Bool = false
+    gotZero::Bool = false
+    gotIndeterminate::Bool = false
+    gotInfinity::Bool = false
+    gotComplexInfinity::Bool = false
+    for i in 1:length(ma)
+        a = ma[i]
+        if is_Indeterminate(a)
+            gotIndeterminate = true
+            return  Times_analysis(gotFloat,gotZero,gotIndeterminate,gotInfinity,gotComplexInfinity)
+        end
+        if ! gotInfinity && is_Infintity(a) gotInfinity = true
+        elseif ! gotComplexInfinity && is_ComplexInfinity(a) gotComplexInfinity = true
+        elseif ! gotFloat && is_Float(a) gotFloat = true
+        elseif ! gotZero && a == 0 gotZero = true
+        end
+    end
+    if gotZero
+        if gotInfinity || gotComplexInfinity
+            gotIndeterminate = true
+            return  Times_analysis(false,false,gotIndeterminate,false,false)
+        else
+            isZero = true
+            return Times_analysis(gotFloat,isZero,false,false,false)
+        end
+    elseif gotInfinity
+        if gotComplexInfinity
+            isComplexInfinity = true
+            return Times_analysis(false,false,false,false,isComplexInfinity)
+        else
+            isInfinity = true
+            return Times_analysis(false,false,false,isInfinity,false)
+        end
+    elseif gotComplexInfinity
+        isComplexInfinity = true
+        return Times_analysis(false,false,false,false,isComplexInfinity)
+    end
+    return Times_analysis(gotFloat,gotZero,gotIndeterminate,gotInfinity,gotComplexInfinity)
+end
+
+# TODO: What to do about overflwo ?
+# maybe do the julia way. caveat emptor
+function whichinfinity(mx)
+    ma = margs(mx)
+    prod = BigInt(1)  # This won't be type stable :(
+    for i in 1:length(ma)
+        if is_Number(ma[i]) prod *= ma[i] end
+    end
+    prodsq = real(prod * conj(prod))
+    fac = mpow(prodsq,-1//2)
+#    println("prod $prod, prodsq $prodsq,  fac $fac")    
+    direction = prod*mpow(prodsq,-1//2)
+    return mxprcf(:DirectedInfinity, direction)
+end
+
+function canonexpr_orderless!(mx::Mxpr{:Times})
+    analysis = analyze_operands(mx)
+    if analysis.isIndeterminate return Indeterminate end
+    if analysis.isComplexInfinity return ComplexInfinity end
+    if analysis.isInfinity return whichinfinity(mx) end
+    if analysis.isZero return 0 end # Need to fix the type of zero
+    if analysis.gotFloat orderless_convert_to_float!(mx) end
+    _canonexpr_orderless!(mx)
+end
+
+function canonexpr_orderless!(mx::Mxpr{:Plus})
+    analysis = analyze_operands(mx)
+    if analysis.isIndeterminate return Indeterminate end
+    if analysis.isComplexInfinity return ComplexInfinity end
+    if analysis.isInfinity return whichinfinity(mx) end
+    if analysis.gotFloat orderless_convert_to_float!(mx) end
+    _canonexpr_orderless!(mx)
+end
+
+function orderless_convert_to_float!(mx)
+    ma = margs(mx)
+    for i in 1:length(ma)
+        x = ma[i]
+        if (! is_Number(x)) && is_Numeric(x)
+            ma[i] = do_N(x)
+        end
+    end
+    nothing
+end
+
+### This is not a "toplevel" function.
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
-function canonexpr_orderless!(mx)
-#    println("canon $mx")
+function _canonexpr_orderless!(mx)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
     is_Number(mx) && return mx
     mx = distribute_minus_one(mx)
     orderexpr!(mx)  # sort terms
-    if is_type_less(mx,Mxpr)        
+    if is_type_less(mx,Mxpr)
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
@@ -365,7 +453,16 @@ function canonexpr_orderless!(mx)
     end
     setcanon(mx)
     mx
-end 
+end
+
+canonexpr!{T<:Orderless}(mx::T) = canonexpr_orderless!(mx)
+
+function canonexpr!{T<:Mxpr}(mx::T)
+    if get_attribute(mx,:Orderless)
+        orderexpr!(mx)
+    end
+    mx
+end
 
 # We set fixed here, but not for orderless above. Which one is correct ?
 function canonexpr!(mx::Mxpr{:Power})
@@ -446,13 +543,24 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
             (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
-            $(fop == :mmul ? :(sum0 == 0 && return 0) : :())
+            $(fop == :mmul ? :(sum0 == 0 && return handle_coefficient_is_zero(mx,sum0)) : :())
             sum0 != $id && unshift!(a,sum0)
             length(a) == 1 && return a[1]
             @mdebug(3, $name, ": returning at end")
             return mx
         end
     end
+end
+
+# This is now handled earlier
+function handle_coefficient_is_zero(mx,sum0)
+    # a = margs(mx)
+    # for i in 1:length(a)
+    #     if is_Mxpr(a[i],:DirectedInfinity) ||  a[i] == Indeterminate
+    #         return Indeterminate
+    #     end
+    # end
+    return sum0
 end
 
 # Get numeric coefficient of expr. It is 1 if there is none.
@@ -482,7 +590,7 @@ end
 # split product n*expr into (n,expr) with numeric n. n may be 1
 function numeric_coefficient_and_factor(a)
     n = numeric_coefficient(a)
-    res = n == 1 ? (n,a) : (n,_rest!(a))    
+    res = n == 1 ? (n,a) : (n,_rest!(a))
     return res
 end
 

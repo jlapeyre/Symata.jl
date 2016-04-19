@@ -11,21 +11,10 @@ do_Cos(mx::Mxpr{:Cos},x) = cos_one_arg(mx,x)
 # This is overwritten now anyway
 # This does not work. But, If I eval it after starting SJulia, it does work
 # Should dispatch on number of args, anyway.
-apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,margs(mx)...) : mx
+# apprules(mx::Mxpr{:Sin}) = length(mx) == 1 ? sin_one_arg(mx,margs(mx)...) : mx
 
 Cos_pi_coeff{T<:Integer}(mx::Mxpr{:Cos},c::T) = iseven(c) ? 1 : -1
 
-## 1/Sqrt(2) and -1/Sqrt(2)
-# Making these constant does save a bit of time
-# We could do this in an more organized way.
-const _moosq2 = mmul(-1,mpow(2,-1//2))
-const _oosq2 = mpow(2,-1//2)
-mergesyms(_moosq2,:nothing)
-mergesyms(_oosq2,:nothing)
-setfixed(_moosq2)
-setcanon(_moosq2)
-setfixed(_oosq2)
-setcanon(_oosq2)
 
 ## Do multiples of pi/2, pi/3, and pi/4
 function Cos_pi_coeff{T<:Integer}(mx::Mxpr{:Cos},c::Rational{T})

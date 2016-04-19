@@ -13,30 +13,37 @@ using Base.Test
 @testex N(Cos(E),100) == :( cos(big(e)))
 
 @testex Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
-@testex Head(Arg(Complex(1,1))) == Arg
+@testex Arg(Complex(1,1)) == π/4
 
 @ex ClearAll(z)
 
-# Conflict between
-# function mpow{T<:Integer}(x::T,y::Rational) in arithmetic.jl, and
-# function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational) in apprules.jl
-# FIXME @testex Apply(List,(49*7*3*3)^(1/3)) == [7,3^(2//3)]
-
 @testex 27^(1/3) == 3
+
+# mpow in arithmetic.jl gets this wrong
 @testex 27^(2/3) == 9
+@testex (-27)^(2/3) == (-1) ^ (2//3) * 9
+@testex (-27)^(1/3) == 3 * (-1) ^ (1//3)
+# TODO: Fix domain error
+#  (-1)^(.455)
+
 @testex 3^0 == 1
 @test  typeof(@ex(3^0)) == Int  # bug fix
 
 @testex Apply(List,3^(1/2)) == [3,1//2]
 @testex 4^(1/2) == 2
-@testex Apply(List,28^(1/3)) == [28,1//3]
+@testex Apply(List, 28^(1/3)) == [7 ^ (1//3),2 ^ (2//3)]
+@testex Apply(List,(49*7*3*3)^(1/3)) == [7,3^(2//3)]
 @testex 27^(1/3) == 3
+@testex Chop((-1.0)^(1//3) - (0.5 + 0.8660254037844387 * I)) == 0
+@testex Chop(N((-1)^(1//3)) - (0.5 + 0.8660254037844387 * I)) == 0
+
+
 @testex Log(2,8) == 3
 @testex Apply(List,Log(2,9)) == [2,9]
 
 @testex Cos(0) == 1
 
-@testex Abs(Cos(1.0 + 2.0 * I) - (2.0327230070196656 + -3.0518977991518 * I)) < 10.0^(-5)
+@testex Chop(Abs(Cos(1.0 + 2.0 * I) - (2.0327230070196656 + -3.0518977991518 * I))) == 0
 @testex Cos(Pi) == -1
 @testex Cos(Pi/2) == 0
 @testex Cos(3*Pi/2) == 0

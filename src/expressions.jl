@@ -286,9 +286,11 @@ apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
 do_Apply(mx,f) = mx
 do_Apply(mx,x,y) = mx
 
+# Does not get Apply(Times, [DirectedInfinity(),a,a,a,0]) correct.
 function do_Apply(mx::Mxpr,h::SJSym,mxa::Mxpr)
     if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
-        mx = mxpr(h,copy(margs(mxa)))
+#        mx = mxpr(h,copy(margs(mxa)))
+        mx = mxpr(h,margs(mxa))
         mx = canonexpr!(mx)
         setcanon(mx)
     else

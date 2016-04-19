@@ -21,23 +21,48 @@ is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
 is_Real{T<:Real}(mx::T) = true
 is_Real(x) = false
+
 is_Complex{T<:Real}(x::Complex{T}) = true
 is_Complex(x) = false
+
+is_Float{T<:AbstractFloat}(x::T) = true
+is_Float(x) = false
 
 is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
 is_imaginary_integer(x) = false
 
-atomq(x::Mxpr) = false
+atomq{T<:Mxpr}(x::T) = false
 atomq(x) = true
 
-#function is_indexable(x)
-#end
+is_Indeterminate(x::Symbol) = x == Indeterminate
+is_Indeterminate(x) = false
+
+is_Infintity(x) = false
+is_Infintity(mx::Mxpr{:DirectedInfinity}) = length(mx) > 0 && mx[1] == 1 ? true : false
+
+is_ComplexInfinity(x) = false
+is_ComplexInfinity(mx::Mxpr{:DirectedInfinity}) = length(mx) == 0 ? true : false
+
+is_Constant(x::SSJSym) = haskey(x.atrr,:Constant)
+
+function is_Constant(x::Symbol)
+    sjsym = getssym(x)
+    haskey(sjsym.attr,:Constant)
+end
+is_Constant(x) = false
 
 typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 is_blankxxx{T<:BlankXXX}(mx::T) = true
-is_blankxxx(x::Mxpr) = false
+is_blankxxx{T<:Mxpr}(x::T) = false
 
 ###  SJulia Predicates
+
+@mkapprule ConstantQ :nargs => 1
+
+# This one is not used
+#do_ConstantQ(mx::Mxpr{:ConstantQ}, s::SSJSym) = is_Constant(s)
+do_ConstantQ(mx::Mxpr{:ConstantQ}, s::Symbol) = is_Constant(s)
+do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = false
 
 @sjdoc AtomQ "
 AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
@@ -63,3 +88,26 @@ is more recent than the timestamp of m. This is for diagnostics.
 apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
 do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
 do_syms(s) = mxpr(:List,)
+
+#### NumericQ
+
+@mkapprule NumericQ  :nargs => 1
+@sjdoc NumericQ "
+NumericQ(expr) returns true if N(expr) would return a number.
+"
+do_NumericQ(mx::Mxpr{:NumericQ}, x) = is_Numeric(x)
+is_Numeric(x) = false
+is_Numeric{T<:Number}(x::T) = true
+is_Numeric(x::Symbol) = is_Constant(x)
+function is_Numeric{T<:Mxpr}(x::T)
+    get_attribute(x,:NumericFunction) || return false
+    for i in 1:length(x)
+        is_Numeric(x[i]) || return false
+    end
+    return true
+end
+
+#### IntegerQ
+@mkapprule IntegerQ :nargs => 1
+do_IntegerQ{T<:Integer}(mx::Mxpr{:IntegerQ}, x::T) = true
+do_IntegerQ(mx::Mxpr{:IntegerQ}, x) = false

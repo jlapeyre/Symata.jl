@@ -1,8 +1,7 @@
 module SJuliaIO
 
 import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
-       symname, mhead, margs, is_type, getoptype,
-       mtojsym
+       symname, mhead, margs, is_type, getoptype, mtojsym, mxpr, mxprcf, Infinity
 
 # A space, or maybe not.
 const opspc = " "
@@ -12,6 +11,8 @@ const FUNCL = '('
 const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
+
+const Istring = "𝕚"
 
 function fullform(io::IO, mx::Mxpr)
     print(io,mhead(mx))
@@ -28,6 +29,7 @@ fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
 needsparen{T<:Integer}(x::Rational{T}) = true
+needsparen{T<:Integer}(x::T) = x < 0
 needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
 
@@ -54,7 +56,9 @@ function Base.show(io::IO, s::SJSym)
     elseif symname(s) == :Infinity
         Base.show_unquoted(io,:∞)
     elseif symname(s) == :Gamma
-        Base.show_unquoted(io,:Γ)        
+        Base.show_unquoted(io,:Γ)
+    elseif symname(s) == :I
+        Base.show_unquoted(io, :𝕚)                
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
@@ -73,7 +77,7 @@ function Base.show{T<:Real}(io::IO, z::Complex{T})
     show(io,real(z))
     print(io," + ")
     show(io,imag(z))
-    print(io,"I")    
+    print(io,Istring)    
 end
 
 # Do not display real part if it is 0
@@ -83,10 +87,10 @@ function Base.show{T<:Integer}(io::IO, z::Complex{T})
         print(io," + ")
     end
     if imag(z) == 1
-        print(io,"I")
+        print(io,Istring)
     else
         show(io,imag(z))
-        print(io,"I")
+        print(io,Istring)
     end
 end
 
@@ -96,10 +100,24 @@ function Base.show{T<:Integer}(io::IO, z::Complex{Rational{T}})
         print(io," + ")
     end
     if imag(z) == 1
-        print(io,"I")
+        print(io,Istring)
     else
         show(io,imag(z))
-        print(io,"I")
+        print(io,Istring)
+    end
+end
+
+function  Base.show(io::IO, mx::Mxpr{:DirectedInfinity})
+    if length(mx) == 0
+        Base.show(io, :ComplexInfinity)
+    elseif mx[1] == 1
+        Base.show(io, :Infinity)
+    elseif mx[1] == -1
+        Base.show(io, mxprcf(:Times, -1, Infinity))
+    else
+        print(io, "DirectedInfinity(")
+        print(io, mx[1])
+        print(io, ")")
     end
 end
 
@@ -161,7 +179,7 @@ function show_binary(io::IO, mx::Mxpr)
     if length(mx) != 2
         show_prefix_function(io,mx)
     else
-        lop = mx.args[1]
+        lop = mx[1]
         if needsparen(lop)
             print(io,"(")
             show(io,lop)
@@ -169,8 +187,8 @@ function show_binary(io::IO, mx::Mxpr)
         else
             show(io,lop)
         end
-        print(io, opspc, mtojsym(mx.head), opspc)
-        rop = mx.args[2]
+        print(io, opspc, mtojsym(mhead(mx)), opspc)
+        rop = mx[2]
         if  needsparen(rop)
             print(io,"(")
             show(io,rop)

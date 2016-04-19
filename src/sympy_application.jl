@@ -1,19 +1,50 @@
-using SJulia.JSymPy
+#using SJulia.JSymPy
 using PyCall
+
+# TODO: check number of args, etc.
+# TODO: some do not take kwargs. don't waste time looking for them.
+macro make_simplify_func(mxprsym, sympyfunc)
+    smxprsym = string(mxprsym)[2:end]
+    ssympyfunc = string(sympyfunc)
+    esc(quote
+        function apprules(mx::Mxpr{$mxprsym})
+              kws = Dict()
+              nargs = mxpr2sympy_kw(mx,kws)
+              if (length(kws) > 0 )
+                 sres = sympy.$sympyfunc(nargs...; kws...) |> sympy2mxpr
+              else
+                 sres = sympy.$sympyfunc(nargs...) |> sympy2mxpr        
+              end
+              deepsetfixed(sres)
+              sres
+        end
+        set_pattributes( [$smxprsym], :Protected)
+#        println("register_sjfunc_pyfunc(", $smxprsym, " ", $ssympyfunc)
+        register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
+    end)
+end
+
 
 #### Factor
 
 @sjdoc Factor "
 Factor(expr) factors expr. This function calls SymPy.
 "
-apprules(mx::Mxpr{:Factor})  = mx[1] |> mxpr2sympy |> sympy.factor |> sympy2mxpr
+
+#apprules(mx::Mxpr{:Factor})  = mx[1] |> mxpr2sympy |> sympy.factor |> sympy2mxpr
+
+@make_simplify_func :Factor factor
 
 #### Expand
 
 @sjdoc Expand "
-Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable.
+Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable,
+ but slower than ExpandA.
 "
-apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand  |> sympy2mxpr
+
+@make_simplify_func :Expand expand
+
+#apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand  |> sympy2mxpr
 
 #### Limit
 
@@ -34,47 +65,82 @@ Integrate(expr, x) gives the indefinite integral of expr with respect to x.
 Integrate(expr, [x,a,b]) gives the definite integral.
 "
 
-apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
-
+#apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
 function do_Integrate(mx::Mxpr{:Integrate},expr)
-    pymx = mxpr2sympy(expr)    
+    pymx = mxpr2sympy(expr)
     pyintegral = sympy.integrate(pymx)
-    return sympy2mxpr(pyintegral)    
+    return sympy2mxpr(pyintegral)
 end
 
 function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pymx = mxpr2sympy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
+    sjres = sympy2mxpr(pyintegral)
+    deepsetfixed(sjres)
+end
+
+function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
+    pymx = mxpr2sympy(expr)
+    pyintegral = sympy.integrate(pymx; kws)
     return sympy2mxpr(pyintegral)
 end
+
+function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr, varspecs...)
+    pymx = mxpr2sympy(expr)
+    pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
+    # println("expr ", pymx)
+    # println("pvar ", pyvarspecs)
+    # println("kw ", kws)
+    pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
+    sjres = sympy2mxpr(pyintegral)
+    deepsetfixed(sjres)    
+end
+
+# FIXME: we do deepsetfixed and a symbol Int is returned. If we pull it out,
+# it is evaluated to Infinity[1] somehow. Maybe this is positive float Inf
+function apprules(mx::Mxpr{:Integrate})
+    kws = Dict()
+    nargs = separate_rules(mx,kws)
+    if length(kws) == 0
+        do_Integrate(mx,margs(mx)...)
+    else
+        do_Integrate_kws(mx,kws,nargs...)
+    end
+end
+
+register_sjfunc_pyfunc("Integrate", "integrate")
+
+# # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
+# function do_Integrate(mx::Mxpr{:Integrate},expr)
+#     pymx = mxpr2sympy(expr)
+#     pyintegral = sympy.integrate(pymx)
+#     return sympy2mxpr(pyintegral)
+# end
+
+# function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
+# #    kws = Dict()
+# #    nargs = mxpr2sympy_kw(mx,kws)
+#     pymx = mxpr2sympy(expr)
+#     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
+#     pyintegral = sympy.integrate(pymx,pyvarspecs...)
+#     sjres = sympy2mxpr(pyintegral)
+#     deepsetfixed(sjres)
+# end
 
 #### LaplaceTransform
 
 @sjdoc LaplaceTransform "
 LaplaceTransform(expr, t, s) gives the Laplace transform of expr.
-This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>a is the half-plane of convergence, and cond are auxiliary convergence conditions.
+This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>a is the half-plane of convergence, and cond are auxiliary convergence conditions. (This additional information is currently disabled.)
 "
 
-apprules(mx::Mxpr{:LaplaceTransform}) = sympy.laplace_transform(mxpr2sympy(margs(mx))...) |> sympy2mxpr
-
-#### InverseLaplaceTransform
-
-@sjdoc InverseLaplaceTransform "
-InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
-"
-
-function apprules(mx::Mxpr{:InverseLaplaceTransform})
-    result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
-    sjresult = sympy2mxpr(result)
-    if mhead(sjresult) == :InverseLaplaceTransform
-        setfixed(sjresult)  
-        if mhead(margs(sjresult)[end]) == :Dummy
-            pop!(margs(sjresult)) # we may also want to strip the Dummy()
-        end
-    end
-    sjresult
+function apprules(mx::Mxpr{:LaplaceTransform})
+    kws = Dict( :noconds => true )
+    nargs = mxpr2sympy_kw(mx,kws)
+    pyres = @try_sympyfunc laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
+    pyres |> sympy2mxpr 
 end
 
 #### InverseLaplaceTransform
@@ -87,13 +153,31 @@ function apprules(mx::Mxpr{:InverseLaplaceTransform})
     result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
     sjresult = sympy2mxpr(result)
     if mhead(sjresult) == :InverseLaplaceTransform
-        setfixed(sjresult)  
+        setfixed(sjresult)
         if mhead(margs(sjresult)[end]) == :Dummy
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
     end
     sjresult
 end
+
+# #### InverseLaplaceTransform
+
+# @sjdoc InverseLaplaceTransform "
+# InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
+# "
+
+# function apprules(mx::Mxpr{:InverseLaplaceTransform})
+#     result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
+#     sjresult = sympy2mxpr(result)
+#     if mhead(sjresult) == :InverseLaplaceTransform
+#         setfixed(sjresult)
+#         if mhead(margs(sjresult)[end]) == :Dummy
+#             pop!(margs(sjresult)) # we may also want to strip the Dummy()
+#         end
+#     end
+#     sjresult
+# end
 
 #### FourierTransform
 # TODO, pass options (rules)
@@ -112,7 +196,7 @@ function apprules(mx::Mxpr{:InverseFourierTransform})
     result = sympy.inverse_fourier_transform(map(mxpr2sympy, margs(mx))...)
     sjresult = sympy2mxpr(result)
     if mhead(sjresult) == :InverseFourierTransform
-        setfixed(sjresult)  
+        setfixed(sjresult)
         if mhead(margs(sjresult)[end]) == :Dummy
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
@@ -171,8 +255,8 @@ function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
         else
             push!(pyspec,mxpr2sympy(dspec))
         end
-    end    
-    pyseries = sympy.series(pymx,pyspec...)    
+    end
+    pyseries = sympy.series(pymx,pyspec...)
     return sympy2mxpr(pyseries)
 end
 
@@ -198,9 +282,7 @@ function apprules(mx::Mxpr{:D})
             push!(pyspec,mxpr2sympy(dspec))
         end
     end
-#    println("$pymx, $pyspec")
     pyderivative = sympy.diff(pymx,pyspec...)
-#    println("$pyderivative")
     return sympy2mxpr(pyderivative)
 end
 
@@ -222,28 +304,49 @@ apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> sympy2mxpr
 #### Simplify
 
 @sjdoc Simplify "
-Simplify(expr) rewrites expr in a simpler form.
+Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword options kw1, ...
 "
-apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> sympy2mxpr
+
+#apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> sympy2mxpr
+
+
+@make_simplify_func :Simplify simplify
+@make_simplify_func :TrigSimp trigsimp
+@make_simplify_func :RatSimp ratsimp
+@make_simplify_func :RadSimp radsimp
+@make_simplify_func :PowSimp powsimp
+@make_simplify_func :PowDenest powdenest
+@make_simplify_func :LogCombine logcombine
+#@make_simplify_func :Separate separate
+@make_simplify_func :SeparateVars separatevars
+@make_simplify_func :BesselSimp besselsimp
+@make_simplify_func :HyperSimp hypersimp
+@make_simplify_func :HyperExpand hyperexpand
+@make_simplify_func :NSimplify nsimplify
+@make_simplify_func :CombSimp combsimp
+@make_simplify_func :SqrtDenest sqrtdenest
+@make_simplify_func :Cse cse
+#@make_simplify_func :OptCse opt_cse  maybe renamed cse_opts
+#@make_simplify_func :CollectSqrt collectsqrt apparently gone
+
 
 @sjdoc TrigSimp "
 TrigSimp(expr) does trigonometric simplification.
 "
-apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> sympy2mxpr
+#apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> sympy2mxpr
 
 @sjdoc RatSimp "
 Put an expression over a common denominator, cancel and reduce.
 "
-apprules(mx::Mxpr{:RatSimp}) = mx[1] |> mxpr2sympy |> sympy.ratsimp |> sympy2mxpr
+#apprules(mx::Mxpr{:RatSimp}) = mx[1] |> mxpr2sympy |> sympy.ratsimp |> sympy2mxpr
 
 @sjdoc RadSimp "
 Rationalize the denominator.
 "
-apprules(mx::Mxpr{:RadSimp}) = mx[1] |> mxpr2sympy |> sympy.radsimp |> sympy2mxpr
-
-apprules(mx::Mxpr{:PowSimp}) = mx[1] |> mxpr2sympy |> sympy.powsimp |> sympy2mxpr
-apprules(mx::Mxpr{:LogCombine}) = mx[1] |> mxpr2sympy |> sympy.logcombine |> sympy2mxpr
-apprules(mx::Mxpr{:Separate}) = mx[1] |> mxpr2sympy |> sympy.separate |> sympy2mxpr
+#apprules(mx::Mxpr{:RadSimp}) = mx[1] |> mxpr2sympy |> sympy.radsimp |> sympy2mxpr
+# apprules(mx::Mxpr{:PowSimp}) = mx[1] |> mxpr2sympy |> sympy.powsimp |> sympy2mxpr
+# apprules(mx::Mxpr{:LogCombine}) = mx[1] |> mxpr2sympy |> sympy.logcombine |> sympy2mxpr
+# apprules(mx::Mxpr{:Separate}) = mx[1] |> mxpr2sympy |> sympy.separate |> sympy2mxpr
 
 #### FullSimplify
 
@@ -276,6 +379,8 @@ do_Collect(mx,expr,x) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy ) |> s
 do_Collect(mx,expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy , list |> mxpr2sympy) |> sympy2mxpr
 do_Collect(mx,args...) = mx
 
+register_sjfunc_pyfunc("Collect", "collect")
+
 #### Solve
 
 @sjdoc Solve "
@@ -289,7 +394,10 @@ do_Solve(mx, expr) = expr |> mxpr2sympy |> sympy.solve |> sympy2mxpr
 function do_Solve(mx, expr, var::Symbol)
     pyexpr = expr |> mxpr2sympy
     pyvar = var |> mxpr2sympy
-    sympy.solve(pyexpr,pyvar) |>  sympy2mxpr
+    res =     sympy.solve(pyexpr,pyvar)
+#    println(res)
+#    println(typeof(res))
+    res |>  sympy2mxpr
 end
 
 function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
@@ -297,6 +405,8 @@ function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
     pyvars = vars |> mxpr2sympy
     sympy.solve(peqs,pyvars) |>  sympy2mxpr
 end
+
+register_sjfunc_pyfunc("Solve", "solve")
 
 # This is broken
 apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
@@ -312,12 +422,15 @@ of lists. The two elements of each sublist give the root and its multiplicity.
 #apprules(mx::Mxpr{:Roots}) = do_Solve(mx,margs(mx)...)
 apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> sympy2mxpr  |> SJulia.unpack_to_List
 
+register_sjfunc_pyfunc("Roots", "roots")
+
 #### RealRoots
 @sjdoc RealRoots "
 RealRoots(expr) solves for the real roots of expr.
 "
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> sympy2mxpr
 
+register_sjfunc_pyfunc("RealRoots", "real_roots")
 
 #### ToSymPy
 
@@ -338,8 +451,6 @@ ToSJulia(expr) converts the python PyObject expr to an SJulia expression.
 do_ToSJulia(mx::Mxpr,expr::PyCall.PyObject) = sympy2mxpr(expr)
 do_ToSJulia(mx::Mxpr,expr) = expr
 do_ToSJulia(mx::Mxpr,x...) = mxpr(:List,x)
-
-
 
 ## utility
 

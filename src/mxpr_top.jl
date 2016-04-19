@@ -51,6 +51,7 @@ jtomsym(x) = extomx(x)
 MTOJSYM[:Span] = :(:)
 MTOJSYM[:>=] = :≥
 MTOJSYM[:<=] = :≤
+MTOJSYM[:!=] = :≠
 
 # Inverse of translations already present in MTOJSYM will be recorded
 # (compiler reports that the second method overwrites the first, which seems to be true.

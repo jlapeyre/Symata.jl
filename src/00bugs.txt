@@ -1,5 +1,4 @@
 * expr(3:4) does not always work
-* ToSymPy(Sin(I)) throws error
 * If needs third branch
 
 * Not true, or no longer:
@@ -7,4 +6,14 @@
   the number of arguments that have the form of a square.
   This does work: MatchQ( b^2, _^2)
 
-* implement Chop()
+* Reducing Times[]. When we get Infinity, we need to check for the numeric
+  coefficient, so we can return DirectedInfinity[-1].
+  How to do this efficiently ? We should probably compute the numeric part
+  of the product as we do the analysis and then write a new array with only
+  the non-numeric parts and work from there.  So, the entire procedure of
+  removing numbers in sweeps will be replaced.
+
+* Print sympy doc if no sjulia doc is available. Maybe even
+  strip out the 'from sympyt import' part
+
+* We can't disable infseval because it does some computation.

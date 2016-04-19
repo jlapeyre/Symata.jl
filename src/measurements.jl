@@ -37,7 +37,7 @@ end
 jssizeof(x) = sizeof(x)
 # I think they are 64 bit chunks
 jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
-Base.sizeof(a::Symbol) = int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
+Base.sizeof(a::Symbol) = Int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
 byte_count(x) = jssizeof(x)
 function byte_count(mx::Mxpr)
     count::Int = jssizeof(mx)

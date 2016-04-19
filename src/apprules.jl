@@ -55,6 +55,9 @@ function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
     make_warn_code_from_string(warnstring, nspec)
 end
 
+# TODO. Handle other types of nspec
+make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec) =  :( mx )
+
 make_warn_code(headstr::AbstractString, d::Dict) = make_warn_code(headstr, d,  d[:nargs])
 
 
@@ -149,13 +152,8 @@ rather to the current value of b every time a is evaluated.
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
-function apprules(mx::Mxpr{:Set})
-    do_set(mx,mx[1],mx[2])
-end
-
-function apprules(mx::Mxpr{:SetDelayed})
-    setdelayed(mx,margs(mx,1),margs(mx,2))
-end
+apprules(mx::Mxpr{:Set}) = do_set(mx,mx[1],mx[2])
+apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
 # so we look up the original in the table
@@ -299,9 +297,7 @@ end
 UpSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
 "
 
-function apprules(mx::Mxpr{:UpSet})
-    upset(mx,margs(mx,1),margs(mx,2))
-end
+apprules(mx::Mxpr{:UpSet}) = upset(mx,mx[1],mx[2])
 
 function upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
@@ -439,7 +435,7 @@ types, the length is zero. For Array's and Dict's the length is the same as
 Julia `length'.
 "
 
-apprules(mx::Mxpr{:Length}) = symjlength(margs(mx,1))
+apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
 symjlength(mx::Mxpr) = length(margs(mx))
 symjlength(x) = length(x)
 
@@ -527,7 +523,7 @@ Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one lev
 a quoted Julia expression is evaluated so that we can embed Julia code.
 "
 
-apprules(mx::Mxpr{:Head}) = gethead(margs(mx,1))
+apprules(mx::Mxpr{:Head}) = gethead(mx[1])
 gethead(mx::Mxpr) = mhead(mx)
 gethead(s::SJSym) = getsym(:Symbol)
 gethead(ex) = typeof(ex)
@@ -538,7 +534,7 @@ the attribute Protected, and may have others, including HoldFirst, SequenceHold,
 HoldRest, HoldAll, ReadProtected, Constant, Locked, Flat, Listable, NumericFunction,
 OneIdentity.
 "
-apprules(mx::Mxpr{:Attributes}) = get_attributesList(margs(mx,1))
+apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 
 function get_attributes(sj::SJSym)
     ks = sort!(collect(Any, keys(symattr(sj))))
@@ -560,7 +556,7 @@ that are typically set with the declarative \"function definition\".
          ("ClearAll(f)",""),
          ("f(x_) := x^2",""),
          ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:DownValues}) = listdownvalues(margs(mx,1))
+apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx[1])
 
 
 #### UpValues
@@ -574,7 +570,7 @@ that are typically set with UpSet.
 #          ("ClearAll(f)",""),
 #          ("f(x_) := x^2",""),
 #          ("UpValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:UpValues}) = listupvalues(margs(mx,1))
+apprules(mx::Mxpr{:UpValues}) = listupvalues(mx[1])
 
 #### Example
 
@@ -787,6 +783,7 @@ function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
     eval(Expr(:comparison,a,comp,b)) # This will be slow.    
 end
 
+# a == a  --> True, etc.  for unbound a
 function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
     if comp == :(==)
         res = a == b
@@ -794,6 +791,12 @@ function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp
     elseif comp == :(!=)
         res = a == b
         res && return false
+    elseif comp == :(>=)  # Julia says  :a <= :b because symbols are ordred lexicographically
+        res = a == b      # We don't want this behavior
+        res && return res
+    elseif comp == :(<=)
+        res = a == b
+        res && return res
     elseif comp == :(===)
         return a === b
     end
@@ -828,7 +831,8 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
 end
 
 _do_Comparison{T<:SJReal}(a::Symbol, comp::Symbol, b::T) = nothing
-_do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
+_do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
+#_do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
 _do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
 _do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
 
@@ -887,22 +891,49 @@ function apprules(mx::Mxpr{:Power})
 end
 
 # TODO: Make sure Rationals are simplified
-do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},b::T,e::V) = mpow(b,e)
+do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},b::T,expt::V) = mpow(b,expt)
 do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power},b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+
 do_Power{T<:Real}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+
 do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
 do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::T) = b == :E ? exp(expt) : mx
 do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
+do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+do_Power{T<:Number}(mx::Mxpr{:Power},b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+
+# Finish this sometime
+# do_Power{T<:Real,V<:AbstractFloat}(mx::Mxpr{:Power}, b::T, expt::V)
+
+# This conflicts with mpow in arithmetics.jl
 #
 # Check if the exact answer is an integer.
-function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,e::V)
-    res = b^e
+function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,expt::V)
+    mpow(b,expt)
+end
+
+function disabledo_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,exp::V)
+    gotneg::Bool = false
+    b == -1 && return mx
+    if b < 0
+        gotneg = true
+        b *= -1
+    end
+    res = b^exp
     ires = round(T,res)
-    nrat = Rational(den(e),num(e))
-    return ires^nrat == b ? ires : mx
+    nrat = Rational(den(exp),num(exp))
+    if ires^nrat == b
+        if gotneg
+            return ires == 1 ? mxprcf(:Power, -1, exp) : mxprcf(:Times, ires, mxprcf(:Power, -1, exp))
+        else
+            return ires
+        end
+    else
+        return mx
+    end 
 end
 
 do_Power(mx,b,e) = mx
@@ -1055,7 +1086,7 @@ do_TimeOn(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
 
 @mkapprule TimeOff  :nargs => 0
 
-apprules(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
+do_TimeOff(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
 
 @sjdoc TrDownOn "
 TrDownOn() enables tracing attempted applications of DownRules.

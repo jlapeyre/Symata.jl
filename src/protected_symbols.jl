@@ -8,10 +8,6 @@
 # want to allow that they be bound to functions, instead, in files
 # loaded before this one.
 
-set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
-set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
-set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
-
 set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo"], :HoldFirst)
 
 set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold",
@@ -45,9 +41,12 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
 # We kinda need Exp, see the apprules.
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
                  "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp",
-                 "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi"
+                 "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
+                 "Sign", "SphericalHarmonicY"
                  ],
                 [:Listable,:NumericFunction])
+
+set_pattributes(["MeijerG", "HypergeometricPFQ"], [:NumericFunction])
 
 set_pattributes(["HeavisideTheta"],
                 [:Listable, :Orderless])
@@ -57,25 +56,67 @@ set_pattributes(["Plus", "Times"],
 
 set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
-set_pattributes(["EvenQ","OddQ","Range","Limit", "Together", "Apart"],[:Listable])
+# This is not quite what Mma has for these. I don't understand why. Eg. CosIntegral is not a NumericFunction
+# Many are not Listable in the docs, although they are in practice.
+set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS",
+                 "HarmonicNumber", "BellB"],
+                [:Listable,:NumericFunction,:ReadProtected])
+
+set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic"]
+                ,[:Listable])
+
+set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
+
+set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc"],
+                :Protected)
 
 # Of course, these need to be organized!
-set_pattributes(["Age","All","Apply","Dump", "Length","Blank","BlankSequence","BlankNullSequence",
-          "JVar", "MatchQ", "AtomQ", "Println","Keys",
-          "Replace", "ReplaceAll", "ReplaceRepeated", "TraceOn","TraceOff","FullForm", "Expand",
-          "BI", "BF", "Big", "BuiltIns", "Symbol", "Pack", "Unpack","Example","Fixed",
-          "UserSyms", "List","Syms", "Sequence", "Map",
-          "Comparison", "DirtyQ", "Flat", "Listable", "Head", "Integer", "ListQ",
-          "Orderless","NumericFunction","OneIdentity", "!=", "//", ">","==",
-          "<", "<=","nothing","N","Unfix", "ExpToTrig",
-          "String", "StringLength", "StringQ", "ToString", "StringJoin", "Protected", "TimeOn", "TimeOff",
-          "TrUpOn","TrUpOff","TrDownOn","TrDownOff", "Numerator",
-          "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
-          "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
-          "Simplify", "FullSimplify","RatSimp", "Solve", "Roots", "RealRoots",
-"TrigSimp", "Cancel","Collect", "ToSJulia", "ToSymPy", "Series", "Not", "Null",
-"None",
-                 "ans" # protect ans to keep it out of user symbols
-           ],
-                :Protected)
-                
+
+set_pattributes([
+                  "!=","//","<","<=","==",">","Age","All","Apply","AtomQ",
+                  "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
+                  "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
+                  "Complex","ComplexInfinity","ConstantArray","ConstantQ",
+                  "Depth","DirtyQ","Dump","Example","ExpToTrig","Expand",
+                  "Factor","FactorInteger","Fixed","Flat","Float64","FullForm",
+                  "FullSimplify","Head","Help","Indeterminate","Infinity",
+                  "Int64","Integer","IntegerDigits","JVar","Keys","LeafCount",
+                  "Length","List","ListQ","Listable","Map","MatchQ","N",
+                  "None","Not","Null","Numerator","NumericFunction","NumericQ",
+                  "OneIdentity","Orderless","Pack","Permutations","Precision",
+                  "Primes","Println","Protected","RatSimp","Rational","RealRoots",
+                  "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
+                  "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
+                  "StringLength","StringQ","Symbol","Syms","TimeOff","TimeOn",
+                  "ToSJulia","ToString","ToSymPy","TrDownOff","TrDownOn","TrUpOff",
+                  "TrUpOn","TraceOff","TraceOn","TrigSimp","Unfix","Unpack",
+                  "UserSyms","ans","nothing"], :Protected)
+
+
+# set_pattributes([ "Age","All","Apply","Dump",
+#                  "Length","Blank","BlankSequence","BlankNullSequence",
+#                  "JVar", "MatchQ", "AtomQ", "Println","Keys",
+#                  "Replace", "ReplaceAll", "ReplaceRepeated",
+#                  "TraceOn","TraceOff","FullForm", "Expand", "BI",
+#                  "BF", "Big", "BuiltIns", "Symbol", "Pack",
+#                  "Unpack","Example","Fixed", "UserSyms",
+#                  "List","Syms", "Sequence", "Map", "Comparison",
+#                  "DirtyQ", "Flat", "Listable", "Head", "Integer",
+#                  "ListQ", "Orderless","NumericFunction","OneIdentity",
+#                  "!=", "//", ">","==", "<",
+#                  "<=","nothing","N","Unfix", "ExpToTrig", "String",
+#                  "StringLength", "StringQ", "ToString", "StringJoin",
+#                  "Protected", "TimeOn", "TimeOff",
+#                  "TrUpOn","TrUpOff","TrDownOn","TrDownOff",
+#                  "Numerator",
+#                  "LeafCount","ByteCount","Depth","Permutations","Factor","FactorInteger","IntegerDigits",
+#                  "Reverse","Help","Primes","Precision","Span","ConstantArray","Complex","Rational",
+#                  "Simplify", "FullSimplify","RatSimp", "Solve",
+#                  "Roots", "RealRoots", "TrigSimp", "Cancel","Collect",
+#                  "ToSJulia", "ToSymPy", "Series", "Not", "Null",
+#                  "None", "Indeterminate", "Infinity",
+#                  "ComplexInfinity", "ConstantQ", "NumericQ",
+#                  "Float64", "Int64", "Chop", "ans" ], :Protected)
+
+# protect ans to keep it out of user symbols
+

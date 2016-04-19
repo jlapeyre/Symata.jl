@@ -245,9 +245,13 @@ typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs(m::Mxpr) = newargs(length(m))
 @inline newargs(a::Array) = newargs(length(a))
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
-@inline mhead(mx::Mxpr) = mx.head
-@inline margs(mx::Mxpr) = mx.args
-@inline margs(mx::Mxpr,n::Int) = mx.args[n]  # need to get rid of this, use getindex, setindex
+
+@inline mhead{T<:Mxpr}(mx::T) = mx.head
+@inline margs{T<:Mxpr}(mx::T) = mx.args
+
+# Why not just used these ?
+#@inline head{T<:Mxpr}(mx::T) = mx.head
+#@inline args{T<:Mxpr}(mx::T) = mx.args
 
 # Everything that is not an Mxpr
 mhead(x) = typeof(x)
@@ -255,7 +259,7 @@ mhead(x) = typeof(x)
 # Eg, it works with Count.
 # If we always access via iterators, then we don't need to 'collect' the values
 # Probably not slower, either.
-margs(d::Dict) = collect(values(d))
+margs{T<:Dict}(d::T) = collect(values(d))
 
 @inline setage(mx::Mxpr) = mx.age = increvalage()
 @inline getage(mx::Mxpr) = mx.age
@@ -352,18 +356,6 @@ function checkhash(mx::Mxpr)
     mx
 end
 checkhash(x) = x
-
-# function checknewhash(mx::Mxpr)
-#     mx.key != 0 && return mx
-#     k = hash(mx)
-#     if haskey(EXPRDICT,k)
-#         return EXPRDICT[k]
-#     end
-#     mx.key = k
-#     EXPRDICT[k] = mx
-#     mx
-# end
-# checknewhash(x) = (x,true)
 
 ##### Create Mxpr
 
@@ -525,6 +517,15 @@ is_fixed(s::SJSym) = symval(s) == s
 @inline unsetcanon(mx::Mxpr) = (mx.canon = false; mx)
 @inline unsetfixed(mx::Mxpr) = (mx.fixed = false ; mx)
 
+deepsetfixed(x) = x
+function deepsetfixed{T<:Mxpr}(mx::T)
+    nargs = newargs(mx)
+    for i in 1:length(nargs)
+        nargs[i] = deepsetfixed(mx[i])
+    end
+    return mxprcf(mhead(mx), nargs)
+end
+
 @inline is_canon(x) = false
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false
@@ -552,11 +553,17 @@ end
     end
 end
 
+# These are not really protected, but we want to include them with builtin symbols
+const unprotected_builtin_symbols = ["ShowSymPyDocs!"]
+
 function protectedsymbols_strings()
     symstrings = Array(ByteString,0)
     for s in keys(SYMTAB)
         if get_attribute(s,:Protected) && s != :ans
             push!(symstrings,string(getsym(s))) end
+    end
+    for s in unprotected_builtin_symbols
+        push!(symstrings,s)
     end
     sort!(symstrings)
 end
@@ -567,6 +574,9 @@ function protectedsymbols()
         if get_attribute(s,:Protected) && s != :ans
             push!(args,getsym(s)) end
     end
+    for s in unprotected_builtin_symbols
+        push!(symstrings,s)
+    end    
     mx = mxpr(:List, sort!(args))
 end
 
@@ -596,6 +606,7 @@ end
     get_attribute(T,attr)
 end
 
+# Move this to predicates.jl ?
 @inline function is_protected(sj::SJSym)
     get(getssym(sj).attr,:Protected,false)
 end
@@ -611,6 +622,7 @@ end
     getssym(sj).attr[attr] = false
 end
 
+clear_attributes(sj::SJSym) =  empty!(getssym(sj).attr)
 
 ## Some types of Heads of Mxpr's
 

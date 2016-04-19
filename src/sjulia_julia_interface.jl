@@ -20,8 +20,8 @@ are separate from those in Julia, ie, their table of bindings to symbols are sep
 # This can also be done with a Jxpr
 # Bind a Julia symbol to the rhs
 function apprules(mx::Mxpr{:SetJ})
-    lhs = margs(mx,1)
-    rhs = margs(mx,2)
+    lhs = mx[1]
+    rhs = mx[2]
     eval(Expr(:(=),symname(lhs),rhs))
 end
 

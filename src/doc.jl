@@ -67,7 +67,29 @@ function print_doc(qs...)
         if length(as) > 0
             println(string(q), " has attributes ", as)
         end
+        if symval(:ShowSymPyDocs!) == true  print_sympy_doc(q) end
     end
+end
+
+@sjdoc ShowSymPyDocs! "
+If ShowSymPyDocs! is True, then SymPy document strings will be shown for SJulia
+functions that call SymPy functions. Set this to False, to disable printing these
+document strings.
+"
+
+function print_sympy_doc{T<:Union{AbstractString,Symbol}}(sjsymin::T)
+    sjsym = symbol(sjsymin)
+    if have_pyfunc_symbol(sjsym)
+        println("\nSymPy documentation")
+        pysym = lookup_pyfunc_symbol(sjsym)
+        spysym = string(pysym)
+        printcom = "println(sympy.$spysym[:__doc__])"
+        try eval(parse(printcom))
+        catch
+            nothing
+        end
+    end
+    nothing
 end
 
 function print_matching_topics(r::Regex)

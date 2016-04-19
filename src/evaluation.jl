@@ -90,7 +90,7 @@ macro ex(ex)
     reset_try_downvalue_count()
     reset_try_upvalue_count()    
     if is_timing()
-        mx = @time doeval(res) # doeval is calls either infseval or meval
+        mx = @time doeval(res) # doeval calls either infseval or meval depending on whether we want infinite evaluation
         println("tryrule count: downvalue ", get_try_downvalue_count(),", upvalue ", get_try_upvalue_count())
     else
         mx = doeval(res)
@@ -158,7 +158,8 @@ function infseval(mxin::Mxpr)
         if neval > 2
             println(mx)
             println(meval(mx))
-            error("infseval: Too many, $neval, evaluations. Expression still changing")
+            warn("infseval: Too many, $neval, evaluations. Expression still changing")
+            return mx
         end
         mx = mx1        
     end
@@ -178,7 +179,16 @@ end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 @inline infseval(x) = x
 @inline infseval{T<:Real}(x::Complex{T}) = x.im == zero(x.im) ? x.re : x
-infseval{T<:Integer}(x::Rational{T}) = den(x) == one(den(x)) ? num(x) : x
+
+infseval{T<:Integer}(x::Complex{Rational{T}}) = meval(x)
+infseval{T<:Integer}(x::Rational{T}) = meval(x)
+
+meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
+
+
+
+# Not needed.
+#infseval{T<:Integer}(x::Rational{T}) = meval(x)
 
 # This stuff is maybe a bit more efficient ? But it breaks abstraction.
 # never called
@@ -200,14 +210,20 @@ infseval{T<:Integer}(x::Rational{T}) = den(x) == one(den(x)) ? num(x) : x
 #################################################################################
 
 # These are normally not called, but rather are caught by infseval.
-@inline meval{T<:Real}(x::Complex{T}) = x.im == 0 ? x.re : x  # probably never called because
-meval{T<:Integer}(x::Rational{T}) = x.den == 1 ? x.num : x
-@inline meval(x) = x
+@inline meval{T<:Real}(x::Complex{T}) = x.im == 0 ? x.re : x
+
+# Maybe we won't need this.
+#meval{T<:Integer}(x::Complex{Rational{T}}) = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
+
+meval{T<:Integer}(x::Rational{T}) = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
+
+meval(x) = x
 
 @inline meval(s::SJSym) = symval(s) # this is where var subst happens
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > 200
+        println(mx)
         error("Too many meval entries ", get_meval_count())
     end
     local ind::AbstractString = ""  # some places get complaint that its not defined. other places no !?
@@ -403,12 +419,19 @@ end
 
 function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
     for s in syms
+        ssym = symbol(s)
+        clear_attributes(ssym)
         for a in attrs
-            set_attribute(symbol(s),a)
+            set_attribute(ssym,a)
         end
-        set_attribute(symbol(s),:Protected)  # They all are Protected
+        set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
     end
 end
+
+set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
+set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
+set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
+
 
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))

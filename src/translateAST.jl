@@ -1,7 +1,10 @@
 ## Translate Expr to Mxpr
 
-# Input lines are parsed by the Julia parser into Julia Expr.
-# This code reinterprets the Expr into a Mxpr.
+# Input lines are lexed and parsed by the Julia parser into an AST stored
+# in the Julia Expr type. The code here reinterprets the Expr into an SJulia AST,
+# which is stored in the Julia type Mxpr.
+
+## NB: Checking for help characters, ?,  is done in doc.jl
 
 # At the command line h"topic" prints help
 macro h_str(s)
@@ -27,7 +30,8 @@ macro BF_str(s)
 end
 
 extomx(x) = x
-# We should use a Dict here, perhaps.
+# This system needs to be rationalized.
+# Comment out lines are no longer needed
 function extomx(s::Symbol)
     s == :I && return complex(0,1)
 #    s == :π && return :Pi
@@ -173,7 +177,7 @@ end
 # a - b  -->  a + (-b)
 rewrite_binary_minus(ex::Expr) = Expr(:call, :+, ex.args[2], Expr(:call,:(-),ex.args[3]))
 #  - b  -->  -1 * b
-rewrite_unary_minus(ex::Expr) = Expr(:call, :*, -1 , ex.args[2])
+rewrite_unary_minus(ex::Expr) = ex.args[2] == :Inf ? -Inf : Expr(:call, :*, -1 , ex.args[2])
 # a / b -->  a * b^(-1)
 rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3],-1))
 

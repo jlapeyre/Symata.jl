@@ -11,41 +11,72 @@ mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? r
 mmul(x,y) = x * y
 mplus{T<:Integer,V<:Integer}(x::Rational{T}, y::Rational{V}) = rat_to_int(x+y)
 mplus(x,y) = x + y
-mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  rem(x,y) == 0 ? div(x,y) : x // y
+
+# mdiv is apparently used in do_Rational, but this should never be used now.
+mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
 mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
-mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : 1//(x^(-y))
+
+mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
+mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
+
+mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
+
+mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? complex(cospi(exp),sinpi(exp)) * abs(b)^exp : b^exp
+
 #mpow(x::Complex,y::Integer) = x^y handled below
 
 # FIXME: This code and
 # function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
-# FIXME: currently (3*3)^(2/3) --> 3^(4//3). should be 3 * 3^(1//3)
-# (7*7*7)^(1//2) --> 7 * 7^(1//2)
 function mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+    x == 1 && return x
+    local gotneg::Bool
     if x < 0
         x = -x
         gotneg = true
     else
         gotneg = false
     end
-    facs = factor(x)    
+    facs = factor(x)
     newfacs = newargs()
     for (fac,mul) in facs
         (q,r) = divrem(mul,y.den)
-        nf = fac^q
-        nf != 1 ? push!(newfacs,nf) : nothing
-        newexp = mmul(r,y)
-        newexp != 0 ? push!(newfacs,mxpr(:Power,fac,newexp)) : nothing
+        if r == 0
+            nf = fac^(q*abs(y.num))
+            nf != 1 ? y.num > 0 ? push!(newfacs,nf) : push!(newfacs,1//nf) : nothing
+            continue
+        else
+            nf = fac^q
+            nf != 1 ? y.num > 0 ? push!(newfacs,nf) : push!(newfacs,1//nf) : nothing
+        end
+#        r == 0 ? continue : nothing
+        (nf1,r1) = divrem(r*y.num,y.den)
+        if nf1 != 0
+            newfac = fac^nf1
+            push!(newfacs,newfac)
+        end
+        if r1 != 0
+            newexp = r1//(y.den)
+            push!(newfacs,mxprcf(:Power,fac,newexp))
+        end
     end
-    if gotneg == true
-        push!(newfacs,:I)
+    if gotneg == true  # This at least not wrong, but it's not like Mma for y < 0
+        (n,r) = divrem(y.num,y.den)
+        fac = y.den == 2 ? :I : mxprcf(:Power, -1, r//y.den)
+        if iseven(n)
+            push!(newfacs, fac)
+        else
+            push!(newfacs,mxprcf(:Times, -1, fac))
+        end
     end
     length(newfacs) == 1 && return newfacs[1]
-    mxpr(:Times,newfacs...)
+    mxprcf(:Times,newfacs...)  # make this more efficient
 end
 
+# Find if this is not called and remove it. Otherwise, get rid of it.
 function mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
+    println(STDERR, "arithetic.jl: Calling stupid mow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 #    Rational(mpow(x.num,y),mpow(y.den,y))
 end
