@@ -72,6 +72,9 @@ set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc"],
 
 # Of course, these need to be organized!
 
+# check attributes of:
+# RandomReal
+
 set_pattributes([
                   "!=","//","<","<=","==",">","Age","All","Apply","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",

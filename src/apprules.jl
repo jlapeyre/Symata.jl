@@ -1270,3 +1270,8 @@ mostly to test the efficiency of evaluation and evaluation control. The
 sympy version Expand() is more capable, but slower.
 "
 apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
+
+
+@mkapprule RandomReal
+
+do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()

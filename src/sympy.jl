@@ -1,5 +1,6 @@
-export sympy2mxpr, mxpr2sympy
-export sympy
+# We no longer have a module here.
+# export sympy2mxpr, mxpr2sympy
+# export sympy
 
 #importall SJulia
 #import SJulia: mxpr, mxprcf  # we need this even with importall
@@ -176,6 +177,11 @@ end
 
 sympy_to_mxpr_symbol(s::Symbol) = haskey(py_to_mx_symbol_dict, s) ? py_to_mx_symbol_dict[s] : s
 sympy_to_mxpr_symbol{T<:AbstractString}(s::T) = sympy_to_mxpr_symbol(Symbol(s))
+
+function maybe_sympy2mxpr{T}(x::T)
+    symval(:ReturnSymPy!) == true && return x
+    sympy2mxpr(x)
+end
 
 sympy2mxpr(x) = x
 
@@ -453,10 +459,12 @@ mxpr2sympy{T<:Number}(mx::T) = mx
 # For our LaplaceTransform code, (etc.)
 mxpr2sympy(a::Array{Any,1}) =  map(mxpr2sympy, a)
 
+mxpr2sympy{T <: PyCall.PyObject}(expr::T) = expr
+
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function mxpr2sympy(x)
-    warn("mxpr2sympy: Can't convert $x from SJulia to SymPy")
+    warn("mxpr2sympy: Unable to convert $x from SJulia to SymPy")
     return x
 end
 
@@ -497,7 +505,7 @@ function mxpr2sympy_kw{T<:Mxpr}(mx::T)
     return (nargs, kws)
 end
 
-# Separate the Rule()'s and other arguments in a Mxpr expression
+# Separate the Rule()'s and other arguments in an Mxpr expression
 # Store keywords in a Dict so they can by passed as keword arguments.
 # These do the same as above, but no conversion to sympy.
 function separate_rules{T<:Mxpr}(mx::T, kws)

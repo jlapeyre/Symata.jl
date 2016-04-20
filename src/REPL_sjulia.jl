@@ -95,7 +95,6 @@ function sjulia_completions(string, pos)
     return sort(unique(suggestions)), (dotpos+1):pos, true
 end
 
-
 # Code modified from Cxx.jl
 
 global RunSJuliaREPL
@@ -291,6 +290,9 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     # This will provide completions for REPL and help mode
     replc = REPLCompletionProvider(repl)
 
+    # Completions for SJulia
+    sjulia_replc = SJuliaCompletionProvider(repl)
+
     # Set up the main Julia prompt
     julia_prompt = Prompt("julia> ";
         # Copy colors from the prompt object
@@ -309,13 +311,11 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     # Setup sjulia sjulia_prompt
     sjulia_prompt =
         LineEdit.Prompt("sjulia > ";
-          # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
+#                        keymap_func_data = repl,   what does this do ?
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",
-                        complete = SJuliaCompletionProvider(repl)
-#                        prompt_suffix = hascolor ?  hascolor not defined
-#                        (repl.envcolors ? Base.input_color : repl.input_color) : ""
+                        complete = sjulia_replc
                         )
 
     sjulia_prompt.on_done =
@@ -387,11 +387,20 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     
     const repl_keymap = Dict{Any,Any}(
          enter_sjulia_key => function (s,args...)
-            if isempty(s)
+            if isempty(s) || position(LineEdit.buffer(s)) == 0
                 if !haskey(s.mode_state,sjulia_prompt)
                     s.mode_state[sjulia_prompt] = LineEdit.init_state(repl.t,sjulia_prompt)
                 end
-                LineEdit.transition(s,sjulia_prompt)
+                buf = copy(LineEdit.buffer(s))   # allows us to edit a line of julia input
+                if LineEdit.mode(s) == sjulia_prompt
+                  LineEdit.transition(s, julia_prompt) do
+                     LineEdit.state(s, julia_prompt).input_buffer = buf
+                  end
+                else
+                    LineEdit.transition(s, sjulia_prompt) do
+                    LineEdit.state(s, sjulia_prompt).input_buffer = buf
+                    end
+               end                    
             else
                 LineEdit.edit_insert(s,enter_sjulia_key)
             end
@@ -406,8 +415,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                 edit_insert(s, ';')
             end
         end,
-        '?' => function (s,o...)
-            if isempty(s) || position(LineEdit.buffer(s)) == 0
+        '?' => function (s,o...)  # Disable this for sjulia mode, because we use '?' for sjulia help.
+            if LineEdit.mode(s) != sjulia_prompt && (isempty(s) || position(LineEdit.buffer(s)) == 0)
                 buf = copy(LineEdit.buffer(s))
                 transition(s, help_mode) do
                     LineEdit.state(s, help_mode).input_buffer = buf
@@ -490,7 +499,9 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     b = Dict{Any,Any}[skeymap, mk, prefix_keymap, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
     prepend!(b, extra_repl_keymap)
 
-    sjulia_prompt.keymap_dict = shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
+    sjulia_prompt.keymap_dict = LineEdit.keymap(a)
+    #sjulia_prompt.keymap_dict = shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
+    shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
 
     ModalInterface([sjulia_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
 #    ModalInterface([sjulia_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])

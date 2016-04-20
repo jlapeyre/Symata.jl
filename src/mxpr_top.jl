@@ -19,7 +19,7 @@ const JTOMSYM  =
 # $ is good for Function below, but we might want it for interpolation instead
 #      :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
-      :(=>) => :Rule, # Mma uses ->  (hmmm)
+      :(=>) => :Rule, # Mma uses ->. We use => because it has a higher precedence than ->, which is what we want.
       :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
       #      :(:) => :Span, # this is done specially in extomx. colon means various things
       :vcat => :List,

@@ -406,7 +406,7 @@ end
 @sjdoc ToExpression "
 ToExpression(str) converts string str to an expression.
 "
-set_attribute(:ToExpression, :Protected)
+set_pattributes("ToExpression")
 apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 do_ToExpression{T<:AbstractString}(mx,s::T) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
@@ -428,7 +428,7 @@ expr is a Julia Dict.
          ("Count(_Integer)(Range(10))", "10"),
          ("Count(Range(10), 2)", "1"))
 
-set_attribute(:Count, :Protected)
+set_pattributes("Count")
 function apprules(mx::Mxpr{:Count})
     do_Count(mx,margs(mx)...)
 end
@@ -469,7 +469,8 @@ eg: getints = Cases(_Integer). The head of the returned object is the same as th
 @sjexamp( Cases,
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
 
-set_attribute(:Cases, :Protected)
+set_pattributes("Cases")
+#set_attribute(:Cases, :Protected)
 function apprules(mx::Mxpr{:Cases})
     do_Cases(mx,margs(mx)...)
 end

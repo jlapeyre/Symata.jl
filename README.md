@@ -32,8 +32,8 @@ is an executable `sjulia` included in this distribution. It is a (unix
 sh) shell script that just starts julia and loads the module. The REPL is also
 available simply by loading the module in a julia session.
 
-You enter the mode by typing `=` as the first character on a line. Type backspace to exit the SJulia
-mode.  In this mode, the input is not interpreted as Julia code, but rather SJulia code.
+Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
+In SJullia mode, the input is not interpreted as Julia code, but rather SJulia code.
 You can do tab completion to see a list of functions and symbols.
 
 #### Some results.

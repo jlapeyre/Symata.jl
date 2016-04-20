@@ -50,6 +50,7 @@ include("client_sjulia.jl")
 function __init__()
     init_sympy()
     setsymval(:ShowSymPyDocs!, true)  # show sympy docs for 'functions' if available.
+    setsymval(:ReturnSymPy!, false)
     if isinteractive()
         if isdefined(Base, :active_repl)
             RunSJuliaREPL(Base.active_repl)

@@ -232,9 +232,10 @@ function make_math()
         write_sympy_apprule(x[1],x[2],2)
     end
     
-    
+    # TODO: update this code
     for x in no_julia_function
         set_up_sympy_default(x...)
+        set_pattributes(string(x[1]))     # TODO: allow set_pattributes to take a symbol arg
     end
 
     # Ok, this works. We need to clean it up

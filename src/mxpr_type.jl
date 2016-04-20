@@ -26,6 +26,10 @@ typealias SJSymuVs Array{Any,1}
 @inline newdownvalues() = Array(Any,0)
 @inline newupvalues() = Array(Any,0)
 
+const system_symbols = Dict{Symbol,Bool}()
+register_system_symbol(s::Symbol) =  system_symbols[s] = true
+register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[symbol(s)] = true
+
 # TODO
 #type DownValueT
 #end
@@ -554,7 +558,10 @@ end
 end
 
 # These are not really protected, but we want to include them with builtin symbols
-const unprotected_builtin_symbols = ["ShowSymPyDocs!"]
+const unprotected_builtin_symbols = ["ShowSymPyDocs!", "ReturnSymPy!"]
+for s in unprotected_builtin_symbols
+    register_system_symbol(s)
+end
 
 function protectedsymbols_strings()
     symstrings = Array(ByteString,0)
@@ -584,7 +591,8 @@ end
 function usersymbols()
     args = newargs()
     for s in keys(SYMTAB)
-        if ! get_attribute(s,:Protected) push!(args,getsym(s)) end
+        #        if ! get_attribute(s,:Protected) push!(args,getsym(s)) end
+        if ! haskey(system_symbols, s) push!(args,getsym(s)) end
     end
     mx = mxpr(:List, sort!(args)...)
     setcanon(mx)

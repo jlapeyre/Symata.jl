@@ -425,13 +425,15 @@ function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol
             set_attribute(ssym,a)
         end
         set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
+        register_system_symbol(ssym)
     end
 end
 
 set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
 set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
 set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
-
+set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
+set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])
 
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
