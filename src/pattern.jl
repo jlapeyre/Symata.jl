@@ -3,7 +3,7 @@
 
 #function Pattern_to_PatternT(mx::Mxpr)
 
-function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
+function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs
     if mhead(mx[1]) == :HoldPattern  # inefficient
         lhs = mx[1][1]
@@ -105,7 +105,7 @@ function patterntopvar(mx::Mxpr{:Blank})
 end
 
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-    prule = RuleDelayed_to_PRule(rd)
+    prule = Rule_to_PRule(rd)
     res = replacefail(mx,prule)
     res
 end

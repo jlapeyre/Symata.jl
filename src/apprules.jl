@@ -617,11 +617,9 @@ Replace(expr,rule) replaces parts in expr according to Rule rule.
          ("Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
           "1", "This expression does match the pattern."))
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
-doreplace(mx,expr,r::Mxpr{:Rule}) = replace(expr,Rule_to_PRule(r))
 
-function doreplace(mx,expr,r::Mxpr{:RuleDelayed})
-    replace(expr,RuleDelayed_to_PRule(r))
-end
+typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}} 
+doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
 
 doreplace(mx,a,b) = mx
 
@@ -634,15 +632,12 @@ list or rules. If given explicitly, the rules must be given as List(...) rather 
 
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 
-doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
-doreplaceall(mx,expr,r::Mxpr{:RuleDelayed}) = replaceall(expr,RuleDelayed_to_PRule(r))
+doreplaceall{T<:Rules}(mx,expr,r::T) = replaceall(expr,Rule_to_PRule(r))
 
 function doreplaceall(mx,expr,rs::Mxpr{:List})
     rsa = Array(PRule,0)
     for i in 1:length(rs)
-        if is_Mxpr(rs[i], :RuleDelayed)
-            push!(rsa, RuleDelayed_to_PRule(rs[i]))
-        elseif is_Mxpr(rs[i], :Rule)
+        if typeof(rs[i]) <: Rules
             push!(rsa, Rule_to_PRule(rs[i]))
         else
             nothing  # do something better here, like return mx
