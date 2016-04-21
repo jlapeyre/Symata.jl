@@ -230,7 +230,7 @@ function meval(mx::Mxpr)
     end
     local ind::AbstractString = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
-        ind = " " ^ get_meval_count()
+        ind = " " ^ (get_meval_count() - 1)
         println(ind,"<<", get_meval_count(), " " , mx)
     end
     nmx::Mxpr = meval_arguments(mx)

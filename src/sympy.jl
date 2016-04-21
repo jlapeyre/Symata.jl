@@ -183,7 +183,32 @@ function maybe_sympy2mxpr{T}(x::T)
     sympy2mxpr(x)
 end
 
-sympy2mxpr(x) = x
+type SympyTrace
+    trace::Bool
+end
+const SYMPYTRACE = SympyTrace(false)
+const SYMPYTRACENUM = Int[0]
+get_sympy2mxpr_count() = SYMPYTRACENUM[1]
+increment_sympy2mxpr_count() = SYMPYTRACENUM[1] += 1
+decrement_sympy2mxpr_count() = SYMPYTRACENUM[1] -= 1
+is_sympy2mxpr_trace() = SYMPYTRACE.trace
+
+function sympy2mxpr(expr)
+    increment_sympy2mxpr_count()    
+    if is_sympy2mxpr_trace()
+        ind = " " ^ (get_sympy2mxpr_count() - 1)
+        println(ind,">>", get_sympy2mxpr_count(), " " , expr)
+    end    
+    res = _sympy2mxpr(expr)
+    if is_sympy2mxpr_trace()
+        ind = " " ^ (get_sympy2mxpr_count() - 1)
+        println(ind,"<<", get_sympy2mxpr_count(), " " , res)
+    end
+    decrement_sympy2mxpr_count()
+    res
+end
+
+_sympy2mxpr(x) = x
 
 function sympy2mxpr_Function(pyexpr)
     head = symbol(name(pyexpr))
@@ -198,11 +223,11 @@ end
 
 macro sympy2mxpr_comparisons(fname, pyfname, sjsymbolstr)
     sfname = symbol("sympy2mxpr_" * fname)
-    sjsymbol = symbol(sjsymbolstr)
+    sjsymbol = parse(":(" * sjsymbolstr * ")")  # careful we don't insert an unquoted symbol
     esc(quote
         function ($sfname)(pyexpr)
           args = pyexpr[:args]
-          return mxpr(:Comparison, sympy2mxpr(args[1]), $sjsymbol, sympy2mxpr(args[2]))
+          return mxpr(:Comparison, _sympy2mxpr(args[1]), $sjsymbol, _sympy2mxpr(args[2]))
         end
         py_to_mx_rewrite_function_dict[$pyfname] = $sfname
        end)
@@ -229,7 +254,7 @@ end
 py_to_mx_rewrite_function_dict["BooleanTrue"] = sympy2mxpr_BooleanTrue
 
 
-function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
+function _sympy2mxpr{T <: PyCall.PyObject}(expr::T)
     if have_function_sympy_to_sjulia_translation(expr)
         return mxpr(get_function_sympy_to_sjulia_translation(expr), map(sympy2mxpr, expr[:args])...)
     end
@@ -273,7 +298,7 @@ function sympy2mxpr{T <: PyCall.PyObject}(expr::T)
 end
 
 # By default, Dict goes to Dict
-function sympy2mxpr(expr::Dict)
+function _sympy2mxpr(expr::Dict)
     ndict = Dict()
     for (k,v) in expr
         ndict[sympy2mxpr(k)] = sympy2mxpr(v)
@@ -281,11 +306,11 @@ function sympy2mxpr(expr::Dict)
     return ndict
 end
 
-function sympy2mxpr{T}(expr::Array{T,1})
+function _sympy2mxpr{T}(expr::Array{T,1})
     return mxpr(:List,map(sympy2mxpr, expr)...)
 end
 
-function sympy2mxpr(expr::Tuple)
+function _sympy2mxpr(expr::Tuple)
     return mxpr(:List,map(sympy2mxpr, expr)...)
 end
 

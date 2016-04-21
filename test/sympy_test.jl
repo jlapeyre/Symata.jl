@@ -51,7 +51,7 @@ using Base.Test
 @testex Integrate(E^(-x^2),x) == (1//2) * (π ^ (1//2)) * Erf(x)
 @testex Integrate(E^(x^2),x) == (1//2) * (π ^ (1//2)) * Erfi(x)
 
-# FIXME; If we don't use conds => "none", then an error is raised
+# Fixed, we can now return conditions as well.
 @testex Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none") == Gamma(a)
 
 # Following works if 1/cos does not go to sec
