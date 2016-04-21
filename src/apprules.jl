@@ -789,6 +789,9 @@ function do_Comparison(mx::Mxpr{:Comparison},args...)
         a = args[i-1]
         cmp = args[i]
         b = args[i+1]
+#        println(a, " *** ", cmp, " *** ", b)
+#        dump(cmp)
+#        println(typeof(cmp))
         res = _do_Comparison(a,cmp,b)
         res == false && return res
         res != true && return mx
@@ -893,6 +896,17 @@ function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
     return false
 end
 
+# used this to search for bug
+# _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::Symbol, n::T) = false
+
+function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
+    if typeof(comp) != Symbol
+        error("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
+    else
+        error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol")
+    end
+end
+
 function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
 #    println("In bool cmp  $a $comp $b")
     comp == :(==) && return a == b
@@ -900,6 +914,7 @@ function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
     comp == :(===) && return a == b
     return false  # I guess this is good
 end
+
 
 ## These allow converting values returned by sympy, although we could do it differntly
 apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])

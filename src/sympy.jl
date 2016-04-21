@@ -72,7 +72,7 @@ function make_sympy_to_sjulia()
                       (:FourierTransform, :fourier_transform),
                       (:Cos, :cos), (:Log, :log), ( :Sqrt, :sqrt), (:LambertW, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
-                      (:ExpPolar, :exp_polar),
+                      (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma),
                       (:PeriodicArgument, :periodic_argument)
                       ]
 

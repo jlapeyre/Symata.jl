@@ -803,6 +803,13 @@ function do_Sign{T<:Real}(mx::Mxpr{:Sign}, z::Complex{T})
     av == 1 ? z : mxprcf(:Times, z,  av)
 end
 
+#### Sign
+
+@mkapprule LowerGamma
+
+do_LowerGamma(mx::Mxpr{:LowerGamma}, a, z) =  mxpr(:Gamma,a) - mxpr(:Gamma,a,z)
+
+
 @sjdoc ExpandFunc "
 ExpandFunc(expr) rewrites some multi-parameter special functions using simpler functions.
 "

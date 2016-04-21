@@ -34,3 +34,6 @@ result.
 * For 'Contexts', (like Julia modules), we should use ::, because the parser deals with it. Or '.',
   which is waht Julia uses for modules.  Back tick will not work.
   
+* Integrate( Exp(-t)*t^(a-1),[t,0,Infinity])  fails because it returns an expression with type Base.#<,
+  no idea what this object is. We should convert it to SJulia comparison, of course.
+  For the moment we print an error.

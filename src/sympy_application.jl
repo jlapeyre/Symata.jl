@@ -78,7 +78,7 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
     sjres = maybe_sympy2mxpr(pyintegral)
-    deepsetfixed(sjres)
+#    deepsetfixed(sjres)
 end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
@@ -95,7 +95,7 @@ function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr, varspecs...)
     # println("kw ", kws)
     pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
     sjres = maybe_sympy2mxpr(pyintegral)
-    deepsetfixed(sjres)    
+#    deepsetfixed(sjres)     # no, sometimes we want SJulia to reduce the answer. (but, this sometimes makes a less satisfactory answer :(
 end
 
 # FIXME: we do deepsetfixed and a symbol Int is returned. If we pull it out,
