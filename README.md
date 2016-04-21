@@ -5,7 +5,9 @@ modeled on the pattern matching and evaluation sequence of
 Mathematica. Evaluation and pattern matching are written in
 Julia. Much of the mathematics and symbolic manipulation is achieved
 by wrapping SymPy. There are more than 300 functions implemented,
-including integration, expression manipulation, etc.
+including integration, tranformation of special functions, expression
+manipulation, etc. For examples of what works (and what does not),
+see [the test directory](test/).
 
 ### Installing
 
@@ -25,15 +27,15 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 
 You can test it with `Pkg.test("SJulia")`.
 
-#### SJulia Repl
+#### SJulia REPL mode
 
 There is an SJulia command line (REPL) mode.  To use the mode, there
-is an executable `sjulia` included in this distribution. It is a (unix
+is an executable `sjulia` included in this distribution. It is a (UNIX
 sh) shell script that just starts julia and loads the module. The REPL is also
 available simply by loading the module in a julia session.
 
 Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
-In SJullia mode, the input is not interpreted as Julia code, but rather SJulia code.
+In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
 You can do tab completion to see a list of functions and symbols.
 
 #### Some results.
@@ -80,28 +82,8 @@ of `HoldXXX` symbols to prevent evaluation, and in
 [Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
 functions and options to force it.
 
-Evaluation to a fixed point can be expensive. Here is an example in [Mathics](http://www.mathics.org/)
-
-```
-In[1]:= Timing[ m = Expand[(a+b)^1000];]
-Out[1]= {6.282803, Null}
-
-In[2]:= Timing[ m[[1]] ]
-Out[2]= {3.203408, a ^ 1000}
-```
-
-Every time an element of `m` is accessed, the entire expression is reevaluated.
-SJulia is about 700 times faster generating `m`, and 85000 times
-faster retrieving a value. The latter time is mostly the difference between
-an `O(1)` and `O(n)` algorithm. [SymPy](http://www.sympy.org/en/index.html)  does the expansion for Mathics, and it
-is about 100 times slower than SJulia (this includes SJulia's fixed point evaluation.)
-Mathematica 3 is about two times faster than
-SJulia generating `m`. (*Update*: SJulia now depends on SymPy as a backend for `Expand'.
-The more limited, but faster native Julia expansion is available as `ExpandA'.
-(In practice, the translation of large expressions between SJulia and SymPy takes far more time than
-the SymPy calculation.)
-
-Here is SJulia doing expansion.
+Here is SJulia doing expansion (with the native 'ExpandA'. The more capable 'Expand' is a fronted to a
+SymPy function)
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
 sjulia> m = ExpandA((a+b)^BI(1000));   # expand with BigInt exponent
@@ -150,8 +132,6 @@ sjulia> Apply(Plus,a)
 elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
-
-
 
 #### Alternate way to evaluate SJulia expressions
 
@@ -267,3 +247,16 @@ sjulia> g(f(x_)) ^= x^2
 sjulia > g(f(z))
  z ^ 2
 ```
+
+<!--  LocalWords:  Mathematica SymPy julia sjulia PyCall Mma src
+ -->
+<!--  LocalWords:  EvenQ countprimes PrimeQ HoldXXX Maxima eval
+ -->
+<!--  LocalWords:  Mathics SJulia's backend ExpandA BigInt ClearAll
+ -->
+<!--  LocalWords:  tryrule downvalue upvalue BuiltIns BuiltIn SymName
+ -->
+<!--  LocalWords:  Symname addone lexically FloatingPoint cossinrule
+ -->
+<!--  LocalWords:  TrigSimp Upvalues
+ -->
