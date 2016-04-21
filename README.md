@@ -146,9 +146,9 @@ julia> @ex(some expression that may look like two expressions)
 
 ### Finding Help and Examples
 
-Try `Help()`. Type `h"topic"` for a search for items containing the
+Try `Help()`. Type `h"topic"` to search for items containing the
 string `"topic"`.  Hit TAB at the command line REPL for a list of all
-builtin symbols (i.e. variables and functions. Symbols that are
+builtin symbols (i.e. variables and functions) Symbols that are
 associated with some functionality can be listed with
 `BuiltIns()`. Type `Example()` to see a list of topics with examples.
 Type `Example(topic)` to run the examples. The input strings from the
