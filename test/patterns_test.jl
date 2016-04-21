@@ -58,10 +58,7 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 @testex ReplaceAll( [x,x^2,x^3,a,b],  x^n_  => f(n) ) == [x,f(2),f(3),a,b]
 
 # write test for this. all return the same
-#@testex ReplaceAll( [x,x,x,x,x],  x  => RandomReal() )
-
-# FIXME: This fails.
-#@testex ReplaceAll( [x,x,x,x,x],  x  -> RandomReal() )
+@ex ClearAll(a,b,x,y,z)
 
 @testex ReplaceAll( [x,x^2,y,z], x => [a,b]) == [[a,b],[a ^ 2,b ^ 2],y,z]
 @testex ReplaceAll(Sin(x), Sin => Cos) == Cos(x)
@@ -72,13 +69,35 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 # ERROR: MethodError: no method matching Rule_to_PRule(::SJulia.Mxpr{RuleDelayed})
 #  in eval(::Module, ::Any) at ./boot.jl:237
 
-# FIXME
-# sjulia > ReplaceAll(x => a)
-# ERROR: BoundsError: attempt to access 1-element Array{Any,1}:
-#  x => a
-#   at index [2]
-#  in eval(::Module, ::Any) at ./boot.jl:237
 
 @testex Replace(x^2, x^2 => a + b) == a + b
 @testex Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
 @testex ReplaceAll( x + y , List(x => a, y => b)) == a + b
+
+@ex result = ReplaceAll( [x,x,x,x,x],  x  => RandomReal() )
+@testex result[1] == result[2] == result[3]
+
+@ex result = ReplaceAll( [x,x,x,x,x],  x  -> RandomReal() )
+@testex result[1] != result[2] != result[3]
+
+@ex b = 1
+@testex ReplaceAll( [x,x,x,x,x],  x -> Increment(b)) == [1,2,3,4,5]
+@ex b = 1
+@testex ReplaceAll( [x,x,x,x,x],  x => Increment(b)) == [1,1,1,1,1]
+
+@ex b = 3
+@ex r1 = a => b
+@ex r2 = a -> b
+@ex Clear(b)
+@testex Replace( a, r1) == 3
+@testex Replace( a, r2) == b
+@ex b = 4
+@testex Replace( a, r1) == 3
+@testex Replace( a, r2) == 4
+
+@testex ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
+
+# FIXME. This returns unevaluated
+# ReplaceRepeated(x^2 + y^6 , List(x => 2 + a, a => 3))
+
+@ex ClearAll(result,r1,r2)

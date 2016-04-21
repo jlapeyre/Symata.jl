@@ -1,5 +1,13 @@
 # For, While, Do, If, CompoundExpression
 
+macro checkbreak()
+    return esc(:(
+    if FLOWFLAGS[:Break]
+        FLOWFLAGS[:Break] = false
+        break
+    end))
+end
+
 # Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
 # We should follow what we did in table and set the value in the function,
@@ -37,12 +45,18 @@ function apprules(mx::Mxpr{:For})
     end
     doeval(start)
     if body != nothing
+        FLOWFLAGS[:Break] = false
         while doeval(test)
             doeval(body)
+            @checkbreak
+            # if FLOWFLAGS[:Break]
+            #     FLOWFLAGS[:Break] = false
+            #     break
+            # end
             doeval(incr)
         end
     else # This is not at all faster than doeval(nothing)
-        while doeval(test) 
+        while doeval(test)
             doeval(incr)
         end
     end
@@ -74,9 +88,24 @@ While(test,body) evaluates test then body in a loop until test does not return t
 
 function apprules(mx::Mxpr{:While})
     (test,body)= (mx[1],mx[2])
+    FLOWFLAGS[:Break] = false
     while doeval(test) == true
         doeval(body)
+        @checkbreak
     end
+end
+
+#### Break
+
+@sjdoc Break "
+Break() exits the nearest enclosing For, While, or Do loop.
+"
+
+@mkapprule Break
+
+function do_Break(mx::Mxpr{:Break})
+    FLOWFLAGS[:Break] = true
+    nothing
 end
 
 #### Do
@@ -105,17 +134,21 @@ end
 # TODO: prbly don't need to use kernel
 function do_doloop_kern(expr,imax)
     start = one(imax)
+    FLOWFLAGS[:Break] = false
     for i in start:imax
         doeval(expr)
+        @checkbreak
     end
 end
 
 function do_doloop(expr,iter::SJIter2)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
+    FLOWFLAGS[:Break] = false
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
         doeval(ex)
+        @checkbreak
     end
     removesym(isym)
 end
@@ -123,9 +156,11 @@ end
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
+    FLOWFLAGS[:Break] = false
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
         doeval(ex)
+        @checkbreak
     end
     removesym(isym)
 end
@@ -134,9 +169,11 @@ end
 function do_doloop(expr,iter::SJIter3)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    setsymval(isym,iter.imin)    
+    setsymval(isym,iter.imin)
+    FLOWFLAGS[:Break] = false
     for i in 1:(iter.num_iters)
         doeval(ex)
+        @checkbreak
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
     end
     removesym(isym)
@@ -145,9 +182,11 @@ end
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
+    FLOWFLAGS[:Break] = false
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
         doeval(ex)
+        @checkbreak
     end
     removesym(isym)
 end
@@ -156,9 +195,11 @@ end
 function do_doloop(expr,iter::SJIter4)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    setsymval(isym,iter.imin)    
+    setsymval(isym,iter.imin)
+    FLOWFLAGS[:Break] = false
     for i in 1:(iter.num_iters)
         doeval(ex)
+        @checkbreak
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
     end
     removesym(isym)
@@ -167,9 +208,11 @@ end
 function do_doloop(expr,iter::SJIterList)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
+    FLOWFLAGS[:Break] = false
     for i in 1:(length(iter.list))
-        setsymval(isym,iter.list[i])      
+        setsymval(isym,iter.list[i])
         doeval(ex)
+        @checkbreak
     end
     removesym(isym)
 end
@@ -184,6 +227,7 @@ function apprules(mx::Mxpr{:CompoundExpression})
     local res
         @inbounds for i in 1:length(mx)
             res = doeval(mx[i])
+            FLOWFLAGS[:Break] && break
         end
     res
 end

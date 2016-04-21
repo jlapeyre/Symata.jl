@@ -33,13 +33,15 @@ needsparen{T<:Integer}(x::T) = x < 0
 needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
 
-function de_gensym{T<:AbstractString}(str::T)
-    if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
-        return split(str,['#'],keep=false)[1]
-    else
-        return str
-    end
-end
+# Mma displays gensyms with all the linenoise. Let's try it.
+de_gensym(x) = x
+# function de_gensym{T<:AbstractString}(str::T)
+#     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
+#         return split(str,['#'],keep=false)[1]
+#     else
+#         return str
+#     end
+# end
 
 # We need a way to force using this. In the REPL, I guess
 # Hmm. Wrap all output in a type made just for that purpose.... no that won't work

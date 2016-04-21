@@ -40,6 +40,16 @@ function make_warn_code_from_string(wstr::AbstractString, nspec::Int)
        end)
 end
 
+function make_warn_code_from_string{T<:Integer}(wstr::AbstractString, nspec::UnitRange{T})
+    :( begin
+       la = length(margs(mx))
+       if (la < $(nspec.start)) || (la > $(nspec.stop))
+         println(STDERR, $wstr)
+       end
+       mx
+       end)
+end
+
 function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
     local warnstring::AbstractString
     if nspec == 1
@@ -55,6 +65,12 @@ function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
     make_warn_code_from_string(warnstring, nspec)
 end
 
+function make_warn_code{T<:Dict, V<:Integer}(headstr::AbstractString, d::T,  nspec::UnitRange{V})
+    local warnstring::AbstractString
+    warnstring = headstr * " requires from " * string(nspec.start) * " to " * string(nspec.stop) * " arguments"
+    make_warn_code_from_string(warnstring, nspec)
+end
+
 # TODO. Handle other types of nspec
 make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec) =  :( mx )
 
@@ -64,7 +80,7 @@ make_warn_code(headstr::AbstractString, d::Dict) = make_warn_code(headstr, d,  d
 macro mkapprule(args...)
     n = length(args)
     head = args[1]
-    headstr = string(head)    
+    headstr = string(head)
     mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
     if n == 1
         defmx = :( mx )
@@ -80,12 +96,12 @@ macro mkapprule(args...)
             #            end
             #             )
         else
-            defmx = :( mx )            
+            defmx = :( mx )
         end
     end
     fns = symbol("do_" * headstr)
     esc(quote
-        set_pattributes([$headstr],[:Protected])        
+        set_pattributes([$headstr],[:Protected])
         apprules($mxarg) = $fns(mx, margs(mx)...)
         $fns($mxarg, args...) = $defmx
         end)
@@ -97,7 +113,7 @@ macro mkapprule1(head)
     mxarg = parse("mx::Mxpr{:$headstr}") # something easier worked too.
     fns = symbol("do_" * headstr)
     esc(quote
-        set_pattributes([$headstr],[:Protected])        
+        set_pattributes([$headstr],[:Protected])
         apprules($mxarg) = $fns(mx, margs(mx)...)
         end)
 end
@@ -577,7 +593,7 @@ apprules(mx::Mxpr{:UpValues}) = listupvalues(mx[1])
 @sjdoc Example "
 Example(s) runs (evaluates) the first example for the symbol s, which is typically
 a BuiltIn symbol. The input, output, and comments are displayed. The input strings
-for the example are pushed onto the terminal history so they can be retrieved and 
+for the example are pushed onto the terminal history so they can be retrieved and
 edited and re-evaluated. Example(s,n) runs the nth example for symbol s. When viewing
 documentation strings via ? SomeHead, the examples are printed along with the
 documentation string, but are not evaluated.
@@ -602,6 +618,11 @@ Replace(expr,rule) replaces parts in expr according to Rule rule.
           "1", "This expression does match the pattern."))
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
 doreplace(mx,expr,r::Mxpr{:Rule}) = replace(expr,Rule_to_PRule(r))
+
+function doreplace(mx,expr,r::Mxpr{:RuleDelayed})
+    replace(expr,RuleDelayed_to_PRule(r))
+end
+
 doreplace(mx,a,b) = mx
 
 @sjdoc ReplaceAll "
@@ -612,11 +633,20 @@ list or rules. If given explicitly, the rules must be given as List(...) rather 
 "
 
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
+
 doreplaceall(mx,expr,r::Mxpr{:Rule}) = replaceall(expr,Rule_to_PRule(r))
+doreplaceall(mx,expr,r::Mxpr{:RuleDelayed}) = replaceall(expr,RuleDelayed_to_PRule(r))
+
 function doreplaceall(mx,expr,rs::Mxpr{:List})
     rsa = Array(PRule,0)
     for i in 1:length(rs)
-        push!(rsa, Rule_to_PRule(rs[i]))
+        if is_Mxpr(rs[i], :RuleDelayed)
+            push!(rsa, RuleDelayed_to_PRule(rs[i]))
+        elseif is_Mxpr(rs[i], :Rule)
+            push!(rsa, Rule_to_PRule(rs[i]))
+        else
+            nothing  # do something better here, like return mx
+        end
     end
     replaceall(expr,rsa)
 end
@@ -636,8 +666,8 @@ apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
 function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
     ex1 = replacerepeated(expr,Rule_to_PRule(r))
     if is_Mxpr(ex1)
-        ex1 = meval_arguments(ex1)        # 
-        ex1 = meval_apply_all_rules(ex1)    
+        ex1 = meval_arguments(ex1)        #
+        ex1 = meval_apply_all_rules(ex1)
         #    ex1 = meval(ex1)
         ex1 = replacerepeated(ex1,Rule_to_PRule(r))
     end
@@ -778,9 +808,9 @@ function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
     elseif comp == :(!=)
         return a != b
     elseif comp == :(===)
-        return a === b        
+        return a === b
     end
-    eval(Expr(:comparison,a,comp,b)) # This will be slow.    
+    eval(Expr(:comparison,a,comp,b)) # This will be slow.
 end
 
 # a == a  --> True, etc.  for unbound a
@@ -837,7 +867,7 @@ _do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
 _do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
 
 function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
-#    println("In any cmp  bool $a $comp $b")    
+#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -845,7 +875,7 @@ function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
 end
 
 function _do_Comparison(a, comp::SJSym, b::Bool)
-#    println("In any cmp  bool $a $comp $b")    
+#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -853,7 +883,7 @@ function _do_Comparison(a, comp::SJSym, b::Bool)
 end
 
 function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
-#    println("In any cmp  bool $a $comp $b")    
+#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -864,7 +894,7 @@ function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
 #    println("In bool cmp  $a $comp $b")
     comp == :(==) && return a == b
     comp == :(!=) && return a != b
-    comp == :(===) && return a == b    
+    comp == :(===) && return a == b
     return false  # I guess this is good
 end
 
@@ -933,7 +963,7 @@ function disabledo_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,exp::V)
         end
     else
         return mx
-    end 
+    end
 end
 
 do_Power(mx,b,e) = mx
@@ -1187,7 +1217,7 @@ apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 @sjdoc Help "
 Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
 Help() lists all documented symbols. Due to parsing restrictions at the repl, for some
-topics, the input must be a string. 
+topics, the input must be a string.
 
 h\"topic\" gives a case-insensitive regular expression search.
 
@@ -1235,6 +1265,13 @@ in the sense that nested calls to a Module are not supported.
          ("f(x_) := Module([a],(a=1, a+x))",""),
          ("f(3)","4"),
          ("a","a"))
+
+
+@mkapprule Module  :nargs => 1:2
+
+do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body::Mxpr{:CompoundExpression}) = localize_module!(mx)
+
+do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body) = localize_module!(mxprcf(:Module,vars,mxprcf(:CompoundExpression, body)))
 
 # localizing is done above during setting the rule.
 # LModule is "localized module"

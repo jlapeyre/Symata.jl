@@ -22,3 +22,15 @@
 usually not a problem. But, manipulation (eg Expand) of large expressions
 may be hundreds of times faster in SymPy than the translation of the
 result.
+
+* [m, n] = [n, Mod(m, n)] Destructuring assignment
+
+* gensyms that escape from Module can't be entered (parsed) at command line because of comment
+ chars. Mma gensyms can be entered.  We need LModule only to remove temporary symbols. But,
+ returned gensym symbols are entered again into the symbol table, with no special attributes.
+  Mma gives gensyms attribute 'Temporary' and removes them when they go out of scope.
+  We shouls use a separate gensym counter for SJulia, eg. $ModuleNumber.
+
+* For 'Contexts', (like Julia modules), we should use ::, because the parser deals with it. Or '.',
+  which is waht Julia uses for modules.  Back tick will not work.
+  

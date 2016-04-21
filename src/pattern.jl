@@ -4,13 +4,18 @@
 #function Pattern_to_PatternT(mx::Mxpr)
 
 function RuleDelayed_to_PRule(mx::Mxpr{:RuleDelayed})
-    lhs = mx[1][1]
+    local lhs
+    if mhead(mx[1]) == :HoldPattern  # inefficient
+        lhs = mx[1][1]
+    else
+        lhs = mx[1]
+    end
     rhs = mx[2]
     ptp = patterntopvar(lhs)
     nlhs = PatternT(ptp,:All)
-    nrhs = PatternT(rhs,:All)
+    nrhs = PatternT(rhs,:All, true)  # rhs is delayed
 #    if ptp == lhs  println("same ptp ", lhs) end
-    PRule(nlhs,nrhs)
+    PRule(nlhs,nrhs) # true means rhs delayed
 end
 
 function Rule_to_PRule(mx::Mxpr{:Rule})

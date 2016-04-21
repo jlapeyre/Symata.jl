@@ -33,10 +33,14 @@ end
 # with SJSym's just to get repl completion.
 # So 'Pattern' is already used. So we use PatternT.
 # But, we will fix the repl and rewrite code.
+# Make change now ? No longer doing pollution
 type PatternT
     ast::Any
     cond::CondT
+    isdelayed::Bool  # if true, we evaluate before trying
 end
+
+PatternT(ast,cond) = PatternT(ast,cond,false)
 
 #function Base.copy(p::PatternT)
 #end
@@ -62,6 +66,8 @@ type PRule
     lhs::PatternT
     rhs::PatternT
 end
+
+PRule(lhs,rhs) = PRule(lhs,rhs,false)
 
 function Base.show(io::IO, p::PRule)
     print(io,"rule: ")
@@ -200,7 +206,8 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
     # We need something more efficient than deepcopy !
-    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
+    # deep copy and x_ -> pat(x) original
+    npat = pat2.isdelayed ? deepcopy(infseval(pat2)) : deepcopy(pat2) 
     nnpat = patsubst!(npat.ast,capt) # do replacement
     return nnpat
 end
@@ -212,8 +219,28 @@ function tpatrule(ex,pat1,pat2)
     res === false ? ex : res
 end
 
+# duplicated code above. merge this somehow
+# function patruledelayed(ex,pat1::PatternT,pat2::PatternT)
+#     @mdebug(1, "enter patrule with ", ex)
+#     (res,capt) = cmppat(ex,pat1)
+#     res == false && return false # match failed
+#     npat = deepcopy(infseval(pat2)) # Now we evaluate the RHS
+#     nnpat = patsubst!(npat.ast,capt) # do replacement
+#     return nnpat
+# end
+# patruledelayed(ex,pat1::ExSym,pat2::ExSym) = patruledelayed(ex,pattern(pat1),pattern(pat2))
+
+# # Same as patrule, except if match fails, return original expression
+# function tpatruledelayed(ex,pat1,pat2)
+#     res = patruledelayed(ex,pat1,pat2)
+#     res === false ? ex : res
+# end
+
+
 # apply replacement rule r to expression ex
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
+
+#replacedelayed(ex::ExSym, r::PRule) = tpatruledelayed(ex,r.lhs,r.rhs)
 
 function replacefail(ex::ExSym, r::PRule)
     patrule(ex,r.lhs,r.rhs)
@@ -281,6 +308,31 @@ end
 patsubst!(pat::SJSym,cd) = return  havecapt(pat,cd) ? retrievecapt(pat,cd) : pat
 patsubst!(pat::Pvar,cd) = retrievecapt(pat,cd)
 patsubst!(pat,cd) = pat
+
+#### Delayed version below
+
+# function patsubstdelayed!(pat::Mxpr,cd)
+#     if ! havecapt(pat,cd)
+#         pa = margs(pat)
+#         @inbounds for i in 1:length(pa)
+#             if havecapt(pa[i],cd)
+#                 pa[i] =  infseval(retrievecapt(pa[i],cd))
+# #                mergeargs(pa[i])  # does this help ? probably expensive
+#             elseif is_Mxpr(pa[i])
+#                 pa[i] = patsubst!(pa[i],cd)
+#             end
+#         end
+#     end
+#     if havecapt(mhead(pat),cd)
+#         pat = mxpr(retrievecapt(mhead(pat),cd),margs(pat))
+#     end
+#     return pat
+# end
+
+# patsubstdelayed!(pat::SJSym,cd) = return  havecapt(pat,cd) ? infseval(retrievecapt(pat,cd)) : pat
+# patsubstdelayed!(pat::Pvar,cd) = infseval(retrievecapt(pat,cd))
+# patsubstdelayed!(pat,cd) = pat
+
 
 ## ReplaceRepeated
 
