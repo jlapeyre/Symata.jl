@@ -47,6 +47,17 @@ include("client_sjulia.jl")
 
 #include("code_in_SJulia.jl")   # This file probably conflicts with sympy math functions
 
+function sjulia_repl()
+    isdefined(SJulia, :active_repl) && return SJulia.active_repl
+    isdefined(Base, :active_repl) && return Base.active_repl
+    error("Can't find the active REPL.")
+end
+
+# For now, julia and sjulia share history. So, either mode 1 or 2 is ok
+sjulia_repl_mode() = sjulia_repl().interface.modes[1]
+
+sjulia_repl_history() = sjulia_repl_mode().hist
+
 function __init__()
     init_sympy()
     setsymval(:ShowSymPyDocs!, true)  # show sympy docs for 'functions' if available.

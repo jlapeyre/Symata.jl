@@ -122,7 +122,7 @@ The type of the array is the same as the first element in mx.
 
 # 1-d unpack
 function apprules(mx::Mxpr{:Pack})
-    sjobj = margs(margs(mx,1))
+    sjobj = margs(margs(mx)[1])
     T = typeof(sjobj[1]) # hope one exists
     args = do_pack(T,sjobj)
     return args

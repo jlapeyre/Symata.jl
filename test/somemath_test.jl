@@ -18,6 +18,11 @@ using Base.Test
 @ex ClearAll(z)
 
 @testex 27^(1/3) == 3
+@testex 27^(1/3) == 3
+
+# FIXME: we don't want the following
+@testex Apply(List, 26^(1/3)) == [13 ^ (1//3),2 ^ (1//3)]
+
 
 # mpow in arithmetic.jl gets this wrong
 @testex 27^(2/3) == 9

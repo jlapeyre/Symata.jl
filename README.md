@@ -23,7 +23,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 *Note*: `SJulia` depends on the Julia
 [`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-`SJulia` works with the v0.4 (may need to disable compilation) and v0.5 branches of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
 
 You can test it with `Pkg.test("SJulia")`.
 
@@ -146,12 +146,14 @@ julia> @ex(some expression that may look like two expressions)
 
 ### Finding Help and Examples
 
-Try `Help()`. Symbols that are associated with some functionality can be listed with
-`BuiltIns()` at the sjulia prompt, or `@ex BuiltIns()` at the julia
-prompt.
-
-Documentation for for many BuiltIn symbols is reproduced at the end of
-this document.
+Try `Help()`. Type `h"topic"` for a search for items containing the
+string `"topic"`.  Hit TAB at the command line REPL for a list of all
+builtin symbols (i.e. variables and functions. Symbols that are
+associated with some functionality can be listed with
+`BuiltIns()`. Type `Example()` to see a list of topics with examples.
+Type `Example(topic)` to run the examples. The input strings from the
+examples are pushed to the history so that they can be recalled and
+edited and re-evaluated.
 
 This documentation can be printed from within SJulia
 by entering `?, SymName` at the `sjulia` prompt. Note the comma, which
@@ -161,10 +163,6 @@ is necessary because limitations in the provisional parsing method.
 
 To print a list of all help topics, type `?,` or `Help()`.
 
-If examples are printed with the documentation string, they can be
-evaluated, that is run, by entering `Example(SymName)` at the `sjulia`
-prompt. The input strings from the examples are pushed to the history
-so that they can be recalled and edited and re-evaluated.
 
 There are many examples in the test directory.
 
@@ -192,10 +190,11 @@ a + b
 
 Using the SJulia mode or the `@ex` macro is essentially using a language distinct
 from Julia. In particular, the evaluation sequence, and binding of symbols to
-storage is separate from Julia. But there is also some work done on allowing
-use of SJulia directly from Julia. For instance, these commands
+storage is separate from Julia. But, some features allow
+using SJulia directly from Julia, and vice versa. For instance, these commands
 
 ```julia
+julia> using SJulia
 julia> ex = :x + 1
 1 + x
 julia> m = Expand((:a+:b)*(:x+1)^2)
@@ -203,6 +202,7 @@ a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 ````
 
 make Julia bindings of SJulia expressions to the symbols ex and m.
+(Only Expand works this way, but other functions can be added easily.)
 
 #### More on Evaluation
 

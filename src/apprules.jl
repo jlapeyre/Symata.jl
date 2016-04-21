@@ -532,17 +532,6 @@ Span(a,b,c) or a:b:c represents elements a through b in steps of c.
 expr(a:b) returns elements a through b of expr, with the same head as expr.
 "
 
-@sjdoc Head "
-Head(expr) returns the head of expr, which may be an SJulia expression or object of any
-Julia type. The head of a Julia expression is Expr, eg.
-Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one level of
-a quoted Julia expression is evaluated so that we can embed Julia code.
-"
-
-apprules(mx::Mxpr{:Head}) = gethead(mx[1])
-gethead(mx::Mxpr) = mhead(mx)
-gethead(s::SJSym) = getsym(:Symbol)
-gethead(ex) = typeof(ex)
 
 @sjdoc Attributes "
 Attributes(s) returns attributes associated with symbol s. Builtin symbols have
@@ -591,20 +580,34 @@ apprules(mx::Mxpr{:UpValues}) = listupvalues(mx[1])
 #### Example
 
 @sjdoc Example "
-Example(s) runs (evaluates) the first example for the symbol s, which is typically
-a BuiltIn symbol. The input, output, and comments are displayed. The input strings
+Example(s) 
+runs (evaluates) all examples for the symbol s, typically a function or variable.
+Input, output, and comments are displayed. Input strings
 for the example are pushed onto the terminal history so they can be retrieved and
-edited and re-evaluated. Example(s,n) runs the nth example for symbol s. When viewing
+edited and re-evaluated.
+
+Example(s,n)
+runs the nth example for symbol s. When viewing
 documentation strings via ? SomeHead, the examples are printed along with the
 documentation string, but are not evaluated.
+
+Example()
+Returns a list of all example topics.
 "
-function apprules(mx::Mxpr{:Example})
-    if length(mx) == 1
-        do_example_n(mx[1],1)
-    else
-        do_example_n(mx[1],mx[2])
-    end
-end
+
+@mkapprule Example  :nargs => 0:2
+
+do_Example(mx::Mxpr{:Example}) = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
+do_Example(mx::Mxpr{:Example}, topic) = do_examples(mx[1])
+do_Example(mx::Mxpr{:Example}, topic, n::Int) = do_example_n(mx[1],n)
+
+# function apprules(mx::Mxpr{:Example})
+#     if length(mx) == 1
+#         do_example_n(mx[1],1)
+#     else
+#         do_example_n(mx[1],mx[2])
+#     end
+# end
 
 @sjdoc Replace "
 Replace(expr,rule) replaces parts in expr according to Rule rule.
@@ -700,15 +703,20 @@ function do_GenHead(mx,head::Mxpr{:MatchQ})
 end
 
 @sjdoc FullForm "
-FullForm(expr) prints expr and all sub-expressions as
-Head(arg1,arg2,...). Normal output may use infix notation instead.
+FullForm(expr) prints the internal representation of expr and all sub-expressions as
+Head(arg1,arg2,...). Normal output may use infix notation instead. But, expressions
+may always be entered in 'FullForm'.
 "
 @sjexamp( FullForm,
-         ("Clear(a,b)",""),
-         ("a+b","a+b"),
-         ("FullForm(a+b)","Plus(a,b)"))
-# FullForm is handled in io.jl
+          ("Clear(a,b)",""),
+          ("a+b","a+b"),
+          ("FullForm(a+b)","Plus(a,b)"))
 
+@sjexamp( FullForm,
+          ("Sqrt(2)", "Power(2,1//2)", "Internally, square roots are represented as powers."),
+          ("Sqrt(2)[2]", "1//2", "The second part of the expression is '1//2'"))
+
+# FullForm is implemented in io.jl
 
 ## Not
 
@@ -1257,9 +1265,9 @@ in the sense that nested calls to a Module are not supported.
 "
 @sjexamp( Module,
          ("ClearAll(f,a)",""),
-         ("f(x_) := Module([a],(a=1, a+x))",""),
+         ("f(x_) := Module([a],(a=1, a+x))","","This module has local variable 'a'"),
          ("f(3)","4"),
-         ("a","a"))
+         ("a","a","The global variable 'a' is not affected."))
 
 
 @mkapprule Module  :nargs => 1:2

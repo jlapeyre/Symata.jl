@@ -433,7 +433,7 @@ by SymPy are automatically converted to SJulia expressions.
 
 # TODO. Include option or another function to recursivley conver Mxpr's that
 # may have some PyObjects as members.
-do_ToSJulia(mx::Mxpr,expr::PyCall.PyObject) = maybe_sympy2mxpr(expr)
+do_ToSJulia(mx::Mxpr,expr::PyCall.PyObject) = sympy2mxpr(expr)
 do_ToSJulia(mx::Mxpr,expr) = expr
 do_ToSJulia(mx::Mxpr,x...) = mxpr(:List,x)
 

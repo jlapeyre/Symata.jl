@@ -296,6 +296,9 @@ function do_examples(sym)
         exs = SJEXAMPLES[sym]
         for strs in exs
             do_example(strs)
+            println()
+            println("--------------------------")
+            println()
         end
     end
 end
@@ -314,21 +317,21 @@ end
 # Push a string onto history in sjulia (symjulia) mode
 # modified from add_history in REPL.jl
 function sj_add_history(s::AbstractString)
-    sj_add_history(Base.active_repl.interface.modes[2].hist,s)
+    sj_add_history(sjulia_repl_history(), s)
 end
 
 function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
 #    str = rstrip(bytestring(s.input_buffer))  # original line
     str = rstrip(bytestring(s))
     isempty(strip(str)) && return
-    mode = :symjulia
+    mode = :sjulia
     length(hist.history) > 0 &&  # we could be more clever and not push the same example sequence twice
     mode == hist.modes[end] && str == hist.history[end] && return
     push!(hist.modes, mode)
     push!(hist.history, str)
     hist.history_file == nothing && return
     entry = """
-    # time: $(strftime("%Y-%m-%d %H:%M:%S %Z", time()))
+    # time: $(Libc.strftime("%Y-%m-%d %H:%M:%S %Z", time()))
     # mode: $mode
     $(Base.replace(str, r"^"ms, "\t"))
     """

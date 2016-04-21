@@ -9,11 +9,10 @@
 #import Mxprs: Mxpr, mxpr
 #export Expand
 
-function Expand(mx::Mxpr)
-    apprules(mxpr(:Expand,mx))
-end
-
+Expand(mx::Mxpr) = apprules(mxpr(:Expand,mx))
 Expand(x) = x
+
+export Expand
 
 #end   # Module
 

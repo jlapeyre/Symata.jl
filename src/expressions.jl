@@ -2,6 +2,22 @@
 
 import Combinatorics: permutations
 
+#### Head
+
+@sjdoc Head "
+Head(expr) returns the head of expr, which may be an SJulia expression or object of any
+Julia type. The head of a Julia expression is Expr, eg.
+Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one level of
+a quoted Julia expression is evaluated so that we can embed Julia code.
+"
+
+apprules(mx::Mxpr{:Head}) = gethead(mx[1])
+gethead(mx::Mxpr) = mhead(mx)
+gethead(s::SJSym) = getsym(:Symbol)
+gethead(ex) = typeof(ex)
+
+#### ExpandA
+
 function _doexpand(x)
     ! is_Mxpr(x) && return x
     n = length(x)
@@ -316,6 +332,11 @@ function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     end
     return mx
 end
+
+
+#### Args
+
+# @mkapprule Args :nargs => 1
 
 #### Reverse
 
