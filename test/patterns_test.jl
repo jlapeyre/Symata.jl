@@ -64,12 +64,7 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 @testex ReplaceAll(Sin(x), Sin => Cos) == Cos(x)
 @testex ReplaceAll( 1 + x^2 + x^4 , x^p_ => f(p)) == 1 + f(2) + f(4)
 
-# FIXME.  1) give correct answer (it is 1).  2. handle error more gracefully
-# sjulia > ReplaceAll(x , [x -> 1, x -> 3, x -> 7])
-# ERROR: MethodError: no method matching Rule_to_PRule(::SJulia.Mxpr{RuleDelayed})
-#  in eval(::Module, ::Any) at ./boot.jl:237
-
-
+@testex ReplaceAll(x , [x -> 1, x -> 3, x -> 7]) ==  1
 @testex Replace(x^2, x^2 => a + b) == a + b
 @testex Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
 @testex ReplaceAll( x + y , List(x => a, y => b)) == a + b

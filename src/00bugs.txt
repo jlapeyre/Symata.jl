@@ -37,3 +37,9 @@ result.
 * Integrate( Exp(-t)*t^(a-1),[t,0,Infinity])  fails because it returns an expression with type Base.#<,
   no idea what this object is. We should convert it to SJulia comparison, of course.
   For the moment we print an error.
+
+* Give exact values for CosD
+
+* need a system for including packages and the associated sjulia capability only
+ if the module is installed (or available)
+ 

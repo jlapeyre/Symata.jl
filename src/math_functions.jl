@@ -158,7 +158,7 @@ end
 const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,:Heaviside), (:LogIntegral, :li),
                                     (:CosIntegral, :Ci), (:SinIntegral, :Si),
                                     (:FresnelC, :fresnelc), (:FresnelS, :fresnels), (:DiracDelta, :DiracDelta),
-                                    (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func)]
+                                    (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func), (:Denominator, :denom)]
 
 # elliptic_e take more than ints!
 const no_julia_function_one_or_two_int = [ (:HarmonicNumber, :harmonic) , (:EllipticE, :elliptic_e) ]

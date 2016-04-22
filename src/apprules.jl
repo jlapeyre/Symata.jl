@@ -1330,3 +1330,25 @@ apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
 @mkapprule RandomReal
 
 do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
+
+
+@mkapprule Counts
+
+@sjdoc Counts "
+Counts(list) returns a dictionary of the number of times each distinct element of list
+occurs.
+"
+
+# Broken at the moment
+# import DataStructures: OrderedDict
+
+# We should use an ordered dict
+function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
+#    d = OrderedDict{Any,Any}()  # We need to canonicalize this
+    d = Dict{Any,Any}()  # We need to canonicalize this    
+    for el in margs(list)
+        val = get!(d,el,0)
+        d[el] = val + 1
+    end
+    d
+end
