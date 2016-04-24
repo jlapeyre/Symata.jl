@@ -4,6 +4,7 @@ using Base.Test
 import Base.Test: @test
 
 @ex TimeOff()   # don't print hundreds of diagnostic lines
+include("io_test.jl")
 include("flowcontrol_test.jl")
 include("module_test.jl")
 include("patterns_test.jl")

@@ -1,5 +1,6 @@
 using Base.Test
 
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
 @testex Length(UserSyms()) == 0
 
 #### Do
