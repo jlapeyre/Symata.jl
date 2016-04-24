@@ -1359,37 +1359,52 @@ apprules(mx::Mxpr{:UserSyms}) = usersymbols()
 
 @sjdoc Help "
 Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
-Help() lists all documented symbols. Due to parsing restrictions at the repl, for some
+Help() lists most of the documented symbols. Due to parsing restrictions at the repl, for some
 topics, the input must be a string.
 
 h\"topic\" gives a case-insensitive regular expression search.
 
+In the REPL, hit TAB to see all the available completions.
+\"?, topic\" is equivalent to Help(topic).
+
+Help(All => True) prints all of the documentation.
+
 Help(regex) prints a list of topics whose documentation text matches the
 regular expression regex. For example Help(r\"Set\"i) lists all topics that
 match \"Set\" case-independently.
-
-In the REPL, hit TAB to see all the available completions.
-
-Help(All -> true) prints all of the documentation. \"?, topic\" is equivalent
-to Help(topic).
 "
 
 apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
 
-function do_Help(mx,args...)
-    if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
-        print_all_docs()
-    else
-        if length(margs(mx)) == 0
-            print_doc("Help")
-        end
-        print_doc(margs(mx)...)
-    end
+function do_Help(mx::Mxpr{:Help})
+    print_doc("Help")
 end
 
-function do_Help{T<:Regex}(mx,r::T)
+function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
+    if r[1] == :All && r[2] == true
+        print_all_docs()
+    end
+    Null
+end
+
+do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
+
+function do_Help{T<:Regex}(mx::Mxpr{:Help},r::T)
     print_matching_topics(r)
 end
+
+
+# function do_Help(mx,args...)
+#     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
+#         print_all_docs()
+#     else
+#         if length(margs(mx)) == 0
+
+#         end
+#         print_doc(margs(mx)...)
+#     end
+# end
+
 
 #### Module
 
