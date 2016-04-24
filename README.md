@@ -1,6 +1,6 @@
 ## Symbolic manipulation code
 
-SJulia is a a language for symbolic computation.  It is largely
+SJulia is a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of
 Mathematica. Evaluation, pattern matching, flow control, etc. are
 written in Julia. Much of the mathematics and symbolic manipulation is
