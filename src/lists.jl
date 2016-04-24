@@ -1,3 +1,14 @@
+#### Args
+
+@sjdoc Args "
+Args(ex) is equivalent to Apply(List,ex)
+"
+@mkapprule Args :nargs => 1
+
+do_Args(mx::Mxpr{:Args}, ex) = mxpr(:List, copy(margs(mx)))
+
+
+
 #### Range
 
 @sjdoc Range "

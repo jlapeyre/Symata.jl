@@ -2,6 +2,7 @@
 # like a CAS does. Always return exact result (no floats).
 # Return Int if possible. We want to avoid infection Rationals
 # and putting explicit conversions everywhere. Examples:
+
 #  12/6 --> 2, not 2.0
 #  13/6 --> 13//6
 #  (13//6) * 6 --> 13
@@ -33,6 +34,7 @@ _mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? complex(cospi(exp),sinp
 # FIXME: This code and
 # function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
+# Note: do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational) is disabled.
 function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
     x == 1 && return x
     local gotneg::Bool
@@ -85,17 +87,26 @@ function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
 #    Rational(mpow(x.num,y),mpow(y.den,y))
 end
 
-function _mpow{T<:Integer,V<:Integer}(base::Complex{T}, expt::V)
+### Code below handles z^n for z complex and n real.
+
+# Is there not an automatic way ?
+_divide_pow{T<:AbstractFloat}(x::T,y::T) = x/y
+_divide_pow{T<:AbstractFloat}(x::Complex{T},y::T) = x/y
+_divide_pow{T<:Integer}(x::T,y::T) = x//y
+_divide_pow{T<:Integer}(x::Complex{T},y::T) = x//y
+_divide_pow{T<:Integer}(x::Complex{Rational{T}},y::Rational{T}) = x//y
+
+function _mpow{T<:Real,V<:Real}(base::Complex{T}, expt::V)
     expt >= 0 && return base^expt
-    if expt == -1
-        if base == complex(0,1)
-            return complex(0,-1)
+    if expt == -one(expt)
+        if base == complex(zero(real(base)),one(real(base)))
+            return complex(zero(real(base)),-one(real(base)))
         else
-            return conj(base)//abs2(base)  # this needs to be simplified
+            return _divide_pow(conj(base),abs2(base))
         end
     else
-        res = (conj(base)^(-expt)) // abs2(base)^(-expt)
-        if imag(res) == 0
+        res = _divide_pow((conj(base)^(-expt)) , abs2(base)^(-expt))
+        if imag(res) == zero(imag(res))
             return real(res)
         else
             return res
