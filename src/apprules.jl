@@ -1045,8 +1045,12 @@ function apprules(mx::Mxpr{:Power})
     do_Power(mx,mx[1],mx[2])
 end
 
-# TODO: Make sure Rationals are simplified
+# Don't handle this yet.
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},b::Complex{T},expt::Rational{V}) = mx
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},b::Complex{T},expt::Complex{Rational{V}}) = mx
+
 do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},b::T,expt::V) = mpow(b,expt)
+
 do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power},b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
 

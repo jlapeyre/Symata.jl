@@ -22,12 +22,22 @@ function mpow(x,y)
     _mpow(x,y)
 end
 
+function _mpow{T<:Integer,V<:AbstractFloat}(x::T,y::V)
+    x >= 0 && return convert(V,x)^y
+    res = convert(complex(V),x)^y
+    imag(res) == 0 && return real(res)
+    res
+end
+    
+_mpow{T<:Integer,V<:AbstractFloat}(x::Complex{T},y::V) = convert(Complex{V},x)^y
+
 _mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
 _mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
 
 _mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
 
-_mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? complex(cospi(exp),sinpi(exp)) * abs(b)^exp : b^exp
+# could be more efficient: cospi(exp) + im * sinpi(exp)
+_mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp
 
 #mpow(x::Complex,y::Integer) = x^y handled below
 
@@ -82,9 +92,8 @@ end
 
 # Find if this is not called and remove it. Otherwise, get rid of it.
 function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
-    println(STDERR, "arithetic.jl: Calling stupid mow")
+    error("arithetic.jl: Calling stupid mpow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
-#    Rational(mpow(x.num,y),mpow(y.den,y))
 end
 
 ### Code below handles z^n for z complex and n real.
@@ -96,7 +105,7 @@ _divide_pow{T<:Integer}(x::T,y::T) = x//y
 _divide_pow{T<:Integer}(x::Complex{T},y::T) = x//y
 _divide_pow{T<:Integer}(x::Complex{Rational{T}},y::Rational{T}) = x//y
 
-function _mpow{T<:Real,V<:Real}(base::Complex{T}, expt::V)
+function _mpow{T<:Real,V<:Union{AbstractFloat, Integer}}(base::Complex{T}, expt::V)
     expt >= 0 && return base^expt
     if expt == -one(expt)
         if base == complex(zero(real(base)),one(real(base)))

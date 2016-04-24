@@ -1,5 +1,11 @@
 using Base.Test
 
+# Much of this file is really testing mpow.
+# Numerical powers are either passed to mpow or else
+# returned unevaluated by do_Power, depending on the type of args.
+# We are missing several test cases here.
+# But, do_Power and mpow should now reproduce, more or less what Mma does.
+
 @testex Length(UserSyms()) == 0
 
 # This tests apprules and canonializer
@@ -25,14 +31,12 @@ using Base.Test
 # FIXME: we don't want the following
 @testex Apply(List, 26^(1/3)) == [13 ^ (1//3),2 ^ (1//3)]
 
-
-# mpow in arithmetic.jl gets this wrong
 @testex 27^(2/3) == 9
 @testex (-27)^(2/3) == (-1) ^ (2//3) * 9
 @testex (-27)^(1/3) == 3 * (-1) ^ (1//3)
-# TODO: Fix domain error
-#  (-1)^(.455)
 
+# TODO: could not fix this, because we do not print full error message (domain error)
+@testex  Chop((-1)^(3.2) + 0.8090169943749477 + 0.5877852522924728 * I) == 0
 @testex 3^0 == 1
 @test  typeof(@ex(3^0)) == Int  # bug fix
 
