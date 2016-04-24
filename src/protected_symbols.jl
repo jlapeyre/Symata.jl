@@ -60,6 +60,11 @@ set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinInt
                  "HarmonicNumber", "BellB"],
                 [:Listable,:NumericFunction,:ReadProtected])
 
+# BellB should be split into BellB and BellY
+set_pattributes(["BellB"],
+                [:NumericFunction,:ReadProtected])
+
+
 set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic"]
                 ,[:Listable])
 
@@ -85,7 +90,8 @@ set_pattributes([
                   "Length","List","ListQ","Listable","Map","MatchQ","N",
                   "None","Not","Null","Numerator","NumericFunction","NumericQ",
                   "OneIdentity","Orderless","Pack","Permutations","Precision",
-                  "Primes","Println","Protected","RatSimp","Rational","Rationals","RealRoots", "Reals",
+                  "Primes","Print", "Println","Protected","RatSimp","Rational",
+                  "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
                   "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
                   "StringLength","StringQ","Symbol","Syms","Temporary","TimeOff","TimeOn",

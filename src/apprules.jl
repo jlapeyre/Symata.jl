@@ -1430,11 +1430,6 @@ function apprules(mx::Mxpr{:LModule})
     return res
 end
 
-@sjdoc Println "
-Println(expr1,expr2,...) prints the expressions and a newline.
-"
-apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
-
 ## ExpandA, only a bit is implemented
 
 @sjdoc ExpandA "

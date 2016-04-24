@@ -17,19 +17,23 @@ mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) =
 mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x,y) = x/y
 
-mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
-mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
+function mpow(x,y)
+    _mpow(x,y)
+end
 
-mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
+_mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
+_mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
 
-mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? complex(cospi(exp),sinpi(exp)) * abs(b)^exp : b^exp
+_mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
+
+_mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? complex(cospi(exp),sinpi(exp)) * abs(b)^exp : b^exp
 
 #mpow(x::Complex,y::Integer) = x^y handled below
 
 # FIXME: This code and
 # function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
-function mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
     x == 1 && return x
     local gotneg::Bool
     if x < 0
@@ -75,13 +79,31 @@ function mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 end
 
 # Find if this is not called and remove it. Otherwise, get rid of it.
-function mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
+function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
     println(STDERR, "arithetic.jl: Calling stupid mow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 #    Rational(mpow(x.num,y),mpow(y.den,y))
 end
 
-mpow(x,y) = x^y
+function _mpow{T<:Integer,V<:Integer}(base::Complex{T}, expt::V)
+    expt >= 0 && return base^expt
+    if expt == -1
+        if base == complex(0,1)
+            return complex(0,-1)
+        else
+            return conj(base)//abs2(base)  # this needs to be simplified
+        end
+    else
+        res = (conj(base)^(-expt)) // abs2(base)^(-expt)
+        if imag(res) == 0
+            return real(res)
+        else
+            return res
+        end
+    end
+end
+
+_mpow(x,y) = x^y
 
 mabs(x) = abs(x)
 

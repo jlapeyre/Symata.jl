@@ -138,5 +138,16 @@ using Base.Test
 @testex Factor(ex) == ((-1 + x) ^ 2) * (1 + x) * (1 + x + x ^ 2)
 @ex ClearAll(x,ex)
 
+
+#### BellB
+
+@testex BellB(30) == 846749014511809332450147
+@testex BellB(6,4,[x1,x2,x3]) == 45 * (x1 ^ 2) * (x2 ^ 2) + 20 * (x1 ^ 3) * x3
+@testex BellB(4,t) == t + 7 * (t ^ 2) + 6 * (t ^ 3) + t ^ 4
+
+@ex ClearAll(x1,x2,x3,t)
+
+################
+
 @ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
 @testex Length(UserSyms()) == 0

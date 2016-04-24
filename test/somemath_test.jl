@@ -44,6 +44,10 @@ using Base.Test
 @testex Chop((-1.0)^(1//3) - (0.5 + 0.8660254037844387 * I)) == 0
 @testex Chop(N((-1)^(1//3)) - (0.5 + 0.8660254037844387 * I)) == 0
 
+@testex 1/I == -I
+@testex (I + 1)^(-2) ==  -1/2 * I
+@testex (I + 1)^(-3) ==  -1/4 - 1/4 * I
+@testex (I + 2)^(-3) == 2/125 - 11/125 * I
 
 @testex Log(2,8) == 3
 @testex Apply(List,Log(2,9)) == [2,9]

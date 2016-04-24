@@ -1,3 +1,19 @@
+#### Println
+
+@sjdoc Println "
+Println(expr1,expr2,...) prints the expressions and a newline.
+"
+apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
+
+
+#### Print
+
+@sjdoc Print "
+Print(expr1,expr2,...) prints the expressions.
+"
+apprules(mx::Mxpr{:Print}) = println(margs(mx)...)
+
+
 # Read SJulia expressions from a string and evaluate them, one by one.
 function SJulia_eval_string(s)
     i = 1

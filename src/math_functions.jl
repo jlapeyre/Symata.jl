@@ -82,6 +82,11 @@ end
 
 # TODO: FIX: sympy zeta may take two args
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
+# BellB should not be "listable", maybe bell split into BellB and BellY
+
+# TODO: Implement rewrite
+# sympy.airyai(x)[:rewrite](sympy.hyper)
+# PyObject -3**(2/3)*x*hyper((), (4/3,), x**3/9)/(3*gamma(1/3)) + 3**(1/3)*hyper((), (2/3,), x**3/9)/(3*gamma(2/3))
 
 # TODO: rename these arrays. Name by number of args plus identifying number.
 # ie. two_args1, two_args2. Then explain in comment the particulars. A naming
@@ -830,6 +835,12 @@ E is the base of the natural logarithm
 
 @sjdoc Pi "
 Pi is the trigonometric constant π.
+"
+
+@sjdoc BellB "
+BellB(n) gives the `n^{th}` Bell number, `B_n`.
+BellB(n, x) gives the `n^{th}` Bell polynomial, `B_n(x)`.
+BellB(n, k, [x1, x2, ... x_{n-k+1}]).
 "
 
 nothing
