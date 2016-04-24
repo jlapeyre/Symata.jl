@@ -2,12 +2,14 @@
 
 SJulia is a a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of
-Mathematica. Evaluation and pattern matching are written in
-Julia. Much of the mathematics and symbolic manipulation is achieved
-by wrapping SymPy. There are more than 300 functions implemented,
-including integration, tranformation of special functions, expression
-manipulation, etc. For examples of what works (and what does not),
-see [the test directory](test/).
+Mathematica. Evaluation, pattern matching, flow control, etc. are
+written in Julia. Much of the mathematics and symbolic manipulation is
+achieved by wrapping SymPy. There are more than 300 functions
+implemented, including integration, tranformation of special
+functions, expression manipulation, writing and reading expressions to
+and from a file etc. The best places for examples of what works (and
+what does not), are [the test directory](test/), and, at the SJulia
+prompt, the online help, TAB completion, and regex search `h"word"'.
 
 ### Installing
 
@@ -30,11 +32,19 @@ You can test it with `Pkg.test("SJulia")`.
 #### SJulia REPL mode
 
 There is an SJulia command line (REPL) mode.  To use the mode, there
-is an executable `sjulia` included in this distribution. It is a (UNIX
-sh) shell script that just starts julia and loads the module. The REPL is also
-available simply by loading the module in a julia session.
+is an executable [`sjulia`](sjulia) included in top level directory of this distribution. It is a (UNIX
+sh) shell script that just starts julia and loads the module.
 
-Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
+````sh
+#
+julia -i -e "using SJulia" $*
+````
+
+The REPL is also available simply by loading the module in a julia session via
+`using SJulia'.
+
+Toggle between Julia and SJulia modes by typing `=' as the first character on a line.
+(If loading SJulia from the `julia' prompt via `using SJulia', you use `=' and backspace.)
 In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
 You can do tab completion to see a list of functions and symbols.
 
