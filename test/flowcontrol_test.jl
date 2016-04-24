@@ -73,6 +73,17 @@ using Base.Test
 @testex sum == 15
 @ex ClearAll(i,sum)
 
+@ex n = 1
+@testex While( (n += 1) < 4) == Null
+@testex n == 4
+@ex ClearAll(n)
+
+@ex (m = 0; n = 0)
+@testex While( (n += 1) < 10, ( If(n>3, Continue()); m += n) ) == Null
+@testex n == 10
+@testex m == 6
+
+
 #### If
 
 @testex If(True,1) == 1
@@ -80,5 +91,29 @@ using Base.Test
 @testex If("cat",1,2,True)
 @testex If(False,1) == Null
 @ex ClearAll(retv)
+
+#### Break, Continue, Return
+
+@testex (1;2;Return(0);3;4) == Return(0)
+
+@ex n = 0
+@testex Do( (n += i; If(n>3, Return("dog"))) , [i,10]) == "dog"
+
+@ex n = 0
+@testex For(i=1, i<100, i += 1, (If(i>3, Continue()); n += i)) == Null
+@testex i == 100
+@testex n == 6
+
+@testex For(i=1, i<100, i += 1, If(i>3,Return(0))) == Return(0)
+@testex i == 4
+
+@ex ClearAll(n,i)
+
+@ex n = 0
+@testex Do( ( If(i>3, Continue()); n += i ) , [i,100]) == Null
+@testex n == 6
+@testex Head(i) == Symbol
+
+@ex ClearAll(n,i,m)
 
 @testex Length(UserSyms()) == 0

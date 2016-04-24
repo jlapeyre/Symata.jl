@@ -1424,6 +1424,9 @@ function apprules(mx::Mxpr{:LModule})
     for v in vars
         removesym(v)
     end
+    if  is_Mxpr(res,:Return) # TODO: check somewhere for excess args
+        return length(res) == 0 ? Null : res[1]
+    end
     return res
 end
 

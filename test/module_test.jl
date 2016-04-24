@@ -2,6 +2,9 @@
 
 @testex Module([], 1) == 1
 
+@testex Module([x],(Return(0);x)) == 0
+@testex Module([x],(Return();x)) == Null
+
 # This returns gensyms
 @testex Not(Module([x],x) === Module([x],x))
 

@@ -12,6 +12,34 @@ macro unsetbreak()
    esc(:(FLOWFLAGS[:Break] = false))
 end
 
+# Get Return(x), we return Return(x), rather than x.
+macro checkthrowreturn(mx)
+    esc(:(is_Mxpr($mx,:Return) && return $mx))
+end
+
+# Get Return(x), we return x, or Null
+macro checkreturn(mx)
+    esc(:(is_Mxpr($mx,:Return) && return length($mx) == 0 ? Null : $mx[1]))
+end
+
+macro checkthrowcontinue(mx)
+    esc(:(is_Mxpr($mx,:Continue) && return $mx))
+end
+
+# Probably need to check for
+macro checkcontinue(mx,incr)
+    esc( :( if is_Mxpr($mx,:Continue) begin
+                                       doeval(incr)
+                                       continue
+                                    end
+            end
+            ))
+end
+
+macro checkcontinue0(mx)
+    esc( :( if is_Mxpr($mx,:Continue) continue end ))
+end
+
 # Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
 # We should follow what we did in table and set the value in the function,
@@ -37,8 +65,10 @@ end
 
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment(i) , Println(i))
-Using Increment(i) is currently much faster than i = i + 1. There is no special syntax yet for
-Increment.
+Using Increment(i) is currently much faster than i = i + 1. (but what about i += 1 ?) 
+There is no special syntax yet for Increment.
+
+The variable i is not local to the For loop.
 "
 
 # This is pretty fast: For(i=1,i<1000, Increment(i))
@@ -46,21 +76,30 @@ Increment.
 
 function do_For(mx::Mxpr{:For}, start, test, incr)
     @unsetbreak
-    doeval(start)    
-    while doeval(test)
+    doeval(start)
+    while
+        doeval(test)
+        @checkbreak
+#        @checkthrowreturn(res)
         doeval(incr)
-        @checkbreak            
+        @checkbreak
+#        @checkthrowreturn(res)
     end
+    Null
 end
 
 function do_For(mx::Mxpr{:For}, start, test, incr, body)
     @unsetbreak
-    doeval(start)        
+    doeval(start)
     while doeval(test)
-        doeval(body)
         @checkbreak
+        res = doeval(body)
+        @checkbreak
+        @checkthrowreturn(res)
+        @checkcontinue(res,incr)
         doeval(incr)
-    end    
+    end
+    Null
 end
 
 #### If
@@ -92,8 +131,7 @@ While(test,body) evaluates test then body in a loop until test does not return t
 
 @mkapprule While :nargs => 1:2
 
-# TODO: Check for return statement
-
+# TODO: Check for return and continue here too
 function do_While(mx::Mxpr{:While}, test)
     @unsetbreak
     while doeval(test) == true
@@ -101,15 +139,17 @@ function do_While(mx::Mxpr{:While}, test)
     end
     Null
 end
-    
-function do_While(mx::Mxpr{:While}, test, body)    
+
+function do_While(mx::Mxpr{:While}, test, body)
     @unsetbreak
     while doeval(test) == true
-        doeval(body)
+        res = doeval(body)
         @checkbreak
+        @checkthrowreturn(res)
+        @checkcontinue0(res)
     end
     Null
-end    
+end
 
 #### Break
 
@@ -124,6 +164,22 @@ function do_Break(mx::Mxpr{:Break})
     Null
 end
 
+#### Return
+
+@sjdoc Return "
+Return(x) returns x from the enclosing block.
+Return() returns Null.
+Calling Return(x) from within For, While, CompoundExpression returns Return(x).
+Calling Return(x) from within Do and Module returns x.
+"
+
+#### Continue
+
+@sjdoc Continue "
+Continue() begins the next iteration of the enclosing loop without evaluating any remaining
+expressions in the body.
+"
+
 #### Do
 
 @sjdoc Do "
@@ -135,6 +191,9 @@ Do(expr,[i,imin,imax]) evaluates expr with i taking values from imin to imax wit
 Do(expr,[i,imin,imax,di]) evaluates expr with i taking values from imin to imax with increment di.
   imin, imax, and di may be symbolic.
 Do(expr,[i,[i1,i2,...]) evaluates expr with i taking values from a list.
+
+Mma says that Do effectively uses Block to localize variables. This probably means i has dynamic
+scope. In SJulia, we give i lexical scopy, as in Module.
 "
 
 function apprules(mx::Mxpr{:Do})
@@ -152,9 +211,12 @@ function do_doloop_kern(expr,imax)
     start = one(imax)
     @unsetbreak
     for i in start:imax
-        doeval(expr)
+        res = doeval(expr)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
     end
+    Null
 end
 
 function do_doloop(expr,iter::SJIter2)
@@ -163,10 +225,13 @@ function do_doloop(expr,iter::SJIter2)
     @unsetbreak
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
     end
     removesym(isym)
+    Null    
 end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
@@ -175,10 +240,13 @@ function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     @unsetbreak
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
     end
     removesym(isym)
+    Null    
 end
 
 # fields of iter may be symbolic
@@ -188,11 +256,14 @@ function do_doloop(expr,iter::SJIter3)
     setsymval(isym,iter.imin)
     @unsetbreak
     for i in 1:(iter.num_iters)
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)  # This will not increment isym
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
     end
     removesym(isym)
+    Null    
 end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
@@ -201,10 +272,13 @@ function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     @unsetbreak
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
     end
     removesym(isym)
+    Null    
 end
 
 # fields of iter may be symbolic
@@ -214,11 +288,14 @@ function do_doloop(expr,iter::SJIter4)
     setsymval(isym,iter.imin)
     @unsetbreak
     for i in 1:(iter.num_iters)
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
     end
     removesym(isym)
+    Null    
 end
 
 function do_doloop(expr,iter::SJIterList)
@@ -227,10 +304,13 @@ function do_doloop(expr,iter::SJIterList)
     @unsetbreak
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])
-        doeval(ex)
+        res = doeval(ex)
         @checkbreak
+        @checkreturn(res)
+        @checkcontinue0(res)
     end
     removesym(isym)
+    Null    
 end
 
 #### CompoundExpression
@@ -244,6 +324,8 @@ function apprules(mx::Mxpr{:CompoundExpression})
         @inbounds for i in 1:length(mx)
             res = doeval(mx[i])
             FLOWFLAGS[:Break] && break
+            @checkthrowreturn(res)
+            @checkthrowcontinue(res)
         end
     res
 end

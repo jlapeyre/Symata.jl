@@ -71,6 +71,8 @@ set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc"],
 
 set_pattributes(["AbstractString"], :Protected)
 
+set_pattributes(["Return","Break","Continue"], :Protected)
+
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Apply","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",

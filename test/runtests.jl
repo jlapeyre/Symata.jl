@@ -4,11 +4,11 @@ using Base.Test
 import Base.Test: @test
 
 @ex TimeOff()   # don't print hundreds of diagnostic lines
+include("flowcontrol_test.jl")
+include("module_test.jl")
 include("patterns_test.jl")
 include("up_downvalues_test.jl")
 include("expressions_test.jl")
-include("flowcontrol_test.jl")
-include("module_test.jl")
 include("arithmetic_test.jl")
 include("spec_fun_test.jl")
 include("comparison_test.jl")
