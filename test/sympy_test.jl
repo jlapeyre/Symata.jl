@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 @ex ClearAll(a,b,x,y,z,p,q,s,t,res,f)
 
 ## Factor, Expand
@@ -39,7 +41,7 @@ using Base.Test
 
 ## Integrate
 
-@ex ClearAll(r)
+@ex ClearAll(r,y,x)
 @testex Integrate(x,x) == 1//2 * x^2
 @testex Integrate(x,[x,0,1]) == 1//2
 @testex Integrate(x,[x,0,1],y) == 1//2 * y
@@ -54,12 +56,22 @@ using Base.Test
 # Fixed, we can now return conditions as well.
 @testex Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none") == Gamma(a)
 
+# SymPy examples
+@testex Integrate(x*y,x) == 1//2 * y * (x ^ 2)
+@testex Integrate(Log(x),x) == -x + x * Log(x)
+@testex Integrate(Log(x), [x, 1, a])  == 1 + -a + a * Log(a)
+@testex Integrate(x) == 1//2 * (x ^ 2)    # Should we disallow this ?
+@testex Integrate(Sqrt(1+x), [x,0,x]) == -2/3 + 2/3 * ((1 + x) ^ (3/2))
+@testex Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
+@testex Integrate(x^a * Exp(-x), [x,0,Infinity]) == [Γ(1 + a),-Re(a) < 1]
+@testex Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
+
 # Following works if 1/cos does not go to sec
 # @testex r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
 
 # Following works if 1/cos does not go to sec
 #@testex Simplify(D(r,x)) == 1/Cos(x+a)
-@ex ClearAll(r)
+@ex ClearAll(r,y,x)
 
 ## D
 
@@ -118,3 +130,13 @@ using Base.Test
 @testex Integrate(DiracDelta(x-1), [x,-1000, 1000]) == 1
 @testex Head(DiracDelta(0)) ==  DiracDelta
 @testex DiracDelta(1) == 0
+
+@ex ClearAll(x,i,conds,h,res,t,s)
+
+@ex ex = x^5 - x^3 - x^2 + 1
+@testex FactorSquareFree(ex) == ((-1 + x) ^ 2) * (1 + 2 * x + 2 * (x ^ 2) + x ^ 3)
+@testex Factor(ex) == ((-1 + x) ^ 2) * (1 + x) * (1 + x + x ^ 2)
+@ex ClearAll(x,ex)
+
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

@@ -11,13 +11,29 @@ const evalage = Evalage(0)
 @inline increvalage() = evalage.t += 1
 @inline getevalage() = evalage.t
 
+
+typealias MxprArgs Array{Any,1}
+typealias FreeSyms Dict{Symbol,Bool}
+
+abstract AbstractMxpr
+type Mxpr{T} <: AbstractMxpr
+    head::Any  # making this Any instead of Symbol slows things a bit
+    args::MxprArgs
+    fixed::Bool
+    canon::Bool
+    syms::FreeSyms
+    age::UInt64
+    key::UInt64
+    typ::DataType
+end
+
 #####################################################################
 # SSJSym                                                            #
 # data associated with SJulia symbols are instances of type SSJSym  #
 # SJSym is just Symbol. It is an older abstraction                  #
 # Implementing SJulia symbols is still in flux                      #
 #####################################################################
-typealias SJSym Symbol 
+typealias SJSym Symbol
 
 typealias SJSymAttrs Dict{Symbol,Bool}
 typealias SJSymDVs Array{Any,1}
@@ -33,7 +49,6 @@ register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[symbol(s)] = t
 # TODO
 #type DownValueT
 #end
-
 # Almost all symbols use Any for parameter T.
 # We experiented a bit with a value of Int for some symbols
 # It may be better to have no parameter, or that it means
@@ -42,49 +57,56 @@ register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[symbol(s)] = t
 # table maps Symbol to SSJSym.
 # There is only one element in val::Array{T,1}. It is much faster to set this
 # value, than to set a field val::T.
+#
+# If the value was set with SetDelayed, we set the delayed bit.
+# But, this is only used, so far, in printing definitions to be
+# read later. Since a := b is probably far less common than a = b,
+# I guess that it is better to store the delayed bit in a Dict,
+# But, this would have to be profiled
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
-#    val::Any
     val::Array{T,1}
     attr::SJSymAttrs
     downvalues::SJSymDVs
     upvalues::SJSymDVs
     age::UInt64
+    definition::Mxpr
 end
 
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
-@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0)
-#@inline symname{T}(s::SSJSym{T}) = T
+@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
 ## Typed SJ Symbols. Only experimental
 # Don't need T<:DataType here
-@inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0)
+@inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
-@inline sjval(s::SJSym) = getssym(s).val[1]  
+@inline sjval(s::SJSym) = getssym(s).val[1]
 @inline symval(s::SJSym) = getssym(s).val[1]
 @inline symval(s::SSJSym) = s.val[1]
-
-@inline function setsymval(s::SJSym,val)
-    getssym(s).val[1] = val
-    getssym(s).age = increvalage()
-end
 
 @inline function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
 
-@inline function fastsetsymval(s::SJSym,val)
-    getssym(s).val[1] = val
+function setsymval(s::SJSym,val)
+    setsymval(getssym(s),val)
 end
 
-@inline function fastsetsymval(s::SSJSym,val)
-    s.val[1] = val
-end
+fastsetsymval(s::SJSym,val) = (getssym(s).val[1] = val)
+
+fastsetsymval(s::SSJSym,val) = (s.val[1] = val)
+
+setdefinition(s::SSJSym, val::Mxpr) = s.definition = val
+
+getdefinition(s::SSJSym) = s.definition
+
+setdefinition(sym::SJSym, val::Mxpr) = setdefinition(getssym(sym) , val)
+getdefinition(sym::SJSym) = getdefinition(getssym(sym))
 
 # Any and all direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
@@ -92,7 +114,7 @@ end
 
 @inline symname(s::SJSym) = s
 
-# 
+#
 #symname(s::AbstractString) = symbol(s)
 
 @inline symattr(s::SJSym) = getssym(s).attr
@@ -101,7 +123,7 @@ end
 # Try storing values in a Dict instead of a field. Not much difference.
 # @inline symval(s::SJSym) = return haskey(SYMVALTAB,s) ? SYMVALTAB[s] : s
 # @inline function setsymval(s::SJSym,val)
-# #     (getssym(s).val = val)        
+# #     (getssym(s).val = val)
 #      SYMVALTAB[s] = val
 #      getssym(s).age = increvalage()
 # end
@@ -125,7 +147,15 @@ import Base:  ==
 downvalue_lhs_equal(x,y) = x == y
 downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
 
-function push_downvalue(ins::SJSym,val)
+#### downvalues
+
+# We store the Mxpr used definition to define downvalues. These
+# can be written to a file.
+const DOWNVALUEDEFDICT = Dict{Any,Any}()
+
+get_downvalue_def(lhs) = getkey(DOWNVALUEDEFDICT, lhs, NullMxpr)
+
+function set_downvalue(mx::Mxpr, ins::SJSym, val)
     s = getssym(ins)
     dvs = s.downvalues
     isnewrule = true
@@ -137,16 +167,48 @@ function push_downvalue(ins::SJSym,val)
         end
     end
     isnewrule && push!(s.downvalues,val)
+    DOWNVALUEDEFDICT[val[1]] = mx
     sort!(s.downvalues,lt=isless_patterns)
-    s.age = increvalage()    
+    s.age = increvalage()
 end
 
-clear_downvalues(s::SJSym) = (getssym(s).downvalues = Array(Any,0))
+function clear_downvalue_definitions(sym::SJSym)
+    s = getssym(sym)
+    dvs = s.downvalues
+    for i in 1:length(dvs)
+        lhs = dvs[i][1]
+        if haskey(DOWNVALUEDEFDICT,lhs)
+            delete!(DOWNVALUEDEFDICT,lhs)
+        end
+    end
+end
+
+function clear_downvalues(s::SJSym)
+    clear_downvalue_definitions(s)
+    getssym(s).downvalues = Array(Any,0)
+end
 
 @inline downvalues(s::SJSym) = getssym(s).downvalues
-@inline listdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
+@inline sjlistdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
 
-function push_upvalue(ins::SJSym,val)
+function jlistdownvaluedefs(sym::SJSym)
+    s = getssym(sym)
+    dvs = s.downvalues
+    dvlist = Array{Any,1}()
+    for i in 1:length(dvs)
+        lhs = dvs[i][1]
+        if haskey(DOWNVALUEDEFDICT,lhs)
+            push!(dvlist, DOWNVALUEDEFDICT[lhs])
+        end
+    end
+    dvlist
+end
+
+#### upvalues
+
+const UPVALUEDEFDICT = Dict{Any,Any}()
+
+function set_upvalue(mx, ins::SJSym,val)
     s = getssym(ins)
     uv = s.upvalues
     isnewrule = true
@@ -158,13 +220,43 @@ function push_upvalue(ins::SJSym,val)
         end
     end
     isnewrule && push!(s.upvalues,val)
-#    sort!(s.downvalues,lt=isless_patterns)
-    s.age = increvalage()    
+    UPVALUEDEFDICT[val[1]] = mx
+    # How to sort upvalues ?
+    s.age = increvalage()
 end
 
 @inline upvalues(s::SJSym) = getssym(s).upvalues
-@inline listupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
+@inline sjlistupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
 @inline has_upvalues(s::SJSym) = length(upvalues(s)) > 0
+
+function clear_upvalue_definitions(sym::SJSym)
+    s = getssym(sym)
+    uvs = s.downvalues
+    for i in 1:length(uvs)
+        lhs = uvs[i][1]
+        if haskey(UPVALUEDEFDICT,lhs)
+            delete!(UPVALUEDEFDICT,lhs)
+        end
+    end
+end
+
+function clear_upvalues(s::SJSym)
+    clear_upvalue_definitions(s)
+    getssym(s).upvalues = Array(Any,0)
+end
+
+function jlistupvaluedefs(sym::SJSym)
+    s = getssym(sym)
+    uvs = s.upvalues
+    uvlist = Array{Any,1}()
+    for i in 1:length(uvs)
+        lhs = uvs[i][1]
+        if haskey(UPVALUEDEFDICT,lhs)
+            push!(uvlist, UPVALUEDEFDICT[lhs])
+        end
+    end
+    uvlist
+end
 
 ## Retrieve or create new symbol
 @inline function getssym(s::Symbol)
@@ -202,8 +294,24 @@ end
 # Mxpr                                                           #
 # all SJulia expressions are represented by instances of Mxpr    #
 ##################################################################
-typealias MxprArgs Array{Any,1}
-typealias FreeSyms Dict{Symbol,Bool}
+
+# The lines commented out make sense to me.
+# But, tests fail when they are used
+#function =={T<:Mxpr}(ax::T, bx::T)
+function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)    
+    mhead(ax) != mhead(bx)  && return false
+    a = margs(ax)
+    b = margs(bx)
+    (na,nb) = (length(a),length(b))
+    na != nb && return false
+    @inbounds for i in 1:na
+        a[i] != b[i] && return false
+    end
+    true
+end
+
+# =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V) = false
+
 
 # Creating an Array of these Dicts and using them is slower than
 # Just creating them one at a time. So this is disabled.
@@ -226,23 +334,6 @@ typealias FreeSyms Dict{Symbol,Bool}
 #     end
 # end
 
-
-# This is T in Mxpr{T} for any Head that is not a Symbol
-# We have duplicate information about the Head in a field, as well.
-type GenHead
-end
-
-abstract AbstractMxpr
-type Mxpr{T} <: AbstractMxpr
-    head::Any  # making this Any instead of Symbol slows things a bit
-    args::MxprArgs
-    fixed::Bool
-    canon::Bool
-    syms::FreeSyms
-    age::UInt64
-    key::UInt64
-    typ::DataType
-end
 typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs() = Array(Any,0)
 @inline newargs{T<:Integer}(n::T) = Array(Any,n)
@@ -292,7 +383,6 @@ const EXPRDICT = Dict{UInt64,Mxpr}()
 global gotit = 0   # non constant global, only for testing
 
 @inline function Base.copy(mx::Mxpr)
-#    println("copying $mx")
     args = copy(mx.args)
     mxpr(mhead(mx),args)
 end
@@ -331,7 +421,7 @@ function Base.hash(mx::Mxpr)
     for a in margs(mx)
         hout = hash(a,hout)
     end
-    hout    
+    hout
 end
 
 function dohash(mx::Mxpr, h::UInt64)
@@ -381,8 +471,13 @@ end
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
-#    checkhash(mx)    
+#    checkhash(mx)
     mx
+end
+
+# This is T in Mxpr{T} for any Head that is not a Symbol
+# We have duplicate information about the Head in a field, as well.
+type GenHead
 end
 
 # Non-symbolic Heads have type GenHead, for now
@@ -392,7 +487,6 @@ function mxpr(s,args::MxprArgs)
     mx
 end
 
-# Non-symbolic Heads have type GenHead, for now
 function mxpr(s,iargs...)
     len = length(iargs)
     args = newargs(len)
@@ -403,7 +497,6 @@ function mxpr(s,iargs...)
 end
 
 # set fixed point and clean bits
-# not used much
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs()
     for x in iargs push!(args,x) end
@@ -418,7 +511,7 @@ end
 
 ######  Manage lists of free symbols
 
-# Sometimes protectd symbols need to be merged, somewhere.
+# Sometimes protected symbols need to be merged, somewhere.
 #is_sym_mergeable(s) = ! is_protected(s)
 @inline is_sym_mergeable(s) = true
 
@@ -441,7 +534,7 @@ end
         mxs[sym] = true
     end
     h = mhead(a)
-#    println("Checking head $h")    
+#    println("Checking head $h")
     if is_sym_mergeable(h)
         mxs[h] = true
     end
@@ -449,13 +542,13 @@ end
 
 # Add Symbol a to list of free symbols syms
 @inline function mergesyms(syms::FreeSyms, a::SJSym)
-#    println("m2: $a")    
+#    println("m2: $a")
     syms[a] = true
 end
 
 # Add Symbol a to list of free symbols in mx
 @inline function mergesyms(mx::Mxpr, a::SJSym)
-    (mx.syms)[a] = true    
+    (mx.syms)[a] = true
 end
 
 @inline mergesyms(x,y) = nothing
@@ -468,7 +561,7 @@ function mergeargs(mx::Mxpr)
     h = mhead(mx)
     if is_sym_mergeable(h)
         mergesyms(mx,h)
-    end    
+    end
     @inbounds for i in 1:length(mx)
 #        println("mergeargs $i: ", listsyms(mx[i]))
         mergesyms(mx,mx[i])
@@ -491,13 +584,12 @@ end
 #        return false        # in test suite, this branch is never taken.
 #    end
     for sym in keys(mx.syms) # is there a better data structure for this ?
-        symage(sym) > mxage && return true        
+        symage(sym) > mxage && return true
     end
 #    symage(mhead(mx)) > mxage && return true
     return false  # no symbols in mx have been set since mx age was updated
 end
 @inline checkdirtysyms(x) = false
-
 
 # If mx has an empty list of free symbols, put :nothing in the list.
 # Prevents calling mergeargs if the list is empty. Eg when args to mx are numbers.
@@ -513,8 +605,7 @@ listsyms(x) = nothing
 
 @inline is_canon(mx::Mxpr) = mx.canon
 @inline is_fixed(mx::Mxpr) = mx.fixed
-is_fixed(s::SJSym) = symval(s) == s
-#is_fixed{T}(s::SJSym{T}) = symval(s) == T
+is_fixed(s::SJSym) = symval(s) == s  # unbound is a better work, maybe. Where is this used ?? see checkunbound in apprules.jl
 @inline setcanon(mx::Mxpr) = (mx.canon = true; mx)
 @inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx); mx)
 @inline setfixed(x) = x
@@ -533,8 +624,6 @@ end
 @inline is_canon(x) = false
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false
-#is_fixed(x) = false
-#setfixed(x) = false
 @inline unsetfixed(x) = false  # sometimes we have a Julia object
 
 # We need to think about copying in the following. Support both refs and copies ?
@@ -583,15 +672,15 @@ function protectedsymbols()
     end
     for s in unprotected_builtin_symbols
         push!(symstrings,s)
-    end    
+    end
     mx = mxpr(:List, sort!(args))
 end
 
-# Should we be constructing Mxpr's in this file ?
+# For now, we exclude Temporary symbols
 function usersymbols()
     args = newargs()
     for s in keys(SYMTAB)
-        #        if ! get_attribute(s,:Protected) push!(args,getsym(s)) end
+        if  get_attribute(s,:Temporary) continue end
         if ! haskey(system_symbols, s) push!(args,getsym(s)) end
     end
     mx = mxpr(:List, sort!(args)...)
@@ -599,7 +688,6 @@ function usersymbols()
     setfixed(mx)
     mx
 end
-
 
 # For Heads that are not symbols
 get_attribute(args...) = false
@@ -612,11 +700,6 @@ end
 # Return true if head of mx has attribute attr
 @inline function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
     get_attribute(T,attr)
-end
-
-# Move this to predicates.jl ?
-@inline function is_protected(sj::SJSym)
-    get(getssym(sj).attr,:Protected,false)
 end
 
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
@@ -639,4 +722,4 @@ typealias Blanks Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence
 
 # Everything except Bool is what we want
 # Maybe we actually need a separate Bool from julia
-typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned} 
+typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned}

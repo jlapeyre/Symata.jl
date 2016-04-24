@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 @ex ClearAll(fib)
 @ex fib(1) := 1
 @ex fib(2) := 1
@@ -20,6 +22,7 @@ using Base.Test
 
 ## Condition on pattern
 
+# Careful, I am mixing '=' and ':=' here
 @ex g(1) := "cat"
 @ex g(x_Integer) = "int"
 @ex g(x_Float64) = "float"
@@ -41,7 +44,7 @@ using Base.Test
 
 ## Restrictions on patterns. Match head and/or "pattern test"
 
-SJulia.@ex      ClearAll(stringgt4,g,gt5)
+SJulia.@ex      ClearAll(stringgt4,g,gt5,h)
 SJulia.@ex      stringgt4(x_) := StringLength(x) > 4
 SJulia.@ex      gt5(x_) := x > 5
 SJulia.@ex      g(x_Integer:?(EvenQ)) := x
@@ -52,6 +55,14 @@ SJulia.@testex  g(4) == 4
 SJulia.@testex  Head(g(5)) == g
 SJulia.@testex  Head(g("cat")) == g
 SJulia.@testex  g("zebra") == "Greater than 4"
+@testex         Head(g(4.0)) == g
+@testex         g(6.0) == 1
+@ex             h(x_AbstractFloat:?(:((y)-> y < 3) )) = 1
+@testex         Head(h(2)) == h
+@testex         Head(h(4)) == h
+@testex         Head(h(2)) == h
+@testex         Head(h(4.0)) == h
+@testex         h(2.0) == 1
 SJulia.@ex      ClearAll(a,b,stringgt4,g,gt5)
 
 ## UpValues
@@ -71,3 +82,8 @@ SJulia.@testex (a^4 == p) != True
 SJulia.@testex a^BF(4) == p
 SJulia.@testex a^4.0 == p
 SJulia.@ex ClearAll(a,p)
+
+@ex ClearAll(h)
+
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

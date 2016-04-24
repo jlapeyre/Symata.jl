@@ -38,6 +38,19 @@ Toggle between Julia and SJulia modes by typing `=` as the first character on a 
 In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
 You can do tab completion to see a list of functions and symbols.
 
+#### SymPy
+
+Functions that call SymPy work like this. This SymPy call
+```python
+integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
+```
+corresponds to this SJulia expression
+```julia
+Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
+```
+
+For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
+
 #### Some results.
 
 Here is counting with patterns. The execution time is about the same as Mma 3.
@@ -82,7 +95,7 @@ of `HoldXXX` symbols to prevent evaluation, and in
 [Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
 functions and options to force it.
 
-Here is SJulia doing expansion (with the native 'ExpandA'. The more capable 'Expand' is a fronted to a
+Here is SJulia doing expansion (with the native 'ExpandA'. The more capable 'Expand' is a frontend to a
 SymPy function)
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia

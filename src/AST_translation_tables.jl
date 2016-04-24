@@ -1,4 +1,4 @@
-## Things that can't be loaded twice.
+## Things that can't be loaded twice.g
 # Some instances of data structures
 
 ## Symbol correspondence/translation between Julia and SJulia
@@ -67,7 +67,9 @@ end
 mtojsym(x) = x
 
 # These will not be translated back to Julia expression symbol on printing
-for (k,v) = ( (:tuple,:CompoundExpression),)
+# TODO. choose tuple or block, or both ?
+# One unusual occurance of :block is filtered before we get here
+for (k,v) = ( (:tuple,:CompoundExpression), (:block,:CompoundExpression), (:dict, :List) )
     JTOMSYM[k] = v
 end
 

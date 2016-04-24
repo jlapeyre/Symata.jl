@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 # This tests apprules and canonializer
 @ex ClearAll(z)
 
@@ -54,12 +56,11 @@ using Base.Test
 @testex Cos(3*Pi/2) == 0
 # Cos is handled in SJulia. It follows Mma...
 @testex Cos(z * I) == Cosh(z)
-# Sin is done by sympy, which leave this untouched
+# Sin is done by sympy, which leaves this untouched
 
-# see top of math_functions.jl
-# Currently, either this works, or pattern matching:
-# Some code relies on :Float64 being unbound in SJulia
-# other code relies on it being bound to ::Type{Float64}.
-# It can be made consistent however.
-#@testex Head(N(1)) == Float64
-#@testex Head(N(Cos(1))) == Float64
+@testex Head(N(1)) == Float64
+@testex Head(N(Cos(1))) == Float64
+
+@ex ClearAll(z)
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

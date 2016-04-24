@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 SJulia.@ex ClearAll(a,b)
 SJulia.@ex mx = ExpandA((a+b)^3)
 SJulia.@testex  mx == Plus(Power(a,3),Times(3,Power(a,2),b),Times(3,a,Power(b,2)),Power(b,3))
@@ -56,3 +58,5 @@ SJulia.@ex ClearAll(m,f,g)
 @testex m[3,4:6] == [16,20,24]
 @testex m[3,1:10:2] == [4,12,20,28,36]
 @ex ClearAll(m)
+
+@testex Length(UserSyms()) == 0

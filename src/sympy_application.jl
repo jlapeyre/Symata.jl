@@ -1,21 +1,26 @@
 #using SJulia.JSymPy
 using PyCall
 
+# TODO: refactor code here and in math_functions.jl.
+
+# Wrap a sympy function with an SJulia "function"
+# Pass keyword arguments. In SJulia, these are expressions with head 'Rule'
+# We use this for more than just simplification functions.
 # TODO: check number of args, etc.
 # TODO: some do not take kwargs. don't waste time looking for them.
 macro make_simplify_func(mxprsym, sympyfunc)
-    smxprsym = string(mxprsym)[2:end]
-    ssympyfunc = string(sympyfunc)
+    smxprsym = string(mxprsym)[2:end]     # SJulia symbol
+    ssympyfunc = string(sympyfunc)        # SymPy function
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
-              kws = Dict()
-              nargs = mxpr2sympy_kw(mx,kws)
+              kws = Dict()                         # To hold keywords
+              nargs = mxpr2sympy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
               if (length(kws) > 0 )
                  sres = sympy.$sympyfunc(nargs...; kws...) |> maybe_sympy2mxpr
               else
-                 sres = sympy.$sympyfunc(nargs...) |> maybe_sympy2mxpr        
+                 sres = sympy.$sympyfunc(nargs...) |> maybe_sympy2mxpr
               end
-              deepsetfixed(sres)
+              deepsetfixed(sres)         # sometimes this seems like a good idea.
               sres
         end
         set_pattributes( [$smxprsym], :Protected)
@@ -65,6 +70,8 @@ Integrate(expr, x) gives the indefinite integral of expr with respect to x.
 Integrate(expr, [x,a,b]) gives the definite integral.
 "
 
+
+
 #apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
 function do_Integrate(mx::Mxpr{:Integrate},expr)
@@ -78,7 +85,10 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
     sjres = maybe_sympy2mxpr(pyintegral)
-    deepsetfixed(sjres)  # we need this to avoid infinite eval
+    if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
+        deepsetfixed(sjres)  # we need this to avoid infinite eval
+    end
+    sjres
 end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
@@ -87,7 +97,8 @@ function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
     return maybe_sympy2mxpr(pyintegral)
 end
 
-function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr, varspecs...)
+# We annotate Dict here to fix BoundsError bug in Integrate(x)
+function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...)
     pymx = mxpr2sympy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     # println("expr ", pymx)
@@ -95,7 +106,10 @@ function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr, varspecs...)
     # println("kw ", kws)
     pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
     sjres = maybe_sympy2mxpr(pyintegral)
-    deepsetfixed(sjres)     # no, sometimes we want SJulia to reduce the answer. (but, this sometimes makes a less satisfactory answer :(
+    if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
+        deepsetfixed(sjres)  # we need this to avoid infinite eval
+    end
+    sjres
 end
 
 # FIXME: we do deepsetfixed and a symbol Int is returned. If we pull it out,
@@ -103,6 +117,11 @@ end
 function apprules(mx::Mxpr{:Integrate})
     kws = Dict()
     nargs = separate_rules(mx,kws)
+    # two reasons for this. 1. We prefer 'separate'. 2. works around inf eval loop
+    # in case no conds are given
+    if ! haskey(kws, :conds)
+        kws[:conds] = "separate"
+    end
     if length(kws) == 0
         do_Integrate(mx,margs(mx)...)
     else
@@ -140,7 +159,7 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
     nargs = mxpr2sympy_kw(mx,kws)
     pyres = @try_sympyfunc laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
-    pyres |> maybe_sympy2mxpr 
+    pyres |> maybe_sympy2mxpr
 end
 
 #### InverseLaplaceTransform
@@ -299,7 +318,6 @@ Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword opt
 @make_simplify_func :PowSimp powsimp
 @make_simplify_func :PowDenest powdenest
 @make_simplify_func :LogCombine logcombine
-#@make_simplify_func :Separate separate
 @make_simplify_func :SeparateVars separatevars
 @make_simplify_func :BesselSimp besselsimp
 @make_simplify_func :HyperSimp hypersimp
@@ -308,6 +326,10 @@ Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword opt
 @make_simplify_func :CombSimp combsimp
 @make_simplify_func :SqrtDenest sqrtdenest
 @make_simplify_func :Cse cse
+@make_simplify_func :Div div
+
+# These apparently have been removed from SymPy
+#@make_simplify_func :Separate separate
 #@make_simplify_func :OptCse opt_cse  maybe renamed cse_opts
 #@make_simplify_func :CollectSqrt collectsqrt apparently gone
 

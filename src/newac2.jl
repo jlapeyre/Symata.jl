@@ -3,6 +3,10 @@ type MatchCapts
 end
 newmatchcapts() = MatchCapts(Dict{Symbol,Any}())
 
+# NB, If we use this code, don't use tasks. Theyr
+# are inefficient.
+
+
 # This type corresponds to the expression:
 # PatternTest[Pattern[name,Blank[head]],test]
 

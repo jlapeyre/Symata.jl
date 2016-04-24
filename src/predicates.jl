@@ -1,14 +1,10 @@
-## predicates
+#### predicates
 
 is_type(x,t::DataType) = typeof(x) == t
 is_type_less(x,t::DataType) = typeof(x) <: t
 is_type(x,t::Union) = typeof(x) == t
-
-# These should all be fixed
-#is_type_less(x,t::Union) = typeof(x) <: t
 is_type_less{T}(x::T,t::Union) = T <: t
 
-#is_SJSym{T<:SJSym}(s::T) = true
 is_SSJSym(s::SSJSym) = true
 is_SSJSym(x) = false
 is_SJSym(s::SJSym) = true
@@ -51,16 +47,16 @@ function is_Constant(x::Symbol)
 end
 is_Constant(x) = false
 
+is_protected(sj::SJSym) = get(getssym(sj).attr,:Protected,false)
+
 typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 is_blankxxx{T<:BlankXXX}(mx::T) = true
 is_blankxxx{T<:Mxpr}(x::T) = false
 
-###  SJulia Predicates
+####  SJulia Predicates
 
 @mkapprule ConstantQ :nargs => 1
 
-# This one is not used
-#do_ConstantQ(mx::Mxpr{:ConstantQ}, s::SSJSym) = is_Constant(s)
 do_ConstantQ(mx::Mxpr{:ConstantQ}, s::Symbol) = is_Constant(s)
 do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = false
 

@@ -24,7 +24,7 @@ atreplinit, _atreplinit
 # See base/client.jl
 
 function SJulia_start()
-    opts = Base.JLOptions()    
+    opts = Base.JLOptions()
     startup               = (opts.startupfile != 2)
     history_file          = (opts.historyfile != 0)
     quiet                 = (opts.quiet != 0)
@@ -58,6 +58,20 @@ function SJulia_start()
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
 
+    if isdefined(:STDOUT)
+        setsymval(:STDOUT, STDOUT)
+    else
+        warn("**** CANT FIND STDOUT")
+    end
+    if isdefined(:STDERR)
+        setsymval(:STDERR, STDERR)
+    else
+        warn("**** CANT FIND STDERR")
+    end
+    if isdefined(:DevNull)
+        setsymval(:DevNull, DevNull)
+    end
+    
     if !isa(STDIN,TTY)
         # note: currently IOStream is used for file STDIN
         if isa(STDIN,File) || isa(STDIN,IOStream)
@@ -76,4 +90,3 @@ function SJulia_start()
     end
     exit
 end
-

@@ -1,8 +1,9 @@
 ##  Some 'apprules' definitions.
-# These evaluate expressions with builtin (protected) heads.
-# They are called from meval.
+#   These evaluate expressions with builtin (protected) heads.
+#   They are called from meval.
 
-## Application of Rules for many heads of Mxpr
+# One or more arguments
+type OneOrMore end
 
 function get_arg_dict(args)
     d = Dict{Symbol,Any}()
@@ -50,6 +51,16 @@ function make_warn_code_from_string{T<:Integer}(wstr::AbstractString, nspec::Uni
        end)
 end
 
+function make_warn_code_from_string(wstr::AbstractString, nspec::Type{OneOrMore})
+    :( begin
+       la = length(margs(mx))
+       if la < 1 
+         println(STDERR, $wstr)
+       end
+       mx
+       end)
+end
+
 function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
     local warnstring::AbstractString
     if nspec == 1
@@ -71,11 +82,15 @@ function make_warn_code{T<:Dict, V<:Integer}(headstr::AbstractString, d::T,  nsp
     make_warn_code_from_string(warnstring, nspec)
 end
 
-# TODO. Handle other types of nspec
+function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Type{OneOrMore})
+    local warnstring::AbstractString
+    warnstring = headstr * " requires one or more arguments"
+    make_warn_code_from_string(warnstring, nspec)
+end
+
 make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec) =  :( mx )
 
 make_warn_code(headstr::AbstractString, d::Dict) = make_warn_code(headstr, d,  d[:nargs])
-
 
 macro mkapprule(args...)
     n = length(args)
@@ -118,10 +133,23 @@ macro mkapprule1(head)
         end)
 end
 
-
 ## Head with no builtin or user defined evaluation code.
-# That is, no user defined Julia level code. There may be SJulia rules for x.
+#  That is, no user defined Julia level code. There may be SJulia rules for x.
 apprules(x) = x
+
+# Check if we are trying to add to a symbol bound to itself. If
+# so, we warn and return the unevaluated expression.
+macro checkunbound(mx,x,sv)
+    esc( quote
+           $sv = symval($x)
+           if $sv == $x
+             warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
+             setfixed($mx)
+             return $mx
+          end
+    end)
+end
+
 
 #### Set and SetDelayed
 
@@ -168,7 +196,23 @@ rather to the current value of b every time a is evaluated.
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
-apprules(mx::Mxpr{:Set}) = do_set(mx,mx[1],mx[2])
+
+@mkapprule Set :nargs => OneOrMore
+
+function do_Set(mx::Mxpr{:Set})
+    warn("Set called with 0 arguments; 1 or more arguments are expected.")
+    setfixed(mx)
+    mx
+end
+
+function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
+    checkprotect(lhs)
+    rhs = mxprcf(:Sequence)
+    setsymval(lhs,rhs)
+    setdefinition(lhs, mx)    
+    rhs
+end
+
 apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
@@ -176,15 +220,23 @@ apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
 # SetDelayed is not correct. rhs is also evaluated because
 # lhs is evaluated twice in order to find fixed point.
 # we have treat this specially somehow, not ordinary evaluation.
+#
+# Note added (Apr 2016): This is working AFAICT
+# For evaluation, we can use setsymval for both set and setdelayed
+# The only difference is whether we return the rhs.
+# But, to save the definitions to a file, we need to record whether we had set or setdelayed,
+# so we use setdelayedval
 function setdelayed(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
-    setsymval(lhs,rhs)
+    setsymval(lhs,rhs)   # Using this works just as well. But, for printing, we don't whether Set or SetDelayed
+    setdefinition(lhs, mx)
     nothing
 end
 
-function do_set(mx,lhs::SJSym, rhs)
+function do_Set(mx::Mxpr{:Set},lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
+    setdefinition(lhs, mx)    
     rhs
 end
 
@@ -193,19 +245,19 @@ end
 function setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    push_downvalue(mhead(lhs),rule) # push DownValue
+    set_downvalue(mx,mhead(lhs),rule) # push DownValue
     rule
     nothing
 end
 
-function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
-    error("$mx is unimplemented")
+function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
+    error("$mx is not implemented")
 end
 
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
 # We check is_Number several times, because we may have a Dict.
-function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
+function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
     tinds = inds(lhs)
     ex = ex0
@@ -226,22 +278,9 @@ function do_set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
     val
 end
 
-# compiler notes that this is overwritten below
-# we are assuming this is a "function" definition
-# function do_set(mx,lhs::Mxpr, rhs)
-#     checkprotect(lhs)
-#     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-#     push_downvalue(mhead(lhs),rule) # push DownValue
-#     rule
-#     nothing
-# end
-
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
-do_set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_set(mx,lhs,localize_module!(rhs))
-
-# We renamed stuff and the Module code above calls the old things. We need to fix this.
-set_and_setdelayed(mx,y,z) = mx
+do_Set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
 #### Increment
 
@@ -249,17 +288,47 @@ set_and_setdelayed(mx,y,z) = mx
 Increment(n) increments the value of n by 1 and returns the old value.
 "
 
-apprules(mx::Mxpr{:Increment}) = do_Increment(mx,margs(mx)...)
-do_Increment(mx,x::SJSym) = do_Increment1(mx,x,symval(x))
+@mkapprule Increment :nargs => 1
+
+#function do_Increment(mx, x::SJSym)
+function do_Increment(mx::Mxpr{:Increment}, x::SJSym)
+    @checkunbound(mx,x,xval)
+    do_Increment1(mx,x,xval)
+end
+
 function do_Increment1{T<:Number}(mx,x,xval::T)
     setsymval(x,mplus(xval,1))  # maybe + is ok here.
     return xval
 end
+
 function do_Increment1(mx,x,val)
     setsymval(x,doeval(mxpr(:Plus,val,1)))
     return val
 end
-do_Increment(mx,args...) = mx
+
+#### Decrement
+
+@sjdoc Decrement "
+Decrement(n) decrements the value of n by 1 and returns the old value.
+"
+
+@mkapprule Decrement :nargs => 1
+
+#function do_Decrement(mx, x::SJSym)
+function do_Decrement(mx::Mxpr{:Decrement}, x::SJSym)
+    @checkunbound(mx,x,xval)
+    do_Decrement1(mx,x,xval)
+end
+
+function do_Decrement1{T<:Number}(mx,x,xval::T)
+    setsymval(x,mplus(xval,-1))  # maybe + is ok here.
+    return xval
+end
+
+function do_Decrement1(mx,x,val)
+    setsymval(x,doeval(mxpr(:Plus,val,-1)))
+    return val
+end
 
 #### TimesBy
 
@@ -268,11 +337,13 @@ TimesBy(a,b), or a *= b, sets a to a * b and returns the new value. This is curr
 faster than a = a * b for numbers.
 "
 
-# apprules(mx::Mxpr{:TimesBy}) = do_TimesBy(mx,margs(mx)...)
-# do_TimesBy(mx,args...) = mx
 @mkapprule TimesBy :nargs => 2
 
-do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val) = do_TimesBy1(mx,x,symval(x),val)
+function do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val)
+    @checkunbound(mx,x,xval)
+    do_TimesBy1(mx,x,xval,val)
+end
+
 function do_TimesBy1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
     r = mmul(xval,val)
     setsymval(x,r)
@@ -284,7 +355,6 @@ function do_TimesBy1(mx,x,xval,val)
 end
 
 
-
 #### AddTo
 
 @sjdoc AddTo "
@@ -293,10 +363,12 @@ faster than a = a + b for numbers.
 "
 
 @mkapprule AddTo :nargs => 2
-#apprules(mx::Mxpr{:AddTo}) = do_AddTo(mx,margs(mx)...)
-#do_AddTo(mx,args...) = mx
 
-do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val) = do_AddTo1(mx,x,symval(x),val)
+function do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val)
+    @checkunbound(mx,x,xval)
+    do_AddTo1(mx,x,xval,val)
+end
+
 function do_AddTo1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
     r = mplus(xval,val)
     setsymval(x,r)
@@ -322,9 +394,9 @@ function upset(mx,lhs::Mxpr, rhs)
         m = lhs[i]
 #        println("  upset $m")
         if is_Mxpr(m) && warncheckprotect(m)
-            push_upvalue(mhead(m),rule)
+            set_upvalue(mx,mhead(m),rule)
         elseif is_SJSym(m) && warncheckprotect(m)
-            push_upvalue(m,rule)
+            set_upvalue(mx, m,rule)
         end
     end
     return rhs
@@ -333,14 +405,37 @@ end
 
 #### SetAttributes
 
-apprules(mx::Mxpr{:SetAttributes}) = do_set_attributes(mx[1],mx[2])
+@mkapprule SetAttributes :nargs => 2
 
-function do_set_attributes(lhs::SJSym, rhs::SJSym)
-    checkprotect(lhs)
-    set_attribute(lhs,rhs)
+@sjdoc SetAttributes "
+SetAttributes(sym,attr) adds attr to the list of attributes for sym.
+SetAttributes(list,attr) adds attr to the list of attributes for each symbol in list.
+SetAttributes(sym,list) adds each attribute in list  to the list of attributes for sym.
+"
+
+function check_set_attributes(sym::SJSym, attr::SJSym)
+    checkprotect(sym)
+    set_attribute(sym,attr)
     nothing
 end
 
+set_attributes(sym::SJSym, attr::SJSym) = check_set_attributes(sym,attr)
+
+function set_attributes{T<:Array}(sym::SJSym, attrs::T)
+    for a in attrs
+        check_set_attributes(sym,a)
+    end
+end
+
+function set_attributes{T<:Array}(syms::T, attr::SJSym)
+    for a in syms
+        check_set_attributes(a,attr)
+    end
+end
+
+do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSym, attr::SJSym) = set_attributes(sym,attr)
+do_SetAttributes(mx::Mxpr{:SetAttributes}, syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
+do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSym, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
 
 #### Unprotect
 
@@ -356,10 +451,10 @@ end
 do_unprotect(mx,a::Symbol) = (unset_attribute(a,:Protected) ; nothing)
 do_unprotect(mx,a) = error("Can't unprotect $mx")
 
-function do_set(mx,lhs::Mxpr, rhs)
+function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    push_downvalue(mhead(lhs),rule) # push DownValue
+    set_downvalue(mx, mhead(lhs),rule) # push DownValue
     rule
     nothing
 end
@@ -396,6 +491,8 @@ end
 dosymbol(mx,s::AbstractString) = getsym(symbol(s))
 dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
 
+#### Clear
+
 @sjdoc Clear "
 Clear(x,y,z) removes the values associated with x,y,z. It does not remove
 their DownValues.
@@ -410,6 +507,8 @@ function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
         setsymval(a,symname(a))
     end
 end
+
+#### ClearAll
 
 @sjdoc ClearAll "
 ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. The
@@ -427,11 +526,13 @@ function apprules(mx::Mxpr{:ClearAll})  # already threaded
     end
 end
 
+#### Dump and DumpHold
 
 @sjdoc Dump "
 Dump(expr) prints an internal representation of expr. This is similar to
 Julia `dump'.
 "
+
 
 @sjdoc DumpHold "
 DumpHold(expr) prints an internal representation of expr. This is similar to
@@ -444,6 +545,8 @@ representation is printed.
 # DumpHold does not evaluate args before dumping
 apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
+#### Length
+
 @sjdoc Length "
 Length(expr) prints the length of SJulia expressions and Julia objects. For
 SJulia expressions, the length is the number or arguments. For scalar Julia
@@ -455,6 +558,8 @@ apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
 symjlength(mx::Mxpr) = length(margs(mx))
 symjlength(x) = length(x)
 
+#### LeafCount
+
 @sjdoc LeafCount "
 LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
 This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
@@ -462,11 +567,14 @@ A more accurate name is NodeCount.
 "
 apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
 
+#### ByteCount
 
 @sjdoc ByteCount "
 ByteCount(expr) gives number of bytes in expr.
 "
 apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
+
+#### Depth
 
 @sjdoc Depth "
 Depth(expr) gives the maximum number of indices required to specify
@@ -474,7 +582,7 @@ any part of expr, plus 1.
 "
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 
-## Part
+#### Part
 
 @sjdoc Part "
 Part(expr,n) or expr[n], returns the nth element of expression expr.
@@ -491,11 +599,6 @@ Julia types such as Array, or the element with key 'n' for Dict's.
 # a[i,j] parses to Part(a,i,j).
 
 @mkapprule Part
-
-# function apprules(mx::Mxpr{:Part})
-#     do_Part(mx,margs(mx)...)
-# end
-
 
 function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     for j in 1:length(tinds)
@@ -526,12 +629,15 @@ function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
     return texpr
 end
 
+#### Span
+
 @sjdoc Span "
 Span(a,b) or a:b represents elements a through b.
 Span(a,b,c) or a:b:c represents elements a through b in steps of c.
 expr(a:b) returns elements a through b of expr, with the same head as expr.
 "
 
+#### Attributes
 
 @sjdoc Attributes "
 Attributes(s) returns attributes associated with symbol s. Builtin symbols have
@@ -561,7 +667,7 @@ that are typically set with the declarative \"function definition\".
          ("ClearAll(f)",""),
          ("f(x_) := x^2",""),
          ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:DownValues}) = listdownvalues(mx[1])
+apprules(mx::Mxpr{:DownValues}) = sjlistdownvalues(mx[1])
 
 
 #### UpValues
@@ -575,7 +681,7 @@ that are typically set with UpSet.
 #          ("ClearAll(f)",""),
 #          ("f(x_) := x^2",""),
 #          ("UpValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:UpValues}) = listupvalues(mx[1])
+apprules(mx::Mxpr{:UpValues}) = sjlistupvalues(mx[1])
 
 #### Example
 
@@ -601,13 +707,7 @@ do_Example(mx::Mxpr{:Example}) = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES))
 do_Example(mx::Mxpr{:Example}, topic) = do_examples(mx[1])
 do_Example(mx::Mxpr{:Example}, topic, n::Int) = do_example_n(mx[1],n)
 
-# function apprules(mx::Mxpr{:Example})
-#     if length(mx) == 1
-#         do_example_n(mx[1],1)
-#     else
-#         do_example_n(mx[1],mx[2])
-#     end
-# end
+#### Replace
 
 @sjdoc Replace "
 Replace(expr,rule) replaces parts in expr according to Rule rule.
@@ -625,6 +725,8 @@ typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
 
 doreplace(mx,a,b) = mx
+
+#### ReplaceAll
 
 @sjdoc ReplaceAll "
 ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
@@ -673,6 +775,7 @@ function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
 end
 doreplacerepeated(mx,a,b) = mx
 
+#### MatchQ
 
 @sjdoc MatchQ "
 MatchQ(expr,pattern) returns true if expr matches pattern. MatchQ can
@@ -697,10 +800,14 @@ function do_MatchQ(mx,pat)
     mx
 end
 
+#### GenHead 
 # for operator form of MatchQ
+# do_GenHead in evaluation.jl curries the first argument
 function do_GenHead(mx,head::Mxpr{:MatchQ})
     mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
+
+#### FullForm
 
 @sjdoc FullForm "
 FullForm(expr) prints the internal representation of expr and all sub-expressions as
@@ -718,7 +825,7 @@ may always be entered in 'FullForm'.
 
 # FullForm is implemented in io.jl
 
-## Not
+#### Not
 
 @sjdoc Not "
 Not(expr) returns False if expr is True, and True if it is False. Not reduces some very simple logical expressions and otherwise
@@ -752,7 +859,7 @@ function do_Not(mx::Mxpr{:Not},  ex::Mxpr{:Comparison})
 end
 
 
-## Comparison
+#### Comparison
 
 @sjdoc Comparison "
 Comparison(expr1,c1,expr2,c2,expr3,...) performs or represents a
@@ -986,6 +1093,8 @@ end
 
 do_Power(mx,b,e) = mx
 
+#### Abs
+
 @sjdoc Abs "
 Abs(z) represents the absolute value of z.
 "
@@ -1091,7 +1200,7 @@ do_Big{T<:Number}(mx,x::T) = big(x)
 
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
-## Tracing evaluation
+#### Tracing evaluation
 
 @sjdoc TraceOn "
 TraceOn() turns on the tracing of SJulia evaluation.
@@ -1102,6 +1211,8 @@ TraceOff() turns off the tracing of SJulia evaluation.
 @sjseealso_group(TraceOn,TraceOff)
 apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
 apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
+
+#### Timing evaluation
 
 @sjdoc Timing "
 Timing(expr) evaluates expr and returns a list of the elapsed CPU time
@@ -1117,6 +1228,8 @@ function apprules(mxt::Mxpr{:Timing})
     end
     mxpr(:List,t,mx)
 end
+
+#### TimeOn and TimeOff
 
 @sjdoc TimeOn "
 TimeOn() enables printing CPU time consumed and memory allocated
@@ -1135,6 +1248,8 @@ do_TimeOn(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
 @mkapprule TimeOff  :nargs => 0
 
 do_TimeOff(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
+
+#### Tracing Evaluation
 
 @sjdoc TrDownOn "
 TrDownOn() enables tracing attempted applications of DownRules.
@@ -1158,6 +1273,8 @@ apprules(mx::Mxpr{:TrUpOff}) = (unset_up_trace(); nothing)
 apprules(mx::Mxpr{:TrDownOn}) = (set_down_trace() ; nothing)
 apprules(mx::Mxpr{:TrDownOff}) = (unset_down_trace(); nothing)
 
+#### Allocated
+
 @sjdoc Allocated "
 Allocated(expr) evaluates expr and returns a list of the memory allocated
 and the result of the evaluation.
@@ -1171,6 +1288,8 @@ function apprules(mxt::Mxpr{:Allocated})
     end
     mxpr(:List,a,mx)
 end
+
+#### HAge, Fixed and UnFix
 
 @sjdoc HAge "
 HAge(s) returns the timestamp for the expression or symbol s.
@@ -1209,6 +1328,8 @@ function apprules(mx::Mxpr{:Unfix})
     unsetfixed(mx[1])
     mx[1]
 end
+
+#### Syms
 
 @sjdoc Syms "
 Syms(m) returns a List of the symbols that the expression m 'depends' on. The
@@ -1251,14 +1372,6 @@ to Help(topic).
 
 apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
 
-# function apprules(mx::Mxpr{:Help})
-#     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
-#         print_all_docs()
-#     else
-#         print_doc(margs(mx)...)
-#     end
-# end
-
 function do_Help(mx,args...)
     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
         print_all_docs()
@@ -1273,6 +1386,8 @@ end
 function do_Help{T<:Regex}(mx,r::T)
     print_matching_topics(r)
 end
+
+#### Module
 
 @sjdoc Module "
 Module creates a lexical scope block for variables. Warning, this is broken

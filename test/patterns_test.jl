@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 SJulia.@ex ClearAll(a,b,c,d,p,f,d)
 @testex ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
 @testex Apply(List,ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y))) == [f(c),p(a + b)]
@@ -95,4 +97,7 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 # FIXME. This returns unevaluated
 # ReplaceRepeated(x^2 + y^6 , List(x => 2 + a, a => 3))
 
-@ex ClearAll(result,r1,r2)
+@ex ClearAll(result,r1,r2, a, b, d, f, m, n, p, x, y, z)
+
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

@@ -1,5 +1,8 @@
 using Base.Test
 
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0
+
 @testex Head(1//1) == Int64
 @testex Head(3//1) == Int64
 
@@ -44,3 +47,10 @@ import SJulia: mpow, mxpr
 @test mpow(8*5,1//2) == mxpr(:Times, 2, mxpr(:Power, 2, 1//2), mxpr(:Power, 5, 1//2))
 @test mpow(9, 2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3))
 @test mpow(-9,2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3))
+
+@testex Sqrt(-1) == I      # fix bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+@testex Sqrt(-1)^2 == -1   # same bug
+
+@ex ClearAll(a,b)
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

@@ -88,7 +88,7 @@ end
 # scheme to capture all possibilities is to cumbersome.
 
    const single_arg_float_complex =   # check, some of these can't take complex args
-    [ mtr(:sin), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
+    [ mtr(:sin), mtr(:cos), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
          (:sinpi,:SinPi), (:cospi,:CosPi), mtr(:sinh), mtr(:cosh),
          mtr(:tanh), (:acos,:ArcCos,:acos), (:asin,:ArcSin,:asin),
          (:atan,:ArcTan,:atan),(:atan2,:ArcTan2,:atan2),(:acosd,:ArcCosD), (:asind,:ArcSinD),
@@ -100,8 +100,8 @@ end
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
          mtr(:erf), mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re, :re),(:imag,:Im, :im),
          (:angle,:Arg,:arg), (:gamma, :Gamma, :gamma), (:lgamma, :LogGamma, :loggamma),
-    (:lfact,:LogFactorial), mtr(:digamma), mtr(:trigamma),
-    (:airyai,:AiryAi,:airyai),
+         (:lfact,:LogFactorial), mtr(:digamma), mtr(:trigamma),
+         (:airyai,:AiryAi,:airyai),
          (:airybi,:AiryBi,:airybi),(:airyaiprime,:AiryAiPrime,:airyaiprime),(:airybiprime,:AiryBiPrime,:airybiprime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
          (:eta,:DirichletEta,:dirichlet_eta), (:zeta,:Zeta,:zeta)
@@ -109,7 +109,8 @@ end
 
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
-    const single_arg_float_int_complex =
+
+     const single_arg_float_int_complex =
         [
          (:conj,:Conjugate)
          ]
@@ -126,6 +127,10 @@ end
 
     const two_arg_int = [(:binomial,:Binomial,:binomial), (:ndigits,:NDigits)
                          ]
+
+# TODO
+#  Two or more args
+#   (:gcd,:GCD), (:lcm, :LCM), Also sympy does these for polynomials
 
 # Complicated!
     const one_or_two_args1 = [(:polygamma, :PolyGamma, :polygamma)]
@@ -151,7 +156,7 @@ end
                            (:EulerE, :euler), (:Subfactorial, :subfactorial), (:Factorial2, :factorial2),
                            (:FactorialPower, :FallingFactorial), (:Pochhammer, :RisingFactorial),
 (:Fibonacci, :fibonacci), (:LucasL, :lucas), (:LeviCivita, :LeviCivita),
-(:KroneckerDelta, :KroneckerDelta),  (:HypergeometricPFQ, :hyper)
+(:KroneckerDelta, :KroneckerDelta),  (:HypergeometricPFQ, :hyper), (:FactorSquareFree, :sqf)
 ]
 # LeviCivita is different than in mathematica
 

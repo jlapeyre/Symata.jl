@@ -1,3 +1,6 @@
+const NullMxpr = mxprcf(:Null)
+const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
+
 const ComplexInfinity = mxprcf(:DirectedInfinity)
 const Infinity = mxprcf(:DirectedInfinity,1)
 const MinusInfinity = mxprcf(:DirectedInfinity,-1)

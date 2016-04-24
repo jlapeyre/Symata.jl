@@ -13,8 +13,7 @@
 @testex  Not(f === f)
 
 # Mma gives these variables the attribute 'Temporary'
-# We give them no attribute.
-@testex Module([x], (Attributes(x))) == List()
+@testex Module([x], (Attributes(x))) == [Temporary]
 
 @ex x = 3
 @testex Module([x=x], (x = x + 2)) == 5
@@ -37,3 +36,15 @@
 # ReplaceAll( incr(y), incr(x_) -> Module([y = 1], x + y))
 
 @ex ClearAll(gcd, f,g,x,y)
+###
+
+@ex f(x_) := Module([], (If(x < 10, x*f(x+1), x),))
+@testex f(1) == 3628800
+@testex f(9) == 90
+@testex f(10) == 10
+@testex f("dog") == "dog"
+@ex ClearAll(f,x)
+
+@ex Map(ClearAll, UserSyms())
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

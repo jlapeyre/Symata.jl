@@ -1,5 +1,7 @@
 @ex ClearAll(a,b,c,d,x)
 
+@testex Length(UserSyms()) == 0
+
 # TODO. Comparisons need more careful testing
 @testex Apply(List, a < b) == List(a, < , b)
 @testex Apply(List, a <= b) == List(a, <= , b)
@@ -18,5 +20,8 @@
 @testex Head(Not(3)) == Not
 @testex (a < 1) == (a < 1)
 
+@ex ClearAll(a,b,f)
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0
 
 

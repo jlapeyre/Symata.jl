@@ -1,5 +1,8 @@
 using Base.Test
 
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0
+
 # Fails in 0.5.0-dev+3385, probably because the parser has changed
 # ==(2,2) is an expression with Head '=='
 @testex [1,2,3][2] == 2
@@ -112,40 +115,7 @@ SJulia.@test SJulia.a == "cat"
 
 @ex ClearAll(f,a,c,z)
 @testex Apply(List,f(z,c,a)) == [z,c,a]
-@ex ClearAll(f,a,c,z)
+@ex ClearAll(f,a,c,z,g,res,x)
 
-## Listable
-
-@ex ClearAll(a,b,c,d,e,f,g,y,z)
-@ex SetAttributes(f,Listable)
-@testex f([a,b,c])  == [f(a),f(b),f(c)]
-@testex f([a,b,c],d) == [f(a,d),f(b,d),f(c,d)]
-@testex f(z,[a,b,c],d) == [f(z,a,d),f(z,b,d),f(z,c,d)]
-@testex f([a,b,c],[d,e,f]) == [f(a,d),f(b,e),f(c,f)]
-@testex f([a,b,c],[d,e,f],g) == [f(a,d,g),f(b,e,g),f(c,f,g)]
-@testex f([a,b,c],z,[d,e,f]) == [f(a,z,d),f(b,z,e),f(c,z,f)]
-@testex f(y,[a,b,c],z,[d,e,f]) == [f(y,a,z,d),f(y,b,z,e),f(y,c,z,f)]
-@ex ClearAll(f,a,b,c,d,e,f,g,x,y,z,res)
-
-## For
-@ex m = [0,0,0]
-@ex For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
-@ex res = ([2,3,4] == m)
-@test symval(:res) == true
-@ex ClearAll(m,i,res)
-
-@ex ClearAll(f)
-@ex f(x_) := Module([], (If(x < 10, x*f(x+1), x),))
-@testex f(1) == 3628800
-@testex f(9) == 90
-@testex f(10) == 10
-@testex f("dog") == "dog"
-@ex ClearAll(f,x)
-
-## While
-
-@ex ClearAll(i)
-@ex i = 0
-@ex While(i < 5, i = i + 1)
-@testex i == 5
-@ex ClearAll(i)
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

@@ -1,5 +1,7 @@
 using Base.Test
 
+@testex Length(UserSyms()) == 0
+
 # These are tests for functions that are written in SJulia. The code
 # that is tested is in code_in_SJulia.jl.
 # eg ExpToTrig() is implemented as an SJulia DownValue and rule.
@@ -29,3 +31,5 @@ using Base.Test
 @testex  Sin(-z^2)^2 == Sin(z^2)^2
 
 @ex ClearAll(a,x,y,F,q,z)
+
+@testex Length(UserSyms()) == 0

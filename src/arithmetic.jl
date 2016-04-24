@@ -63,7 +63,7 @@ function mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
     end
     if gotneg == true  # This at least not wrong, but it's not like Mma for y < 0
         (n,r) = divrem(y.num,y.den)
-        fac = y.den == 2 ? :I : mxprcf(:Power, -1, r//y.den)
+        fac = y.den == 2 ? I : mxprcf(:Power, -1, r//y.den)
         if iseven(n)
             push!(newfacs, fac)
         else

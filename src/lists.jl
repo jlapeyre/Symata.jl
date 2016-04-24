@@ -35,11 +35,10 @@ end
 
 # Fails for rationals. nd counting is wrong
 function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
-    nd = mplus(iter.imax,-iter.imin) + 1
+    nd = round(Int,mplus(iter.imax,-iter.imin) + 1)  # Try bug fix!
     if nd > 1
-#        args = newargs(abs(nd))
         args = newargs(iter.num_iters)
-         @inbounds for i in zero(iter.imin):nd-1
+        @inbounds for i in 0:nd-1            
             args[i+1] = mplus(i,iter.imin)  # Bug here, if iter.imin is not of type Int.
         end
     else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1

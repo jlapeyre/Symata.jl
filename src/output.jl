@@ -1,5 +1,7 @@
 module SJuliaIO
 
+import Base: show
+
 import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
        symname, mhead, margs, is_type, getoptype, mtojsym, mxpr, mxprcf, Infinity
 
@@ -67,6 +69,14 @@ function Base.show(io::IO, s::SJSym)
         Base.show_unquoted(io,symbol(ss))
     end
 end
+
+# Overwrite Base definition
+function Base.show(io::IO, x::Rational)
+    show(io, num(x))
+    print(io, "/")
+    show(io, den(x))
+end
+
 
 # This may break. It will only work if the value of s
 # is the symbol name in the symbol table that is associated
@@ -250,8 +260,14 @@ function show_infix(io::IO, mx::Mxpr)
     # uncomment following to print space for multiplication. But, I want "InputForm" for now,
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
-    for i in 1:length(args)-1
-        if needsparen(args[i]) # && wantparens
+    startind = 1
+    if is_Mxpr(mx,:Times) &&
+        length(args) > 0 && args[1] == -1
+        print(io, "-")
+        startind = 2
+    end
+    for i in startind:length(args)-1
+        if needsparen(args[i]) && i>1 # && wantparens
             np = true
             print(io,"(")
         else

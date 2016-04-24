@@ -8,6 +8,10 @@ macro checkbreak()
     end))
 end
 
+macro unsetbreak()
+   esc(:(FLOWFLAGS[:Break] = false))
+end
+
 # Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
 # We should follow what we did in table and set the value in the function,
@@ -29,6 +33,8 @@ end
 
 #### For
 
+@mkapprule For :nargs => 3:4
+
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment(i) , Println(i))
 Using Increment(i) is currently much faster than i = i + 1. There is no special syntax yet for
@@ -37,47 +43,45 @@ Increment.
 
 # This is pretty fast: For(i=1,i<1000, Increment(i))
 # Note using 10^3 is much slower. Mma3.0 also is slower with 10^3
-function apprules(mx::Mxpr{:For})
-    (start,test,incr)= (mx[1],mx[2],mx[3])
-    body = nothing
-    if isdefined(margs(mx),4)
-        body = mx[4]
+
+function do_For(mx::Mxpr{:For}, start, test, incr)
+    @unsetbreak
+    doeval(start)    
+    while doeval(test)
+        doeval(incr)
+        @checkbreak            
     end
-    doeval(start)
-    if body != nothing
-        FLOWFLAGS[:Break] = false
-        while doeval(test)
-            doeval(body)
-            @checkbreak
-            # if FLOWFLAGS[:Break]
-            #     FLOWFLAGS[:Break] = false
-            #     break
-            # end
-            doeval(incr)
-        end
-    else # This is not at all faster than doeval(nothing)
-        while doeval(test)
-            doeval(incr)
-        end
-    end
+end
+
+function do_For(mx::Mxpr{:For}, start, test, incr, body)
+    @unsetbreak
+    doeval(start)        
+    while doeval(test)
+        doeval(body)
+        @checkbreak
+        doeval(incr)
+    end    
 end
 
 #### If
 
-# TODO Fix third branch. Dispatch on number or args, etc.
-
+@mkapprule If
 @sjdoc If "
-If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch
+If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch.
+If(test,tbranch) returns Null if test does not evaluate to True.
+If(test,tbranch,fbranch,ubranch) evaluates ubranch if the truth value of test cannot be determined.
 "
 
-function apprules(mx::Mxpr{:If})
-    (test,tbranch)= (mx[1],mx[2])
-    fbranch = false
-    if length(mx) == 3
-        fbranch = mx[3]
-    end
-    tres = doeval(test) == true
-    tres ? doeval(tbranch) : doeval(fbranch)
+do_If(mxpr::Mxpr{:If}, test, tbranch) =  doeval(test) == true ? doeval(tbranch) : Null
+
+function do_If(mxpr::Mxpr{:If}, test, tbranch, fbranch)
+    tres = doeval(test)
+    tres == true ? doeval(tbranch) : tres == false ? doeval(fbranch) : Null
+end
+
+function do_If(mxpr::Mxpr{:If}, test, tbranch, fbranch, ubranch)
+    tres = doeval(test)
+    tres == true ? doeval(tbranch) : tres == false ? doeval(fbranch) : doeval(ubranch)
 end
 
 #### While
@@ -86,14 +90,26 @@ end
 While(test,body) evaluates test then body in a loop until test does not return true.
 "
 
-function apprules(mx::Mxpr{:While})
-    (test,body)= (mx[1],mx[2])
-    FLOWFLAGS[:Break] = false
+@mkapprule While :nargs => 1:2
+
+# TODO: Check for return statement
+
+function do_While(mx::Mxpr{:While}, test)
+    @unsetbreak
+    while doeval(test) == true
+        @checkbreak
+    end
+    Null
+end
+    
+function do_While(mx::Mxpr{:While}, test, body)    
+    @unsetbreak
     while doeval(test) == true
         doeval(body)
         @checkbreak
     end
-end
+    Null
+end    
 
 #### Break
 
@@ -105,7 +121,7 @@ Break() exits the nearest enclosing For, While, or Do loop.
 
 function do_Break(mx::Mxpr{:Break})
     FLOWFLAGS[:Break] = true
-    nothing
+    Null
 end
 
 #### Do
@@ -134,7 +150,7 @@ end
 # TODO: prbly don't need to use kernel
 function do_doloop_kern(expr,imax)
     start = one(imax)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in start:imax
         doeval(expr)
         @checkbreak
@@ -144,7 +160,7 @@ end
 function do_doloop(expr,iter::SJIter2)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
         doeval(ex)
@@ -156,7 +172,7 @@ end
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
         doeval(ex)
@@ -170,7 +186,7 @@ function do_doloop(expr,iter::SJIter3)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in 1:(iter.num_iters)
         doeval(ex)
         @checkbreak
@@ -182,7 +198,7 @@ end
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
         doeval(ex)
@@ -196,7 +212,7 @@ function do_doloop(expr,iter::SJIter4)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in 1:(iter.num_iters)
         doeval(ex)
         @checkbreak
@@ -208,7 +224,7 @@ end
 function do_doloop(expr,iter::SJIterList)
     isym = get_localized_symbol(iter.i)
     ex = replsym(deepcopy(expr),iter.i,isym)
-    FLOWFLAGS[:Break] = false
+    @unsetbreak
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])
         doeval(ex)

@@ -92,10 +92,10 @@ function extomx(ex::Expr)
         head = jtomsym(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
 #    elseif ex.head == :$
-#        return a[1]
-    elseif ex.head == :block
-        mx = extomx(a[2]) # Can't remember, I think this is Expr with head :call
-        return mx
+        #        return a[1]
+    elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
+        return extomx(a[2])
+    elseif ex.head == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
         extomxarr(a,newa)
@@ -112,7 +112,7 @@ function extomx(ex::Expr)
                 if is_type(pt,Expr)  # assume it is a Function
                     pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
                 end
-                (is_type(pt,Symbol) || is_type(pt,Function) )  ||
+                is_type(pt,Symbol) || is_type(pt,Function) || typeof(pt) <: Function ||
                         error("extomx: argument to PatternTest must be a Symbol or a Function")
                 head = :PatternTest
                 push!(newa,extomx(a[1]),pt)
@@ -137,9 +137,6 @@ function extomx(ex::Expr)
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")
     end
-#    mxex = :(mxpr($head,$newa))
-#    println(mxex)
-#    mx = eval(mxex)
     mx = mxpr(head,newa)  # Create the Mxpr
 end
 

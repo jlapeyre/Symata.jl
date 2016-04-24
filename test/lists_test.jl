@@ -1,6 +1,6 @@
 using Base.Test
 
-#import SJulia: @testex
+@testex Length(UserSyms()) == 0
 
 @ex      ClearAll(a,x,y)
 
@@ -25,7 +25,7 @@ using Base.Test
 @testex  Range(5,1,-1) == [5,4,3,2,1]
 @testex  Range(5,1,-2) == [5,3,1]
 @testex  Range(3.0) == [1.0,2.0,3.0]
-@testex  Range(100,102.1) == [100.0,101.0,102.0]
+@testex  Range(100,102.1) == [100,101,102]  # Mma returns integers, as well.
 
 @testex  Range(3.0,1,-.5) == [3.0,2.5,2.0,1.5,1.0]
 @testex  Abs(Apply(Plus, Range(1,2,.2) -[1,1.2,1.4,1.6,1.8,2.0])) < 1e-15
@@ -43,14 +43,16 @@ SJulia.@testex(  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
 
 @testex  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
-@ex      ClearAll(a,x,y)
+@ex      ClearAll(x,y,a,d,m)
 
 ## ConstantArray
 
-@ex ClearAll(a,d)
 @ex a = ConstantArray(1+d^2,3)
 @ex a[2,2,2] = 3
 @testex a[2] == 1 + d^3
 @testex a[1] == 1 + d^2
 @testex a[3] == 1 + d^2
-@ex ClearAll(a,d)
+
+@ex ClearAll(a,d,i)
+@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
+@testex Length(UserSyms()) == 0

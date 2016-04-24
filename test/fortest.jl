@@ -1,3 +1,5 @@
+@testex Length(UserSyms()) == 0
+
 # This is an example of writing a function for SJulia in Julia, rather than
 # SJulia. This is less general and convenient but runs faster.
 #
@@ -12,3 +14,4 @@ function addtom(n,m)
     for i in 1:length(mx)  doeval( mxpr(:Set, mxpr(:Part, mx , i),  i + n)) end
 end
 
+@testex Length(UserSyms()) == 0

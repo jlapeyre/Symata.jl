@@ -17,6 +17,24 @@ type SJuliaCompletionProvider <: CompletionProvider
     r::LineEditREPL
 end
 
+function SJulia_parse_REPL_line(line)
+    Base.parse_input_line("@SJulia.ex " * line)
+    # Doing something with more information, as below, would
+    # be nice, but some errors crash the REPL. Using
+    # the macro @ex instead of function exfunc, makes a
+    # much more stable REPL. There is probably a good
+    # way to do it.
+
+    # prev = syntax_deprecation_warnings(false)
+    # try
+    #     exfunc(Base.parse_input_line(line))
+    # catch e
+    #     print_with_color(:red, "SJulia: ",e)
+    # finally       
+    #     syntax_deprecation_warnings(prev)
+    # end
+end
+
 function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
     partial = Base.REPL.bytestring_beforecursor(s.input_buffer)
     full = LineEdit.input_string(s)
@@ -108,13 +126,13 @@ function RunSJuliaREPL(repl)
         LineEdit.Prompt("sjulia > ";
           # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
-                        complete = SJuliaCompletionProvider(repl)
+                        complete = SJuliaCompletionProvider(repl),
+                        on_enter = return_callback                        
 #                        prompt_suffix = hascolor ?  hascolor not defined
 #                        (repl.envcolors ? Base.input_color : repl.input_color) : ""
                         )
     sjulia_prompt.on_done =
-        REPL.respond(
-              (line)->(Base.parse_input_line("@SJulia.ex $line")),
+        REPL.respond(SJulia_parse_REPL_line,
                repl, sjulia_prompt) # stay in symjulia
 
     main_mode = repl.interface.modes[1]
@@ -209,7 +227,7 @@ function sjulia_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
                     rethrow()
                 end
             end
-            ast = Base.parse_input_line("@SJulia.ex $line")
+            ast = SJulia_parse_REPL_line(line)
             (isa(ast,Expr) && ast.head == :incomplete) || break
         end
         if !isempty(line)
@@ -244,7 +262,7 @@ function sjulia_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
         end
         line = readline(repl.stream)
         if !isempty(line)
-            ast = Base.parse_input_line("@SJulia.ex $line")            
+            ast = SJulia_parse_REPL_line(line)
             if have_color
                 print(repl.stream, Base.color_normal)
             end
@@ -315,14 +333,13 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
 #                        keymap_func_data = repl,   what does this do ?
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",
-                        complete = sjulia_replc
+                        complete = sjulia_replc,
+                        on_enter = return_callback  # allows multiline input
                         )
 
     sjulia_prompt.on_done =
-        REPL.respond(
-              (line)->(Base.parse_input_line("@SJulia.ex $line")),
-               repl, sjulia_prompt) # stay in symjulia
-    
+        REPL.respond(SJulia_parse_REPL_line,
+                      repl, sjulia_prompt) # stay in symjulia
 
     # Setup help mode
     help_mode = Prompt("help?> ",

@@ -205,6 +205,7 @@ function sympy2mxpr(expr)
         println(ind,"<<", get_sympy2mxpr_count(), " " , res)
     end
     decrement_sympy2mxpr_count()
+    mergeargs(res)  # this may not be enough. only looks at one level, I think
     res
 end
 
@@ -538,6 +539,7 @@ function separate_rules{T<:Mxpr}(mx::T, kws)
     nargs = newargs()
     for i in 1:length(args)
         if is_Mxpr(args[i], :Rule)
+            length(args[i]) != 2 && error("Rule requires two arguments. " * length(args[i]) * " found.")
             kws[args[i][1]] = args[i][2]
         else
             push!(nargs, args[i])
