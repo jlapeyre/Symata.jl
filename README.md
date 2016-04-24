@@ -9,7 +9,7 @@ implemented, including integration, tranformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. The best places for examples of what works (and
 what does not), are [the test directory](test/), and, at the SJulia
-prompt, the online help, TAB completion, and regex search `h"word"'.
+prompt, the online help, TAB completion, and regex search h"word".
 
 ### Installing
 
