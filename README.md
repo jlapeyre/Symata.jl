@@ -13,7 +13,7 @@ prompt, the online help, TAB completion, and regex search h"word".
 
 ### Installing
 
-SJulia is not a registered module, so it cannot be installed via `Pkg.add'.
+SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 Instead, it can be installed and used as follows
 
 ```julia
@@ -22,17 +22,17 @@ julia> using SJulia
 sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-*Note*: `SJulia' depends on the Julia
-[`PyCall'](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
+*Note*: `SJulia` depends on the Julia
+[`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-`SJulia' works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
 
-You can test it with `Pkg.test("SJulia")'.
+You can test it with `Pkg.test("SJulia")`.
 
 #### SJulia REPL mode
 
 There is an SJulia command line (REPL) mode.  To use the mode, there
-is an executable [`sjulia'](sjulia) included in top level directory of this distribution. It is a (UNIX
+is an executable [`sjulia`](sjulia) included in top level directory of this distribution. It is a (UNIX
 sh) shell script that just starts julia and loads the module.
 
 ```sh
@@ -41,10 +41,10 @@ julia -i -e "using SJulia" $*
 ```
 
 The REPL is also available simply by loading the module in a julia session via
-`using SJulia'.
+`using SJulia`.
 
-Toggle between Julia and SJulia modes by typing `=' as the first character on a line.
-(If loading SJulia from the `julia' prompt via `using SJulia', you use `=' and backspace.)
+Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
+(If loading SJulia from the `julia` prompt via `using SJulia`, you use `=` and backspace.)
 In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
 You can do tab completion to see a list of functions and symbols.
 
@@ -102,10 +102,10 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
 current environment. There are pros and cons to this approach. In Mma there are a host
 of `HoldXXX` symbols to prevent evaluation, and in
-[Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval'
+[Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
 functions and options to force it.
 
-Here is SJulia doing expansion (with the native 'ExpandA'. The more capable 'Expand' is a frontend to a
+Here is SJulia doing expansion (with the native `ExpandA`. The more capable `Expand` is a frontend to a
 SymPy function)
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
