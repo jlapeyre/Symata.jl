@@ -21,7 +21,7 @@ function fullform(io::IO, mx::Mxpr)
     print("(")
     if length(mx) > 0 fullform(io,mx[1]) end
     for i in 2:length(mx)
-        print(io,",")        
+        print(io,",")
         fullform(io,mx[i])
     end
     print(")")
@@ -62,7 +62,7 @@ function Base.show(io::IO, s::SJSym)
     elseif symname(s) == :Gamma
         Base.show_unquoted(io,:Γ)
     elseif symname(s) == :I
-        Base.show_unquoted(io, :𝕚)                
+        Base.show_unquoted(io, :𝕚)
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
@@ -83,13 +83,13 @@ end
 # with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
 # This is only stored as the key to the symbol table.
 Base.show(io::IO, s::SSJSym) = Base.show(symname(s))
-    
+
 # We display real part if it is 0.0
 function Base.show{T<:Real}(io::IO, z::Complex{T})
     show(io,real(z))
     print(io," + ")
     show(io,imag(z))
-    print(io,Istring)    
+    print(io,Istring)
 end
 
 # Do not display real part if it is 0
@@ -150,7 +150,7 @@ function Base.show(io::IO, s::Mxpr{:HoldForm})
 end
 
 function Base.show(io::IO, s::Mxpr)
-    if getoptype(mhead(s)) == :binary  
+    if getoptype(mhead(s)) == :binary
         return show_binary(io,s)
     elseif getoptype(mhead(s)) == :infix
         return show_infix(io,s)
@@ -159,7 +159,7 @@ function Base.show(io::IO, s::Mxpr)
 end
 
 function Base.show(io::IO, mx::Mxpr{:Comparison})
-    args = mx.args    
+    args = mx.args
     for i in 1:length(args)-1
         show(io, mtojsym(args[i])) # we do mtojsym just to get ≥, etc.
         print(io," ")
@@ -172,7 +172,7 @@ function show_prefix_function(io::IO, mx::Mxpr)
     args = mx.args
     print(io,mhead(mx) == getsym(:List) ? LISTL : FUNCL)
     wantparens = true
-    if mhead(mx) == :List wantparens = false end    
+    if mhead(mx) == :List wantparens = false end
     for i in 1:length(args)-1
         if needsparen(args[i]) && wantparens
             print(io,"(")
@@ -180,11 +180,11 @@ function show_prefix_function(io::IO, mx::Mxpr)
         show(io,args[i])
         if needsparen(args[i]) && wantparens
             print(io,")")
-        end        
+        end
         print(io,",")
     end
     isempty(args) || show(io,args[end])
-    print(io,mx.head == getsym(:List) ? LISTR : FUNCR)    
+    print(io,mx.head == getsym(:List) ? LISTR : FUNCR)
 end
 
 function show_binary(io::IO, mx::Mxpr)
@@ -220,13 +220,13 @@ function Base.show(io::IO, mx::Mxpr{:Part})
         print(io,",")
         show(io,args[i])
     end
-    print(io,"]")    
+    print(io,"]")
 end
 
 # unary minus
 function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
-    if is_Number(arg) || is_SJSym(arg)        
+    if is_Number(arg) || is_SJSym(arg)
         print(io,"-")
         show(io,arg)
     else
@@ -241,10 +241,10 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
     if length(args) < 1
         error("show: can't show Plus with no args.")
     end
-    show(io,args[1])    
+    show(io,args[1])
     for i in 2:length(args)
         if is_type(args[i],Mxpr{:Minus})
-            print(io, " - ")            
+            print(io, " - ")
             show(io,(args[i]).args[1])
         else
             print(io, " + ")
@@ -285,7 +285,7 @@ function show_infix(io::IO, mx::Mxpr)
             print(io,"(")
         else
             np = false
-        end   
+        end
         show(io, args[end])
         if np
             print(io,")")
@@ -294,21 +294,21 @@ function show_infix(io::IO, mx::Mxpr)
 end
 
 function Base.show(io::IO, mx::Mxpr{:Blank})
-    print(io,"_")    
+    print(io,"_")
     if length(mx) > 0
         show(io,mx[1])
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:BlankSequence})
-    print(io,"__")    
+    print(io,"__")
     if length(mx) > 0
         show(io,mx[1])
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:BlankNullSequence})
-    print(io,"__")    
+    print(io,"__")
     if length(mx) > 0
         show(io,mx[1])
     end
@@ -316,7 +316,7 @@ end
 
 function Base.show(io::IO, mx::Mxpr{:Pattern})
     show(io,mx[1])
-    show(io,mx[2])    
+    show(io,mx[2])
 end
 
 end # module SJuliaIO

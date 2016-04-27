@@ -28,4 +28,4 @@ macro aex(e)
     expr = :( $sym = symbol($symstr) )
     Main.eval(expr)   # if we use Main., we get an 'n undefined error', but n is successfully defined.
 #    eval(expr)       # if we do no use Main., we get no error, but n is not actually defined.
-end 
+end

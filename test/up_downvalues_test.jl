@@ -13,7 +13,7 @@ using Base.Test
 @testex Head(fib(11)) == fib  # does not evaluate to number
 
 # Test sorting of downvalues
-# Enter downvalues in wrong order. 
+# Enter downvalues in wrong order.
 @ex fib(n_) := fib(n-1) + fib(n-2)
 @ex fib(1) := 1
 @ex fib(2) := 1
@@ -77,13 +77,23 @@ SJulia.@ex ClearAll(a,p)
 
 SJulia.@ex ClearAll(a,p)
 SJulia.@ex a^4.0 ^= p
-# Fix this
+# Fix this, (Fix what ?)
 SJulia.@testex (a^4 == p) != True
 SJulia.@testex a^BF(4) == p
 SJulia.@testex a^4.0 == p
 SJulia.@ex ClearAll(a,p)
 
-@ex ClearAll(h)
+@ex z(a(y_)) ^= y^2
+@testex  z(a(3)) == 9
+
+@ex y = 100
+@ex h([x_,y_]) := x^y
+@ex y = 101
+@testex h([3,4]) == 81
+@testex y == 101
+
+# Note, y is introduced as a Symbol in the upvalue definition
+@ex ClearAll(h,a,z,y,x)
 
 @ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
 @testex Length(UserSyms()) == 0

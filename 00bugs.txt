@@ -17,12 +17,12 @@ result.
 
 * For 'Contexts', (like Julia modules), we should use ::, because the parser deals with it. Or '.',
   which is waht Julia uses for modules.  Back tick will not work.
-  
+
 * Give exact values for CosD
 
 * need a system for including packages and the associated sjulia capability only
  if the module is installed (or available)
- 
+
 * 'Do' with invalid iterator raises error. It shold warn and return unevaluated form.
 
 * Allow user to set max number of mevals.
@@ -33,30 +33,35 @@ result.
  expression for, eg Integrate(x + c). Probably has to do
  with changing the REPL parsing code.
 
-*  The result here should be simplified
-   zz(aa(x_)) ^= x^2
-   sjulia > zz(aa(3))
-   3 ^ 2
-
-*  Use this test, or example. h([x_,y_]) := x^y
-
-* Make Void meval to Null (better yet, avoid Void)
+* Make Void (nothing, I think) meval to Null (better yet, avoid Void; explicitly return Null)
 
 * Error messages have become shorter and more cryptic. Why
   e.g MethodError(SJulia._do_Comparison,(ex,==,((-1 + x) ^ 2) * (1 + 2 * x + 2 * (x ^ 2) + x ^ 3)))
   when comparing unbound symbol to polynomial
 
+* Example message ErrorException("Symbol 'Part' is protected.").
 
-------------------------------------------------------------------
+
+* Warning message still appears for [a => b, ...]
+
+
+
+###############################################################################
 
  ===  DONE ===
+
+* Use this test, or example. h([x_,y_]) := x^y
+
+*  The result here should be simplified
+   zz(aa(x_)) ^= x^2
+   sjulia > zz(aa(3))
+   3 ^ 2
 
 *  Fixed. at least we get one level of subexpressions by calling mergeargs in sympy.jl
    Cos(Pi/6) returns unevaluated. Fix this, or use Sympy instead
    But, enabling the sympy version causes the dirty symbol test in
    evaluation_test.jl to fail. Sin will fail dirty symbol test because
    it is done by SymPy.
-
 
 * When sum is unbound , we get this:
 sjulia > Do( sum += i, [i,[1,2,3,4,5]])
@@ -93,4 +98,3 @@ AddTo::rvalue: sum is not a variable with a value, so its value cannot be
   For instance cop = Count(_^2) defines a function that counts
   the number of arguments that have the form of a square.
   This does work: MatchQ( b^2, _^2)
-

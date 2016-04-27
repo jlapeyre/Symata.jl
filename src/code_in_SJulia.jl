@@ -16,19 +16,19 @@ unset_attribute(:Csc,:Protected)
 # The multiplication rules won't work generally until AC matching is implemened
 # Some are not evaled far enough.
 # Unfix is a workaround for bugs that prevent evaluation
-@ex  Sin(-1*x_) := -1 * Sin(x)   
+@ex  Sin(-1*x_) := -1 * Sin(x)
 @ex  Tan(-1*x_) := -1 * Tan(x)
 @ex  Tan(ArcCos(x_)) := Unfix(Sqrt(1-x^2)/x)
 @ex  Tan(ArcSin(x_)) := Unfix(x/Sqrt(1-x^2))
 @ex  Sin(ArcSin(x_)) := x
-@ex  Sin(ArcCos(x_)) := Unfix((1-x^2)^(1/2))  
+@ex  Sin(ArcCos(x_)) := Unfix((1-x^2)^(1/2))
 @ex  Cos(-1*x_) := Cos(x)
 
 @ex  Power(Cos(x_),-1) ^= Sec(x)
 @ex  Power(Sec(x_),-1) ^= Unfix(Cos(x)) # need to fix bug that requires Unfix!
-@ex  Power(Sin(x_),-1) ^= Csc(x)   
+@ex  Power(Sin(x_),-1) ^= Csc(x)
 @ex  Power(Csc(x_),-1) ^= Sin(x)
-@ex  Power(Tan(x_),-1) ^= Cot(x)   
+@ex  Power(Tan(x_),-1) ^= Cot(x)
 @ex  Power(Cot(x_),-1) ^= Tan(x)
 
 set_attribute(:Sin,:Protected)

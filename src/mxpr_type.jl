@@ -85,8 +85,10 @@ end
 @inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]
-@inline symval(s::SJSym) = getssym(s).val[1]
-@inline symval(s::SSJSym) = s.val[1]
+
+symval(s::SJSym) = getssym(s).val[1]
+symval(s::SSJSym) = s.val[1]
+symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
 @inline function setsymval(s::SSJSym,val)
     s.val[1] = val
@@ -298,7 +300,7 @@ end
 # The lines commented out make sense to me.
 # But, tests fail when they are used
 #function =={T<:Mxpr}(ax::T, bx::T)
-function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)    
+function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)
     mhead(ax) != mhead(bx)  && return false
     a = margs(ax)
     b = margs(bx)
@@ -513,7 +515,10 @@ end
 
 # Sometimes protected symbols need to be merged, somewhere.
 #is_sym_mergeable(s) = ! is_protected(s)
-@inline is_sym_mergeable(s) = true
+
+is_sym_mergeable(s::Symbol) = true
+# Don't put GenHead into a dict of symbols. Its not a symbol.
+is_sym_mergeable(s) = false
 
 # Copy list of free (bound to self) symbols in a to free symbols in mx.
 @inline function mergesyms(mx::Mxpr, a::Mxpr)
@@ -530,11 +535,9 @@ end
 # Copy list of free (bound to self) symbols in a to a collection (Dict) of free symbols
 @inline function mergesyms(mxs::FreeSyms, a::Mxpr)
     for sym in keys(a.syms)
-#        println("m1: $sym")
         mxs[sym] = true
     end
     h = mhead(a)
-#    println("Checking head $h")
     if is_sym_mergeable(h)
         mxs[h] = true
     end
@@ -542,7 +545,6 @@ end
 
 # Add Symbol a to list of free symbols syms
 @inline function mergesyms(syms::FreeSyms, a::SJSym)
-#    println("m2: $a")
     syms[a] = true
 end
 
@@ -563,7 +565,6 @@ function mergeargs(mx::Mxpr)
         mergesyms(mx,h)
     end
     @inbounds for i in 1:length(mx)
-#        println("mergeargs $i: ", listsyms(mx[i]))
         mergesyms(mx,mx[i])
     end
 end
@@ -611,6 +612,8 @@ is_fixed(s::SJSym) = symval(s) == s  # unbound is a better work, maybe. Where is
 @inline setfixed(x) = x
 @inline unsetcanon(mx::Mxpr) = (mx.canon = false; mx)
 @inline unsetfixed(mx::Mxpr) = (mx.fixed = false ; mx)
+
+debug_is_fixed(mx) = is_fixed(mx) ? println(mx, " *is* fixed") : println(mx, " is *not* fixed")
 
 deepsetfixed(x) = x
 function deepsetfixed{T<:Mxpr}(mx::T)

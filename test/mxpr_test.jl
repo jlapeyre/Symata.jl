@@ -52,7 +52,7 @@ SJulia.@testex  (a == a != b) != True
 
 # Test non-Symbol Head for Mxpr
 @ex ClearAll(a,c,f,b)
-@ex      a = f(c)     
+@ex      a = f(c)
 @ex      b = ReplaceAll(a, f => 4)  # Parser will not allow us to construct 4(c)
 @testex  Head(b) == 4
 @testex  Head(Apply(5.0,[1,2,3])) == 5.0

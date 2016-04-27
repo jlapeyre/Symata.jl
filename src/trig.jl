@@ -81,7 +81,7 @@ function cos_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ArcSin})
     res = mpow((1-mpow(x[1],2)),(1//2))
     return res
 end
-cos_one_arg(mx::Mxpr{:Cos},x) = mx    
+cos_one_arg(mx::Mxpr{:Cos},x) = mx
 
 
 #### Sin

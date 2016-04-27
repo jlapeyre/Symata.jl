@@ -28,14 +28,14 @@ using Base.Test
 @testex 27^(1/3) == 3
 @testex 27^(1/3) == 3
 
-# FIXME: we don't want the following
-@testex Apply(List, 26^(1/3)) == [13 ^ (1//3),2 ^ (1//3)]
+# TODO: we don't want the following
+@testex Apply(List, 26^(1/3)) == [13 ^ (1//3),2 ^ (1//3)]  # FIXME
 
 @testex 27^(2/3) == 9
 @testex (-27)^(2/3) == (-1) ^ (2//3) * 9
 @testex (-27)^(1/3) == 3 * (-1) ^ (1//3)
 
-# TODO: could not fix this, because we do not print full error message (domain error)
+# Neg. Int to float power took a long time to fix, because we do not print full error message (domain error).
 @testex  Chop((-1)^(3.2) + 0.8090169943749477 + 0.5877852522924728 * I) == 0
 @testex 3^0 == 1
 @test  typeof(@ex(3^0)) == Int  # bug fix
@@ -69,6 +69,9 @@ using Base.Test
 @testex Head(N(1)) == Float64
 @testex Head(N(Cos(1))) == Float64
 
-@ex ClearAll(z)
+# fixes a bug.
+@testex Head((a*b)^(1/2)) == Power
+
+@ex ClearAll(z,a,b)
 @ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
 @testex Length(UserSyms()) == 0

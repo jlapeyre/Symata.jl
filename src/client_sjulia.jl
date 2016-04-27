@@ -46,7 +46,7 @@ function SJulia_start()
         Base.eval(parse("global have_color = " * string(have_color)))  # get colors for warn and error
         quiet || REPL.banner(term,term)
         if term.term_type == "dumb"
-            active_repl = REPL.BasicREPL(term)
+            active_repl = BasicREPL(term)
             quiet || warn("Terminal not fully functional")
         else
             active_repl = REPL.LineEditREPL(term, true)
@@ -71,7 +71,7 @@ function SJulia_start()
     if isdefined(:DevNull)
         setsymval(:DevNull, DevNull)
     end
-    
+
     if !isa(STDIN,TTY)
         # note: currently IOStream is used for file STDIN
         if isa(STDIN,File) || isa(STDIN,IOStream)
@@ -89,4 +89,41 @@ function SJulia_start()
         exit
     end
     exit
+end
+
+# This is another fine mess you've gotten us into.
+function sjulia_have_dumb_terminal()
+    (! isdefined_base_active_repl()) && (! isdefined_sjulia_active_repl()) && return true
+    (isdefined_base_active_repl() && typeof(Base.active_repl) == Base.REPL.BasicREPL) ||
+    (isdefined_sjulia_active_repl() && typeof(SJulia.active_repl) == Base.REPL.BasicREPL)
+end
+
+isdefined_base_active_repl() = isdefined(Base, :active_repl)
+isdefined_sjulia_active_repl() = isdefined(SJulia, :active_repl)
+
+# For now, julia and sjulia share history. So, either mode 1 or 2 is ok
+function sjulia_repl_mode()
+    if  isdefined_sjulia_active_repl()
+        sjulia_repl().interface.modes[1]
+    elseif isdefined_base_active_repl()
+        Base.active_repl.interface.modes[6]
+    else
+        error("Unable to start interactive SJulia session. Can't find active REPL mode.")
+    end
+end
+
+sjulia_repl_history() = sjulia_repl_mode().hist
+
+function  set_sjulia_prompt{T<:AbstractString}(s::T)
+    sjulia_have_dumb_terminal() && return # not implemented yet
+    (SJulia.sjulia_repl_mode().prompt = s)
+end
+
+set_sjulia_prompt(n::Int) = set_sjulia_prompt("sjulia " * string(n) * "> ")
+get_sjulia_prompt(s::AbstractString) = SJulia.sjulia_repl_mode().prompt
+
+function sjulia_repl()
+    isdefined_sjulia_active_repl() && return SJulia.active_repl
+    isdefined_base_active_repl() && return Base.active_repl
+    error("Can't find the active REPL.")
 end

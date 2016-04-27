@@ -39,7 +39,7 @@ end
 # changes                   Time
 # normal                    0.49
 # disable setsymval         0.35
-# 
+#
 # commit 0d2332b17eb7e5c518a86b1b3044b691fddb5b87
 # setsymval is now much faster because we changed data structure in SSJSym
 # Testing Table(a(i),[i,10^5])
@@ -56,7 +56,7 @@ end
 function do_table{T<:Integer}(imax::T,isym,ex)
     args = newargs(imax)
     sisym = getssym(isym)
-#    setsymval(sisym,1)    
+#    setsymval(sisym,1)
     @inbounds for i in 1:imax
         setsymval(sisym,i)
 #        args[i] = meval(ex)

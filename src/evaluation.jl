@@ -86,6 +86,38 @@ macro ex(ex)   # use this macro from the julia prompt
     :(($(esc(mx))))
 end
 
+const LineNumber = Int[0]
+
+const Output = Any[]
+
+global do_we_print_outstring = true
+
+const number_of_Os = 10
+
+const Os = Array(Symbol,0)
+for i in 1:number_of_Os
+    push!(Os, symbol("O"^i))
+end
+
+macro bind_Os()
+    expr = Expr(:block)
+    for i in 1:number_of_Os
+        sym =  string(Os[i])
+        newex = :(
+                      if (length(Output) - $i + 1) >= 1
+                         setsymval(parse($sym), Output[length(Output)-$i+1])
+                         set_pattributes($sym, :Protected)
+                      end 
+                     )
+        push!(expr.args, newex)
+    end
+    expr
+end
+
+get_line_number() = LineNumber[1]
+set_line_number(n::Int) =  (LineNumber[1] = n)
+increment_line_number() = LineNumber[1] += 1
+
 function exfunc(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
     res = extomx(ex)  # Translate to Mxpr
@@ -100,6 +132,16 @@ function exfunc(ex)
     end
     if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
     setsymval(:ans,mx)  # Like Julia and matlab, not Mma
+    increment_line_number()
+    if isinteractive()
+        set_sjulia_prompt(get_line_number() + 1)
+    end
+    push!(Output,mx)
+    @bind_Os
+    symval(mx) == Null  && return nothing
+    if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring    
+        print("Out(" * string(get_line_number()) * ") = ")
+    end
     mx
 end
 
@@ -114,7 +156,7 @@ function tryexfunc(mxin)
         end
     end
 end
-    
+
 
 #################################################################################
 #                                                                               #
@@ -214,7 +256,7 @@ function meval(mx::Mxpr)
         warn("Recursion depth of " * string(recursion_limit()) *  " exceeded.")
         setfixed(mx)
         res = mxprcf(:Hold,mx)
-        throw(RecursionLimitError(res))        
+        throw(RecursionLimitError(res))
     end
     local ind::ByteString = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
@@ -222,10 +264,14 @@ function meval(mx::Mxpr)
         println(ind,">>", get_meval_count(), " " , mx)
     end
     nmx::Mxpr = meval_arguments(mx)
+    @mdebug(2, "meval: done meval_args ", nmx)
     setfreesyms(nmx,revisesyms(mx)) # set free symbol list in nmx
+    @mdebug(2, "meval: done setfreesyms ")
     res = meval_apply_all_rules(nmx)
+    @mdebug(2, "meval: done meval_apply_all_rules ", res)
     is_meval_trace() && println(ind,get_meval_count(), "<< ", res)
     decrement_meval_count()
+    @mdebug(2, "meval: returning ", res)    
     return res
 end
 
@@ -235,11 +281,17 @@ function meval_apply_all_rules(nmx::Mxpr)
         if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
+    @mdebug(2, "meval_apply_all_rules: entering apprules")    
     res = apprules(res)           # apply "builtin" rules
+    @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
     is_Mxpr(res) || return res
+    @mdebug(2, "meval_apply_all_rules: entering ev_upvalues ", res)        
     res = ev_upvalues(res)
+    @mdebug(2, "meval_apply_all_rules: exited ev_upvalues ", res)   
     res = ev_downvalues(res)
+    @mdebug(2, "meval_apply_all_rules: entering merge_args_if_empty_syms")        
     merge_args_if_emtpy_syms(res) # merge free symbol lists from arguments
+    @mdebug(2, "meval_apply_all_rules: exiting")    
     return res
 end
 
@@ -437,4 +489,6 @@ do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is
 # the second.
-do_GenHead(mx,head::Mxpr) = mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
+function do_GenHead(mx,head::Mxpr)
+    mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
+end

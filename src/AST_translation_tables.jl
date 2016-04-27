@@ -20,10 +20,12 @@ const JTOMSYM  =
 #      :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->. We use => because it has a higher precedence than ->, which is what we want.
-      :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
-      #      :(:) => :Span, # this is done specially in extomx. colon means various things
+#      :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
+      :(.>) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
+      :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
+#      :(:) => :Span, # this is done specially in extomx. colon means various things
       :vcat => :List,
-      :vect => :List,      
+      :vect => :List,
       :ref => :Part,
       :cell1d => :List,   # curly brackets, but deprecated by julia
       :comparison => :Comparison,
@@ -31,7 +33,8 @@ const JTOMSYM  =
       :! => :Not,
       :Γ => :Gamma,
       :π => :Pi,
-      :γ => :EulerGamma
+      :γ => :EulerGamma,
+      :∞ => :Infinity
 )
 
 # MTOJSYM is only used in printing
@@ -49,9 +52,11 @@ jtomsym(x) = extomx(x)
 
 # These are only used for output
 MTOJSYM[:Span] = :(:)
-MTOJSYM[:>=] = :≥
-MTOJSYM[:<=] = :≤
-MTOJSYM[:!=] = :≠
+# Disable these, because we don't yet interpret them correctly when read.
+# In fact, the unicode character printing should dynamically enabled/disabled
+# MTOJSYM[:>=] = :≥  #
+# MTOJSYM[:<=] = :≤
+# MTOJSYM[:!=] = :≠
 
 # Inverse of translations already present in MTOJSYM will be recorded
 # (compiler reports that the second method overwrites the first, which seems to be true.

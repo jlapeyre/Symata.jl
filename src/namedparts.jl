@@ -1,5 +1,5 @@
 ## Julia-level access of parts (arguments) of Mxpr's by name.
-# 
+#
 # First, recall that Mxpr expressions have the form h(a,b,c,d...)
 # Parts can be accessed from the Julia level by eg  h[1] --> a
 # They can also be accesed by eg margs(h(a,b,c,d))[1]

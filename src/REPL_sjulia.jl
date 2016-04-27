@@ -30,7 +30,7 @@ function SJulia_parse_REPL_line(line)
     #     exfunc(Base.parse_input_line(line))
     # catch e
     #     print_with_color(:red, "SJulia: ",e)
-    # finally       
+    # finally
     #     syntax_deprecation_warnings(prev)
     # end
 end
@@ -116,7 +116,13 @@ end
 # Code modified from Cxx.jl
 
 global RunSJuliaREPL
+
+# Handles BasicREPL
 function RunSJuliaREPL(repl)
+    sjulia_run_repl(repl)    
+end
+
+function RunSJuliaREPL(repl::LineEditREPL)
 
     # Completion list for SJulia
     populate_builtins()
@@ -127,7 +133,7 @@ function RunSJuliaREPL(repl)
           # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
                         complete = SJuliaCompletionProvider(repl),
-                        on_enter = return_callback                        
+                        on_enter = return_callback
 #                        prompt_suffix = hascolor ?  hascolor not defined
 #                        (repl.envcolors ? Base.input_color : repl.input_color) : ""
                         )
@@ -170,7 +176,7 @@ end
 
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
- 
+
 function sjulia_run_repl(repl::AbstractREPL, consumer = x->nothing)
     repl_channel = Channel(1)
     response_channel = Channel(1)
@@ -187,6 +193,7 @@ function sjulia_run_frontend(repl::LineEditREPL, backend)
     dopushdisplay && pushdisplay(d)
     if !isdefined(repl,:interface)
         interface = repl.interface = sjulia_setup_interface(repl)
+        set_sjulia_prompt(1)  ## !! This could be handled in a hook. Make pull request of my hook code.
     else
         interface = repl.interface
     end
@@ -388,7 +395,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     end
     history_reset_state(hp)
     julia_prompt.hist = hp
-    sjulia_prompt.hist = hp    
+    sjulia_prompt.hist = hp
     shell_mode.hist = hp
     help_mode.hist = hp
 
@@ -401,7 +408,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     end
 
     const enter_sjulia_key = '='
-    
+
     const repl_keymap = Dict{Any,Any}(
          enter_sjulia_key => function (s,args...)
             if isempty(s) || position(LineEdit.buffer(s)) == 0
@@ -417,7 +424,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                     LineEdit.transition(s, sjulia_prompt) do
                     LineEdit.state(s, sjulia_prompt).input_buffer = buf
                     end
-               end                    
+               end
             else
                 LineEdit.edit_insert(s,enter_sjulia_key)
             end

@@ -39,10 +39,10 @@ function isless_patterns(a::Mxpr, b::Mxpr)
 #        println("($haspata,$haspatb)")
         res = haspatb && (! haspata)
 #        println("($res)")
-        if haspatb && (! haspata)  return true end 
+        if haspatb && (! haspata)  return true end
         length(blanka) > length(blankb) && return true
     end
     return false
-end 
+end
 
 #sort!(dvs.args,lt=isless_patterns)

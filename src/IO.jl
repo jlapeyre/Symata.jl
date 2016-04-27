@@ -162,3 +162,28 @@ STDERR is the standard output stream.
 @sjdoc DevNull "
 DevNull is bound to julia stream DevNull.
 "
+
+@mkapprule Out
+
+@sjdoc Out "
+Out(n) returns the nth line of output. The value returned is evaluated in the current environment.
+
+O returns the last output.
+
+OO returns the second to last output.
+
+OO..O k times gives the kth previous output, for k <= 10.
+
+Clear(Out) clears all the saved output.
+"
+
+@sjseealso(Out, Clear)
+
+function do_Out(mx::Mxpr{:Out}, n::Integer)
+    if n > 0 && n < LineNumber[1]
+        return doeval(Output[n])
+    end
+    return :Null
+end
+
+do_Out(mx::Mxpr{:Out}, x) = :Null

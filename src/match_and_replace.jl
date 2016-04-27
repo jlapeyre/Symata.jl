@@ -99,7 +99,7 @@ getpvarhead(pvar::Pvar) = pvar.head
 function cmppat(ex,pat::PatternT)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
-    return (success_flag,capt)  # report whether matched, and return captures    
+    return (success_flag,capt)  # report whether matched, and return captures
 end
 # compiler notes that this is overwritten a few lines below
 # cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
@@ -108,7 +108,7 @@ end
 function cmppat(ex,pat::PatternT, capt)
     empty!(capt)
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
-    return (success_flag,capt)  # report whether matched, and return captures    
+    return (success_flag,capt)  # report whether matched, and return captures
 end
 cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat),capt)
 
@@ -207,7 +207,7 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     res == false && return false # match failed
     # We need something more efficient than deepcopy !
     # deep copy and x_ -> pat(x) original
-    npat = pat2.isdelayed ? deepcopy(infseval(pat2)) : deepcopy(pat2) 
+    npat = pat2.isdelayed ? deepcopy(infseval(pat2)) : deepcopy(pat2)
     nnpat = patsubst!(npat.ast,capt) # do replacement
     return nnpat
 end
@@ -246,16 +246,28 @@ function replacefail(ex::ExSym, r::PRule)
     patrule(ex,r.lhs,r.rhs)
 end
 
+# No, depth-first is wrong.
 # Do depth-first replacement applying the same rule to head and each subexpression
+# function oldreplaceall(ex,pat1::PatternT,pat2::PatternT)
+#     if is_Mxpr(ex)
+#         ex = mxpr(replaceall(mhead(ex),pat1,pat2),
+#                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
+#     end
+#     # we have applied replacement at all lower levels. Now do current level.
+#     res = patrule(ex,pat1,pat2)
+#     res === false && return ex # match failed; return unaltered expression
+#     res
+# end
+
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
-    if is_Mxpr(ex)
+    # first try at current level
+    res = patrule(ex,pat1,pat2)
+    res !== false && return res  # return if we had success
+    if is_Mxpr(ex)               # no success so we try at lower levels.
         ex = mxpr(replaceall(mhead(ex),pat1,pat2),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
-    # we have applied replacement at all lower levels. Now do current level.
-    res = patrule(ex,pat1,pat2)
-    res === false && return ex # match failed; return unaltered expression
-    res
+    ex   # if lower levesl changed nothing, this is the same as the input ex.
 end
 
 replaceall(ex, r::PRule) = replaceall(ex,r.lhs,r.rhs)
@@ -309,87 +321,27 @@ patsubst!(pat::SJSym,cd) = return  havecapt(pat,cd) ? retrievecapt(pat,cd) : pat
 patsubst!(pat::Pvar,cd) = retrievecapt(pat,cd)
 patsubst!(pat,cd) = pat
 
-#### Delayed version below
-
-# function patsubstdelayed!(pat::Mxpr,cd)
-#     if ! havecapt(pat,cd)
-#         pa = margs(pat)
-#         @inbounds for i in 1:length(pa)
-#             if havecapt(pa[i],cd)
-#                 pa[i] =  infseval(retrievecapt(pa[i],cd))
-# #                mergeargs(pa[i])  # does this help ? probably expensive
-#             elseif is_Mxpr(pa[i])
-#                 pa[i] = patsubst!(pa[i],cd)
-#             end
-#         end
-#     end
-#     if havecapt(mhead(pat),cd)
-#         pat = mxpr(retrievecapt(mhead(pat),cd),margs(pat))
-#     end
-#     return pat
-# end
-
-# patsubstdelayed!(pat::SJSym,cd) = return  havecapt(pat,cd) ? infseval(retrievecapt(pat,cd)) : pat
-# patsubstdelayed!(pat::Pvar,cd) = infseval(retrievecapt(pat,cd))
-# patsubstdelayed!(pat,cd) = pat
-
-
 ## ReplaceRepeated
 
-# This applies the rules to all sub-expressions, and the expression.
-# Repeat till we reach a fixed point.
 function replacerepeated(ex, rules::Array{PRule,1})
-    _replacerepeated(ex,rules,0)
-end
-
-function replacerepeated(ex, therule::PRule)
-    _replacerepeated(ex,[therule],0)
-end
-
-function _replacerepeated(ex, rules::Array{PRule,1},n)
-    n > 20 && error("Exceeded max iterations, $n, in replacerepeated")
-    ex1 = ex
-    local res
-    for r in rules
-        res = patrule(ex1,r.lhs,r.rhs)
-        if (res !== false)
-            ex1 = res
+    too_many_iterations::Bool = true
+    maxits::Int = 65536
+    res = replaceall(ex,rules)
+    local res1
+    for i in 1:maxits
+        res1 = doeval(replaceall(res,rules))
+        if res1 == res
+            too_many_iterations = false
             break
         end
+        res = res1
     end
-    if ex != ex1
-        ex1 = _replacerepeated(ex1,rules,n+1)
+    if too_many_iterations
+        warn("ReplaceRepeated: exceed maximum number of iterations $maxits")
     end
-    # This needed for eg, ExpToTrig. But, we need a more efficient way to do it
-    mergeargs(ex1)  
-    ex1
+    return res1
 end
 
-function _replacerepeated(ex::Mxpr, rules::Array{PRule,1},n)
-    n > 20 && error("Exceeded max iterations, $n, in replacerepeated")
-    ex1 = ex
-    if is_Mxpr(ex)
-        args = margs(ex)
-        nargs = newargs(length(args))
-        for i in 1:length(args)
-            nargs[i] = replacerepeated(args[i],rules)
-        end
-        ex1 = mxpr(mhead(ex),nargs)
-    end
-    local res
-    for r in rules
-        res = patrule(ex1,r.lhs,r.rhs)
-        if (res !== false)
-            ex1 = res
-            break
-        end
-    end
-    if ex != ex1
-        ex1 = _replacerepeated(ex1,rules,n+1)
-    end
-    # This needed for eg, ExpToTrig. But, we need a more efficient way to do it
-    mergeargs(ex1)  
-    ex1
-end
+replacerepeated(ex, therule::PRule) =  replacerepeated(ex,[therule])
 
 nothing

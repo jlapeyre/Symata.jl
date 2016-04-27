@@ -65,7 +65,7 @@ function print_doc(qs...)
         end
         as = get_attributes(q)
         if length(as) > 0
-            println(string(q), " has attributes ", as)
+            println("\n Attributes(", string(q), ") = ", as)
         end
         if symval(:ShowSymPyDocs!) == true  print_sympy_doc(q) end
     end
@@ -145,7 +145,7 @@ end
 
 # set seealsos. clobbers existing
 macro sjseealso(source_sym, targ_syms...)
-    SJSEEALSO[source_sym] = targ_syms
+    SJSEEALSO[source_sym] = Any[targ_syms...]
 end
 
 # each sym seealso's all others
@@ -208,7 +208,7 @@ end
 function format_sjexamples(sym)
     if haskey(SJEXAMPLES,sym)
         exs = SJEXAMPLES[sym]
-        println("Examples")        
+        println("Examples")
         for strs in exs
             println()
             format_sjexample(strs)
@@ -248,7 +248,7 @@ end
 # the history, so the user can modify the example.
 function do_example(lines)
     len = length(lines)
-    local ins, outs, expl    
+    local ins, outs, expl
     for i in 1:len
         ln = lines[i]
         if is_type_less(ln,AbstractString)
@@ -262,7 +262,7 @@ function do_example(lines)
             end
             if length(expl) > 0
                 println("# ",expl)
-            end            
+            end
             println("sjulia> ", ins)
             ex = parse(ins)
             res = (eval(Expr(:macrocall,symbol("@ex"), ex)))

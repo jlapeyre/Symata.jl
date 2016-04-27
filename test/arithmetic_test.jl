@@ -14,7 +14,7 @@ using Base.Test
 @testex Re(I*a*b) == -Im(a*b)
 
 # -Inf is caught during  parsing
-# Todo: This is failing now
+# Todo: This is failing now. do we even want this anymore ?
 # @testex -Inf == :( -Inf )
 @testex 1/0 == DirectedInfinity()
 @testex 1//0 == DirectedInfinity()
@@ -24,8 +24,7 @@ using Base.Test
 @testex DirectedInfinity() * a * 0 == Indeterminate
 @testex ComplexInfinity^(-2) == 0
 @testex Infinity^(-2) == 0
-# BROKEN: this returns 0
-#@test Apply(Times, [DirectedInfinity(),a,a,a,0]) == Indeterminate
+@testex  Apply(Times, [DirectedInfinity(),a,a,a,0]) == Indeterminate
 @testex  0 * Indeterminate == Indeterminate
 @testex  0 * Infinity == Indeterminate
 @testex  0 * ComplexInfinity == Indeterminate
@@ -48,7 +47,7 @@ import SJulia: mpow, mxpr
 @test mpow(9, 2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3))
 @test mpow(-9,2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3))
 
-@testex Sqrt(-1) == I      # fix bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+@testex Sqrt(-1) == I      # fixes bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 @testex Sqrt(-1)^2 == -1   # same bug
 
 @ex ClearAll(a,b)

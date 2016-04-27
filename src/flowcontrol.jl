@@ -65,7 +65,7 @@ end
 
 @sjdoc For "
 For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment(i) , Println(i))
-Using Increment(i) is currently much faster than i = i + 1. (but what about i += 1 ?) 
+Using Increment(i) is currently much faster than i = i + 1. (but what about i += 1 ?)
 There is no special syntax yet for Increment.
 
 The variable i is not local to the For loop.
@@ -231,7 +231,7 @@ function do_doloop(expr,iter::SJIter2)
         @checkcontinue0(res)
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
@@ -246,7 +246,7 @@ function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
         @checkcontinue0(res)
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 # fields of iter may be symbolic
@@ -263,7 +263,7 @@ function do_doloop(expr,iter::SJIter3)
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
@@ -278,7 +278,7 @@ function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
         @checkcontinue0(res)
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 # fields of iter may be symbolic
@@ -295,7 +295,7 @@ function do_doloop(expr,iter::SJIter4)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 function do_doloop(expr,iter::SJIterList)
@@ -310,7 +310,7 @@ function do_doloop(expr,iter::SJIterList)
         @checkcontinue0(res)
     end
     removesym(isym)
-    Null    
+    Null
 end
 
 #### CompoundExpression
@@ -329,3 +329,12 @@ function apprules(mx::Mxpr{:CompoundExpression})
         end
     res
 end
+
+
+#### Warn
+
+@mkapprule Warn :nargs => 1
+
+do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = warn(msg)
+
+

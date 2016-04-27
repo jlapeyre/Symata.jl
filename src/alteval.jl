@@ -20,7 +20,7 @@ function meval1(mx::Mxpr)
 #    mx.args = nargs
     nmx = mxpr(mhead(mx),nargs)
     nmx = flatcanon!(nmx)
-    nmx = ev_upvalues(nmx)    
+    nmx = ev_upvalues(nmx)
     nmx = ev_downvalues(nmx)
     merge_args_if_emtpy_syms(nmx)
     apprules(nmx)

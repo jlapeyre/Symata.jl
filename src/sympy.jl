@@ -1,3 +1,5 @@
+using PyCall
+
 # We no longer have a module here.
 # export sympy2mxpr, mxpr2sympy
 # export sympy
@@ -5,7 +7,11 @@
 #importall SJulia
 #import SJulia: mxpr, mxprcf  # we need this even with importall
 
-using PyCall
+# Notes for evenutally extracting mpz and mpf from python mpmath objects
+#  julia> ex[:_mpf_][2]
+#  PyObject mpz(5400274185508743)
+#  julia> ex
+#  PyObject mpf('0.29977543700203352')
 
 # Initial Author: Francesco Bonazzi
 
@@ -16,6 +22,7 @@ using PyCall
 function import_sympy()
     eval(parse("@pyimport sympy"))
     eval(parse("@pyimport sympy.core as sympy_core"))
+    eval(parse("@pyimport mpmath"))
 end
 
 # Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
@@ -23,6 +30,17 @@ const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 const mx_to_py_dict =  Dict()   # Can we specify types for these Dicts ?
 const pymx_special_symbol_dict = Dict()
+
+const MPMATH_DPS = Int[0]
+
+get_mpmath_dps() = mpmath.mp[:dps]
+function set_mpmath_dps(n)
+    push!(MPMATH_DPS,mpmath.mp[:dps])
+    mpmath.mp[:dps] = n
+end
+    
+restore_mpmath_dps() = (mpmath.mp[:dps] = pop!(MPMATH_DPS))
+
 
 # TODO: populate this Dict. Collect the translation into fewer Dicts.
 # Use this Dict to rely more on these lines:
@@ -65,12 +83,11 @@ function get_sympy_math(x)
 end
 
 function make_sympy_to_sjulia()
-    # We put cos(), etc. here because it we are not using sympy to evaluate Cos
     symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
                       ( :InverseLaplaceTransform, :inverse_laplace_transform ),
                       (:InverseFourierTransform, :inverse_fourier_transform ),
                       (:FourierTransform, :fourier_transform),
-                      (:Cos, :cos), (:Log, :log), ( :Sqrt, :sqrt), (:LambertW, :LambertW),
+                      (:Cos, :cos), (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma),
                       (:PeriodicArgument, :periodic_argument)
@@ -194,11 +211,11 @@ decrement_sympy2mxpr_count() = SYMPYTRACENUM[1] -= 1
 is_sympy2mxpr_trace() = SYMPYTRACE.trace
 
 function sympy2mxpr(expr)
-    increment_sympy2mxpr_count()    
+    increment_sympy2mxpr_count()
     if is_sympy2mxpr_trace()
         ind = " " ^ (get_sympy2mxpr_count() - 1)
         println(ind,">>", get_sympy2mxpr_count(), " " , expr)
-    end    
+    end
     res = _sympy2mxpr(expr)
     if is_sympy2mxpr_trace()
         ind = " " ^ (get_sympy2mxpr_count() - 1)
@@ -343,35 +360,48 @@ function mk_mx_to_py_funcs()
     end
 end
 
-function mxpr2sympy(z::Complex)
+#######################################################
+##     mxpr2sympy
+#######################################################
+
+function mxpr2sympy(args...)
+    if length(args) == 1
+        res = _mxpr2sympy(args[1])
+        return res
+    end
+    res = _mxpr2sympy(args)
+    (res...)
+end
+
+function _mxpr2sympy(z::Complex)
     if real(z) == 0
         res = mxpr(:Times, :I, imag(z))
     else
         res = mxpr(:Plus, real(z), mxpr(:Times, :I, imag(z)))
     end
-    return mxpr2sympy(res)
+    return _mxpr2sympy(res)
 end
 
-function mxpr2sympy(mx::Mxpr{:List})
-    return [map(mxpr2sympy, mx.args)...]
+function _mxpr2sympy(mx::Mxpr{:List})
+    return [map(_mxpr2sympy, mx.args)...]
 end
 
 # This is never used. (Yes it is!)
-function mxpr2sympy(mx::Mxpr{:Gamma})
+function _mxpr2sympy(mx::Mxpr{:Gamma})
     ma = margs(mx)
     if length(ma) == 1
-        sympy.gamma(mxpr2sympy(ma[1]))
+        sympy.gamma(_mxpr2sympy(ma[1]))
     elseif length(ma) == 2
-        pyargs = map(mxpr2sympy,ma)
+        pyargs = map(_mxpr2sympy,ma)
         result = sympy.uppergamma(pyargs...)
         result
     else
-        sympy.gamma(map(mxpr2sympy,ma)...)
+        sympy.gamma(map(_mxpr2sympy,ma)...)
     end
 end
 
 # For now all infinities are mapped to one of two infinities
-function mxpr2sympy(mx::Mxpr{:DirectedInfinity})
+function _mxpr2sympy(mx::Mxpr{:DirectedInfinity})
     if mx == ComplexInfinity
         sympy.zoo
     elseif mx == MinusInfinity
@@ -408,8 +438,8 @@ function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
     mxc[2] = (q[1],q[2])
     try
         zpy = mxpr2sympy(z)
-        ppy = (mxpr2sympy(p[1]), mxpr2sympy(p[2]))
-        qpy = (mxpr2sympy(q[1]), mxpr2sympy(q[2]))        
+        ppy = (_mxpr2sympy(p[1]), _mxpr2sympy(p[2]))
+        qpy = (_mxpr2sympy(q[1]), _mxpr2sympy(q[2]))
         pyres = sympy.meijerg(ppy,qpy,zpy)
         sjres = sympy2mxpr(pyres)
     catch
@@ -417,12 +447,12 @@ function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
     end
 end
 
-function mxpr2sympy(mx::Mxpr{:MeijerG})
+function _mxpr2sympy(mx::Mxpr{:MeijerG})
     pyhead = mx_to_py_dict[mhead(mx)]
     p = mx[1]
     q = mx[2]
     z = mx[3]
-    pyhead((mxpr2sympy(p[1]), mxpr2sympy(p[2])), (mxpr2sympy(q[1]), mxpr2sympy(q[2])), mxpr2sympy(z))
+    pyhead((_mxpr2sympy(p[1]), _mxpr2sympy(p[2])), (_mxpr2sympy(q[1]), _mxpr2sympy(q[2])), _mxpr2sympy(z))
 end
 
 do_MeijerG{W<:AbstractFloat}(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) =
@@ -445,32 +475,34 @@ function eval_meijerg(mx, p, q, z)
     sympy2mxpr(fresult)
 end
 
-mxpr2sympy(t::Tuple) = t 
-  
+function _mxpr2sympy(t::Tuple)
+    (map(_mxpr2sympy,t)...)
+end
+
 
 ######
 
-function mxpr2sympy(mx::Mxpr)
+function _mxpr2sympy(mx::Mxpr)
     if mhead(mx) in keys(mx_to_py_dict)
-        return mx_to_py_dict[mhead(mx)](map(mxpr2sympy, mx.args)...)
+        return mx_to_py_dict[mhead(mx)](map(_mxpr2sympy, mx.args)...)
     end
     pyfunc = sympy.Function(string(mhead(mx)))  # Don't recognize the head, so make it a user function
     mxargs = margs(mx)
     if length(mxargs) == 0
         return pyfunc(dummy_arg)
     else
-        return pyfunc(map(mxpr2sympy, mxargs)...)
+        return pyfunc(map(_mxpr2sympy, mxargs)...)
     end
 end
 
-function mxpr2sympy(mx::Symbol)
+function _mxpr2sympy(mx::Symbol)
     if haskey(mx_to_py_dict,mx)
         return mx_to_py_dict[mx]
     end
     return sympy.Symbol(mx)
 end
 
-function mxpr2sympy(mx::SSJSym)
+function _mxpr2sympy(mx::SSJSym)
     name = symname(mx)
     if haskey(mx_to_py_dict,name)
         return conv_rev[name]
@@ -478,18 +510,23 @@ function mxpr2sympy(mx::SSJSym)
     return sympy.Symbol(name)
 end
 
-mxpr2sympy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
+_mxpr2sympy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
 
-mxpr2sympy{T<:Number}(mx::T) = mx
+_mxpr2sympy{T<:Number}(mx::T) = mx
 
 # For our LaplaceTransform code, (etc.)
-mxpr2sympy(a::Array{Any,1}) =  map(mxpr2sympy, a)
+_mxpr2sympy{T}(a::Array{T,1}) =  map(_mxpr2sympy, a)
 
-mxpr2sympy{T <: PyCall.PyObject}(expr::T) = expr
+_mxpr2sympy{T <: PyCall.PyObject}(expr::T) = expr
+
+
+function _mxpr2sympy(x::AbstractString)
+    x
+end
 
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
-function mxpr2sympy(x)
+function _mxpr2sympy(x)
     warn("mxpr2sympy: Unable to convert $x from SJulia to SymPy")
     return x
 end
@@ -562,7 +599,7 @@ macro try_sympyfunc(pycall, errstr, return_val_err)
     npycall = parse( "sympy." * string(pycall))
     return :(
              begin
-             (sflag, _pyres) = 
+             (sflag, _pyres) =
                  try
                    res = $npycall
                    (true, res)

@@ -129,11 +129,11 @@ function _pushfacs!(facs,mx::Mxpr{:Times})
 end
 
 function _pushfacs!(facs,b)
-    push!(facs,b)    
+    push!(facs,b)
 end
 
 function mulfacs(a::Mxpr{:Plus},b)
-#    println("2:  $a,  $b")    
+#    println("2:  $a,  $b")
     terms = newargs(length(a))
     i = 0
     for ax in a.args
@@ -145,7 +145,7 @@ function mulfacs(a::Mxpr{:Plus},b)
         else
             terms[i] = b * ax
         end
-        canonexpr!(terms[i]) 
+        canonexpr!(terms[i])
         mergeargs(terms[i])
 #        setfixed(terms[i])
     end
@@ -169,7 +169,7 @@ function canonpower(base,expt)
     base^expt
 end
 
-## 
+##
 
 # optimize a bit for types
 function _expand_binomial_aux1(a::Symbol,b::Symbol,n)
@@ -198,15 +198,15 @@ function expand_binomial{T<:Integer}(a,b,n::T)
     setfixed(args[1])
     args[n+1] =  canonpower(b,n)
     mergesyms(args[n+1],b)
-    setfixed(args[n+1])    
+    setfixed(args[n+1])
     if n == 2
         args[2] = flatcanon!(mxpr(:Times,2,a,b))  # we have to flatcanon
     else
         # TODO optimize for symbols a,b, as in general case below. No flatcanon.
         args[2] = _expand_binomial_aux1(a,b,n)
         args[n] = _expand_binomial_aux2(a,b,n)
-#        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b)) 
-#        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))        
+#        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
+#        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
         mergesyms(args[2],a)
         mergesyms(args[2],b)
         mergesyms(args[n],a)
@@ -232,12 +232,12 @@ typealias ExpNoCanon Union{SJSym,Number}
 
 # Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
 function _expand_mulpowers(fac,b1,e1,b2,e2)
-    m1 = canonpower(b1,e1)  # adds 10-15% time  
+    m1 = canonpower(b1,e1)  # adds 10-15% time
     m2 = canonpower(b2,e2)
     setfixed(m1)
     setfixed(m2)
     mergesyms(m1,b1)
-    mergesyms(m2,b2)            
+    mergesyms(m2,b2)
     return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
 end
 
@@ -247,30 +247,30 @@ function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
     setfixed(m1)
     setfixed(m2)
     mergesyms(m1,b1)
-    mergesyms(m2,b2)            
+    mergesyms(m2,b2)
     return mxpr(:Times, fac, m1, m2)
 end
 
 function _expand_mulpowers{T<:ExpNoCanon}(fac,b1::T,e1,b2,e2)
     m1 = b1^e1
-#    m2 = b2^e2    
+#    m2 = b2^e2
     m2 = canonpower(b2,e2)
     setfixed(m1)
     setfixed(m2)
     mergesyms(m1,b1)
     mergesyms(m2,b2)
-    return flatcanon!(mxpr(:Times, fac, m1, m2))    
+    return flatcanon!(mxpr(:Times, fac, m1, m2))
 end
 
 function _expand_mulpowers{T<:ExpNoCanon}(fac,b1,e1,b2::T,e2)
     m1 = canonpower(b1,e1)
-#    m1 = b1^e1    
-    m2 = b2^e2    
+#    m1 = b1^e1
+    m2 = b2^e2
     setfixed(m1)
     setfixed(m2)
     mergesyms(m1,b1)
     mergesyms(m2,b2)
-    return flatcanon!(mxpr(:Times, fac, m1, m2))    
+    return flatcanon!(mxpr(:Times, fac, m1, m2))
 end
 
 function expand_binomial_aux(k,l,n,fac,a,b,args)
@@ -302,17 +302,18 @@ apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
 do_Apply(mx,f) = mx
 do_Apply(mx,x,y) = mx
 
-# Does not get Apply(Times, [DirectedInfinity(),a,a,a,0]) correct.
-function do_Apply(mx::Mxpr,h::SJSym,mxa::Mxpr)
-    if (h == :Plus || h == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
-#        mx = mxpr(h,copy(margs(mxa)))
-        mx = mxpr(h,margs(mxa))
-        mx = canonexpr!(mx)
+function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
+    if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
+#        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
+        mx = mxpr(head,margs(mxa))
+        mx = canonexpr!(mx)            # this is ok
+#        mx = canonexpr_orderless!(mx) # this is ok too.
         setcanon(mx)
     else
-        mx = mxpr(h,margs(mxa))        
+        mx = mxpr(head,margs(mxa))
     end
-    length(mx) == 0 && return 0  # maybe return zero(something) ?
+    # length(mx) == 0 && return 0                # why did I do this ???
+    is_Mxpr(mx) && length(mx) == 0 && return 0   # do this instead. fixes bug Apply(Times, [DirectedInfinity(),0]) --> 0
     mx
 end
 
@@ -333,11 +334,6 @@ function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     return mx
 end
 
-
-#### Args
-
-# @mkapprule Args :nargs => 1
-
 #### Reverse
 
 function Base.reverse(mx::Mxpr)
@@ -347,7 +343,7 @@ function Base.reverse(mx::Mxpr)
 end
 
 @sjdoc Reverse "
-Reverse(expr) reverses the order of the arguments in expr.    
+Reverse(expr) reverses the order of the arguments in expr.
 "
 function apprules(mx::Mxpr{:Reverse})
     do_reverse(mx[1])

@@ -67,6 +67,7 @@ SJulia.@testex (a^2)^t == a^(2*t)
 @ex m = (2*a*b)^3
 @testex Head(m) == Times
 @testex Apply(List,m) == List(8,a^3,b^3)
+@ex Clear(a,b,m)
 
 @ex m = ExpandA((2*a+2*b)^BI(4))
 @testex Apply(List,m) == [(16*(a^4)),(64*(a^3)*b),(96*(a^2)*(b^2)),(64*a*(b^3)),16*(b^4)]

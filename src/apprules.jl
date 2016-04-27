@@ -5,6 +5,10 @@
 # One or more arguments
 type OneOrMore end
 
+# @mkapprule defines a "function", a Head.
+# You can supply information about the number of args etc. by passing a dict to @mkapprules like this
+# @mkapprules Headname  :key1 => val1  :key2 => val2 ....
+# get_arg_dict constructs a Dict from the macro aguments.
 function get_arg_dict(args)
     d = Dict{Symbol,Any}()
     for p in args
@@ -30,6 +34,7 @@ function warn_arg_number_string(headstr, nspec::Int)
     "Wrong number or " * (nspec == 1 ? "type " : "types ") * "of argument. " * headstr * " requires exactly " * num_args_string(nspec)
 end
 
+# Obviously, we need to factor the functions below
 function make_warn_code_from_string(wstr::AbstractString, nspec::Int)
     :( begin
        if length(margs(mx)) == $nspec
@@ -54,7 +59,7 @@ end
 function make_warn_code_from_string(wstr::AbstractString, nspec::Type{OneOrMore})
     :( begin
        la = length(margs(mx))
-       if la < 1 
+       if la < 1
          println(STDERR, $wstr)
        end
        mx
@@ -209,7 +214,7 @@ function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
     checkprotect(lhs)
     rhs = mxprcf(:Sequence)
     setsymval(lhs,rhs)
-    setdefinition(lhs, mx)    
+    setdefinition(lhs, mx)
     rhs
 end
 
@@ -236,7 +241,7 @@ end
 function do_Set(mx::Mxpr{:Set},lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
-    setdefinition(lhs, mx)    
+    setdefinition(lhs, mx)
     rhs
 end
 
@@ -496,6 +501,9 @@ dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
 @sjdoc Clear "
 Clear(x,y,z) removes the values associated with x,y,z. It does not remove
 their DownValues.
+
+Clear(Out) deletes all of the saved Output lines. It actually replaces them with
+the value `Null'.
 "
 
 @sjseealso_group(Clear, ClearAll)
@@ -503,9 +511,16 @@ their DownValues.
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
     @inbounds for a in margs(mx)  # no inbounds does not work here
+        if a == :Out
+            for i in 1:length(Output)
+                Output[i] = :Null   # temporary solutions
+            end
+            return Null
+        end
         checkprotect(a)
         setsymval(a,symname(a))
     end
+    Null
 end
 
 #### ClearAll
@@ -686,7 +701,7 @@ apprules(mx::Mxpr{:UpValues}) = sjlistupvalues(mx[1])
 #### Example
 
 @sjdoc Example "
-Example(s) 
+Example(s)
 runs (evaluates) all examples for the symbol s, typically a function or variable.
 Input, output, and comments are displayed. Input strings
 for the example are pushed onto the terminal history so they can be retrieved and
@@ -721,7 +736,7 @@ Replace(expr,rule) replaces parts in expr according to Rule rule.
           "1", "This expression does match the pattern."))
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
 
-typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}} 
+typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
 
 doreplace(mx,a,b) = mx
@@ -731,7 +746,7 @@ doreplace(mx,a,b) = mx
 @sjdoc ReplaceAll "
 ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
 ReplaceAll(expr,List(rule1,rule2,...)) replaces parts at all levels in expr according to the
-list or rules. If given explicitly, the rules must be given as List(...) rather than
+list or rules. If given explicitly, the rules should be given as List(...) rather than
 [...] because of a parsing error.
 "
 
@@ -758,21 +773,21 @@ doreplaceall(mx,a,b) = mx
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
 apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
-# Doing the meval stuff below is a workaround for a bug.
-# All the integers should be gone in the following:
-# m1 = ExpandA((a+b)^3)  --> a^3 + 3*(a^2)*b + 3*a*(b^2) + b^3
-# m2 = ReplaceRepeated(m1, x_Integer => 1)  --> a + 2*a*b + b
-# Mma 3 does this correctly. We insert an expensive workaround.
-function doreplacerepeated(mx,expr,r::Mxpr{:Rule})
-    ex1 = replacerepeated(expr,Rule_to_PRule(r))
-    if is_Mxpr(ex1)
-        ex1 = meval_arguments(ex1)        #
-        ex1 = meval_apply_all_rules(ex1)
-        #    ex1 = meval(ex1)
-        ex1 = replacerepeated(ex1,Rule_to_PRule(r))
+
+doreplacerepeated{T<:Rules}(mx,expr,r::T) = replacerepeated(expr,Rule_to_PRule(r))
+
+function doreplacerepeated(mx,expr,rs::Mxpr{:List})
+    rsa = Array(PRule,0)
+    for i in 1:length(rs)
+        if typeof(rs[i]) <: Rules
+            push!(rsa, Rule_to_PRule(rs[i]))
+        else
+            nothing  # do something better here, like return mx
+        end
     end
-    return ex1
+    replacerepeated(expr,rsa)
 end
+
 doreplacerepeated(mx,a,b) = mx
 
 #### MatchQ
@@ -800,7 +815,7 @@ function do_MatchQ(mx,pat)
     mx
 end
 
-#### GenHead 
+#### GenHead
 # for operator form of MatchQ
 # do_GenHead in evaluation.jl curries the first argument
 function do_GenHead(mx,head::Mxpr{:MatchQ})
@@ -896,9 +911,6 @@ function do_Comparison(mx::Mxpr{:Comparison},args...)
         a = args[i-1]
         cmp = args[i]
         b = args[i+1]
-#        println(a, " *** ", cmp, " *** ", b)
-#        dump(cmp)
-#        println(typeof(cmp))
         res = _do_Comparison(a,cmp,b)
         res == false && return res
         res != true && return mx
@@ -980,7 +992,6 @@ _do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
 _do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
 
 function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
-#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -988,7 +999,6 @@ function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
 end
 
 function _do_Comparison(a, comp::SJSym, b::Bool)
-#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -996,7 +1006,6 @@ function _do_Comparison(a, comp::SJSym, b::Bool)
 end
 
 function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
-#    println("In any cmp  bool $a $comp $b")
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -1015,7 +1024,6 @@ function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
 end
 
 function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
-#    println("In bool cmp  $a $comp $b")
     comp == :(==) && return a == b
     comp == :(!=) && return a != b
     comp == :(===) && return a == b
@@ -1040,29 +1048,30 @@ makecomplex(mx,n,d) = mx
 #### Power
 
 # Probably faster to handle this in
-# canonicalization code
+# canonicalization code. Some is done there. Some incorrectly.
 function apprules(mx::Mxpr{:Power})
-    do_Power(mx,mx[1],mx[2])
+    res = do_Power(mx,mx[1],mx[2])
+    res
 end
 
 # Don't handle this yet.
-do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},b::Complex{T},expt::Rational{V}) = mx
-do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},b::Complex{T},expt::Complex{Rational{V}}) = mx
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Rational{V}) = mx
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{Rational{V}}) = mx
 
-do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},b::T,expt::V) = mpow(b,expt)
+do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
 
-do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power},b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
-do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}   ,b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
 
-do_Power{T<:Real}(mx::Mxpr{:Power},b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Real}(mx::Mxpr{:Power},   b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
 
-do_Power(mx::Mxpr{:Power},b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
+do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::T) = b == :E ? exp(expt) : mx
-do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::T) = b == :E ? exp(expt) : mx
+do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
-do_Power{T<:Integer}(mx::Mxpr{:Power},b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
-do_Power{T<:Number}(mx::Mxpr{:Power},b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+do_Power{T<:Number}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
 
 # Finish this sometime
 # do_Power{T<:Real,V<:AbstractFloat}(mx::Mxpr{:Power}, b::T, expt::V)
@@ -1477,7 +1486,7 @@ occurs.
 # We should use an ordered dict
 function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
 #    d = OrderedDict{Any,Any}()  # We need to canonicalize this
-    d = Dict{Any,Any}()  # We need to canonicalize this    
+    d = Dict{Any,Any}()  # We need to canonicalize this
     for el in margs(list)
         val = get!(d,el,0)
         d[el] = val + 1

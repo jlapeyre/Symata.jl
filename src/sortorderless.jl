@@ -398,14 +398,16 @@ function whichinfinity(mx)
     end
     prodsq = real(prod * conj(prod))
     fac = mpow(prodsq,-1//2)
-#    println("prod $prod, prodsq $prodsq,  fac $fac")    
+#    println("prod $prod, prodsq $prodsq,  fac $fac")
     direction = prod*mpow(prodsq,-1//2)
     return mxprcf(:DirectedInfinity, direction)
 end
 
 function canonexpr_orderless!(mx::Mxpr{:Times})
     analysis = analyze_operands(mx)
-    if analysis.isIndeterminate return Indeterminate end
+    if analysis.isIndeterminate
+        return Indeterminate
+    end
     if analysis.isComplexInfinity return ComplexInfinity end
     if analysis.isInfinity return whichinfinity(mx) end
     if analysis.isZero return 0 end # Need to fix the type of zero
@@ -479,10 +481,12 @@ function canonexpr!(mx::Mxpr{:Power})
     #    mergeargs(mx)
 end
 
-# (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n
+
+# (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n  *NO* expr1,.... must be positive as well
 # Assume the product prod has already been sorted;
 # the number, if present is first.
-function do_canon_power!{T<:Real}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
+# GJL Apr 2016. disable this. it is wrong, in general.
+function do_canon_power!{T<:Integer}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
     len = length(prod)
     args = margs(prod)
     nargs = newargs(len) # we must use new args.

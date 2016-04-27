@@ -84,9 +84,9 @@ function make_sjiter{T}(mx,args::Array{T,1})
             nargs = recursive_copy(args) # needed if we do the computation below
             (i,imin,imax,di) = (nargs[1],nargs[2],nargs[3],nargs[4])
             #  Mma does not simplify this: x + y + -2*(x + y)
-            #  Mma does simplify this: x + y + -1*(x + y)            
+            #  Mma does simplify this: x + y + -1*(x + y)
             tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
-#            tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Expand ,mxpr(:Minus,imin))), mxpr(:Power,di,-1))            
+#            tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Expand ,mxpr(:Minus,imin))), mxpr(:Power,di,-1))
 #            tst = extomx(:( ($(args[3]) - $(args[2])) / $(args[4]))) # This works, but is slow. need Expand, too.
 #            tst = @exnoeval(:( ((args[3]) - (args[2])) / (args[4]))) # this is wrong
 #            println(mxpr(:FullForm,tst))
@@ -111,7 +111,7 @@ abstract AbstractSJIterA
 
 type SJIterA1{T<:Real} <: AbstractSJIterA
     imax::T
-    num_iters::Int    
+    num_iters::Int
 end
 
 type SJIterA2{T,V} <: AbstractSJIterA

@@ -28,7 +28,7 @@ include("sjulia_julia_interface.jl")
 include("measurements.jl")
 include("flowcontrol.jl")
 include("output.jl")
-include("mpatrule.jl")
+include("match_and_replace.jl")
 include("pattern.jl")
 include("parts.jl")
 include("lists.jl")
@@ -46,37 +46,23 @@ include("protected_symbols.jl")
 include("REPL_sjulia.jl")
 include("client_sjulia.jl")
 
-#include("code_in_SJulia.jl")   # This file probably conflicts with sympy math functions
-
-function sjulia_repl()  # This code can be moved elsewhere
-    isdefined(SJulia, :active_repl) && return SJulia.active_repl
-    isdefined(Base, :active_repl) && return Base.active_repl
-    error("Can't find the active REPL.")
-end
-
-# For now, julia and sjulia share history. So, either mode 1 or 2 is ok
-sjulia_repl_mode() = sjulia_repl().interface.modes[1]
-
-sjulia_repl_history() = sjulia_repl_mode().hist
-
 function __init__()
     init_sympy()
     setsymval(:ShowSymPyDocs!, true)  # show sympy docs for 'functions' if available.
     setsymval(:ReturnSymPy!, false)
     Main.eval( :( using SJulia ))
-
     if isinteractive()
         if isdefined(Base, :active_repl)
             RunSJuliaREPL(Base.active_repl)
         else
             SJulia_start()
             exit()
-        end            
+        end
     else
         nothing
     end
 end
-    
+
 end # module SJulia
 
 nothing

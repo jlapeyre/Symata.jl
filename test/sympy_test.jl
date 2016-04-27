@@ -12,23 +12,7 @@ using Base.Test
 @testex  p == -6 + 5 * x + -1 * (x ^ 2) + 6 * (x ^ 3) + -5 * (x ^ 4) + x ^ 5
 @testex  Factor(p) == (-3 + x) * (-2 + x) * (-1 + x) * (1 + x + x ^ 2)
 
-## LaplaceTransform
-
-# Use these if noconds=false
-# @testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
-# @testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
-# @testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
-
-@testex LaplaceTransform(t^a,t,s) == (s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a)
-@testex LaplaceTransform(Cos(t),t,s) == s * ((1 + s ^ 2) ^ -1)
-@testex LaplaceTransform(Exp(3*t),t,s) == (-3 + s) ^ -1
-
-@testex InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
-
-# This works for Cos
-# TODO:  LaplaceTransform(Exp(b*t),t,s), sympy fails to do this as well. perhaps we need hints or massaging.
-
-## Limit
+#### Limit
 
 @testex Limit(x, x => 0) == 0
 @testex Limit(Sin(x)/x, x => Infinity) == 0
@@ -39,7 +23,7 @@ using Base.Test
 # Mma 3 cannot do the following:
 @testex Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infinity) == 0
 
-## Integrate
+#### Integrate
 
 @ex ClearAll(r,y,x)
 @testex Integrate(x,x) == 1//2 * x^2
@@ -57,6 +41,13 @@ using Base.Test
 @testex Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none") == Gamma(a)
 
 # SymPy examples
+@testex Integrate(x^2 + x + 1 ,x) == x + 1/2 * (x ^ 2) + 1/3 * (x ^ 3)
+@testex Integrate( x/(x^2 + 2*x + 1), x) == Log(1 + x) + (1 + x) ^ (-1)
+@testex Integrate( x^2 * Exp(x) * Cos(x), x) ==
+        -1/2 * (E ^ x) * Cos(x) + 1/2 * (E ^ x) * (x ^ 2) * Cos(x) + 1/2 * (E ^ x) * Sin(x) + 1/2 * (E ^ x) * (x ^ 2) * Sin(x) + -(E ^ x) * x * Sin(x)
+@testex Integrate( Exp(-x^2)*Erf(x), x) == 1/4 * (π ^ (1/2)) * (Erf(x) ^ 2)
+
+
 @testex Integrate(x*y,x) == 1//2 * y * (x ^ 2)
 @testex Integrate(Log(x),x) == -x + x * Log(x)
 @testex Integrate(Log(x), [x, 1, a])  == 1 + -a + a * Log(a)
@@ -73,7 +64,54 @@ using Base.Test
 #@testex Simplify(D(r,x)) == 1/Cos(x+a)
 @ex ClearAll(r,y,x)
 
-## D
+####  MellinTransform
+
+# FIXME infinity unicode ∞ is not translated to Infinity on reading
+@testex MellinTransform(Exp(-x),x,s) == [Γ(s),[0,Infinity],True]
+
+####  InverseMellinTransform
+
+@testex InverseMellinTransform(Gamma(s),s,x, [0,Infinity]) == Exp(-x)
+@ex f = 1/(s^2 - 1)
+@testex InverseMellinTransform(f,s,x,[-Infinity,-1]) == HeavisideTheta(-1 + x) * (-1/2 * (x ^ (-1)) + 1/2 * x)
+@ex ClearAll(f,s,x)
+
+#### LaplaceTransform
+
+# Use these if noconds=false
+# @testex LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
+# @testex LaplaceTransform(Cos(t),t,s) == [s * ((1 + s ^ 2) ^ -1),0,True]
+# @testex LaplaceTransform(Exp(3*t),t,s) == [(-3 + s) ^ -1,3,Unequality(((1//3) * s),1)]  # TODO: translate
+
+@testex LaplaceTransform(t^a,t,s) == (s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a)
+@testex LaplaceTransform(Cos(t),t,s) == s * ((1 + s ^ 2) ^ -1)
+@testex LaplaceTransform(Exp(3*t),t,s) == (-3 + s) ^ -1
+
+#### InverseLaplaceTransform
+
+@testex InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
+@testex InverseLaplaceTransform(Exp(-a*s)/s, s, t) == HeavisideTheta(t + -a)
+
+#### FourierTransform
+
+@testex FourierTransform( E^(-x^2), x, k) == E ^ (-(k ^ 2) * (π ^ 2)) * (π ^ (1/2))
+@testex InverseFourierTransform(E ^ (-(k*Pi) ^ 2) * (π ^ (1/2)), k, x) == E ^ (-(x ^ 2))
+
+#### SineTransform
+
+@testex SineTransform(x*Exp(-a*x^2), x, k) == 1/4 * (2 ^ (1/2)) * (a ^ (-3/2)) * (E ^ (-1/4 * (a ^ (-1)) * (k ^ 2))) * k
+
+@ex ClearAll(x,k,a)
+
+#### HankelTransform
+
+@ex ht = HankelTransform(1/r^m, r, k, nu)
+@testex  ht == 2 * (2 ^ (-m)) * (k ^ (-2 + m)) * Γ(1 + 1/2 * nu + -1/2 * m) * (Γ(1/2 * m + 1/2 * nu) ^ (-1))
+@testex  InverseHankelTransform(ht,k,r,nu) == r^(-m)
+
+@ex ClearAll(r,m,k,nu,ht)
+
+#### D
 
 @testex D(x^2,x) == 2 * x
 @testex D(x^3,x,2) == 6 * x
@@ -85,7 +123,7 @@ using Base.Test
 @testex  D(ArcTan(x),x) == (1 + x ^ 2) ^ -1
 @testex  D(BesselJ(1,x),x) == (1//2) * (BesselJ(0,x)) + (-1//2) * (BesselJ(2,x))
 
-## Together, Apart
+#### Together, Apart
 
 @ex     z = ( 1/x + 1/(x+1))
 @testex Together(z) == (x ^ -1) * ((1 + x) ^ -1) * (1 + 2 * x)
@@ -122,7 +160,7 @@ using Base.Test
 
 @testex JacobiP(1,2,3,x)  == -1//2 + (7//2) * x
 
-## Trig 
+## Trig
 @testex Sin(Pi/4) == (1//2) * (2 ^ (1//2))
 
 @testex Integrate(DiracDelta(x-1), [x,-Infinity, Infinity]) == 1
@@ -146,6 +184,10 @@ using Base.Test
 @testex BellB(4,t) == t + 7 * (t ^ 2) + 6 * (t ^ 3) + t ^ 4
 
 @ex ClearAll(x1,x2,x3,t)
+
+#### Divisors
+
+@testex 10000/Divisors(10000) == Reverse(Divisors(10000))
 
 ################
 

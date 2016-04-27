@@ -75,7 +75,7 @@ end
 #  :elementary,
 # ::erf2,:erf2inv,
 #  :exp_polar, :factorial2,:ff
-# :floor, :hyper,:im, :jacobi_normalized, :jn, :jn_zeros, 
+# :floor, :hyper,:im, :jacobi_normalized, :jn, :jn_zeros,
 # :periodic_argument,:piecewise_fold,:polar_lift,
 # :principal_branch,:re,:real_root,:rf,:root, :special,
 # :transpose,:unbranched_argument,:yn
@@ -115,7 +115,8 @@ end
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
 
-     const single_arg_float_int_complex =
+
+const single_arg_float_int_complex =
         [
          (:conj,:Conjugate)
          ]
@@ -124,7 +125,8 @@ end
                         (:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
                         ]
 
-    const single_arg_float_int = [(:factorial,:Factorial, :factorial),(:signbit,:SignBit)]
+# FIXME  Ceiling should probably return integer type. So it can't be included in generic code here (or punt to sympy for everything)
+    const single_arg_float_int = [(:factorial,:Factorial, :factorial),(:signbit,:SignBit), (:ceil, :Ceiling, :ceiling), (:floor, :Floor, :floor)]
 
     const single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
                       (:isprime,:PrimeQ)
@@ -161,22 +163,28 @@ end
                            (:EulerE, :euler), (:Subfactorial, :subfactorial), (:Factorial2, :factorial2),
                            (:FactorialPower, :FallingFactorial), (:Pochhammer, :RisingFactorial),
 (:Fibonacci, :fibonacci), (:LucasL, :lucas), (:LeviCivita, :LeviCivita),
-(:KroneckerDelta, :KroneckerDelta),  (:HypergeometricPFQ, :hyper), (:FactorSquareFree, :sqf)
+(:KroneckerDelta, :KroneckerDelta),  (:HypergeometricPFQ, :hyper), (:FactorSquareFree, :sqf), (:MellinTransform, :mellin_transform),
+(:InverseMellinTransform, :inverse_mellin_transform), (:SineTransform, :sine_transform), (:InverseSineTransform, :inverse_sine_transform),
+(:CosineTransform, :cosine_transform), (:InverseCosineTransform, :inverse_cosine_transform),
+(:HankelTransform, :hankel_transform), (:InverseHankelTransform, :inverse_hankel_transform)
 ]
 # LeviCivita is different than in mathematica
 
+# Mobius needs filtering
 const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,:Heaviside), (:LogIntegral, :li),
                                     (:CosIntegral, :Ci), (:SinIntegral, :Si),
                                     (:FresnelC, :fresnelc), (:FresnelS, :fresnels), (:DiracDelta, :DiracDelta),
-                                    (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func), (:Denominator, :denom)]
+                                    (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func), (:Denominator, :denom),
+                                    (:MoebiusMu, :mobius), (:EulerPhi, :totient), (:Divisors, :divisors), (:DivisorCount, :divisor_count)]
 
 # elliptic_e take more than ints!
 const no_julia_function_one_or_two_int = [ (:HarmonicNumber, :harmonic) , (:EllipticE, :elliptic_e) ]
 
+# FIXME: DivisorSigma has arg order reversed in Mma
 const no_julia_function_two_args = [(:LegendreP, :legendre_poly), (:EllipticF, :elliptic_f),
                                     (:ChebyshevT, :chebyshevt), (:ChebyshevU, :chebyshevu),
                                     (:Cyclotomic, :cyclotomic_poly), (:SwinnertonDyer, :swinnerton_dyer_poly),
-                                    (:PolyLog, :polylog)
+                                    (:PolyLog, :polylog), (:SphericalBesselJ, :jn), (:SphericalBesselY, :yn), (:DivisorSigma, :divisor_sigma)
                                     ]
 
 const no_julia_function_two_or_three_args = [ (:EllipticPi, :elliptic_pi), (:LaguerreL, :laguerre_poly)]
@@ -204,7 +212,7 @@ function make_math()
         write_sympy_apprule(x[1],x[2],1)
     end
 
-    
+
     for x in no_julia_function_two_args
         sjf = x[1]
         eval(macroexpand( :( @mkapprule $sjf :nargs => 2)))
@@ -225,8 +233,8 @@ function make_math()
         write_sympy_apprule(x[1],x[2],nargs)
     end
 
-    
-    
+
+
     for x in no_julia_function_two_or_three_args
         sjf = x[1]
         eval(macroexpand( :( @mkapprule $sjf)))
@@ -241,7 +249,7 @@ function make_math()
         write_sympy_apprule(x[1],x[2],1)
         write_sympy_apprule(x[1],x[2],2)
     end
-    
+
     # TODO: update this code
     for x in no_julia_function
         set_up_sympy_default(x...)

@@ -1,13 +1,11 @@
 #### Args
 
 @sjdoc Args "
-Args(ex) is equivalent to Apply(List,ex)
+Args(ex) replaces the Head of expression ex with List. Args(ex) is equivalent to Apply(List,ex).
 "
 @mkapprule Args :nargs => 1
 
-do_Args(mx::Mxpr{:Args}, ex) = mxpr(:List, copy(margs(mx)))
-
-
+do_Args(mx::Mxpr{:Args}, ex::Mxpr) = mxpr(:List, copy(margs(ex)))
 
 #### Range
 
@@ -41,7 +39,7 @@ function do_Range(iter::SJIterA1)  # iter is parameterized, so we hope type of n
         args[i] = j
         j += 1
     end
-    return args    
+    return args
 end
 
 # Fails for rationals. nd counting is wrong
@@ -49,7 +47,7 @@ function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
     nd = round(Int,mplus(iter.imax,-iter.imin) + 1)  # Try bug fix!
     if nd > 1
         args = newargs(iter.num_iters)
-        @inbounds for i in 0:nd-1            
+        @inbounds for i in 0:nd-1
             args[i+1] = mplus(i,iter.imin)  # Bug here, if iter.imin is not of type Int.
         end
     else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1
@@ -90,7 +88,7 @@ function do_Range(iter::SJIterA2)
     end
     #  we don't handle counting down case.
     return args
-end    
+end
 
 function _do_Range_A2(args,b,r,n)
     @inbounds for i in 2:n
@@ -161,7 +159,7 @@ function do_Range(iter::SJIterA3)
         error("unimplemented")
     end
     return args
-end    
+end
 
 # Some is implemented here that is not in the new Range yet
 function apprules(mx::Mxpr{:OldRange})
@@ -185,7 +183,7 @@ function apprules(mx::Mxpr{:OldRange})
     setfixed(r)
     setcanon(r)
     mergesyms(r,:nothing)
-    return r    
+    return r
 end
 
 # separate functions are *essential* for type stability and efficiency.
@@ -257,7 +255,7 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
      @inbounds for i in 1:n
         nargs[i] = setfixed(recursive_copy(expr))
-#        nargs[i] = setfixed(deepcopy(expr))  slow 
+#        nargs[i] = setfixed(deepcopy(expr))  slow
 #        nargs[i] = setfixed(copy(expr))  incorrect
     end
     setfixed(mxpr(:List,nargs))
@@ -333,7 +331,7 @@ end
 function set_all_part_specs2(expr,specs,val)
     @inbounds for j in 1:length(specs)
         set_part_spec2(expr,specs[j],val)
-    end    
+    end
 end
 
 function do_Table(expr,iter::SJIter2)
@@ -393,7 +391,7 @@ function do_Table{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
             args[j] = doeval(expr)
         end
     end
-    return args    
+    return args
 end
 
 function do_Table{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
@@ -436,13 +434,13 @@ end
 function do_table_set_arg_const(args,val,imax)
     @inbounds for i in 1:imax
         args[i] = val
-    end    
+    end
 end
 
 function do_table_set_arg_const_copy(args,val,imax)
     @inbounds for i in 1:imax
         args[i] = setfixed(recursive_copy(val))
-    end    
+    end
 end
 
 # ex is anything other than Mxpr or Symbol

@@ -28,7 +28,7 @@ function _mpow{T<:Integer,V<:AbstractFloat}(x::T,y::V)
     imag(res) == 0 && return real(res)
     res
 end
-    
+
 _mpow{T<:Integer,V<:AbstractFloat}(x::Complex{T},y::V) = convert(Complex{V},x)^y
 
 _mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))

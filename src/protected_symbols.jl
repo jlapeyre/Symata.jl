@@ -11,6 +11,8 @@ set_pattributes("Save", [:HoldRest])
 
 set_pattributes("Attributes",[:HoldAll,:Listable])
 
+set_pattributes("DivisorSigma",[:NHoldAll,:Listable])
+
 set_pattributes("Rule",:SequenceHold)
 
 set_pattributes(["Set","UpSet"],[:HoldFirst, :SequenceHold])
@@ -37,7 +39,7 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
                  "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
-                 "Sign", "SphericalHarmonicY"
+                 "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY"
                  ],
                 [:Listable,:NumericFunction])
 
@@ -65,7 +67,7 @@ set_pattributes(["BellB"],
                 [:NumericFunction,:ReadProtected])
 
 
-set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic"]
+set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount"]
                 ,[:Listable])
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])

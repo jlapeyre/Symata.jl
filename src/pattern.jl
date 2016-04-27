@@ -101,7 +101,7 @@ function patterntopvar(mx::Mxpr{:Blank})
         head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
         res = Pvar(symname(var),head,:None)
     end
-    res    
+    res
 end
 
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
@@ -145,14 +145,18 @@ function tryupvalues(mx::Mxpr,m::SJSym)
     return false
 end
 
+# Maybe need to setunfixed here, as well
 function applyupvalues(mx::Mxpr,m::Mxpr)
     res = tryupvalues(mx,mhead(m))
-    res === false ? mx : res
+    res === false && return mx
+    return res
 end
 
 function applyupvalues(mx::Mxpr,m::SJSym)
     res = tryupvalues(mx,m)
-    res === false ? mx : res
+    res === false && return mx
+    unsetfixed(res)
+    res
 end
 
 
