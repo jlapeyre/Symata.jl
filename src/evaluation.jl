@@ -17,14 +17,6 @@
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-type RecursionLimitError <: Exception
-    mx::Mxpr
-end
-
-# For Break, and,....
-const FLOWFLAGS = Dict{Symbol,Bool}()
-FLOWFLAGS[:Break] = false
-
 # We should generate our own
 function get_localized_symbol(s::Symbol)
     gsym = gensym(string(s))
@@ -34,45 +26,6 @@ end
 
 ## Macro for translation and evaluation, at repl or from file
 
-# Data structure for monitoring evaluation
-type Meval
-    entrycount::Int             # For trace
-    trace_ev_flag::Bool         # TraceOn()
-    trace_upvalues_flag::Bool   # TrUpOn()
-    trace_downvalues_flag::Bool # TrDownOn()
-    timingon::Bool              # TimeOn() does @time on every user input
-    try_downvalue_count::Int
-    try_upvalue_count::Int
-end
-const MEVAL = Meval(0,false,false,false,false,0,0)
-
-reset_meval_count() = MEVAL.entrycount = 0
-get_meval_count() = MEVAL.entrycount
-increment_meval_count() = MEVAL.entrycount += 1
-decrement_meval_count() = MEVAL.entrycount -= 1
-
-set_meval_trace() = MEVAL.trace_ev_flag = true
-unset_meval_trace() = MEVAL.trace_ev_flag = false
-is_meval_trace() = MEVAL.trace_ev_flag
-
-set_down_trace() = MEVAL.trace_downvalues_flag = true
-unset_down_trace() = MEVAL.trace_downvalues_flag = false
-is_down_trace() = MEVAL.trace_downvalues_flag
-
-set_up_trace() = MEVAL.trace_upvalues_flag = true
-unset_up_trace() = MEVAL.trace_upvalues_flag = false
-is_up_trace() = MEVAL.trace_upvalues_flag
-
-set_timing() = MEVAL.timingon = true
-unset_timing() = MEVAL.timingon = false
-is_timing() = MEVAL.timingon
-
-reset_try_downvalue_count() = MEVAL.try_downvalue_count = 0
-reset_try_upvalue_count() = MEVAL.try_upvalue_count = 0
-get_try_downvalue_count() = MEVAL.try_downvalue_count
-get_try_upvalue_count() = MEVAL.try_upvalue_count
-increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
-increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
 
 # Read a line of user input, translate Expr to Mxpr, but don't evaluate result
 macro exnoeval(ex)
@@ -149,7 +102,11 @@ function tryexfunc(mxin)
     try
         doeval(mxin)
     catch e
-        if isa(e,RecursionLimitError)
+        if isa(e,ArgCheckErr)
+            warn(e.msg)
+            return mxin
+        elseif isa(e,RecursionLimitError)
+            warn(e.msg)
             e.mx
         else
             rethrow(e)
@@ -207,9 +164,8 @@ function infseval(mxin::Mxpr)
         end
         neval += 1
         if neval > 2
-            warn("infseval: Too many, $neval, evaluations. Expression $mx still changing")
             setfixed(mx)
-            throw(RecursionLimitError(mxprcf(:Hold,mx)))
+            throw(RecursionLimitError("infseval: Too many, $neval, evaluations. Expression still changing", mxprcf(:Hold,mx)))
         end
         mx = mx1
     end
@@ -247,16 +203,17 @@ meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 
 meval{T<:Integer}(x::Rational{T}) = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
 
+meval{T<:Void}(x::T) = Null
+
 meval(x) = x
 
 @inline meval(s::SJSym) = symval(s) # this is where var subst happens
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > recursion_limit()
-        warn("Recursion depth of " * string(recursion_limit()) *  " exceeded.")
         setfixed(mx)
         res = mxprcf(:Hold,mx)
-        throw(RecursionLimitError(res))
+        throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
     local ind::ByteString = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
@@ -281,7 +238,7 @@ function meval_apply_all_rules(nmx::Mxpr)
         if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
-    @mdebug(2, "meval_apply_all_rules: entering apprules")    
+    @mdebug(2, "meval_apply_all_rules: entering apprules: ", res)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
     is_Mxpr(res) || return res
@@ -458,23 +415,6 @@ function splice_sequences!(args)
     end
 end
 
-function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
-    for s in syms
-        ssym = symbol(s)
-        clear_attributes(ssym)
-        for a in attrs
-            set_attribute(ssym,a)
-        end
-        set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
-        register_system_symbol(ssym)
-    end
-end
-
-set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
-set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
-set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
-set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
-set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx

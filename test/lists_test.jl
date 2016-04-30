@@ -1,5 +1,6 @@
 using Base.Test
 
+@ex If( Length(UserSyms()) > 0 ,  Println("\n**********", UserSyms(), "\n"))
 @testex Length(UserSyms()) == 0
 
 @ex      ClearAll(a,x,y)

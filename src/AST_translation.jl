@@ -10,6 +10,7 @@
 macro h_str(s)
     reg = eval(Expr(:macrocall, symbol("@r_str"), strip(s), "i"))
     print_matching_topics(reg)
+    :Null
 end
 
 macro bf_str(s)
@@ -32,14 +33,13 @@ end
 extomx(x) = x
 # This system needs to be rationalized.
 # Comment out lines are no longer needed
+# We can move the rest out of here too
+# jtomsym is what picks these out.
 function extomx(s::Symbol)
     s == :I && return complex(0,1)
-#    s == :π && return :Pi
-#    s == :γ && return :EulerGamma
     s == :∑ && return :Sum
     s == :True && return true
     s == :False && return false
-#    s == :Γ && return :Gamma
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)

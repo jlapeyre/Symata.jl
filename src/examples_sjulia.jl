@@ -1,6 +1,8 @@
 # All code written in SJulia itself is here.
+# There are more examples in the test directory. eg. io_test.jl
+# These are examples; many are not practical.
+#
 # It is tested in the  file code_in_SJulia_test.jl.
-# We disable this because we are doing most of these rules via sympy
 
 # Examples of using down values
 
@@ -81,6 +83,11 @@ Log(b,x) represents the base \"b\" logarithm of x.
 unprotect(:Zeta)
 @ex Zeta(1) := ComplexInfinity
 protect(:Zeta)
+
+### These would work for sjulia system code, but they
+### add a few seconds to startup because fo jit.
+
+### TODO: find a way to autoload this code
 
 unprotect(:StringQ)
 @ex StringQ = MatchQ(_AbstractString)

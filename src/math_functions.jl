@@ -58,7 +58,7 @@ end
 # We choose not to implement :cis. Julia has it. sympy and mma, not
 
 # Maybe do these
-# :Abs,:Chi, :exp, :ln, :log, :lowergamma, :sqrt
+# :Abs,:Chi, :exp, :ln, :log, :sqrt
 # ?? :laguerre
 
 # real_root vs real_roots ?
@@ -71,9 +71,8 @@ end
 # :acos,:acosh,:acot,:acoth,:acsc,:adjoint,
 #  :assoc_laguerre,:assoc_legendre,
 #  :bspline_basis, :bspline_basis_set, :ceiling,:chebyshevt_root,
-# :chebyshevu_root,:combinatorial,:conjugate,
+# :chebyshevu_root,:combinatorial
 #  :elementary,
-# ::erf2,:erf2inv,
 #  :exp_polar, :factorial2,:ff
 # :floor, :hyper,:im, :jacobi_normalized, :jn, :jn_zeros,
 # :periodic_argument,:piecewise_fold,:polar_lift,
@@ -103,8 +102,8 @@ end
          (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth, :acoth),
          (:sinc,),(:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
-         mtr(:erf), mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re, :re),(:imag,:Im, :im),
-         (:angle,:Arg,:arg), (:gamma, :Gamma, :gamma), (:lgamma, :LogGamma, :loggamma),
+         mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re, :re),(:imag,:Im, :im),
+         (:angle,:Arg,:arg),  (:lgamma, :LogGamma, :loggamma),
          (:lfact,:LogFactorial), mtr(:digamma), mtr(:trigamma),
          (:airyai,:AiryAi,:airyai),
          (:airybi,:AiryBi,:airybi),(:airyaiprime,:AiryAiPrime,:airyaiprime),(:airybiprime,:AiryBiPrime,:airybiprime),
@@ -121,7 +120,7 @@ const single_arg_float_int_complex =
          (:conj,:Conjugate)
          ]
 
-    const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),(:erfinv,:InverseErf,:erfinv),
+    const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),
                         (:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
                         ]
 
@@ -132,8 +131,16 @@ const single_arg_float_int_complex =
                       (:isprime,:PrimeQ)
                         ]
 
-    const two_arg_int = [(:binomial,:Binomial,:binomial), (:ndigits,:NDigits)
+
+    const two_arg_int = [(:binomial,:Binomial,:binomial)
                          ]
+
+# Do NDigits by hand for now!
+@mkapprule NDigits :nargs => 1:2
+do_NDigits{T<:Integer,V<:Integer}(mx::Mxpr{:NDigits},n::T,b::V) = ndigits(n,b)
+do_NDigits{T<:Integer}(mx::Mxpr{:NDigits},n::T) = ndigits(n)
+do_NDigits(mx::Mxpr{:NDigits},n) = mx
+do_NDigits(mx::Mxpr{:NDigits},n,b) = mx
 
 # TODO
 #  Two or more args
@@ -147,7 +154,7 @@ const single_arg_float_int_complex =
       (:besselj,:BesselJ, :besselj), (:besseljx,:BesselJx), (:bessely,:BesselY,:bessely),
       (:besselyx,:BesselYx), (:hankelh1,:HankelH1,:hankel1), (:hankelh1x,:HankelH1x),
       (:hankelh2,:HankelH2,:hankel2), (:hankelh2x,:HankelH2x), (:besseli,:BesselI, :besseli),
-      (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx),
+      (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx)
       ]
 
     const  two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
@@ -171,7 +178,7 @@ const single_arg_float_int_complex =
 # LeviCivita is different than in mathematica
 
 # Mobius needs filtering
-const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,:Heaviside), (:LogIntegral, :li),
+const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,:Heaviside),
                                     (:CosIntegral, :Ci), (:SinIntegral, :Si),
                                     (:FresnelC, :fresnelc), (:FresnelS, :fresnels), (:DiracDelta, :DiracDelta),
                                     (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func), (:Denominator, :denom),
@@ -232,8 +239,6 @@ function make_math()
         eval(macroexpand( :( @mkapprule $sjf :nargs => $nargs)))
         write_sympy_apprule(x[1],x[2],nargs)
     end
-
-
 
     for x in no_julia_function_two_or_three_args
         sjf = x[1]
@@ -314,9 +319,9 @@ function make_math()
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],2)
         end
-        if length(x) == 3
-            write_sympy_apprule(sjf,x[3],2)
-        end
+        # if length(x) == 3   # why was this here ?
+        #     write_sympy_apprule(sjf,x[3],2)
+        # end
     end
 
     # Mma allows one arg, as well
@@ -397,13 +402,13 @@ function write_sympy_apprule(sjf, sympyf, nargs::Int)
     for i in 1:nargs
         xi = "x" * string(i)
         push!(callargs, xi)
-        push!(sympyargs, "mxpr2sympy(" * xi * ")")
+        push!(sympyargs, "sjtopy(" * xi * ")")
         end
     cstr = join(callargs, ", ")
     sstr = join(sympyargs, ", ")
     aprpy = "function do_$sjf(mx::Mxpr{:$sjf},$cstr)
         try
-            (sympy.$sympyf($sstr) |> sympy2mxpr)
+            (sympy.$sympyf($sstr) |> pytosj)
         catch
             mx
         end
@@ -416,7 +421,7 @@ function set_up_sympy_default(sjf, sympyf)
     aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "function do_$sjf(mx::Mxpr{:$sjf},x...)
                try
-                 (sympy.$sympyf(map(mxpr2sympy,x)...) |> sympy2mxpr)
+                 (sympy.$sympyf(map(sjtopy,x)...) |> pytosj)
                catch
                    mx
                end
@@ -439,16 +444,58 @@ end
 
 make_math()
 
-do_Abs2(mx::Mxpr{:Abs2},x::Integer) = x*x
-do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y)
+# Thse aer not used anywhere !
+# do_Abs2(mx::Mxpr{:Abs2},x::Integer) = x*x
+# do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y)
 
 # use sympy
 #do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
 #do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
 
-do_Gamma(mx::Mxpr{:Gamma},x) = sympy2mxpr(sympy.gamma(mxpr2sympy(x)))
-do_Gamma(mx::Mxpr{:Gamma},x,y) = sympy2mxpr(sympy.uppergamma(mxpr2sympy(x),mxpr2sympy(y)))
-do_Gamma(mx::Mxpr{:Gamma},x,y,z) = sympy2mxpr(sympy.uppergamma(mxpr2sympy(x),mxpr2sympy(y)))
+#### Gamma function
+
+@mkapprule Gamma :nargs => 1:2
+
+sjgamma{T<:AbstractFloat}(x::T) = gamma(x)
+sjgamma{T<:AbstractFloat}(x::Complex{T}) = gamma(x)
+sjgamma(a) = a |> sjtopy |> sympy.gamma |> pytosj
+sjgamma(a,z) = sympy.uppergamma(sjtopy(a),sjtopy(z)) |> pytosj
+
+do_Gamma(mx::Mxpr{:Gamma},a) = sjgamma(a)
+do_Gamma(mx::Mxpr{:Gamma},a,z) = sjgamma(a,z)
+
+# do_Gamma{T<:AbstractFloat}(mx::Mxpr{:Gamma},x::T) = gamma(x)         
+# do_Gamma{T<:AbstractFloat}(mx::Mxpr{:Gamma},x::Complex{T}) = gamma(x)
+# do_Gamma(mx::Mxpr{:Gamma},x) = pytosj(sympy.gamma(sjtopy(x)))         
+# do_Gamma(mx::Mxpr{:Gamma},x,y) = pytosj(sympy.uppergamma(sjtopy(x),sjtopy(y)))
+
+register_sjfunc_pyfunc(:Gamma,:gamma)
+register_only_pyfunc_to_sjfunc(:Gamma,:uppergamma)
+
+#### Erf
+
+@mkapprule Erf :nargs => 1:2
+
+do_Erf{T<:AbstractFloat}(mx::Mxpr{:Erf},x::T) = erf(x) #julia function
+do_Erf{T<:AbstractFloat}(mx::Mxpr{:Erf},x::Complex{T}) = erf(x) #julia function 
+do_Erf(mx::Mxpr{:Erf},x) = pytosj(sympy.erf(sjtopy(x)))
+do_Erf(mx::Mxpr{:Erf},x,y) = pytosj(sympy.erf2(sjtopy(x),sjtopy(y)))
+
+register_sjfunc_pyfunc(:Erf,:erf)
+register_only_pyfunc_to_sjfunc(:Erf,:erf2)
+
+#### InverseErf
+
+@mkapprule InverseErf :nargs => 1:2
+
+do_InverseErf{T<:AbstractFloat}(mx::Mxpr{:InverseErf},x::T) = x < 1 && x > -1 ? erfinv(x) : mx
+do_InverseErf(mx::Mxpr{:InverseErf},x) = pytosj(sympy.erfinv(sjtopy(x)))
+do_InverseErf(mx::Mxpr{:InverseErf},x,y) = pytosj(sympy.erf2inv(sjtopy(x),sjtopy(y)))
+
+register_sjfunc_pyfunc(:InverseErf,:erfinv)
+register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
+
+#### IntegerDigits
 
 @sjdoc IntegerDigits "
 IntegerDigits(n,[, base][, pad]) Returns an array of the digits of \"n\" in the given base,
@@ -469,15 +516,6 @@ Primes(n) returns a collection of the prime numbers <= \"n\"
 apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
 do_Primes(mx,args...) = mx
 do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
-
-do_NDigits(mx::Mxpr{:NDigits},n::Integer) = ndigits(n)
-
-# use SymPy instead
-# do_Erf(mx::Mxpr{:Erf}, b::SJSym) = b == :Infinity ? 1 : mx
-# do_Erf(mx::Mxpr{:Erf}, b::Integer) = b == 0 ? 0 : mx
-
-# use SymPy instead
-# do_Zeta(mx::Mxpr{:Zeta}, b::Integer) = b == 0 ? -1//2 : b == -1 ? 1//12 : b == 4 ? 1//90 * :Pi^4 : mx
 
 # TODO, use to symp
 do_common("Log")
@@ -547,25 +585,53 @@ end
 
 # These rely on fixed-point evaluation to continue with N, this is not efficient
 # We need to do it all here.
-function do_N(m::Mxpr)
-    len = length(m)
-    args = margs(m)
-    nargs = newargs(len)
-    @inbounds for i in 1:len
-        nargs[i] = do_N(args[i])
+
+function _make_N_body(d1,d2)
+    quote begin
+        get_attribute(mx,:NHoldAll) && return mx;
+        len = length(mx)
+        args = margs(mx)
+        nargs = newargs(len)
+        start::Int = 1
+        if get_attribute(mx,:NHoldFirst)
+            nargs[1] = args[1]
+            for i in 2:len
+                nargs[i] = $d2
+            end
+        elseif get_attribute(mx,:NHoldRest)
+            nargs[1] = $d1
+            for i in 2:len
+                nargs[i] = args[i]
+            end
+        else
+            @inbounds for i in 1:len
+                nargs[i] = $d2
+            end
+        end
+        res = mxpr(mhead(mx),nargs)
     end
-    return mxpr(mhead(m),nargs)
+  end
 end
 
-function do_N{T<:Integer}(m::Mxpr,p::T)
-    len = length(m)
-    args = margs(m)
-    nargs = newargs(len)
-    @inbounds for i in 1:len
-        nargs[i] = do_N(args[i],p)
+function make_Mxpr_N()
+    _Nbody = _make_N_body(:(do_N(args[1])), :(do_N(args[i])) )
+    @eval begin
+        function do_N(mx::Mxpr)
+            $_Nbody
+            res
+        end
     end
-    return mxpr(mhead(m),nargs)
+
+    _Nbody = _make_N_body(:(do_N(args[1],p)), :(do_N(args[i],p)) )
+    @eval begin
+        function do_N{T<:Integer}(mx::Mxpr,p::T)
+            $_Nbody
+            res
+        end
+    end
 end
+
+make_Mxpr_N()
 
 # We need to use dispatch as well, not conditionals
 function do_N(s::Symbol)
@@ -664,6 +730,11 @@ expression is parsed, so it is much faster than 'a + I*b'.
 @mkapprule Complex
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T,b::T) = complex(a,b)
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T) = complex(a)
+
+# This is old, from apprules
+# apprules(mx::Mxpr{:Complex}) = makecomplex(mx,mx[1],mx[2])
+# makecomplex{T<:Real,V<:Real}(mx::Mxpr{:complex},n::T,d::V) = complex(n,d)
+# makecomplex(mx,n,d) = mx
 
 @sjdoc Rational "
 Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
@@ -780,7 +851,8 @@ end
 #apprules(mx::Mxpr{:Chop}) = do_Chop(mx,margs(mx)...)
 do_Chop(mx::Mxpr{:Chop}, x) = zchop(x)
 do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
-do_Chop(mx::Mxpr{:Chop}, x...) = mx
+
+#do_Chop(mx::Mxpr{:Chop}, x...) = mx
 
 #### Exp
 

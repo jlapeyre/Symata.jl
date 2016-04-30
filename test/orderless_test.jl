@@ -24,17 +24,24 @@ using Base.Test
 # fixed bug
 @testex a + a * a - a * a == a
 # fixed bug for this one
+
+#### Test canonical ordering, sorting
+
 @testex Apply(List, zb + za + 7 + 2 * x^r  + 2 + a + c + x^3 + x^2) ==  [9,a,c,x^2,x^3,2*x^r,za,zb]
 @testex Apply(List, z^7 + 2 * z^6 + 5*z^3 + 10 *z  + 1) == [1,10*z,5*z^3,2*z^6,z^7]
 @testex Apply(List, a * a + 1 / ((z + y) * (z + y)) ) == [a ^ 2,(y + z) ^ -2]
 @testex Apply(List,a + z + 10*a^2 + 2 * z^2) == [a,10*a^2,z,2*z^2]
 @testex (a+b)/(a+b) == 1
 @testex (a + b)^2/(a+b) == a + b
-SJulia.@testex (a^2)^2 == a^4
-SJulia.@testex (a^t)^2 == a^(2*t)
-SJulia.@testex (a^2)^t == a^(2*t)
+@testex (a^2)^2 == a^4
+@testex (a^t)^2 == a^(2*t)
+@testex (a^2)^t == a^(2*t)
 @testex Part((a^t)^z,2) == z
 @testex Apply(List,( y + z  + 1) * ( y + z)) == [(y + z),1 + y + z]  # bug fix
+
+# FIXME: this should return true.
+# @testex Apply(List, a + b*a + b) == [a,b,a*b]
+
 
 # Blank's are less than non-Blanks
 @testex Apply(List, a_ + x) == List(x,a_)
@@ -62,7 +69,8 @@ SJulia.@testex (a^2)^t == a^(2*t)
 @ex ClearAll(m,a,b,c)
 
 
-## Test do_canon_power!
+#### Test do_canon_power!
+
 @ex Clear(a,b,m)
 @ex m = (2*a*b)^3
 @testex Head(m) == Times

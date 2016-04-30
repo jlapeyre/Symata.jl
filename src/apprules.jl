@@ -3,144 +3,10 @@
 #   They are called from meval.
 
 # One or more arguments
-type OneOrMore end
+# type OneOrMore end
 
-# @mkapprule defines a "function", a Head.
-# You can supply information about the number of args etc. by passing a dict to @mkapprules like this
-# @mkapprules Headname  :key1 => val1  :key2 => val2 ....
-# get_arg_dict constructs a Dict from the macro aguments.
-function get_arg_dict(args)
-    d = Dict{Symbol,Any}()
-    for p in args
-        pe = eval(p)
-        d[pe[1]] = pe[2]
-    end
-    d
-end
-
-const NumWords = ["zero", "one", "two", "three", "four", "five", "six" ]
-
-function num_args_string(n::Int)
-    if n == 1
-        "one argument"
-    elseif n < length(NumWords)
-        return NumWords[n+1] * " arguments"
-    else
-        return string(n) * " arguments"
-    end
-end
-
-function warn_arg_number_string(headstr, nspec::Int)
-    "Wrong number or " * (nspec == 1 ? "type " : "types ") * "of argument. " * headstr * " requires exactly " * num_args_string(nspec)
-end
-
-# Obviously, we need to factor the functions below
-function make_warn_code_from_string(wstr::AbstractString, nspec::Int)
-    :( begin
-       if length(margs(mx)) == $nspec
-         println(STDERR, "Wrong argument type.")
-       else
-         println(STDERR, $wstr)
-       end
-       mx
-       end)
-end
-
-function make_warn_code_from_string{T<:Integer}(wstr::AbstractString, nspec::UnitRange{T})
-    :( begin
-       la = length(margs(mx))
-       if (la < $(nspec.start)) || (la > $(nspec.stop))
-         println(STDERR, $wstr)
-       end
-       mx
-       end)
-end
-
-function make_warn_code_from_string(wstr::AbstractString, nspec::Type{OneOrMore})
-    :( begin
-       la = length(margs(mx))
-       if la < 1
-         println(STDERR, $wstr)
-       end
-       mx
-       end)
-end
-
-function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Int)
-    local warnstring::AbstractString
-    if nspec == 1
-        w1 = headstr * " requires exactly one"
-        if haskey(d, :argtypes)
-            warnstring = w1 * string(d[:argtypes][1]) * " argument."
-        else
-            warnstring = w1 * " argument."
-        end
-    else
-        warnstring = warn_arg_number_string(headstr, nspec)
-    end
-    make_warn_code_from_string(warnstring, nspec)
-end
-
-function make_warn_code{T<:Dict, V<:Integer}(headstr::AbstractString, d::T,  nspec::UnitRange{V})
-    local warnstring::AbstractString
-    warnstring = headstr * " requires from " * string(nspec.start) * " to " * string(nspec.stop) * " arguments"
-    make_warn_code_from_string(warnstring, nspec)
-end
-
-function make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec::Type{OneOrMore})
-    local warnstring::AbstractString
-    warnstring = headstr * " requires one or more arguments"
-    make_warn_code_from_string(warnstring, nspec)
-end
-
-make_warn_code{T<:Dict}(headstr::AbstractString, d::T,  nspec) =  :( mx )
-
-make_warn_code(headstr::AbstractString, d::Dict) = make_warn_code(headstr, d,  d[:nargs])
-
-macro mkapprule(args...)
-    n = length(args)
-    head = args[1]
-    headstr = string(head)
-    mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
-    if n == 1
-        defmx = :( mx )
-    else
-        rargs = args[2:end]
-        d = get_arg_dict(rargs)
-        if haskey(d, :nargs)
-            defmx = make_warn_code(headstr, d)
-            # argwarn = get_warn_arg_number(headstr, d[:nargs])
-            # defmx = :( begin
-            #            $argwarn
-            #            mx
-            #            end
-            #             )
-        else
-            defmx = :( mx )
-        end
-    end
-    fns = symbol("do_" * headstr)
-    esc(quote
-        set_pattributes([$headstr],[:Protected])
-        apprules($mxarg) = $fns(mx, margs(mx)...)
-        $fns($mxarg, args...) = $defmx
-        end)
-end
-
-# Don't write the default rule
-macro mkapprule1(head)
-    headstr = string(head)
-    mxarg = parse("mx::Mxpr{:$headstr}") # something easier worked too.
-    fns = symbol("do_" * headstr)
-    esc(quote
-        set_pattributes([$headstr],[:Protected])
-        apprules($mxarg) = $fns(mx, margs(mx)...)
-        end)
-end
-
-## Head with no builtin or user defined evaluation code.
-#  That is, no user defined Julia level code. There may be SJulia rules for x.
-apprules(x) = x
+### This file is a legacy from the start of the project.
+### We are migrating everything here to other files.
 
 # Check if we are trying to add to a symbol bound to itself. If
 # so, we warn and return the unevaluated expression.
@@ -202,7 +68,8 @@ rather to the current value of b every time a is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 
-@mkapprule Set :nargs => OneOrMore
+#@mkapprule Set :nargs => OneOrMore
+@mkapprule Set
 
 function do_Set(mx::Mxpr{:Set})
     warn("Set called with 0 arguments; 1 or more arguments are expected.")
@@ -235,7 +102,7 @@ function setdelayed(mx,lhs::SJSym, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)   # Using this works just as well. But, for printing, we don't whether Set or SetDelayed
     setdefinition(lhs, mx)
-    nothing
+    Null
 end
 
 function do_Set(mx::Mxpr{:Set},lhs::SJSym, rhs)
@@ -252,7 +119,7 @@ function setdelayed(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     set_downvalue(mx,mhead(lhs),rule) # push DownValue
     rule
-    nothing
+    Null
 end
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
@@ -295,18 +162,17 @@ Increment(n) increments the value of n by 1 and returns the old value.
 
 @mkapprule Increment :nargs => 1
 
-#function do_Increment(mx, x::SJSym)
-function do_Increment(mx::Mxpr{:Increment}, x::SJSym)
+@doap function Increment(x::SJSym)
     @checkunbound(mx,x,xval)
-    do_Increment1(mx,x,xval)
+    do_increment1(mx,x,xval)
 end
 
-function do_Increment1{T<:Number}(mx,x,xval::T)
+function do_increment1{T<:Number}(mx,x,xval::T)
     setsymval(x,mplus(xval,1))  # maybe + is ok here.
     return xval
 end
 
-function do_Increment1(mx,x,val)
+function do_increment1(mx,x,val)
     setsymval(x,doeval(mxpr(:Plus,val,1)))
     return val
 end
@@ -320,17 +186,17 @@ Decrement(n) decrements the value of n by 1 and returns the old value.
 @mkapprule Decrement :nargs => 1
 
 #function do_Decrement(mx, x::SJSym)
-function do_Decrement(mx::Mxpr{:Decrement}, x::SJSym)
+@doap function Decrement(x::SJSym)
     @checkunbound(mx,x,xval)
-    do_Decrement1(mx,x,xval)
+    do_decrement1(mx,x,xval)
 end
 
-function do_Decrement1{T<:Number}(mx,x,xval::T)
+function do_decrement1{T<:Number}(mx,x,xval::T)
     setsymval(x,mplus(xval,-1))  # maybe + is ok here.
     return xval
 end
 
-function do_Decrement1(mx,x,val)
+function do_decrement1(mx,x,val)
     setsymval(x,doeval(mxpr(:Plus,val,-1)))
     return val
 end
@@ -394,10 +260,8 @@ apprules(mx::Mxpr{:UpSet}) = upset(mx,mx[1],mx[2])
 
 function upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-#    println("upset $mx, $lhs, $rhs")
     for i in 1:length(lhs)
         m = lhs[i]
-#        println("  upset $m")
         if is_Mxpr(m) && warncheckprotect(m)
             set_upvalue(mx,mhead(m),rule)
         elseif is_SJSym(m) && warncheckprotect(m)
@@ -407,54 +271,24 @@ function upset(mx,lhs::Mxpr, rhs)
     return rhs
 end
 
+apprules(mx::Mxpr{:UpSetDelayed}) = upsetdelayed(mx,mx[1],mx[2])
 
-#### SetAttributes
-
-@mkapprule SetAttributes :nargs => 2
-
-@sjdoc SetAttributes "
-SetAttributes(sym,attr) adds attr to the list of attributes for sym.
-SetAttributes(list,attr) adds attr to the list of attributes for each symbol in list.
-SetAttributes(sym,list) adds each attribute in list  to the list of attributes for sym.
-"
-
-function check_set_attributes(sym::SJSym, attr::SJSym)
-    checkprotect(sym)
-    set_attribute(sym,attr)
-    nothing
-end
-
-set_attributes(sym::SJSym, attr::SJSym) = check_set_attributes(sym,attr)
-
-function set_attributes{T<:Array}(sym::SJSym, attrs::T)
-    for a in attrs
-        check_set_attributes(sym,a)
+# I think the only difference with UpSet again, is we don't return the
+# rhs.
+function upsetdelayed(mx,lhs::Mxpr, rhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    for i in 1:length(lhs)
+        m = lhs[i]
+        if is_Mxpr(m) && warncheckprotect(m)
+            set_upvalue(mx,mhead(m),rule)
+        elseif is_SJSym(m) && warncheckprotect(m)
+            set_upvalue(mx, m,rule)
+        end
     end
+    Null
 end
 
-function set_attributes{T<:Array}(syms::T, attr::SJSym)
-    for a in syms
-        check_set_attributes(a,attr)
-    end
-end
 
-do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSym, attr::SJSym) = set_attributes(sym,attr)
-do_SetAttributes(mx::Mxpr{:SetAttributes}, syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
-do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSym, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
-
-#### Unprotect
-
-@sjdoc Unprotect "
-Unprotect(z1,z2,...) removes the Protected attribute from the symbols z1, z2, ...
-"
-
-function apprules(mx::Mxpr{:Unprotect})
-    for i in 1:length(mx)
-        do_unprotect(mx,mx[i])
-    end
-end
-do_unprotect(mx,a::Symbol) = (unset_attribute(a,:Protected) ; nothing)
-do_unprotect(mx,a) = error("Can't unprotect $mx")
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
@@ -464,24 +298,6 @@ function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     nothing
 end
 
-#### Keys
-
-@sjdoc Keys "
-Keys(d) returns a list of the keys in Dict d
-"
-apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
-do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
-do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
-
-#### Values
-
-@sjdoc Values "
-Values(d) returns a list of the values in Dict d
-"
-
-apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
-do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
-do_values(mx,x) = (warn("Can't return values of $mx"); mx)
 
 #### Symbol
 
@@ -537,7 +353,7 @@ function apprules(mx::Mxpr{:ClearAll})  # already threaded
         checkprotect(a)
 #        if is_type_less(a,String)  TODO implement globing, etc.
         #        else
-        removesym(a)
+        delete_sym(a)
     end
 end
 
@@ -649,27 +465,8 @@ end
 @sjdoc Span "
 Span(a,b) or a:b represents elements a through b.
 Span(a,b,c) or a:b:c represents elements a through b in steps of c.
-expr(a:b) returns elements a through b of expr, with the same head as expr.
+expr[a:b] returns elements a through b of expr, with the same head as expr.
 "
-
-#### Attributes
-
-@sjdoc Attributes "
-Attributes(s) returns attributes associated with symbol s. Builtin symbols have
-the attribute Protected, and may have others, including HoldFirst, SequenceHold,
-HoldRest, HoldAll, ReadProtected, Constant, Locked, Flat, Listable, NumericFunction,
-OneIdentity.
-"
-apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
-
-function get_attributes(sj::SJSym)
-    ks = sort!(collect(Any, keys(symattr(sj))))
-end
-
-function get_attributesList(sj::SJSym)
-    ks = get_attributes(sj)
-    mxpr(:List,ks...) # need to splat because array ks is not of type Any
-end
 
 #### DownValues
 
@@ -772,11 +569,20 @@ doreplaceall(mx,a,b) = mx
          ("zz = 10 * b^2 * (c+d)","zz = 10 * b^2 * (c+d)"),
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
-apprules(mx::Mxpr{:ReplaceRepeated}) = doreplacerepeated(mx,mx[1],mx[2])
 
-doreplacerepeated{T<:Rules}(mx,expr,r::T) = replacerepeated(expr,Rule_to_PRule(r))
+# These are post option removal args
+#  ReplaceRepeated::argrx:
+#   ReplaceRepeated called with 0 arguments; 2 arguments are expected.
 
-function doreplacerepeated(mx,expr,rs::Mxpr{:List})
+@mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
+
+#@mkapprule ReplaceRepeated
+
+#apprules(mx::Mxpr{:ReplaceRepeated}) = do_ReplaceRepeated(mx,mx[1],mx[2])
+
+do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,Rule_to_PRule(r); kws...)
+
+function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
     rsa = Array(PRule,0)
     for i in 1:length(rs)
         if typeof(rs[i]) <: Rules
@@ -785,10 +591,10 @@ function doreplacerepeated(mx,expr,rs::Mxpr{:List})
             nothing  # do something better here, like return mx
         end
     end
-    replacerepeated(expr,rsa)
+    replacerepeated(expr,rsa; kws...)
 end
 
-doreplacerepeated(mx,a,b) = mx
+do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
 
 #### MatchQ
 
@@ -840,199 +646,6 @@ may always be entered in 'FullForm'.
 
 # FullForm is implemented in io.jl
 
-#### Not
-
-@sjdoc Not "
-Not(expr) returns False if expr is True, and True if it is False. Not reduces some very simple logical expressions and otherwise
-remains unevaluated. Not(expr) may also be entered '! expr'.
-"
-
-@mkapprule Not :nargs => 1
-
-# probably don't  need this one
-#do_Not(mx::Mxpr{:Not},ex) = ex == true ? false : ex == false ? true : mx
-
-do_Not(mx::Mxpr{:Not}, ex::Bool) = ex == true ? false : true
-
-do_Not{T<:Number}(mx::Mxpr{:Not}, ex::T) = mx
-do_Not{T}(mx::Mxpr{:Not}, ex::T) = mx
-
-const comparison_negations  = Dict(
-                               :<   =>  :>=,
-                               :>   =>  :<=,
-                               :<=  =>  :>,
-                               :>=  =>  :<,
-                               :(==)  =>  :!=,
-                               :!=  =>  :(==)
-                               )
-
-function do_Not(mx::Mxpr{:Not},  ex::Mxpr{:Comparison})
-    if length(ex) == 3
-        return mxpr(:Comparison, ex[1], comparison_negations[ex[2]], ex[3])
-    end
-    return mx
-end
-
-
-#### Comparison
-
-@sjdoc Comparison "
-Comparison(expr1,c1,expr2,c2,expr3,...) performs or represents a
-chain of comparisons. Comparison expressions are usually input and
-displayed using infix notation.
-"
-@sjexamp(Comparison,
-         ("Clear(a,b,c)",""),
-         ("a == a","true"),
-         ("a == b","false"),
-         ("a < b <= c","a < b <= c"),
-         ("(a=1,b=2,c=2)","2"),
-         ("a < b <= c","true"))
-# We do this the Julia- and mma4max way, not the Mma way.
-
-function apprules(mx::Mxpr{:Comparison})
-    do_Comparison(mx,margs(mx)...)
-#    do_Comparison(mx)
-end
-
-function do_Comparison{T<:Number,V<:Number}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::V)
-    _do_Comparison(a,comp,b)
-end
-
-# Mma does this a == a != b  --->  a == a && a != b
-# and  a == a  -->  True
-# So, I think we should have a == a != b  --->  a != b,
-# or something else consistent. For now,
-# we follow Mma instead of weeding out comparisons known to
-# be true.
-function do_Comparison(mx::Mxpr{:Comparison},args...)
-    len = length(args)
-    for i in 2:2:len
-        a = args[i-1]
-        cmp = args[i]
-        b = args[i+1]
-        res = _do_Comparison(a,cmp,b)
-        res == false && return res
-        res != true && return mx
-    end
-    return true
-end
-
-
-function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
-    if comp == :<    # Test For loop shows this is much faster than evaling Expr
-        return a < b
-    elseif comp == :>
-        return a > b
-    elseif comp == :(==)
-        return a == b
-    elseif comp == :(>=)
-        return a >= b
-    elseif comp == :(<=)
-        return a <= b
-    elseif comp == :(!=)
-        return a != b
-    elseif comp == :(===)
-        return a === b
-    end
-    eval(Expr(:comparison,a,comp,b)) # This will be slow.
-end
-
-# a == a  --> True, etc.  for unbound a
-function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
-    if comp == :(==)
-        res = a == b
-        res && return res
-    elseif comp == :(!=)
-        res = a == b
-        res && return false
-    elseif comp == :(>=)  # Julia says  :a <= :b because symbols are ordred lexicographically
-        res = a == b      # We don't want this behavior
-        res && return res
-    elseif comp == :(<=)
-        res = a == b
-        res && return res
-    elseif comp == :(===)
-        return a === b
-    end
-    return nothing
-end
-
-# TODO: Try to find why the Unions don't work and condense these methods
-function _do_Comparison(a::Mxpr,comp::Symbol,b::Mxpr)
-    if comp == :(==)
-        res = a == b
-        res && return res
-    elseif comp == :(!=)
-        res = a == b
-        res && return false
-    elseif comp == :(===)
-        return a === b
-    end
-    return nothing
-end
-
-function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
-    if comp == :(==)
-        res = a == b
-        res && return res
-    elseif comp == :(!=)
-        res = a == b
-        res && return false
-    elseif comp == :(===)
-        return a === b
-    end
-    return nothing
-end
-
-_do_Comparison{T<:SJReal}(a::Symbol, comp::Symbol, b::T) = nothing
-_do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
-#_do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
-_do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
-_do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
-
-function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
-    comp == :(==) && return false
-    comp == :(!=) && return true
-    comp == :(===) && return false
-    return false
-end
-
-function _do_Comparison(a, comp::SJSym, b::Bool)
-    comp == :(==) && return false
-    comp == :(!=) && return true
-    comp == :(===) && return false
-    return false
-end
-
-function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
-    comp == :(==) && return false
-    comp == :(!=) && return true
-    comp == :(===) && return false
-    return false
-end
-
-# used this to search for bug
-# _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::Symbol, n::T) = false
-
-function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
-    if typeof(comp) != Symbol
-        error("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
-    else
-        error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol")
-    end
-end
-
-function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
-    comp == :(==) && return a == b
-    comp == :(!=) && return a != b
-    comp == :(===) && return a == b
-    return false  # I guess this is good
-end
-
-
-## These allow converting values returned by sympy, although we could do it differntly
-apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])
 
 ## A few Number rules
 
@@ -1041,9 +654,6 @@ apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])
 apprules(mx::Mxpr{://}) = makerat(mx,mx[1],mx[2])
 makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
 makerat(mx,n,d) = mx
-apprules(mx::Mxpr{:Complex}) = makecomplex(mx,mx[1],mx[2])
-makecomplex{T<:Real,V<:Real}(mx::Mxpr{:complex},n::T,d::V) = complex(n,d)
-makecomplex(mx,n,d) = mx
 
 #### Power
 
@@ -1385,9 +995,12 @@ match \"Set\" case-independently.
 
 apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
 
+@doap Help() = print_doc("Help")
+
 function do_Help(mx::Mxpr{:Help})
     print_doc("Help")
 end
+
 
 function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
     if r[1] == :All && r[2] == true
@@ -1450,7 +1063,7 @@ function apprules(mx::Mxpr{:LModule})
     vars = margs(body[1])
     res = doeval(body)
     for v in vars
-        removesym(v)
+        delete_sym(v)
     end
     if  is_Mxpr(res,:Return) # TODO: check somewhere for excess args
         return length(res) == 0 ? Null : res[1]
@@ -1471,6 +1084,22 @@ apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
 @mkapprule RandomReal
 
 do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
+
+@mkapprule Random
+
+do_Random(mx::Mxpr{:Random}) = rand()
+
+function do_Random(mx::Mxpr{:Random}, sym::Symbol)
+    if sym == :Integer
+        rand(0:1)
+    elseif sym == :Real
+        rand()
+    elseif sym == :Complex
+        complex(rand(),rand())
+    else
+        mx
+    end
+end
 
 
 @mkapprule Counts

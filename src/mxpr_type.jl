@@ -1,78 +1,3 @@
-## Types SSJSym and Mxpr
-# SSJSym are SJulia symbols
-# Mxpr are SJulia expressions
-
-## Counter for timestamps ("age") of instances of SSJSym and Mxpr
-type Evalage
-    t::UInt64
-end
-const evalage = Evalage(0)
-# These are probably all inlined anyway
-@inline increvalage() = evalage.t += 1
-@inline getevalage() = evalage.t
-
-
-typealias MxprArgs Array{Any,1}
-typealias FreeSyms Dict{Symbol,Bool}
-
-abstract AbstractMxpr
-type Mxpr{T} <: AbstractMxpr
-    head::Any  # making this Any instead of Symbol slows things a bit
-    args::MxprArgs
-    fixed::Bool
-    canon::Bool
-    syms::FreeSyms
-    age::UInt64
-    key::UInt64
-    typ::DataType
-end
-
-#####################################################################
-# SSJSym                                                            #
-# data associated with SJulia symbols are instances of type SSJSym  #
-# SJSym is just Symbol. It is an older abstraction                  #
-# Implementing SJulia symbols is still in flux                      #
-#####################################################################
-typealias SJSym Symbol
-
-typealias SJSymAttrs Dict{Symbol,Bool}
-typealias SJSymDVs Array{Any,1}
-typealias SJSymuVs Array{Any,1}
-@inline newattributes() = SJSymAttrs()
-@inline newdownvalues() = Array(Any,0)
-@inline newupvalues() = Array(Any,0)
-
-const system_symbols = Dict{Symbol,Bool}()
-register_system_symbol(s::Symbol) =  system_symbols[s] = true
-register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[symbol(s)] = true
-
-# TODO
-#type DownValueT
-#end
-# Almost all symbols use Any for parameter T.
-# We experiented a bit with a value of Int for some symbols
-# It may be better to have no parameter, or that it means
-# something else.
-# The name of the SJulia symbol is a Symbol. The symbol
-# table maps Symbol to SSJSym.
-# There is only one element in val::Array{T,1}. It is much faster to set this
-# value, than to set a field val::T.
-#
-# If the value was set with SetDelayed, we set the delayed bit.
-# But, this is only used, so far, in printing definitions to be
-# read later. Since a := b is probably far less common than a = b,
-# I guess that it is better to store the delayed bit in a Dict,
-# But, this would have to be profiled
-abstract AbstractSJSym
-type SSJSym{T}  <: AbstractSJSym
-    val::Array{T,1}
-    attr::SJSymAttrs
-    downvalues::SJSymDVs
-    upvalues::SJSymDVs
-    age::UInt64
-    definition::Mxpr
-end
-
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
@@ -90,7 +15,7 @@ symval(s::SJSym) = getssym(s).val[1]
 symval(s::SSJSym) = s.val[1]
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
-@inline function setsymval(s::SSJSym,val)
+function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
@@ -110,9 +35,10 @@ getdefinition(s::SSJSym) = s.definition
 setdefinition(sym::SJSym, val::Mxpr) = setdefinition(getssym(sym) , val)
 getdefinition(sym::SJSym) = getdefinition(getssym(sym))
 
+#############################################################################
 # Any and all direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
-###################################
+#############################################################################
 
 @inline symname(s::SJSym) = s
 
@@ -136,10 +62,6 @@ getdefinition(sym::SJSym) = getdefinition(getssym(sym))
 # But symage better signals intent.
 #@inline getage(s::SJSym) = symage(s)  # should only use one of these
 
-## symbol table for SJulia symbols
-const SYMTAB = Dict{Symbol,SSJSym}()
-const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
-
 import Base:  ==
 
 # This does not work. We need to compare things like
@@ -148,14 +70,6 @@ import Base:  ==
 # We need to use a type like DownValueT above
 downvalue_lhs_equal(x,y) = x == y
 downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
-
-#### downvalues
-
-# We store the Mxpr used definition to define downvalues. These
-# can be written to a file.
-const DOWNVALUEDEFDICT = Dict{Any,Any}()
-
-get_downvalue_def(lhs) = getkey(DOWNVALUEDEFDICT, lhs, NullMxpr)
 
 function set_downvalue(mx::Mxpr, ins::SJSym, val)
     s = getssym(ins)
@@ -169,7 +83,7 @@ function set_downvalue(mx::Mxpr, ins::SJSym, val)
         end
     end
     isnewrule && push!(s.downvalues,val)
-    DOWNVALUEDEFDICT[val[1]] = mx
+    set_downvalue_def(val[1],mx)
     sort!(s.downvalues,lt=isless_patterns)
     s.age = increvalage()
 end
@@ -179,9 +93,7 @@ function clear_downvalue_definitions(sym::SJSym)
     dvs = s.downvalues
     for i in 1:length(dvs)
         lhs = dvs[i][1]
-        if haskey(DOWNVALUEDEFDICT,lhs)
-            delete!(DOWNVALUEDEFDICT,lhs)
-        end
+        delete_downvaluedf(lhs)
     end
 end
 
@@ -199,16 +111,11 @@ function jlistdownvaluedefs(sym::SJSym)
     dvlist = Array{Any,1}()
     for i in 1:length(dvs)
         lhs = dvs[i][1]
-        if haskey(DOWNVALUEDEFDICT,lhs)
-            push!(dvlist, DOWNVALUEDEFDICT[lhs])
-        end
+        mx = get_downvalue_def(lhs)
+        mx != NullMxpr && push!(dvlist, get_downvalue_def(lhs))
     end
     dvlist
 end
-
-#### upvalues
-
-const UPVALUEDEFDICT = Dict{Any,Any}()
 
 function set_upvalue(mx, ins::SJSym,val)
     s = getssym(ins)
@@ -222,7 +129,7 @@ function set_upvalue(mx, ins::SJSym,val)
         end
     end
     isnewrule && push!(s.upvalues,val)
-    UPVALUEDEFDICT[val[1]] = mx
+    set_upvalue_def(val[1], mx)
     # How to sort upvalues ?
     s.age = increvalage()
 end
@@ -236,9 +143,7 @@ function clear_upvalue_definitions(sym::SJSym)
     uvs = s.downvalues
     for i in 1:length(uvs)
         lhs = uvs[i][1]
-        if haskey(UPVALUEDEFDICT,lhs)
-            delete!(UPVALUEDEFDICT,lhs)
-        end
+        delete_upvalue_def(lhs)
     end
 end
 
@@ -253,9 +158,8 @@ function jlistupvaluedefs(sym::SJSym)
     uvlist = Array{Any,1}()
     for i in 1:length(uvs)
         lhs = uvs[i][1]
-        if haskey(UPVALUEDEFDICT,lhs)
-            push!(uvlist, UPVALUEDEFDICT[lhs])
-        end
+        mx = get_upvalue_def(lhs)
+        mx != NullMxpr && push!(uvlist, get_upvalue_def(lhs))
     end
     uvlist
 end
@@ -267,15 +171,6 @@ end
     else
         ns = ssjsym(s)
         SYMTAB[s] = ns
-        # pollute Julia just so we get repl completion. remove this later.
-        # Note, this may slow things like pattern matching. Because
-        # Julia bindings of symbols are sometimes checked and then evaluated.
-        # But, the pattern test file shows no difference in speed.
-        # Remove this for two reasons
-        # 1. We now use a module so Symbols are now SJulia.x and we don't get completion anyway (maybe could be fixed)
-        # 2. We sometimes want to do a Julia binding of a symbol to a Julia function. But, this fails if it already
-        #  is bound as a variable.
-#        !isdefined(s) && eval(:($s = true))
         return ns
     end
 end
@@ -287,14 +182,14 @@ end
     return ns
 end
 
-@inline function removesym(s::Symbol)
+@inline function delete_sym(s::Symbol)
     delete!(SYMTAB,s)
     nothing
 end
 
 ##################################################################
 # Mxpr                                                           #
-# all SJulia expressions are represented by instances of Mxpr    #
+# All SJulia expressions are represented by instances of Mxpr    #
 ##################################################################
 
 # The lines commented out make sense to me.
@@ -313,28 +208,6 @@ function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)
 end
 
 # =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V) = false
-
-
-# Creating an Array of these Dicts and using them is slower than
-# Just creating them one at a time. So this is disabled.
-# type Freesymsind
-#     ind::Int
-# end
-# const Freesymspoolsize = 10^6
-# const Freesymspool = Array(FreeSyms,Freesymspoolsize)
-# const freesymsind = Freesymsind(Freesymspoolsize)
-# function disable_newsymsdict()
-#     if freesymsind.ind < Freesymspoolsize - 1
-#         freesymsind.ind += 1
-#         return Freesymspool[freesymsind.ind]
-#     else
-#         for i in 1:Freesymspoolsize
-#             Freesymspool[i] = Dict{Symbol,Bool}()
-#         end
-#         freesymsind.ind = 1
-#         return Freesymspool[freesymsind.ind]
-#     end
-# end
 
 typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs() = Array(Any,0)
@@ -378,11 +251,6 @@ Base.length(x) = 0
 # Base.next(mx::Mxpr,state) = (state,next(state,margs(mx)))
 # Base.done(mx::Mxpr,state) = done(margs(mx),state)
 @inline mxprtype{T}(mx::Mxpr{T}) = T
-
-# Table for storing Mxpr indexed by hash code.
-# Not using this at the moment.
-const EXPRDICT = Dict{UInt64,Mxpr}()
-global gotit = 0   # non constant global, only for testing
 
 @inline function Base.copy(mx::Mxpr)
     args = copy(mx.args)
@@ -649,20 +517,11 @@ end
     end
 end
 
-# These are not really protected, but we want to include them with builtin symbols
-const unprotected_builtin_symbols = ["ShowSymPyDocs!", "ReturnSymPy!"]
-for s in unprotected_builtin_symbols
-    register_system_symbol(s)
-end
-
 function protectedsymbols_strings()
     symstrings = Array(ByteString,0)
     for s in keys(SYMTAB)
         if get_attribute(s,:Protected) && s != :ans
             push!(symstrings,string(getsym(s))) end
-    end
-    for s in unprotected_builtin_symbols
-        push!(symstrings,s)
     end
     sort!(symstrings)
 end
@@ -672,9 +531,6 @@ function protectedsymbols()
     for s in keys(SYMTAB)
         if get_attribute(s,:Protected) && s != :ans
             push!(args,getsym(s)) end
-    end
-    for s in unprotected_builtin_symbols
-        push!(symstrings,s)
     end
     mx = mxpr(:List, sort!(args))
 end
@@ -705,16 +561,15 @@ end
     get_attribute(T,attr)
 end
 
+# Related code in predicates.jl and attributes.jl
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
 protect(sj::SJSym) = set_attribute(sj,:Protected)
+set_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = true)
 
-@inline function set_attribute(sj::SJSym, attr::Symbol)
-    getssym(sj).attr[attr] = true
-end
+# Better to delete the symbol
+#unset_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = false)
 
-@inline function unset_attribute(sj::SJSym, attr::Symbol)
-    getssym(sj).attr[attr] = false
-end
+unset_attribute(sj::SJSym, attr::Symbol) = delete!(getssym(sj).attr, attr)
 
 clear_attributes(sj::SJSym) =  empty!(getssym(sj).attr)
 

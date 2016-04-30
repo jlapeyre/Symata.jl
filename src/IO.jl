@@ -1,9 +1,11 @@
+### This is SJulia level IO. The code for printing Mxpr, etc. is in output.jl
+
 #### Println
 
 @sjdoc Println "
 Println(expr1,expr2,...) prints the expressions and a newline.
 "
-apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
+apprules(mx::Mxpr{:Println}) = (println(margs(mx)...) ; Null)
 
 
 #### Print
@@ -11,7 +13,7 @@ apprules(mx::Mxpr{:Println}) = println(margs(mx)...)
 @sjdoc Print "
 Print(expr1,expr2,...) prints the expressions.
 "
-apprules(mx::Mxpr{:Print}) = println(margs(mx)...)
+apprules(mx::Mxpr{:Print}) = (print(margs(mx)...); Null)
 
 
 # Read SJulia expressions from a string and evaluate them, one by one.
@@ -146,7 +148,7 @@ do_Open(mx::Mxpr{:Open}, args...) = open(args...)
 Close(str) closes the IO stream str.
 "
 
-do_Close{T<:IO}(mx::Mxpr{:Close}, str::T) = close(str)
+do_Close{T<:IO}(mx::Mxpr{:Close}, str::T) = (close(str); Null)
 
 
 ### STDOUT, STDERR.  These two symbols are set it client_sjulia.jl after the REPL is created.
@@ -187,3 +189,9 @@ function do_Out(mx::Mxpr{:Out}, n::Integer)
 end
 
 do_Out(mx::Mxpr{:Out}, x) = :Null
+
+# We should probably explicitly return Null
+# from functions. But,this might catch all
+# of the nothings from causing printing
+# ...No. this did not help
+apprules(expr::Void) = :Null

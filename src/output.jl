@@ -2,8 +2,9 @@ module SJuliaIO
 
 import Base: show
 
-import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym, getsym,
-       symname, mhead, margs, is_type, getoptype, mtojsym, mxpr, mxprcf, Infinity
+import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
+       getsym, symname, mhead, margs, is_type, getoptype, mtojsym,
+       mxpr, mxprcf, Infinity, getkerneloptions, unicode_output
 
 # A space, or maybe not.
 const opspc = " "
@@ -14,7 +15,15 @@ const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
 
-const Istring = "𝕚"
+# This is faster than looking in the dict for I
+Istring() = getkerneloptions(:unicode_output) ? "𝕚" : "I"
+
+# We could probably replace all instances of mtosjym below with this.
+# It depends on which positions unicode symbols may occur.
+function outsym(s)
+    haskey(unicode_output, s) && getkerneloptions(:unicode_output) && return unicode_output[s]
+    mtojsym(s)
+end
 
 function fullform(io::IO, mx::Mxpr)
     print(io,mhead(mx))
@@ -35,7 +44,8 @@ needsparen{T<:Integer}(x::T) = x < 0
 needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
 
-# Mma displays gensyms with all the linenoise. Let's try it.
+# Mma displays gensyms with all the linenoise.
+# So, we try disabling de_gensym
 de_gensym(x) = x
 # function de_gensym{T<:AbstractString}(str::T)
 #     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
@@ -53,23 +63,15 @@ de_gensym(x) = x
 # Probably more efficient to do it here.
 # SJSym is just a symbol, so this translates everything
 function Base.show(io::IO, s::SJSym)
-    if symname(s) == :Pi
-        Base.show_unquoted(io,:π)
-    elseif symname(s) == :EulerGamma
-        Base.show_unquoted(io,:γ)
-    elseif symname(s) == :Infinity
-        Base.show_unquoted(io,:∞)
-    elseif symname(s) == :Gamma
-        Base.show_unquoted(io,:Γ)
-    elseif symname(s) == :I
-        Base.show_unquoted(io, :𝕚)
+    if haskey(unicode_output, s) && getkerneloptions(:unicode_output)
+        Base.show_unquoted(io,unicode_output[s])
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
         Base.show_unquoted(io,symbol(ss))
     end
 end
-
+                           
 # Overwrite Base definition
 function Base.show(io::IO, x::Rational)
     show(io, num(x))
@@ -77,7 +79,7 @@ function Base.show(io::IO, x::Rational)
     show(io, den(x))
 end
 
-
+# NB: This comment is only relevant if we change the SJulia symbol implementation.
 # This may break. It will only work if the value of s
 # is the symbol name in the symbol table that is associated
 # with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
@@ -89,7 +91,7 @@ function Base.show{T<:Real}(io::IO, z::Complex{T})
     show(io,real(z))
     print(io," + ")
     show(io,imag(z))
-    print(io,Istring)
+    print(io,Istring())
 end
 
 # Do not display real part if it is 0
@@ -99,10 +101,10 @@ function Base.show{T<:Integer}(io::IO, z::Complex{T})
         print(io," + ")
     end
     if imag(z) == 1
-        print(io,Istring)
+        print(io,Istring())
     else
         show(io,imag(z))
-        print(io,Istring)
+        print(io,Istring())
     end
 end
 
@@ -112,10 +114,10 @@ function Base.show{T<:Integer}(io::IO, z::Complex{Rational{T}})
         print(io," + ")
     end
     if imag(z) == 1
-        print(io,Istring)
+        print(io,Istring())
     else
         show(io,imag(z))
-        print(io,Istring)
+        print(io,Istring())
     end
 end
 
@@ -137,14 +139,15 @@ end
 # Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
 
 # Not sure this is a good idea, confusing symbols with boolean values
+# NB, so far, it seems to be working well.
 function Base.show(io::IO, v::Bool)
     v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)
 end
 
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
 
-# Arguments are not evaluated, like Hold.
-# But Holdform is not printed
+# For Holdform, arguments are not evaluated, as in Hold.
+# But, in addition, Holdform is not printed.
 function Base.show(io::IO, s::Mxpr{:HoldForm})
     Base.show(io,s[1])
 end
@@ -161,14 +164,14 @@ end
 function Base.show(io::IO, mx::Mxpr{:Comparison})
     args = mx.args
     for i in 1:length(args)-1
-        show(io, mtojsym(args[i])) # we do mtojsym just to get ≥, etc.
+        show(io, outsym(args[i]))
         print(io," ")
     end
     isempty(args) || show(io,args[end])
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    is_Mxpr(mx,:List) ? nothing : print(io,mtojsym(mhead(mx)))
+    is_Mxpr(mx,:List) ? nothing : print(io,outsym(mhead(mx)))
     args = mx.args
     print(io,mhead(mx) == getsym(:List) ? LISTL : FUNCL)
     wantparens = true

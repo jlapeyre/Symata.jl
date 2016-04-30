@@ -4,13 +4,17 @@ using Base.Test
 
 @ex ClearAll(a,b,x,y,z,p,q,s,t,res,f)
 
-## Factor, Expand
+#### Factor, Expand
 
 @testex  Factor(Expand( (a+b)^2 )) == (a+b)^2
 @testex  Expand( (a + f(x)) ^2 ) == a ^ 2 + 2 * a * f(x) + f(x) ^ 2
 @ex      p = Expand((x-1)*(x-2)*(x-3)*(x^2 + x + 1))
 @testex  p == -6 + 5 * x + -1 * (x ^ 2) + 6 * (x ^ 3) + -5 * (x ^ 4) + x ^ 5
 @testex  Factor(p) == (-3 + x) * (-2 + x) * (-1 + x) * (1 + x + x ^ 2)
+
+#### Cancel
+
+@testex Cancel( (2*x^2-2)/(x^2-2*x+1)) == (-1 + x) ^ (-1) * (2 + 2 * x)
 
 #### Limit
 
@@ -183,11 +187,21 @@ using Base.Test
 @testex BellB(6,4,[x1,x2,x3]) == 45 * (x1 ^ 2) * (x2 ^ 2) + 20 * (x1 ^ 3) * x3
 @testex BellB(4,t) == t + 7 * (t ^ 2) + 6 * (t ^ 3) + t ^ 4
 
-@ex ClearAll(x1,x2,x3,t)
 
 #### Divisors
 
 @testex 10000/Divisors(10000) == Reverse(Divisors(10000))
+
+#### Misc...
+
+@testex D(Gamma(x),x) == Gamma(x) * (PolyGamma(0,x))
+
+# FIXME. The returned expression is large. and does not '==' the
+# input. Something is not being fully evaluated when the series is returned
+@testex Series(Gamma(x), [x, 0, 3])[1] == -EulerGamma
+
+
+@ex ClearAll(x1,x2,x3,t,x)
 
 ################
 

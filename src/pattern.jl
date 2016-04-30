@@ -1,7 +1,4 @@
-# This is a hack into the older pattern matcher.
-# applrules call this code, which then calls older pattern matching code
-
-#function Pattern_to_PatternT(mx::Mxpr)
+# apprules call this code, which then calls older pattern matching code
 
 function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs
@@ -14,8 +11,7 @@ function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     ptp = patterntopvar(lhs)
     nlhs = PatternT(ptp,:All)
     nrhs = PatternT(rhs,:All, true)  # rhs is delayed
-#    if ptp == lhs  println("same ptp ", lhs) end
-    PRule(nlhs,nrhs) # true means rhs delayed
+    PRule(nlhs,nrhs)                 # true means rhs delayed
 end
 
 function Rule_to_PRule(mx::Mxpr{:Rule})
@@ -28,13 +24,9 @@ function Rule_to_PRule(mx::Mxpr{:Rule})
 end
 
 # Works on just a blank, and ... ?
-function just_pattern(mx::Mxpr)
-    PatternT(patterntopvar(mx), :All)
-end
 
-function just_pattern(s)
-    PatternT(patterntopvar(s), :All)
-end
+#just_pattern(mx::Mxpr) =  PatternT(patterntopvar(mx), :All)
+just_pattern(s) =         PatternT(patterntopvar(s), :All)
 
 function patterntopvar(mx::Mxpr)
     nargs = newargs()
@@ -46,20 +38,8 @@ function patterntopvar(mx::Mxpr)
     nmx
 end
 
-function patterntopvar(x)
-    x
-end
-
-# function patterntopvar(mx::Mxpr{:PatternTest})
-#     pvar = patterntopvar(mx[1])
-#     cond = mx[2]
-#     pvar.ptest = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
-#     pvar
-# end
-
-function patterntopvar(mx::Mxpr{:PatternTest})
-    patterntopvar(mx,margs(mx)...)
-end
+patterntopvar(x) = x
+patterntopvar(mx::Mxpr{:PatternTest}) =  patterntopvar(mx,margs(mx)...)
 
 function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Symbol)
     pvar = patterntopvar(pattern)
@@ -110,6 +90,8 @@ function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     res
 end
 
+#### DownValues
+
 function trydownvalues(mx::Mxpr)
     dvs = downvalues(mhead(mx))
     for r in dvs
@@ -130,7 +112,7 @@ end
 
 applydownvalues(x) = x
 
-## UpValues
+#### UpValues
 
 function tryupvalues(mx::Mxpr,m::SJSym)
     dvs = upvalues(m)

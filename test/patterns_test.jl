@@ -135,6 +135,12 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 @ex ex = Hold(f(a)(b)(c)(d))
 @testex ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
+#### Currying
+
+@ex      countprimes = Count(_:?(PrimeQ))
+@testex  countprimes(Range(100)) == 25
+@ex      ClearAll(countprimes)
+
 @ex ClearAll(result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
 @ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))

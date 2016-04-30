@@ -46,12 +46,5 @@ Sequence represents a sequence of arguments to be spliced into function argument
 Unicode characters may be input at the SJulia REPL just as they are in Julia. Eg. \\alpha [TAB] will enter the greek letter α.
 "
 
-@sjdoc ReturnSymPy! "
-If ReturnSymPy! is True, expressions computed by SymPy are not converted to SJulia on return. If
-ReturnSymPy! is False, SymPy expressions are automatically converted to SJulia.
-
-Setting ReturnSymPy! to True may be useful because translating large expressions is rather slow.
-"
-
-@sjseealso_group(ReturnSymPy!,ToSymPy,ToSJulia,ShowSymPyDocs!)
+@sjseealso_group(ReturnSymPy,ToSymPy,ToSJulia,ShowSymPyDocs)
 

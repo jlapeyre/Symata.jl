@@ -27,4 +27,5 @@ setfixed(_oosq2)
 setcanon(_oosq2)
 
 setsymval(:Float64, Float64)
-setsymval(:Int64, Int)
+setsymval(:Int64, Int64)
+setsymval(:Int, Int)

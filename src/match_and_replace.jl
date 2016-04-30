@@ -1,96 +1,41 @@
 ## Pattern matching and rules
-# This is not called from meval, rather via code in pattern.jl
 
-typealias UExpr  Mxpr  # annotation for expressions in Unions
 # pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union{UExpr,Symbol,SJSym}
-# TODO: need to split this up and separate them by dispatch, or just make this Any
-typealias CondT Union{ExSym,DataType,Function}
+typealias ExSym Union{Mxpr,Symbol}
 
-# Pattern variable. name is the name, ending in underscore cond is a
-# condition that must be satisfied to match But, cond may be :All,
-# which matches anything.  The most imporant feature is that the Pvar
-# matches based on its context in an AST.
-type Pvar
+# fix this, made a mistake in documenting this
+# Pattern variable.
+# name -- the name, ending in underscore
+# cond -- a condition that must be satisfied to match
+#   cond may be :All, which matches anything.
+type Pvar{T}
     name::Symbol  # name
-#    head::Union{Symbol,DataType}  # head to match
-    head::Any
+    head::T
     ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 typealias ExSymPvar Union{ExSym,Pvar}
 
-# we could allow non-underscored names
-function Pvar(name::Symbol)
-    Pvar(name,:All,:All)
-end
-
-==(a::Pvar, b::Pvar) = (a.name == b.name && a.ptest == b.ptest)
-
-# ast is the pattern including Pvars for capture.
-# cond is condition to apply to any Pvars in the pattern
-#
-# Hack to get around hack. We are polluting Julia namespace
-# with SJSym's just to get repl completion.
-# So 'Pattern' is already used. So we use PatternT.
-# But, we will fix the repl and rewrite code.
-# Make change now ? No longer doing pollution
-type PatternT
+# ast  -- the pattern including Pvars for capture.
+# cond -- condition to apply to any Pvars in the pattern
+# We don't need to use PatternT anymore. It could be Pattern.
+# Currently cannot be made immutable. And, only cond can have static type.
+type PatternT{T}
     ast::Any
-    cond::CondT
+    cond::T
     isdelayed::Bool  # if true, we evaluate before trying
 end
 
 PatternT(ast,cond) = PatternT(ast,cond,false)
 
-#function Base.copy(p::PatternT)
-#end
-
 PatternT(ast::ExSymPvar) = PatternT(ast,:All)
-pattern(ast::ExSym) = pattern(ast,:All)
-
-function Base.show(io::IO, pv::Pvar)
-    show(io,pv.name)
-end
-
-function Base.show(io::IO, p::PatternT)
-    show(io,p.ast)
-end
-
-pattern(x,cond::Symbol) = PatternT(x,cond)
-pattern(x) = pattern(x,:All)
 
 # replacement rule
-# lhs is a pattern for matching.
-# rhs is a template pattern for replacing.
+# lhs -- a pattern for matching.
+# rhs -- a template pattern for replacing.
 type PRule
     lhs::PatternT
     rhs::PatternT
 end
-
-PRule(lhs,rhs) = PRule(lhs,rhs,false)
-
-function Base.show(io::IO, p::PRule)
-    print(io,"rule: ")
-    show(io,p.lhs)
-    print(io, " => ")
-    show(io,p.rhs)
-end
-
-## most of this stuff is old. works in Julia, not SJulia
-PRule(lhs::ExSym, rhs::ExSym) = PRule(pattern(lhs),pattern(rhs))
-==(a::PRule, b::PRule) =  (a.lhs == b.lhs && a.rhs == b.rhs)
-==(a::PatternT, b::PatternT) = (a.ast == b.ast)
-prule(x,y) = PRule(x,y)
-
-# syntax for creating a rule. collides with Dict syntax sometimes.
-# Turn this off.
-# =>(lhs::ExSym,rhs::ExSym) = prule(pattern(lhs),pattern(rhs))
-# =>(lhs::ExSym,rhs::Symbol) = prule(pattern(lhs),pattern(rhs))
-# =>(lhs::ExSym,rhs::Number) = prule(pattern(lhs),pattern(rhs))
-
-
-prule(lhs::Mxpr, rhs::Mxpr) = prule(pattern(lhs),pattern(rhs))
-prule(x::Mxpr, y::Number) = prule(pattern(x),pattern(y))
 
 getpvarptest(pvar::Pvar) = pvar.ptest
 getpvarhead(pvar::Pvar) = pvar.head
@@ -101,8 +46,6 @@ function cmppat(ex,pat::PatternT)
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
-# compiler notes that this is overwritten a few lines below
-# cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat))
 
 # pre-allocate the capture Dict. This can be much faster in a loop.
 function cmppat(ex,pat::PatternT, capt)
@@ -110,7 +53,6 @@ function cmppat(ex,pat::PatternT, capt)
     success_flag = _cmppat(ex,pat.ast,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
-cmppat(ex,pat::ExSym) = cmppat(ex,pattern(pat),capt)
 
 capturealloc() = Dict{Symbol,Any}()
 
@@ -133,12 +75,6 @@ havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 # For instance, in x_Integer, we match Integer.
 function match_head(head::Symbol,ex)
     head == :All && return true
-    # if isdefined(head)    # Julia symbol represents data type ?
-    #     hhe = eval(head)  # This way seems wasteful and error prone. Maybe do SJulia binding of :Integer to Integer, etc.
-    #     if is_type(hhe,DataType)
-    #         return is_type_less(ex,hhe)
-    #     end
-    # end
     return is_Mxpr(ex,head)
 end
 
@@ -148,8 +84,7 @@ end
 
 match_head(head,ex) = error("matchpat: Can't match Head of type ", typeof(head))
 
-# check if restriction on Head and pattern test
-# are satisfied.
+# Check if restrictions on Head and pattern test are satisfied.
 # TODO: reorganize. maybe make type of Pvar.head Any
 # so it can be a Symbol (only for finding SJSym),
 # or a DataType. This is determined when the Pvar is
@@ -159,12 +94,12 @@ function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     head = getpvarhead(cvar)  # head to match
     match_head(head,ex) || return false
-    cc = getpvarptest(cvar) # This is an Mxpr or :None
+    cc = getpvarptest(cvar)   # This is an Mxpr or :None
     cc == :None && return true
     is_Mxpr(cc) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
-    cc.args[1] = ex  # we reuse a stored Mxpr.
+    cc.args[1] = ex           # we reuse a stored Mxpr.
     # This is likely not robust. Works for what we have now, but what about upvalues, ... ?
-    res = apprules(cc)  # we decide that apprules (builtin) overrides and up or down values.
+    res = apprules(cc)        # we decide that apprules (builtin) overrides and up or down values.
     res == true && return true
     res == false && return false
     if has_downvalues(cc)
@@ -211,7 +146,6 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     nnpat = patsubst!(npat.ast,capt) # do replacement
     return nnpat
 end
-patrule(ex,pat1::ExSym,pat2::ExSym) = patrule(ex,pattern(pat1),pattern(pat2))
 
 # Same as patrule, except if match fails, return original expression
 function tpatrule(ex,pat1,pat2)
@@ -219,45 +153,12 @@ function tpatrule(ex,pat1,pat2)
     res === false ? ex : res
 end
 
-# duplicated code above. merge this somehow
-# function patruledelayed(ex,pat1::PatternT,pat2::PatternT)
-#     @mdebug(1, "enter patrule with ", ex)
-#     (res,capt) = cmppat(ex,pat1)
-#     res == false && return false # match failed
-#     npat = deepcopy(infseval(pat2)) # Now we evaluate the RHS
-#     nnpat = patsubst!(npat.ast,capt) # do replacement
-#     return nnpat
-# end
-# patruledelayed(ex,pat1::ExSym,pat2::ExSym) = patruledelayed(ex,pattern(pat1),pattern(pat2))
-
-# # Same as patrule, except if match fails, return original expression
-# function tpatruledelayed(ex,pat1,pat2)
-#     res = patruledelayed(ex,pat1,pat2)
-#     res === false ? ex : res
-# end
-
-
 # apply replacement rule r to expression ex
 replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
-
-#replacedelayed(ex::ExSym, r::PRule) = tpatruledelayed(ex,r.lhs,r.rhs)
 
 function replacefail(ex::ExSym, r::PRule)
     patrule(ex,r.lhs,r.rhs)
 end
-
-# No, depth-first is wrong.
-# Do depth-first replacement applying the same rule to head and each subexpression
-# function oldreplaceall(ex,pat1::PatternT,pat2::PatternT)
-#     if is_Mxpr(ex)
-#         ex = mxpr(replaceall(mhead(ex),pat1,pat2),
-#                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
-#     end
-#     # we have applied replacement at all lower levels. Now do current level.
-#     res = patrule(ex,pat1,pat2)
-#     res === false && return ex # match failed; return unaltered expression
-#     res
-# end
 
 function replaceall(ex,pat1::PatternT,pat2::PatternT)
     # first try at current level
@@ -267,7 +168,7 @@ function replaceall(ex,pat1::PatternT,pat2::PatternT)
         ex = mxpr(replaceall(mhead(ex),pat1,pat2),
                     map((x)->replaceall(x,pat1,pat2),margs(ex))...)
     end
-    ex   # if lower levesl changed nothing, this is the same as the input ex.
+    ex                # if lower levels changed nothing, this is the same as the input ex.
 end
 
 replaceall(ex, r::PRule) = replaceall(ex,r.lhs,r.rhs)
@@ -281,7 +182,7 @@ function replaceall(ex,rules::Array{PRule,1})
     if is_Mxpr(ex)
         args = margs(ex)
         nargs = newargs(length(args))
-        for i in 1:length(args)  # uglier than map((x)->...
+        for i in 1:length(args)
             nargs[i] = replaceall(args[i],rules)
         end
         ex = mxpr(mhead(ex),nargs)
@@ -323,11 +224,17 @@ patsubst!(pat,cd) = pat
 
 ## ReplaceRepeated
 
-function replacerepeated(ex, rules::Array{PRule,1})
+function replacerepeated(ex, rules::Array{PRule,1}; kws...)
     too_many_iterations::Bool = true
     maxits::Int = 65536
+    for p in kws
+        (k,v) = p
+        if k == :MaxIterations
+            maxits = v
+        end
+    end
     res = replaceall(ex,rules)
-    local res1
+    local res1 = res
     for i in 1:maxits
         res1 = doeval(replaceall(res,rules))
         if res1 == res
@@ -342,6 +249,6 @@ function replacerepeated(ex, rules::Array{PRule,1})
     return res1
 end
 
-replacerepeated(ex, therule::PRule) =  replacerepeated(ex,[therule])
+replacerepeated(ex, therule::PRule; kws...) =  replacerepeated(ex,[therule]; kws...)
 
 nothing

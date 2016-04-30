@@ -55,4 +55,16 @@
 @testex f(y,[a,b,c],z,[d,e,f]) == [f(y,a,z,d),f(y,b,z,e),f(y,c,z,f)]
 @ex ClearAll(f,a,b,c,d,e,f,g,x,y,z,res)
 
+#### NHoldFirst
+
+@ex SetAttributes(f,NHoldFirst)
+@ex SetAttributes(g,NHoldRest)
+@ex SetAttributes(h,NHoldAll)
+
+@testex  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(f(1,2,3)))) == [True,False,False]
+@testex  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(g(1,2,3)))) == [False,True,True]
+@testex  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(h(1,2,3)))) == [True,True,True]
+
+@ex ClearAll(f,g,h,x)
+
 @testex Length(UserSyms()) == 0

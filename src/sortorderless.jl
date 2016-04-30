@@ -41,10 +41,11 @@ const _jstypeorder = Dict{DataType,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
+# we'd like to put PyCall object in here, but we can't. Unless we generate the table at init time.
 function _mklexorder()
     i = 1   ## CAREFULL! We use literal index of Any below
-    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr)
-        _jstypeorder[typ] = i
+    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr)  
+        _jstypeorder[typ] = i   
         i += 1
     end
     i = 1
@@ -175,6 +176,8 @@ function jslexless(x::SJSym, y::Mxpr{:Power})
     jslexless(x,base(y))
 end
 
+# Looks like symbol is less than times if it occurs among
+# the arguments to times.
 # Last element in a sorted expression is most significant
 jslexless(x::Mxpr{:Times}, y::SJSym) = jslexless(x[end],y)
 jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
@@ -439,14 +442,17 @@ end
 ## Apply all steps listed at top of this file.
 # We say 'sum', but this applies to Times as well
 function _canonexpr_orderless!(mx)
+    @mdebug(2,"entering: _canonexpr_orderless! ", mx)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
     is_Number(mx) && return mx
     mx = distribute_minus_one(mx)
     orderexpr!(mx)  # sort terms
     if is_type_less(mx,Mxpr)
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
+        @mdebug(2,"_canonexpr_orderless!, returned from compactsumlik1!: ", mx)
         if is_type_less(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
+            @mdebug(2,"_canonexpr_orderless!, returned from collectordered!: ", mx)
             # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
                 mx = mulpowers(mx)
@@ -454,6 +460,7 @@ function _canonexpr_orderless!(mx)
         end
     end
     setcanon(mx)
+    @mdebug(2,"exiting: _canonexpr_orderless! ", mx)    
     mx
 end
 
@@ -485,7 +492,7 @@ end
 # (expr1*expr2*....)^n --> expr1^n * expr2^n * .... for numeric n  *NO* expr1,.... must be positive as well
 # Assume the product prod has already been sorted;
 # the number, if present is first.
-# GJL Apr 2016. disable this. it is wrong, in general.
+# Input is power of a product
 function do_canon_power!{T<:Integer}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
     len = length(prod)
     args = margs(prod)
@@ -533,11 +540,11 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
     end
     @eval begin
         function ($name)(mx::Mxpr)
-            @mdebug(2,"In ", $name)
+            @mdebug(2,"In ", $name, "  ", mx)
             length(mx) < 2 && return mx
-            @mdebug(3, $name, ": length(mx)>1")
+            @mdebug(3, $name, ": length(mx)>1 ", mx)
             a = margs(mx)
-            @mdebug(3, $name, ": got margs")
+            @mdebug(3, $name, ": got margs: ", mx)
             typeof(a[1]) <: Number || return mx
             sum0 = a[1]
             while length(a) > 1
@@ -549,6 +556,7 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return handle_coefficient_is_zero(mx,sum0)) : :())
             sum0 != $id && unshift!(a,sum0)
+            @mdebug(3, $name, ": checking length: ",a)            
             length(a) == 1 && return a[1]
             @mdebug(3, $name, ": returning at end")
             return mx
@@ -623,8 +631,9 @@ end
 # Replace n repeated terms expr by expr*x, and factors expr by expr^n
 # This assumes that terms have been ordered so that collectable
 # terms are neighboring.
-# FIXME. Here or elsewhere  expr^n * expr^m with m and or n symbolic should
-# also go to expr^(n+m)
+# ** collectmul! does do this: expr^n * expr^m  --> expr^(n+m) for numeric n,m. But,
+# FIXME. Here or elsewhere  expr^n * expr^m with m and or n symbolic (symbols or expressions) should
+#  also go to expr^(n+m)
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)

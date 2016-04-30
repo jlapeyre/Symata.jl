@@ -230,7 +230,7 @@ function do_doloop(expr,iter::SJIter2)
         @checkreturn(res)
         @checkcontinue0(res)
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 
@@ -245,7 +245,7 @@ function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
         @checkreturn(res)
         @checkcontinue0(res)
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 
@@ -262,7 +262,7 @@ function do_doloop(expr,iter::SJIter3)
         @checkcontinue0(res)  # This will not increment isym
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 
@@ -277,7 +277,7 @@ function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
         @checkreturn(res)
         @checkcontinue0(res)
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 
@@ -294,7 +294,7 @@ function do_doloop(expr,iter::SJIter4)
         @checkcontinue0(res)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 
@@ -309,7 +309,7 @@ function do_doloop(expr,iter::SJIterList)
         @checkreturn(res)
         @checkcontinue0(res)
     end
-    removesym(isym)
+    delete_sym(isym)
     Null
 end
 

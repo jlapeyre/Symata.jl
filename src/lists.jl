@@ -31,16 +31,27 @@ end
 
 function do_Range(iter::SJIterA1)  # iter is parameterized, so we hope type of n is inferred.
     n = iter.num_iters
-#    println("Typeof n is " * string(typeof(n)))
     args = newargs(n);
-    j = one(iter.imax)
-#    println("Typeof j is " * string(typeof(j)))
+    _do_Range_fill(args,n,typeof(iter.imax))
+    return args
+end
+
+function _do_Range_fill(args, n, ::Type{Int})
+  @inbounds @simd for i in 1:n
+                     args[i] = i
+                  end
+    return args
+end
+
+function _do_Range_fill{T<:Real}(args, n, ::Type{T})
+   j = one(T)
     @inbounds for i in 1:n
-        args[i] = j
-        j += 1
+       args[i] = j
+       j += 1
     end
     return args
 end
+
 
 # Fails for rationals. nd counting is wrong
 function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
@@ -342,14 +353,20 @@ end
 
 function do_Table(expr,iter::SJIter1)
     imax = iter.imax
-    val = doeval(expr)
     args = newargs(imax)
-    if is_Mxpr(val)
-        do_table_set_arg_const_copy(args,val,imax)
-    else
-        do_table_set_arg_const(args,val,imax)
+    @inbounds for i in 1:imax
+        args[i] = doeval(expr)
     end
     return args
+    
+    #  I think the stuff below is wrong
+    #    val = doeval(expr)
+    # if is_Mxpr(val)
+    #     do_table_set_arg_const_copy(args,val,imax)
+    # else
+    #     do_table_set_arg_const(args,val,imax)
+    # end
+    
 end
 
 function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
@@ -433,7 +450,7 @@ end
 
 function do_table_set_arg_const(args,val,imax)
     @inbounds for i in 1:imax
-        args[i] = val
+        args[i] = doeval(val)
     end
 end
 
@@ -494,3 +511,28 @@ function _expr_positions(ex,subx,lev,posns,clev)
         nothing
     end
 end
+
+#### Keys
+
+@sjdoc Keys "
+Keys(d) returns a list of the keys in Dict d
+"
+apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
+do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
+do_keys(mx,x) = (warn("Can't return keys of $x"); mx)
+
+#### Values
+
+@sjdoc Values "
+Values(d) returns a list of the values in Dict d
+"
+
+apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
+do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
+do_values(mx,x) = (warn("Can't return values of $mx"); mx)
+
+#### Sort
+
+@mkapprule Sort
+
+do_Sort(mx::Mxpr{:Sort},expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))

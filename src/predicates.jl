@@ -112,3 +112,20 @@ end
 @mkapprule IntegerQ :nargs => 1
 do_IntegerQ{T<:Integer}(mx::Mxpr{:IntegerQ}, x::T) = true
 do_IntegerQ(mx::Mxpr{:IntegerQ}, x) = false
+
+
+#### PermuationQ
+
+@mkapprule PermutationQ :nargs => 1
+
+@sjdoc PermutationQ "
+PermutationQ(list) returns true if and only if list is a permuation of the integers from 1 through Length(list).
+"
+
+function do_PermutationQ(mx::Mxpr{:PermutationQ}, lst::Mxpr{:List})
+    args = margs(lst)
+    for arg in args
+        ! (typeof(arg) <: Union{Integer,AbstractFloat}) && return false
+    end
+    isperm(args)
+end

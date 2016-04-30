@@ -5,6 +5,16 @@
 
 # This should be separated better. Some symbols are translated
 # only on analyzing the ast, others, on both input and output.
+# Fix. We delete the keys we don't want (unicode) from the reverse translation.
+
+#### Input,Output translation table.
+
+# These translations are made when encountered in the AST and on printing.
+# A reversed dict is constructed for output.
+# Excepted are the unicode characters. They are merged into the input dict.
+# But, they are held in a separate table for output, so that unicode
+# output can be disabled.
+
 const JTOMSYM  =
  Dict(
       :(=) => :Set,
@@ -24,6 +34,7 @@ const JTOMSYM  =
       :(.>) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
       :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
 #      :(:) => :Span, # this is done specially in extomx. colon means various things
+#      :(&=) => :UpSetDelayed,  This is available, at least. Not sure we want to take it.
       :vcat => :List,
       :vect => :List,
       :ref => :Part,
@@ -31,15 +42,33 @@ const JTOMSYM  =
       :comparison => :Comparison,
       :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
       :! => :Not,
-      :Γ => :Gamma,
-      :π => :Pi,
-      :γ => :EulerGamma,
-      :∞ => :Infinity
+      :&& => :And,
+      :|| => :Or
 )
 
-# MTOJSYM is only used in printing
+# Input translation
+const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
+                                                :γ => :EulerGamma,
+                                                :∞ =>   :Infinity,
+                                                :Γ =>   :Gamma,
+                                                :𝕚 =>   :I,
+                                                :≥  =>  :>=,
+                                                :≤  =>  :<=,
+                                                :≠  =>  :!= )
+
+# Output. Reverse dict for printing if unicode printing is enabled
+const unicode_output = Dict{Symbol,Symbol}()
+for (k,v) in unicode_translation unicode_output[v] = k end
+
+# Reverse dict of ascii symbols for printing
 const MTOJSYM = Dict{Symbol,Symbol}()
 for (k,v) in JTOMSYM  MTOJSYM[v] = k end
+
+# Finally, add the unicode symbols to the input translation table.
+merge!(JTOMSYM, unicode_translation)
+
+# This is only used for output. (Can't we detect it with the others on input ?)
+MTOJSYM[:Span] = :(:)
 
 function jtomsym(x::Symbol)
     if haskey(JTOMSYM,x)
@@ -50,17 +79,6 @@ end
 
 jtomsym(x) = extomx(x)
 
-# These are only used for output
-MTOJSYM[:Span] = :(:)
-# Disable these, because we don't yet interpret them correctly when read.
-# In fact, the unicode character printing should dynamically enabled/disabled
-# MTOJSYM[:>=] = :≥  #
-# MTOJSYM[:<=] = :≤
-# MTOJSYM[:!=] = :≠
-
-# Inverse of translations already present in MTOJSYM will be recorded
-# (compiler reports that the second method overwrites the first, which seems to be true.
-#mtojsym(s::SJSym) = mtojsym(symname(s))
 function mtojsym(x::Symbol)
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]
@@ -78,7 +96,8 @@ for (k,v) = ( (:tuple,:CompoundExpression), (:block,:CompoundExpression), (:dict
     JTOMSYM[k] = v
 end
 
-# For printing only
+#### Operator type: infix, prefix, postfix
+
 const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
@@ -87,12 +106,9 @@ for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
     OPTYPE[op] = :binary
 end
 
-for op in (:Plus, :Times, :Span)
+for op in (:Plus, :Times, :Span, :And)
     OPTYPE[op] = :infix
 end
-
-# This was overwritten below as well!
-#getoptype(s::SJSym) = getoptype(symname(s))
 
 # Nonsymbolic Heads, Integer, etc. assume they are prefix ops
 getoptype(x) = :prefix
@@ -103,6 +119,10 @@ function getoptype(x::Symbol)
     end
     return :prefix
 end
+
+#### Comparison symbols
+
+# This is only used in AST_tranlation.jl to make a Comparison Mxpr.
 
 const COMPARISONSYMBOLS = Dict{Symbol,Bool}()
 
@@ -117,19 +137,5 @@ function is_comparison_symbol(x::Symbol)
     end
     return false
 end
-# stack overflow
-#is_comparison_symbol(x::SJSym) = is_comparison_symbol(symname(x))
+
 is_comparison_symbol(x) = false
-
-# const SYMTONUM  =
-#     Dict(
-#          :Plus => :mplus,
-#          :Times => :mmul
-#          );
-
-# function symtonum(x::Symbol)
-#     if haskey(SYMTONUM,x)
-#         return SYMTONUM[x]
-#     end
-#     return x
-# end

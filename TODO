@@ -1,4 +1,20 @@
-* expr(3:4) does not always work
+*  Bug:
+   ex = Exp(-t)*t^(a-1)
+   Out(1) = E ^ (-t) * (t ^ (-1 + a))
+   sjulia 2> Integrate(ex,t, conds => "none")
+   WARNING: Gamma::argr: Gamma called with two arguments; one argument is expected.
+   Out(2) = Integrate(ex,t,conds => "none")
+
+
+* AC matching
+
+* Match BlankSequence and BlankNullSequence
+
+* Implement level specification
+
+* Implement autoload. e.g. for code written in SJulia
+
+* Fix chained comparison. Remove true comparison. Return conjunction.
 
 * We can't disable infseval because it does some computation.
 
@@ -41,11 +57,19 @@ result.
 
 * Example message ErrorException("Symbol 'Part' is protected.").
 
-
 * Warning message still appears for [a => b, ...]
 
+* Map should map over values in a Dict.
 
+* Map should map over multiple argument lists. Now it accepts only
+  one argument list.
+  "Map can be used in an operator form. For example Map(f)(expr)."
+   This is wrong or incorrectly documented.
 
+* Map needs to take level argument, and Heads -> True   
+
+* Sympy  I * Infinity <--> DirectedInfinity[I]
+   
 ###############################################################################
 
  ===  DONE ===

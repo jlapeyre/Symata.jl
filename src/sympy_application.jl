@@ -14,11 +14,11 @@ macro make_simplify_func(mxprsym, sympyfunc)
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
               kws = Dict()                         # To hold keywords
-              nargs = mxpr2sympy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
+              nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
               if (length(kws) > 0 )
-                 sres = sympy.$sympyfunc(nargs...; kws...) |> maybe_sympy2mxpr
+                 sres = sympy.$sympyfunc(nargs...; kws...) |> pytosj
               else
-                 sres = sympy.$sympyfunc(nargs...) |> maybe_sympy2mxpr
+                 sres = sympy.$sympyfunc(nargs...) |> pytosj
               end
               deepsetfixed(sres)                   # sometimes this seems like a good idea.
               sres
@@ -35,8 +35,6 @@ end
 Factor(expr) factors expr. This function calls SymPy.
 "
 
-#apprules(mx::Mxpr{:Factor})  = mx[1] |> mxpr2sympy |> sympy.factor |> sympy2mxpr
-
 @make_simplify_func :Factor factor
 
 #### Expand
@@ -48,8 +46,6 @@ Expand(expr) expands powers and products in expr. This is the sympy version, whi
 
 @make_simplify_func :Expand expand
 
-#apprules(mx::Mxpr{:Expand}) = mx[1] |> mxpr2sympy |> sympy.expand  |> sympy2mxpr
-
 #### Limit
 
 @sjdoc Limit "
@@ -57,9 +53,9 @@ Limit(expr, var => lim) gives the limit of expr as var approaches to lim.
 "
 
 function apprules(mx::Mxpr{:Limit})
-    (pymx,var,lim) = map(mxpr2sympy, (mx[1],mx[2][1],mx[2][2]))
+    (pymx,var,lim) = map(sjtopy, (mx[1],mx[2][1],mx[2][2]))
     pylimit = sympy.limit(pymx,var,lim)
-    return maybe_sympy2mxpr(pylimit)
+    return pytosj(pylimit)
 end
 
 register_sjfunc_pyfunc("Limit", "limit")
@@ -74,16 +70,16 @@ Integrate(expr, [x,a,b]) gives the definite integral.
 #apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
 function do_Integrate(mx::Mxpr{:Integrate},expr)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyintegral = sympy.integrate(pymx)
-    return maybe_sympy2mxpr(pyintegral)
+    return pytosj(pyintegral)
 end
 
 function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy.integrate(pymx,pyvarspecs...)
-    sjres = maybe_sympy2mxpr(pyintegral)
+    sjres = pytosj(pyintegral)
     if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
         deepsetfixed(sjres)  # we need this to avoid infinite eval
     end
@@ -91,20 +87,17 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
 end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyintegral = sympy.integrate(pymx; kws)
-    return maybe_sympy2mxpr(pyintegral)
+    return pytosj(pyintegral)
 end
 
 # We annotate Dict here to fix BoundsError bug in Integrate(x)
 function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    # println("expr ", pymx)
-    # println("pvar ", pyvarspecs)
-    # println("kw ", kws)
     pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
-    sjres = maybe_sympy2mxpr(pyintegral)
+    sjres = pytosj(pyintegral)
     if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
         deepsetfixed(sjres)  # we need this to avoid infinite eval
     end
@@ -139,13 +132,10 @@ This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>
 
 function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
-    nargs = mxpr2sympy_kw(mx,kws)
+    nargs = sjtopy_kw(mx,kws)
     pyres = @try_sympyfunc laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
-    pyres |> maybe_sympy2mxpr
+    pyres |> pytosj
 end
-
-# already done
-# register_sjfunc_pyfunc("LaplaceTransform", "laplace_transform")
 
 #### InverseLaplaceTransform
 
@@ -154,8 +144,8 @@ InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
 "
 
 function apprules(mx::Mxpr{:InverseLaplaceTransform})
-    result = sympy.inverse_laplace_transform(map(mxpr2sympy, margs(mx))...)
-    sjresult = maybe_sympy2mxpr(result)
+    result = sympy.inverse_laplace_transform(map(sjtopy, margs(mx))...)
+    sjresult = pytosj(result)
     if is_Mxpr(sjresult) && mhead(sjresult) == :InverseLaplaceTransform
         setfixed(sjresult)
         if mhead(margs(sjresult)[end]) == :Dummy
@@ -173,14 +163,14 @@ FourierTransform(expr, x, k) gives the Fourier transform of expr.
 This function returns (F, cond) where F is the Fourier transform of f, and cond are auxiliary convergence conditions.
 "
 
-apprules(mx::Mxpr{:FourierTransform}) = sympy.fourier_transform(mxpr2sympy(margs(mx))...) |> maybe_sympy2mxpr
+apprules(mx::Mxpr{:FourierTransform}) = sympy.fourier_transform(sjtopy(margs(mx))...) |> pytosj
 
 
 #### InverseFourierTransform
 
 function apprules(mx::Mxpr{:InverseFourierTransform})
-    result = sympy.inverse_fourier_transform(map(mxpr2sympy, margs(mx))...)
-    sjresult = maybe_sympy2mxpr(result)
+    result = sympy.inverse_fourier_transform(map(sjtopy, margs(mx))...)
+    sjresult = pytosj(result)
     if mhead(sjresult) == :InverseFourierTransform
         setfixed(sjresult)
         if mhead(margs(sjresult)[end]) == :Dummy
@@ -199,10 +189,10 @@ Sum(expr, [x,a,b]) sums over x from a to b
 apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
 
 function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pysum = sympy.summation(pymx,pyvarspecs...)
-    return maybe_sympy2mxpr(pysum)
+    return pytosj(pysum)
 end
 
 
@@ -215,10 +205,10 @@ Product(expr, [x,a,b]) computes the product of expr over x from a to b
 apprules(mx::Mxpr{:Product}) = do_Product(mx,margs(mx)...)
 
 function do_Product(mx::Mxpr{:Product}, expr, varspecs...)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pysum = sympy.product(pymx,pyvarspecs...)
-    return maybe_sympy2mxpr(pysum)
+    return pytosj(pysum)
 end
 
 register_sjfunc_pyfunc("Product", "product")
@@ -232,19 +222,19 @@ Series(expr,[x,x0,n]) gives the Taylor series expansion of expr.
 apprules(mx::Mxpr{:Series}) = do_Series(mx,margs(mx)...)
 
 function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
-    pymx = mxpr2sympy(expr)
+    pymx = sjtopy(expr)
     pyspec = []
     for dspec in margs(mx)[2:end]    # Following is more than neccessary. Also, maybe we could use tuples instead of lists
         if is_Mxpr(dspec,:List)
             for xdspec in margs(dspec)
-                push!(pyspec,mxpr2sympy(xdspec))
+                push!(pyspec,sjtopy(xdspec))
             end
         else
-            push!(pyspec,mxpr2sympy(dspec))
+            push!(pyspec,sjtopy(dspec))
         end
     end
     pyseries = sympy.series(pymx,pyspec...)
-    return maybe_sympy2mxpr(pyseries)
+    return pytosj(pyseries)
 end
 
 register_sjfunc_pyfunc("Series", "series")
@@ -259,19 +249,19 @@ D(expr,[x,n1],y,[z,n2]) gives the mixed derivative.
 "
 
 function apprules(mx::Mxpr{:D})
-    pymx = mxpr2sympy(mx[1])
+    pymx = sjtopy(mx[1])
     pyspec = []
     for dspec in margs(mx)[2:end]  # D(expr, [x,1], y, ...) --> diff(expr,x,1,y,...)
         if is_Mxpr(dspec,:List)
             for xdspec in margs(dspec)
-                push!(pyspec,mxpr2sympy(xdspec))
+                push!(pyspec,sjtopy(xdspec))
             end
         else
-            push!(pyspec,mxpr2sympy(dspec))
+            push!(pyspec,sjtopy(dspec))
         end
     end
     pyderivative = sympy.diff(pymx,pyspec...)
-    return maybe_sympy2mxpr(pyderivative)
+    return pytosj(pyderivative)
 end
 
 register_sjfunc_pyfunc("D", "diff")
@@ -281,7 +271,7 @@ register_sjfunc_pyfunc("D", "diff")
 @sjdoc Together "
 Together(sum) rewrites a sum of terms as a product.
 "
-apprules(mx::Mxpr{:Together}) = mx[1] |> mxpr2sympy |> sympy.together |> maybe_sympy2mxpr
+apprules(mx::Mxpr{:Together}) = mx[1] |> sjtopy |> sympy.together |> pytosj
 
 register_sjfunc_pyfunc("Together", "together")
 
@@ -290,7 +280,7 @@ register_sjfunc_pyfunc("Together", "together")
 @sjdoc Apart "
 Apart(product) computes a partial fraction decomposition of product
 "
-apprules(mx::Mxpr{:Apart}) = mx[1] |> mxpr2sympy |> sympy.apart |> maybe_sympy2mxpr
+apprules(mx::Mxpr{:Apart}) = mx[1] |> sjtopy |> sympy.apart |> pytosj
 
 register_sjfunc_pyfunc("Apart", "apart")
 
@@ -299,9 +289,6 @@ register_sjfunc_pyfunc("Apart", "apart")
 @sjdoc Simplify "
 Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword options kw1, ...
 "
-
-#apprules(mx::Mxpr{:Simplify}) = mx[1] |> mxpr2sympy |> sympy.simplify |> maybe_sympy2mxpr
-
 
 @make_simplify_func :Simplify simplify
 @make_simplify_func :TrigSimp trigsimp
@@ -329,20 +316,14 @@ Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword opt
 @sjdoc TrigSimp "
 TrigSimp(expr) does trigonometric simplification.
 "
-#apprules(mx::Mxpr{:TrigSimp}) = mx[1] |> mxpr2sympy |> sympy.trigsimp |> maybe_sympy2mxpr
 
 @sjdoc RatSimp "
 Put an expression over a common denominator, cancel and reduce.
 "
-#apprules(mx::Mxpr{:RatSimp}) = mx[1] |> mxpr2sympy |> sympy.ratsimp |> maybe_sympy2mxpr
 
 @sjdoc RadSimp "
 Rationalize the denominator.
 "
-#apprules(mx::Mxpr{:RadSimp}) = mx[1] |> mxpr2sympy |> sympy.radsimp |> maybe_sympy2mxpr
-# apprules(mx::Mxpr{:PowSimp}) = mx[1] |> mxpr2sympy |> sympy.powsimp |> maybe_sympy2mxpr
-# apprules(mx::Mxpr{:LogCombine}) = mx[1] |> mxpr2sympy |> sympy.logcombine |> maybe_sympy2mxpr
-# apprules(mx::Mxpr{:Separate}) = mx[1] |> mxpr2sympy |> sympy.separate |> maybe_sympy2mxpr
 
 #### FullSimplify
 
@@ -356,14 +337,14 @@ function do_FullSimplify(mx::Mxpr{:FullSimplify})
     funcs = [sympy.simplify, sympy.expand, sympy.fu, sympy.powsimp, sympy.sqrtdenest]
     objective = pyeval("lambda x: len(str(x))")
     megasimp = sympy.strategies[:tree][:greedy]((funcs, funcs), objective)
-    mx[1] |> mxpr2sympy |> megasimp |> maybe_sympy2mxpr
+    mx[1] |> sjtopy |> megasimp |> pytosj
 end
 
 @sjdoc Cancel "
 Cancel(expr) cancels common factors in the numerator and denominator.
 "
-#apprules(mx::Mxpr{:Cancel}) = sympy.cancel(mx[1] |> mxpr2sympy, extension=true) |> maybe_sympy2mxpr
-apprules(mx::Mxpr{:Cancel}) = mx[1] |> mxpr2sympy |> sympy.cancel |> maybe_sympy2mxpr
+#apprules(mx::Mxpr{:Cancel}) = sympy.cancel(mx[1] |> sjtopy, extension=true) |> pytosj
+apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy.cancel |> pytosj
 
 register_sjfunc_pyfunc("Cancel", "cancel")
 
@@ -373,8 +354,8 @@ Collect(expr,[x,y]) collects terms involving first x, then y.
 "
 apprules(mx::Mxpr{:Collect}) = do_Collect(mx,margs(mx)...)
 
-do_Collect(mx,expr,x) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy ) |> maybe_sympy2mxpr
-do_Collect(mx,expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> mxpr2sympy, x |> mxpr2sympy , list |> mxpr2sympy) |> maybe_sympy2mxpr
+do_Collect(mx,expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
+do_Collect(mx,expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
 do_Collect(mx,args...) = mx
 
 register_sjfunc_pyfunc("Collect", "collect")
@@ -387,28 +368,26 @@ Solves(expr,var) solves expr == 0 for var.
 "
 apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
 
-do_Solve(mx, expr) = expr |> mxpr2sympy |> sympy.solve |> maybe_sympy2mxpr
+do_Solve(mx, expr) = expr |> sjtopy |> sympy.solve |> pytosj
 
 function do_Solve(mx, expr, var::Symbol)
-    pyexpr = expr |> mxpr2sympy
-    pyvar = var |> mxpr2sympy
+    pyexpr = expr |> sjtopy
+    pyvar = var |> sjtopy
     res =     sympy.solve(pyexpr,pyvar)
-#    println(res)
-#    println(typeof(res))
-    res |>  maybe_sympy2mxpr
+    res |>  pytosj
 end
 
 function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
-    peqs = eqs |> mxpr2sympy
-    pyvars = vars |> mxpr2sympy
-    sympy.solve(peqs,pyvars) |>  maybe_sympy2mxpr
+    peqs = eqs |> sjtopy
+    pyvars = vars |> sjtopy
+    sympy.solve(peqs,pyvars) |>  pytosj
 end
 
 register_sjfunc_pyfunc("Solve", "solve")
 
 # This is broken
 apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
-do_DSolve(mx, expr) = expr |> mxpr2sympy |> sympy.dsolve |> maybe_sympy2mxpr
+do_DSolve(mx, expr) = expr |> sjtopy |> sympy.dsolve |> pytosj
 
 
 #### Roots
@@ -418,7 +397,7 @@ of lists. The two elements of each sublist give the root and its multiplicity.
 "
 # could use a macro for these
 #apprules(mx::Mxpr{:Roots}) = do_Solve(mx,margs(mx)...)
-apprules(mx::Mxpr{:Roots}) = mx[1] |> mxpr2sympy |> sympy.roots |> maybe_sympy2mxpr  |> SJulia.unpack_to_List
+apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy.roots |> pytosj  |> SJulia.unpack_to_List
 
 register_sjfunc_pyfunc("Roots", "roots")
 
@@ -426,7 +405,7 @@ register_sjfunc_pyfunc("Roots", "roots")
 @sjdoc RealRoots "
 RealRoots(expr) solves for the real roots of expr.
 "
-apprules(mx::Mxpr{:RealRoots}) = mx[1] |> mxpr2sympy |> sympy.real_roots |> maybe_sympy2mxpr
+apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy.real_roots |> pytosj
 
 register_sjfunc_pyfunc("RealRoots", "real_roots")
 
@@ -437,9 +416,8 @@ ToSymPy(expr) converts expr to a (python) PyObject.
 "
 
 function apprules(mx::Mxpr{:ToSymPy})
-    res = mxpr2sympy(margs(mx)...)
+    res = sjtopy(margs(mx)...)
 end 
-
 
 #### ToSJulia
 
@@ -448,28 +426,32 @@ ToSJulia(expr) converts the python PyObject expr to an SJulia expression. Normal
 by SymPy are automatically converted to SJulia expressions.
 "
 
-@mkapprule1 ToSJulia
+# @mkapprule ToSJulia
 
-# TODO. Include option or another function to recursivley conver Mxpr's that
-# may have some PyObjects as members.
-do_ToSJulia(mx::Mxpr,expr::PyCall.PyObject) = sympy2mxpr(expr)
-do_ToSJulia(mx::Mxpr,expr) = expr
-do_ToSJulia(mx::Mxpr,x...) = mxpr(:List,x)
+apprules(mx::Mxpr{:ToSJulia}) = do_ToSJulia(mx,margs(mx)...)
 
-@mkapprule PossibleClosedForm
+do_ToSJulia(mx::Mxpr{:ToSJulia}, s::Symbol) = setfixed(_pytosj(symval(s)))
+do_ToSJulia(mx::Mxpr{:ToSJulia}, e::PyCall.PyObject) = setfixed(_pytosj(e))
+do_ToSJulia(mx::Mxpr{:ToSJulia}, x) = x
+
+#### PossibleClosedForm
+
+apprules(mx::Mxpr{:PossibleClosedForm}) = do_PossibleClosedForm(mx,margs(mx)...)
+
+# register_sjfunc_pyfunc("PossibleClosedForm", "identify")
 
 @sjdoc PossibleClosedForm "
 PossibleClosedForm(x) attempts to find an exact formula for the floating point number x.
 "
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat)
-   x |>  mpmath.identify |> sympy.sympify |> sympy2mxpr
+   x |>  mpmath.identify |> sympy.sympify |> pytosj
 end
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     kws = Dict()
-    nargs = mxpr2sympy_kw(mx,kws)    
-    pyargs = mxpr2sympy(nargs...)
+    nargs = sjtopy_kw(mx,kws)    
+    pyargs = sjtopy(nargs...)
     setdps::Bool = false
     if haskey(kws,"dps")
         set_mpmath_dps(kws["dps"])
@@ -478,9 +460,8 @@ function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     end
     pyres = mpmath.identify(pyargs...; kws...)
     if setdps restore_mpmath_dps() end
-    pyres |> sympy.sympify |> sympy2mxpr
+    pyres |> sympy.sympify |> pytosj
 end
-
 
 ## utility
 
@@ -491,9 +472,9 @@ function varspecs_to_tuples_of_sympy(args::Array)
     oarr = []
     for x in args
         if is_Mxpr(x,:List)
-            push!(oarr, tuple(map(mxpr2sympy, margs(x))...))
+            push!(oarr, tuple(map(sjtopy, margs(x))...))
         else
-            push!(oarr,mxpr2sympy(x))
+            push!(oarr,sjtopy(x))
         end
     end
     return oarr
