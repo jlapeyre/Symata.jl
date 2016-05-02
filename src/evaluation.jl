@@ -12,8 +12,7 @@
 # expression as metadata, then we don't need to regenerate them,
 # if we find the cached copy of an expression.
 #
-#lcheckhash(x) = checkhash(x)  # compute hash and look for cached copy of expr
-@inline lcheckhash(x) = x      # do nothing
+lcheckhash(x) = x      # do nothing
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
@@ -198,7 +197,6 @@ function infseval(mxin::Mxpr)
 end
 
 function infseval(s::SJSym)
-#    infseval(s,getssym(s))
     mx = meval(s)
     return mx == s ? s : infseval(mx)
 end

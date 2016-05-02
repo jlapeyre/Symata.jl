@@ -8,7 +8,6 @@ function has_head(mx::Mxpr, h::SJSym)
     return false
 end
 has_head(x,h::SJSym) = false
-#has_head(x) = error("has_head: unimplemented")
 
 # These should go somewhere else.
 # This is applied at toplevel after expression has been constructed.

@@ -318,9 +318,6 @@ function make_math()
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],2)
         end
-        # if length(x) == 3   # why was this here ?
-        #     write_sympy_apprule(sjf,x[3],2)
-        # end
     end
 
     # Mma allows one arg, as well
@@ -443,14 +440,6 @@ end
 
 make_math()
 
-# Thse aer not used anywhere !
-# do_Abs2(mx::Mxpr{:Abs2},x::Integer) = x*x
-# do_Abs2{T<:Integer}(mx::Mxpr{:Abs2},z::Complex{T}) = ((x,y) = reim(z); x*x + y*y)
-
-# use sympy
-#do_ArcTan(mx::Mxpr{:ArcTan},x::Integer) = x == 1 ? 4 * :Pi : x == 0 ? 0 : mx
-#do_ArcTan(mx::Mxpr{:ArcTan},x::SJSym) = x == :Infinity ? 1//2 * :Pi : mx
-
 #### Gamma function
 
 @mkapprule Gamma :nargs => 1:2
@@ -503,8 +492,7 @@ digits are at lower indexes.
 "
 
 do_common("IntegerDigits")
-#apprules(mx::Mxpr{:IntegerDigits}) = do_IntegerDigits(mx,margs(mx)...)
-#do_IntegerDigits(mx,args...) = mx
+
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer) = setfixed(mxpr(:List,reverse!(digits(n))...))
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer) = setfixed(mxpr(:List,reverse!(digits(n,b))...))
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer,p::Integer) = setfixed(mxpr(:List,reverse!(digits(n,b,p))...))
@@ -568,13 +556,10 @@ do_N{T<:Real,V<:Integer}(n::T,p::V)  = float_with_precision(n,p)
 
 function float_with_precision(x,p)
     if p > 16
-#        pr = precision(BigFloat)
         pr = precision(BigFloat)
         dig = round(Int,p*3.322)
-#        set_bigfloat_precision(dig)  # deprecated
         setprecision( BigFloat, dig) # new form
         res = BigFloat(x)
-#        set_bigfloat_precision(pr)
         setprecision(BigFloat, pr)
         return res
     else
@@ -726,11 +711,6 @@ expression is parsed, so it is much faster than 'a + I*b'.
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T,b::T) = complex(a,b)
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T) = complex(a)
 
-# This is old, from apprules
-# apprules(mx::Mxpr{:Complex}) = makecomplex(mx,mx[1],mx[2])
-# makecomplex{T<:Real,V<:Real}(mx::Mxpr{:complex},n::T,d::V) = complex(n,d)
-# makecomplex(mx,n,d) = mx
-
 @sjdoc Rational "
 Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
 expression is parsed, so it is much faster than 'a/b'.
@@ -824,11 +804,6 @@ zchop!{T<:AbstractArray}(a::T, eps=chop_eps) = (for i in 1:length(a) a[i] = zcho
 zchop(x::Expr,eps=chop_eps) = Expr(x.head,zchop(x.args)...)
 zchop(x) = x
 zchop(x,eps) = x
-# This does not work. Int is a collection in Julia. How can we distinguish an actual collection from a number ?
-#zchop(x) = applicable(start,x) ? map(zchop,x) : x
-#zchop(x,eps) =  applicable(start,x) ? map((x)->zchop(x,eps),x) : x
-#zchop{T<:Union{AbstractString,Char}}(x::T,eps=chop_eps) = x
-#zchop{T<:Irrational}(x::T,eps=chop_eps) = zchop(float(x),eps)
 
 function zchop{T<:Mxpr}(mx::T)
     nargs = similar(margs(mx))
@@ -843,11 +818,8 @@ function zchop{T<:Mxpr}(mx::T,zeps)
 end
 
 @mkapprule Chop  :nargs => 1:2
-#apprules(mx::Mxpr{:Chop}) = do_Chop(mx,margs(mx)...)
 do_Chop(mx::Mxpr{:Chop}, x) = zchop(x)
 do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
-
-#do_Chop(mx::Mxpr{:Chop}, x...) = mx
 
 #### Exp
 
@@ -861,7 +833,6 @@ apprules(mx::Mxpr{:Exp}) = mxpr(:Power,:E,mx[1])
 #### Mod
 @mkapprule  Mod  :nargs => 2
 do_Mod{T<:Integer, V<:Integer}(mx::Mxpr{:Mod}, x::T, y::V) = mod1(x,y)
-#do_Mod{T<:Integer, V<:Integer, W<:Integer}(mx::Mxpr{:Mod}, x::T, y::V, d::W) = div(x,y) + d
 
 #### DivRem
 @mkapprule  DivRem  :nargs => 2

@@ -43,15 +43,6 @@ set_attribute(:Csc,:Protected)
 # the symbol x should be local, anyway.
 @ex ClearAll(x)
 
-# Not trig. We can move this.
-#unset_attribute(:Power,:Protected)
-
-# These slow everything down, because all of them are checked against
-# every instance of Power.
-#@ex  Exp(Log(x_)) := x
-
-#set_attribute(:Power,:Protected)
-
 # We just put this here because there was some problem with load order.
 
 unprotect(:ExpToTrig)
@@ -65,9 +56,7 @@ ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
 But, the transformation from Cosh to Cos is not implemented.
 "
 
-# These are for testing downrules.
-# We don't really want to eat our own dogfood with Log. These
-# should be implemented more efficiently.
+# These are only for testing downrules.
 const directed_infinitym1 = setfixed(mxpr(:DirectedInfinity,-1))
 unprotect(:Log)
 @ex Log(1) := 0

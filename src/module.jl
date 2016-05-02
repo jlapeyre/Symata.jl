@@ -45,7 +45,6 @@ function localize_module!(mx::Mxpr{:Module})
     end
     unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # first thing is clear existing local vars. Not neccessary ?
     return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them
-#    return body  # Return just the compound expression
 end
 
 substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :

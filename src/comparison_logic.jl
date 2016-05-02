@@ -41,9 +41,6 @@ remains unevaluated. Not(expr) may also be entered '! expr'.
 
 @mkapprule Not :nargs => 1
 
-# probably don't  need this one
-#do_Not(mx::Mxpr{:Not},ex) = ex == true ? false : ex == false ? true : mx
-
 do_Not(mx::Mxpr{:Not}, ex::Bool) = ex == true ? false : true
 
 do_Not{T<:Number}(mx::Mxpr{:Not}, ex::T) = mx
@@ -206,7 +203,6 @@ end
 
 _do_Comparison{T<:SJReal}(a::SJSym, comp::SJSym, b::T) = nothing
 _do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
-#_do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
 _do_Comparison{T<:SJReal}(a::T, comp::SJSym, b::Mxpr) = nothing
 _do_Comparison{T<:SJReal}(a::Mxpr, comp::SJSym, b::T) = nothing
 

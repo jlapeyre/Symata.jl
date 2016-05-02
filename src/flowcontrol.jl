@@ -81,10 +81,8 @@ function do_For(mx::Mxpr{:For}, start, test, incr)
     while
         doeval(test)
         @checkbreak
-#        @checkthrowreturn(res)
         doeval(incr)
         @checkbreak
-#        @checkthrowreturn(res)
     end
     Null
 end

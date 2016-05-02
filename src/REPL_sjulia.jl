@@ -19,20 +19,6 @@ end
 
 function SJulia_parse_REPL_line(line)
     Base.parse_input_line("@SJulia.ex " * line)
-    # Doing something with more information, as below, would
-    # be nice, but some errors crash the REPL. Using
-    # the macro @ex instead of function exfunc, makes a
-    # much more stable REPL. There is probably a good
-    # way to do it.
-
-    # prev = syntax_deprecation_warnings(false)
-    # try
-    #     exfunc(Base.parse_input_line(line))
-    # catch e
-    #     print_with_color(:red, "SJulia: ",e)
-    # finally
-    #     syntax_deprecation_warnings(prev)
-    # end
 end
 
 function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
@@ -134,8 +120,6 @@ function RunSJuliaREPL(repl::LineEditREPL)
                         prompt_prefix=Base.text_colors[:blue],
                         complete = SJuliaCompletionProvider(repl),
                         on_enter = return_callback
-#                        prompt_suffix = hascolor ?  hascolor not defined
-#                        (repl.envcolors ? Base.input_color : repl.input_color) : ""
                         )
     sjulia_prompt.on_done =
         REPL.respond(SJulia_parse_REPL_line,
@@ -199,7 +183,6 @@ function sjulia_run_frontend(repl::LineEditREPL, backend)
     end
     repl.backendref = backend
 #### Use this to add a mode to the stock repl
-#    RunSJuliaREPL(repl)
     run_interface(repl.t, interface)
     dopushdisplay && popdisplay(d)
 end
@@ -337,7 +320,6 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     sjulia_prompt =
         LineEdit.Prompt("sjulia > ";
                         prompt_prefix=Base.text_colors[:blue],
-#                        keymap_func_data = repl,   what does this do ?
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",
                         complete = sjulia_replc,
@@ -514,19 +496,15 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     a = Dict{Any,Any}[skeymap, repl_keymap, prefix_keymap, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
     prepend!(a, extra_repl_keymap)
 
-#    sjulia_prompt.keymap_dict = LineEdit.keymap(a)
     julia_prompt.keymap_dict = LineEdit.keymap(a)
 
     mk = mode_keymap(julia_prompt)
-#    mk = mode_keymap(sjulia_prompt)
 
     b = Dict{Any,Any}[skeymap, mk, prefix_keymap, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
     prepend!(b, extra_repl_keymap)
 
     sjulia_prompt.keymap_dict = LineEdit.keymap(a)
-    #sjulia_prompt.keymap_dict = shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
     shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
 
     ModalInterface([sjulia_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
-#    ModalInterface([sjulia_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
 end

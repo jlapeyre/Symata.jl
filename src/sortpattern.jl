@@ -18,7 +18,6 @@ function has_pattern{T}(mx::Mxpr{T})
         res = has_pattern(mx[i])
         res[1] == true && return res
     end
-#    println("Head is '", symname(head(mx)), "'")
     if symname(mhead(mx)) == :Pattern
         return (true, mx[2])
     end
@@ -26,7 +25,6 @@ function has_pattern{T}(mx::Mxpr{T})
 end
 
 function has_pattern(x)
-#    println("in generic $x")
     (false,false)
 end
 
@@ -36,13 +34,9 @@ function isless_patterns(a::Mxpr, b::Mxpr)
     for i in 1:n
         (haspata,blanka) = has_pattern(a)
         (haspatb,blankb) = has_pattern(b)
-#        println("($haspata,$haspatb)")
         res = haspatb && (! haspata)
-#        println("($res)")
         if haspatb && (! haspata)  return true end
         length(blanka) > length(blankb) && return true
     end
     return false
 end
-
-#sort!(dvs.args,lt=isless_patterns)

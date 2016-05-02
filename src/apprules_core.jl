@@ -77,19 +77,6 @@ macro mkapprule(args...)
         set_pattributes([$headstr],[:Protected])
         $apprulecall
         $defaultmethod
-#          $fns($mxarg, args...) = $defmx
-        end)
-end
-
-# We need to get rid of this,  eg. with :nodefault => true, or something
-# Don't write the default rule. 
-macro mkapprule1(head)
-    headstr = string(head)
-    mxarg = parse("mx::Mxpr{:$headstr}") # something easier worked too.
-    fns = symbol("do_" * headstr)
-    esc(quote
-        set_pattributes([$headstr],[:Protected])
-        apprules($mxarg) = $fns(mx, margs(mx)...)
         end)
 end
 

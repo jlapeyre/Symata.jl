@@ -80,7 +80,6 @@ do_expand_power(p,b::Mxpr{:Plus}, n::Integer) =
     length(b) != 2 ? p : do_expand_binomial(p,b[1],b[2],n)
 do_expand_power(p,b,ex) = p
 
-#do_expand_binomial(mx::Mxpr{:Expand}, a, b, n::Integer) = @time(expand_binomial(a,b,n))
 do_expand_binomial(p,a, b, n::Integer) = expand_binomial(a,b,n)
 do_expand_binomial(a,b,n) = p
 
@@ -101,7 +100,6 @@ function mulfacs(a::Mxpr{:Plus},b::Mxpr{:Plus})
     for ax in a.args
         for bx in b.args
             i += 1
-#            println("  1:  $ax,  $bx")
             t = flatcanon!(mxpr(:Times, ax, bx)) # TODO specialize for types of ax, bx
             mergesyms(t,ax)
             mergesyms(t,bx)
@@ -134,7 +132,6 @@ function _pushfacs!(facs,b)
 end
 
 function mulfacs(a::Mxpr{:Plus},b)
-#    println("2:  $a,  $b")
     terms = newargs(length(a))
     i = 0
     for ax in a.args
@@ -148,7 +145,6 @@ function mulfacs(a::Mxpr{:Plus},b)
         end
         canonexpr!(terms[i])
         mergeargs(terms[i])
-#        setfixed(terms[i])
     end
     mx = mxpr(:Plus,terms)
     mergeargs(mx)
@@ -206,8 +202,6 @@ function expand_binomial{T<:Integer}(a,b,n::T)
         # TODO optimize for symbols a,b, as in general case below. No flatcanon.
         args[2] = _expand_binomial_aux1(a,b,n)
         args[n] = _expand_binomial_aux2(a,b,n)
-#        args[2] = flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
-#        args[n] = flatcanon!(mxpr(:Times,n,a,canonpower(b,(n-1))))
         mergesyms(args[2],a)
         mergesyms(args[2],b)
         mergesyms(args[n],a)
@@ -254,7 +248,6 @@ end
 
 function _expand_mulpowers{T<:ExpNoCanon}(fac,b1::T,e1,b2,e2)
     m1 = b1^e1
-#    m2 = b2^e2
     m2 = canonpower(b2,e2)
     setfixed(m1)
     setfixed(m2)
@@ -265,7 +258,6 @@ end
 
 function _expand_mulpowers{T<:ExpNoCanon}(fac,b1,e1,b2::T,e2)
     m1 = canonpower(b1,e1)
-#    m1 = b1^e1
     m2 = b2^e2
     setfixed(m1)
     setfixed(m2)
@@ -296,7 +288,6 @@ in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
 "
 
 # Why mkapprule does not work ?
-#mkapprule("Apply")
 apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
 
 # This allows things like:  Apply(f)([a,b,c])
@@ -313,7 +304,6 @@ function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
     else
         mx = mxpr(head,margs(mxa))
     end
-    # length(mx) == 0 && return 0                # why did I do this ???
     is_Mxpr(mx) && length(mx) == 0 && return 0   # do this instead. fixes bug Apply(Times, [DirectedInfinity(),0]) --> 0
     mx
 end
@@ -355,9 +345,7 @@ end
 do_reverse(mx::Orderless) = mx
 
 function do_reverse(mx::Mxpr)
-#    println("Head of mx is ", mhead(mx))
     if get_attribute(mx,:Orderless)
-#        println("mx is Orderless")
         return mx
     end
     setfixed(mxpr(mhead(mx),reverse(margs(mx))))
@@ -419,7 +407,6 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     @inbounds for i in 1:length(args)
         mx.args[1] = args[i]  # map f of one argument
         nargs[i] = doeval(mx)
-#        nargs[i] = doeval(mxpr(f,args[i]))
     end
     mxpr(mhead(expr),nargs)
 end
@@ -493,7 +480,6 @@ eg: getints = Cases(_Integer). The head of the returned object is the same as th
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
 
 set_pattributes("Cases")
-#set_attribute(:Cases, :Protected)
 function apprules(mx::Mxpr{:Cases})
     do_Cases(mx,margs(mx)...)
 end

@@ -91,8 +91,6 @@ function extomx(ex::Expr)
     if ex.head == :call
         head = jtomsym(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
-#    elseif ex.head == :$
-        #        return a[1]
     elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])
     elseif ex.head == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
@@ -182,10 +180,6 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 # ==(a,b) --> comparison  a,==,b
 # also,  '<:' is the head in v0.5. We don't yet handle this
 rewrite_to_comparison(ex::Expr) = Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
-
-# Not used
-#rewrite_binary_minus(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:(-),mx[2]))
-#rewrite_division(mx::Mxpr) = mxpr(:+, mx[1], mxpr(:^,mx[2],-1))
 
 # There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.

@@ -74,8 +74,6 @@ However, currently, Julia Arrays can be accessed with Part, and return true unde
 
 @doap AtomQ(x) = atomq(x)
 
-#    apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
-
 @sjdoc EvenQ "
 EvenQ(expr) returns true if expr is an even integer.
 "

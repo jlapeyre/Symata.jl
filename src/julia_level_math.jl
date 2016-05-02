@@ -24,7 +24,3 @@
 ^(base::SJSym,expt) = mxpr(:Power,base,expt)
 
 /(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
-
-# *{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mmul(a,b)
-# +{T<:Number, V<:Number}(a::SSJSym{T}, b::SSJSym{V}) = mplus(a,b)
-# +{T<:Number}(a::SSJSym{T}, b::Number) = mplus(a,b)

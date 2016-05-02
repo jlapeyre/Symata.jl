@@ -28,7 +28,6 @@ end
 # setindex!, i.e.  mx[k] = va; will reorder every time it is called on
 # type Orderless.
 macro ma(mx,k)
-#    :((margs($(esc(mx)))[$(esc(k))]))
     :((($(esc(mx))).args[$(esc(k))]))
 end
 

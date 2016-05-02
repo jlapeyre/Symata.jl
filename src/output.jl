@@ -7,7 +7,6 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output
 
 # A space, or maybe not.
-#const opspc = " "
 opspc() = getkerneloptions(:compact_output) ? "" : " "
 
 # Julia-like syntax
@@ -41,9 +40,6 @@ fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
 needsparen{T<:Integer}(x::Rational{T}) = true
-
-# rational does as well !?
-#needsparen{T<:Integer}(x::T) = x < 0
 
 needsparen{T<:Integer}(x::Complex{T}) = real(x) != 0
 needsparen{T<:Real}(x::Complex{T}) = true
@@ -280,8 +276,7 @@ function show_infix(io::IO, mx::Mxpr)
     end
     for i in startind:length(args)-1
         arg = args[i]
-#        if needsparen(args[i]) && i>1 # && wantparens
-        if needsparen(arg)  # && ! (atomq(arg) && i> 1)  #  when did we put this i> 1 in ?? it breaks stuff
+        if needsparen(arg)
             np = true
             print(io,"(")
         else
@@ -294,7 +289,7 @@ function show_infix(io::IO, mx::Mxpr)
         print(io, opspc(), sepsym, opspc())
     end
     if ! isempty(args)
-        if needsparen(args[end]) #  && wantparens
+        if needsparen(args[end])
             np = true
             print(io,"(")
         else

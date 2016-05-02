@@ -206,7 +206,6 @@ function patsubst!(pat::Mxpr,cd)
         @inbounds for i in 1:length(pa)
             if havecapt(pa[i],cd)
                 pa[i] =  retrievecapt(pa[i],cd)
-#                mergeargs(pa[i])  # does this help ? probably expensive
             elseif is_Mxpr(pa[i])
                 pa[i] = patsubst!(pa[i],cd)
             end

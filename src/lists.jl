@@ -255,7 +255,6 @@ do_ConstantArray(mx,args...) = mx
 function do_ConstantArray(mx,expr,n)
     nargs = newargs(n)
     @inbounds for i in 1:n
-#        nargs[i] = deepcopy(expr)
         nargs[i] = recursive_copy(expr)
     end
     setfixed(mxpr(:List,nargs))
@@ -266,8 +265,6 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
      @inbounds for i in 1:n
         nargs[i] = setfixed(recursive_copy(expr))
-#        nargs[i] = setfixed(deepcopy(expr))  slow
-#        nargs[i] = setfixed(copy(expr))  incorrect
     end
     setfixed(mxpr(:List,nargs))
 end
@@ -323,7 +320,6 @@ function apprules(mx::Mxpr{:Table})
     ex = deepcopy(expr)
     args = do_Table(ex,iter)
     mx1 = mxpr(:List,args) # takes no time
-#    mergesyms(mx1,:nothing) # not correct, but stops the merging
     setcanon(mx1)
     setfixed(mx1)
     return mx1
@@ -358,15 +354,6 @@ function do_Table(expr,iter::SJIter1)
         args[i] = doeval(expr)
     end
     return args
-    
-    #  I think the stuff below is wrong
-    #    val = doeval(expr)
-    # if is_Mxpr(val)
-    #     do_table_set_arg_const_copy(args,val,imax)
-    # else
-    #     do_table_set_arg_const(args,val,imax)
-    # end
-    
 end
 
 function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
@@ -416,12 +403,9 @@ function do_Table{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     clearsyms(exin) # Clear the iterator variable
     ex = exin
     @inbounds for i in 1:imax
-        #        ex = copy(exin)
         set_all_part_specs2(ex,exprpos,i)
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
-#        args[i] = meval1(ex)
-#        args[i] = meval(ex)
         setfixed(args[i])
         setcanon(args[i])
     end

@@ -31,9 +31,6 @@ typealias SJSymuVs Array{Any,1}
 @inline newattributes() = SJSymAttrs()
 @inline newdownvalues() = Array(Any,0)
 @inline newupvalues() = Array(Any,0)
-# TODO
-#type DownValueT
-#end
 
 # Almost all symbols use Any for parameter T.  We experimented a bit
 # with a value of Int for some symbols It may be better to have no

@@ -48,7 +48,6 @@ function make_sjiter(mx::Mxpr{:List})
 end
 
 function make_sjiter{T}(mx,args::Array{T,1})
-#    args = margs(mx)
     len = length(args)
     len < 1 && itererror(mx)
     if len == 1
@@ -86,10 +85,6 @@ function make_sjiter{T}(mx,args::Array{T,1})
             #  Mma does not simplify this: x + y + -2*(x + y)
             #  Mma does simplify this: x + y + -1*(x + y)
             tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
-#            tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Expand ,mxpr(:Minus,imin))), mxpr(:Power,di,-1))
-#            tst = extomx(:( ($(args[3]) - $(args[2])) / $(args[4]))) # This works, but is slow. need Expand, too.
-#            tst = @exnoeval(:( ((args[3]) - (args[2])) / (args[4]))) # this is wrong
-#            println(mxpr(:FullForm,tst))
             num_iters = doeval(tst)
             if is_type_less(num_iters, Number)
                 nargs[2] = doeval(args[2])
@@ -127,9 +122,7 @@ type SJIterA3{T,V,W} <: AbstractSJIterA
     num_iters::Int
 end
 
-#itererrora(a::Array) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator.")
 itererrora{T<:Array}(a::T,s::AbstractString) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
-#itererrora(mx::Mxpr) = error(mx, " does not have the form of a (single variable) iterator.")
 itererrora(mx::Mxpr,s::AbstractString) = error(mx, " does not have the form of a (single variable) iterator. ",s)
 
 make_sjitera(x) = itererrora(x)

@@ -37,7 +37,6 @@
 # Blank, BlankSequence, BlankNullSequence are not less than one another
 
 const _jstypeorder = Dict{DataType,Int}()
-#const _jsoporder = Dict{Symbol,Int}()  # maybe more efficient to use this rather than mult dispatch.
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.
@@ -49,10 +48,6 @@ function _mklexorder()
         i += 1
     end
     i = 1
-    # for op in (:Plus,:Times,:Power)
-    #     _jsoporder[op] = i
-    #     i += 1
-    # end
 end
 
 _mklexorder()
@@ -62,13 +57,6 @@ function mxtypeorder{T<:DataType}(typ::T)
     ! haskey(_jstypeorder,typ)  && return 5  # Any
     return _jstypeorder[typ]
 end
-
-# function mxoporder(op::SJSym)
-#     ! haskey(_jsoporder,op)  && return 4 # higher
-#     return _jsoporder[op]
-# end
-
-## FIXME jslexless.  simplify and economize this code.
 
 # Return the name of the blank or ""
 # For sorting, no name becomes a zero-length string.
@@ -136,8 +124,6 @@ for b in ("Blank","BlankSequence","BlankNullSequence")
         end
     end
 end
-#jslexless(x::Mxpr, y::BlankXXX) = false
-#jslexless(x::BlankXXX, y::Mxpr) = true
 
 jslexless(x::Mxpr, y::Mxpr{:Pattern}) = true
 jslexless(x::Mxpr{:Pattern}, y::Mxpr) = false
@@ -231,12 +217,9 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
 end
 
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
-# compiler notes that the next method overwrites one above (they are identical)
-# jslexless(x::SJSym, y::Mxpr) = true
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
 _jslexless(x::DataType, y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
-#jslexless{T}(x::T,y::T) = !(x === y) && _jslexless(x,y)  # x === y may or may not be efficient.
 jslexless{T}(x::T,y::T) =  _jslexless(x,y)
 # We have defined an order for different types
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
@@ -401,7 +384,6 @@ function whichinfinity(mx)
     end
     prodsq = real(prod * conj(prod))
     fac = mpow(prodsq,-1//2)
-#    println("prod $prod, prodsq $prodsq,  fac $fac")
     direction = prod*mpow(prodsq,-1//2)
     return mxprcf(:DirectedInfinity, direction)
 end
@@ -485,7 +467,6 @@ function canonexpr!(mx::Mxpr{:Power})
         setfixed(mx)
     end
     return mx
-    #    mergeargs(mx)
 end
 
 
@@ -566,18 +547,11 @@ end
 
 # This is now handled earlier
 function handle_coefficient_is_zero(mx,sum0)
-    # a = margs(mx)
-    # for i in 1:length(a)
-    #     if is_Mxpr(a[i],:DirectedInfinity) ||  a[i] == Indeterminate
-    #         return Indeterminate
-    #     end
-    # end
     return sum0
 end
 
 # Get numeric coefficient of expr. It is 1 if there is none.
 function numeric_coefficient(x::Mxpr{:Times})
-#    local c::Number  why is this here ?
     c = is_type_less(x[1],Number) ? x[1] : 1
 end
 numeric_coefficient{T<:Number}(x::T) = x
@@ -585,7 +559,6 @@ numeric_coefficient(x) = 1
 
 # Get numeric exponent; may be 1 (zero never encountered, I hope)
 function numeric_expt(x::Mxpr{:Power})
-#    local c::Number
     c = is_type_less(expt(x),Number) ? expt(x) : 1
 end
 numeric_expt{T<:Number}(x::T) = 1
@@ -594,7 +567,6 @@ numeric_expt(x) = 1
 # TODO: Tests fail unless we copy. But, there may be a way around this
 function _rest!(mx::Mxpr)
     res=copy(mx)  # could be slow
-#    res = mx
     shift!(margs(res))
     return length(res) == 1 ? @ma(res,1) : res
 end
@@ -673,9 +645,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                 end
                 n += 1
             end
-#            a = mulpowers(a)
             if  length(a) == 1
-#                a = mulpowers(a[1])  # BAD
                 return a[1]
             end
             if length(a) == 0

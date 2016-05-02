@@ -68,7 +68,6 @@ rather to the current value of b every time a is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 
-#@mkapprule Set :nargs => OneOrMore
 @mkapprule Set
 
 function do_Set(mx::Mxpr{:Set})
@@ -289,7 +288,6 @@ function upsetdelayed(mx,lhs::Mxpr, rhs)
 end
 
 
-
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
@@ -351,8 +349,6 @@ by UserSyms().
 function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
         checkprotect(a)
-#        if is_type_less(a,String)  TODO implement globing, etc.
-        #        else
         delete_sym(a)
     end
 end
@@ -489,10 +485,6 @@ UpValues(s) returns a List of UpValues associated with symbol s. These are value
 that are typically set with UpSet.
 "
 
-# @sjexamp( UpValues,
-#          ("ClearAll(f)",""),
-#          ("f(x_) := x^2",""),
-#          ("UpValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
 apprules(mx::Mxpr{:UpValues}) = sjlistupvalues(mx[1])
 
 #### Example
@@ -569,16 +561,7 @@ doreplaceall(mx,a,b) = mx
          ("zz = 10 * b^2 * (c+d)","zz = 10 * b^2 * (c+d)"),
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
-
-# These are post option removal args
-#  ReplaceRepeated::argrx:
-#   ReplaceRepeated called with 0 arguments; 2 arguments are expected.
-
 @mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
-
-#@mkapprule ReplaceRepeated
-
-#apprules(mx::Mxpr{:ReplaceRepeated}) = do_ReplaceRepeated(mx,mx[1],mx[2])
 
 do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,Rule_to_PRule(r); kws...)
 
@@ -646,7 +629,6 @@ may always be entered in 'FullForm'.
 
 # FullForm is implemented in io.jl
 
-
 ## A few Number rules
 
 # These may not all be necessary.
@@ -683,11 +665,6 @@ do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) = b ==
 do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
 do_Power{T<:Number}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
 
-# Finish this sometime
-# do_Power{T<:Real,V<:AbstractFloat}(mx::Mxpr{:Power}, b::T, expt::V)
-
-# This conflicts with mpow in arithmetics.jl
-#
 # Check if the exact answer is an integer.
 function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,expt::V)
     mpow(b,expt)
@@ -810,17 +787,6 @@ apprules(mx::Mxpr{:Big}) = do_Big(mx,mx[1])
 do_Big(mx,x) = mx
 do_Big{T<:Number}(mx,x::T) = big(x)
 
-# This appears to be done by canonicalizer. So it is a waste of time.
-# function apprules(mx::Mxpr{:Plus})
-#     if length(mx) == 2
-#         doplus(mx,mx[1],mx[2])
-#     else
-#         mx
-#     end
-# end
-#doplus(mx,a::Number,b::Number) = mplus(a,b)
-#doplus(mx,b,e) = mx
-
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
 #### Tracing evaluation
@@ -924,13 +890,11 @@ implemented feature.
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
 hdo_getage(mx,s::SJSym) = Int(symage(s))
 hdo_getage(mx,s::Mxpr) = Int(getage(s))
-#do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 hdo_getage(mx,x) = mx
 
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
 do_getage(mx,s::SJSym) = Int(symage(s))
 do_getage(mx,s::Mxpr) = Int(getage(s))
-#do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
 
 @sjdoc FixedQ "
@@ -984,8 +948,6 @@ This is all user defined symbols (unless you have imported symbols from elsewher
 
 @doap UserSyms2() = usersymbolsListold()
 
-#apprules(mx::Mxpr{:UserSyms2}) = 
-
 @sjdoc CurrentContext "
 CurrentContext() returns the name of the current context.
 "
@@ -1036,19 +998,6 @@ do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
 function do_Help{T<:Regex}(mx::Mxpr{:Help},r::T)
     print_matching_topics(r)
 end
-
-
-# function do_Help(mx,args...)
-#     if length(mx) > 0 && mx[1] == mxpr(:RuleDelayed, :All,true)
-#         print_all_docs()
-#     else
-#         if length(margs(mx)) == 0
-
-#         end
-#         print_doc(margs(mx)...)
-#     end
-# end
-
 
 #### Module
 
@@ -1131,10 +1080,7 @@ Counts(list) returns a dictionary of the number of times each distinct element o
 occurs.
 "
 
-# Broken at the moment
-# import DataStructures: OrderedDict
-
-# We should use an ordered dict
+# We should use an ordered dict, but the package is broken
 function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
 #    d = OrderedDict{Any,Any}()  # We need to canonicalize this
     d = Dict{Any,Any}()  # We need to canonicalize this

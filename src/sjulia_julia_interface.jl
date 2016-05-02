@@ -74,8 +74,6 @@ key,value pairs is returned.
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]
-#    args = do_unpack(obj)
-    #    mx = mxpr(:List,args)
     mx = unpack_to_List(obj)
     setfixed(mx)
     setcanon(mx)
@@ -135,21 +133,3 @@ function do_pack(T,sjobj)
     end
     return args
 end
-
-
-# We really need to be able to Translate from SJulia back into Julia
-# There are conversion tables in
-# math_functions.jl
-# parse.jl
-# mxpr_top.jl
-# These should be organized better--- for translating in both directions.
-
-
-#### JFunc
-
-# function apprules(mxpr::Mxpr{:JFunc})
-#     jname = mx[1]
-#     paramlist = mx[2]
-#     body = mx[3]
-#     jxpr =
-# end

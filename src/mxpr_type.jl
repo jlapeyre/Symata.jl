@@ -70,9 +70,6 @@ getdefinition(sym::SJSym) = getdefinition(getssym(sym))
 # #@inline symval(s::SSJSym) = s.val
 
 @inline symage(s::SJSym) = getssym(s).age
-# Julia way is use getage for both SJSym and Mxpr
-# But symage better signals intent.
-#@inline getage(s::SJSym) = symage(s)  # should only use one of these
 
 import Base:  ==
 
@@ -206,15 +203,7 @@ get_system_ssym(s::Symbol) = getssym(:System, s)
 
 getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
 
-# Unused
-# @inline function createssym{T<:DataType}(s::Symbol,dT::T)
-#     ns = ssjsym(s,dT)
-#     CurrentContext.symtab[s] = ns
-#     return ns
-# end
-
 @inline function delete_sym(s::Symbol)
-#    println("Deleteing " , s)
     delete!(CurrentContext.symtab,s)
     nothing
 end
@@ -263,12 +252,8 @@ end
 
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 
-@inline mhead{T<:Mxpr}(mx::T) = mx.head
-@inline margs{T<:Mxpr}(mx::T) = mx.args
-
-# Why not just used these ?
-#@inline head{T<:Mxpr}(mx::T) = mx.head
-#@inline args{T<:Mxpr}(mx::T) = mx.args
+mhead{T<:Mxpr}(mx::T) = mx.head
+margs{T<:Mxpr}(mx::T) = mx.args
 
 # Everything that is not an Mxpr
 mhead(x) = typeof(x)
@@ -293,10 +278,7 @@ setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 # Most things should have length zero.
 Base.length(x) = 0
 @inline Base.endof(mx::Mxpr) = length(mx)
-# Using this iterator is probably less efficient than iterating directly over the args
-# Base.start(mx::Mxpr) = margs(mx)[1] # could use start here too
-# Base.next(mx::Mxpr,state) = (state,next(state,margs(mx)))
-# Base.done(mx::Mxpr,state) = done(margs(mx),state)
+
 @inline mxprtype{T}(mx::Mxpr{T}) = T
 
 @inline function Base.copy(mx::Mxpr)
@@ -377,10 +359,6 @@ checkhash(x) = x
     for i in 1:n
         args[i] = iargs[i]
     end
-    # args = newargs()  for reference. this appears to be no slower.
-    # for x in iargs
-    #     push!(args,x)
-    # end
     return mxpr(s,args)
 end
 
@@ -388,7 +366,6 @@ end
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
-#    checkhash(mx)
     mx
 end
 
@@ -518,13 +495,9 @@ end
 @inline function checkdirtysyms(mx::Mxpr)
     length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
-#    if mxage > getevalage() # && return false # check if *any* user symbol has changed.
-#        return false        # in test suite, this branch is never taken.
-#    end
     for sym in keys(mx.syms) # is there a better data structure for this ?
         symage(sym) > mxage && return true
     end
-#    symage(mhead(mx)) > mxage && return true
     return false  # no symbols in mx have been set since mx age was updated
 end
 @inline checkdirtysyms(x) = false

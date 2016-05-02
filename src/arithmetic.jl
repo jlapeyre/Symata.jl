@@ -66,7 +66,6 @@ function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
             nf = fac^q
             nf != 1 ? y.num > 0 ? push!(newfacs,nf) : push!(newfacs,1//nf) : nothing
         end
-#        r == 0 ? continue : nothing
         (nf1,r1) = divrem(r*y.num,y.den)
         if nf1 != 0
             newfac = fac^nf1

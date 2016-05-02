@@ -74,7 +74,6 @@ function set_pytosj(py,sj)
         warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SJULIA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
-#    warn("### set_pytosj setting ", spy, " to ", ssj)
     SYMPY_TO_SJULIA_FUNCTIONS[spy] = ssj
 end
 
@@ -87,7 +86,6 @@ function set_sjtopy(sj,py)
         warn("!!! set_sjtopy ", sj, " already has value ", SJULIA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
     end
-#    warn("XXX set_sjtopy setting ", sj, " to ", py)
     SJULIA_TO_SYMPY_FUNCTIONS[ssj] = spy
 end
 
@@ -206,13 +204,7 @@ function make_sympy_to_sjulia()
             set_sjtopy(sjulia_func, sympy_func)
         end
     end
-
-    # for (py,sj) in SYMPY_TO_SJULIA_FUNCTIONS
-    #     set_sjtopy(sj,py)
-    # end
     set_pytosj(:InverseLaplaceTransform,:InverseLaplaceTransform)
-
-#    SYMPY_TO_SJULIA_FUNCTIONS[:TupleArg] = :List does not work
 end
 
 function register_sjfunc_pyfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
@@ -232,7 +224,6 @@ function have_pyfunc_symbol(sjsym)
 end
 function lookup_pyfunc_symbol(sjsym)
     get_sjtopy(sjsym)
-#    SJULIA_TO_SYMPY_FUNCTIONS[sjsym]
 end
 
 ####################
@@ -360,13 +351,6 @@ end
 @pytosj_comparisons("greater_than", "StrictGreaterThan", ">")
 @pytosj_comparisons("equality", "Equality", "==")
 @pytosj_comparisons("unequality", "Unequality", "!=")
-
-
-# function pytosj_less_than_equal(pyexpr)
-#     args = pyexpr[:args]
-#     return mxpr(:Comparison, pytosj(args[1]), :<=, pytosj(args[2]))
-# end
-# py_to_mx_rewrite_function_dict["LessThan"] = pytosj_less_than_equal
 
 
 pytosj_BooleanTrue(pyexpr) = true

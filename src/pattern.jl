@@ -25,7 +25,6 @@ end
 
 # Works on just a blank, and ... ?
 
-#just_pattern(mx::Mxpr) =  PatternT(patterntopvar(mx), :All)
 just_pattern(s) =         PatternT(patterntopvar(s), :All)
 
 function patterntopvar(mx::Mxpr)

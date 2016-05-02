@@ -25,7 +25,6 @@ macro make_simplify_func(mxprsym, sympyfunc)
         end
         set_pattributes( [$smxprsym], :Protected)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
-#        set_pytosj($ssympyfunc,$smxprsym)
     end)
 end
 
@@ -276,15 +275,6 @@ Together(sum) rewrites a sum of terms as a product.
 
 @make_simplify_func :Together together
 
-#@mkapprule Together :options => Dict( :deep => false )
-
-#@mkapprule Together
-#@doap Together(expr) = expr |> sjtopy |> sympy.together |> pytosj
-#do_Together(mx::Mxpr{:Together}, expr; kws...) = expr |> sjtopy |> sympy.together |> pytosj
-
-# apprules(mx::Mxpr{:Together}) = mx[1] |> sjtopy |> sympy.together |> pytosj
-# register_sjfunc_pyfunc("Together", "together")
-
 #### Apart
 
 @sjdoc Apart "
@@ -353,7 +343,7 @@ end
 @sjdoc Cancel "
 Cancel(expr) cancels common factors in the numerator and denominator.
 "
-#apprules(mx::Mxpr{:Cancel}) = sympy.cancel(mx[1] |> sjtopy, extension=true) |> pytosj
+
 apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy.cancel |> pytosj
 
 register_sjfunc_pyfunc("Cancel", "cancel")
@@ -365,11 +355,8 @@ Collect(expr,[x,y]) collects terms involving first x, then y.
 
 @mkapprule Collect
 
-#apprules(mx::Mxpr{:Collect}) = do_Collect(mx,margs(mx)...)
-
 @doap Collect(expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
 @doap Collect(expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
-# @doap Collect(args...) = mx  hmmm, a better way to make the default rule ?
 
 register_sjfunc_pyfunc("Collect", "collect")
 
@@ -408,8 +395,7 @@ do_DSolve(mx, expr) = expr |> sjtopy |> sympy.dsolve |> pytosj
 Roots(expr) solves for the roots of expr. Roots returns a list
 of lists. The two elements of each sublist give the root and its multiplicity.
 "
-# could use a macro for these
-#apprules(mx::Mxpr{:Roots}) = do_Solve(mx,margs(mx)...)
+
 apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy.roots |> pytosj  |> SJulia.unpack_to_List
 
 register_sjfunc_pyfunc("Roots", "roots")
@@ -439,8 +425,6 @@ ToSJulia(expr) converts the python PyObject expr to an SJulia expression. Normal
 by SymPy are automatically converted to SJulia expressions.
 "
 
-# @mkapprule ToSJulia
-
 apprules(mx::Mxpr{:ToSJulia}) = do_ToSJulia(mx,margs(mx)...)
 
 do_ToSJulia(mx::Mxpr{:ToSJulia}, s::Symbol) = setfixed(_pytosj(symval(s)))
@@ -450,8 +434,6 @@ do_ToSJulia(mx::Mxpr{:ToSJulia}, x) = x
 #### PossibleClosedForm
 
 apprules(mx::Mxpr{:PossibleClosedForm}) = do_PossibleClosedForm(mx,margs(mx)...)
-
-# register_sjfunc_pyfunc("PossibleClosedForm", "identify")
 
 @sjdoc PossibleClosedForm "
 PossibleClosedForm(x) attempts to find an exact formula for the floating point number x.
