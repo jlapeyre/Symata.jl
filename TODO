@@ -1,10 +1,3 @@
-*  Bug:
-   ex = Exp(-t)*t^(a-1)
-   Out(1) = E ^ (-t) * (t ^ (-1 + a))
-   sjulia 2> Integrate(ex,t, conds => "none")
-   WARNING: Gamma::argr: Gamma called with two arguments; one argument is expected.
-   Out(2) = Integrate(ex,t,conds => "none")
-
 
 * AC matching
 
@@ -43,14 +36,17 @@ result.
 
 * Allow user to set max number of mevals.
 
+* Allow user to set the output capture length   
+   
 * Module should convert single line to compound expression.
 
 * Getting error message "PyObject call" instead of unevaluated
  expression for, eg Integrate(x + c). Probably has to do
  with changing the REPL parsing code.
 
-* Make Void (nothing, I think) meval to Null (better yet, avoid Void; explicitly return Null)
-
+* Can't throw or handle exceptions correctly when translating AST.
+   Find out why.
+   
 * Error messages have become shorter and more cryptic. Why
   e.g MethodError(SJulia._do_Comparison,(ex,==,((-1 + x) ^ 2) * (1 + 2 * x + 2 * (x ^ 2) + x ^ 3)))
   when comparing unbound symbol to polynomial
@@ -68,12 +64,29 @@ result.
 
 * Map needs to take level argument, and Heads -> True   
 
-* Sympy  I * Infinity <--> DirectedInfinity[I]
+* Derivative. Expressions with expressions as the head. Implemented
+   but disabled because it breaks things.
+
+* O, OO, have problems. Need to evaluate them automatically
    
 ###############################################################################
 
  ===  DONE ===
 
+* @doap fails with annotated arguments. The type parameters need to be
+   quoted ors something.a   
+   
+* Make Void (nothing, I think) meval to Null (better yet, avoid Void; explicitly return Null)
+   
+* Sympy  I * Infinity <--> DirectedInfinity[I]
+   
+*  Bug:
+   ex = Exp(-t)*t^(a-1)
+   Out(1) = E ^ (-t) * (t ^ (-1 + a))
+   sjulia 2> Integrate(ex,t, conds => "none")
+   WARNING: Gamma::argr: Gamma called with two arguments; one argument is expected.
+   Out(2) = Integrate(ex,t,conds => "none")
+   
 * Use this test, or example. h([x_,y_]) := x^y
 
 *  The result here should be simplified

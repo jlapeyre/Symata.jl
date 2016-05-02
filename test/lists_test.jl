@@ -1,9 +1,6 @@
 using Base.Test
 
-@ex If( Length(UserSyms()) > 0 ,  Println("\n**********", UserSyms(), "\n"))
-@testex Length(UserSyms()) == 0
-
-@ex      ClearAll(a,x,y)
+@testex testUserSyms
 
 # A gensym is added to user symbols somewhere here.
 # It is not removed and is not displayed properly.
@@ -55,5 +52,6 @@ SJulia.@testex(  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
 @testex a[3] == 1 + d^2
 
 @ex ClearAll(a,d,i)
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
+
+

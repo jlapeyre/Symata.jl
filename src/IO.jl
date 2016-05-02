@@ -26,7 +26,8 @@ function SJulia_eval_string(s)
         try
             SJulia.exfunc(expr) # we should use the macro here, I think.
         catch e
-            println(e)
+            println("Reading file: got error ", e)
+#            println(e)
         end
     end
     sjretval
@@ -42,6 +43,7 @@ end
 
 @sjdoc Get "
 Get(\"filename\") reads and evaluates SJulia expressions from file \"filename\".
+Try putting empty lines between expressions if you get errors on reading.
 "
 
 do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  SJulia_eval_file(fname)
@@ -131,7 +133,7 @@ end
 #### Open
 
 # we should fold this behavior into mkapprule
-@mkapprule1 Open
+@mkapprule Open  :nodefault => true
 
 @sjdoc Open "
 Open(args...) opens a file, runs a command, etc. The arguments are passed to julia `open'.
@@ -181,13 +183,7 @@ Clear(Out) clears all the saved output.
 
 @sjseealso(Out, Clear)
 
-function do_Out(mx::Mxpr{:Out}, n::Integer)
-    if n > 0 && n < LineNumber[1]
-        return doeval(Output[n])
-    end
-    return :Null
-end
-
+do_Out(mx::Mxpr{:Out}, n::Integer) = doeval(get_output_by_line(n))
 do_Out(mx::Mxpr{:Out}, x) = :Null
 
 # We should probably explicitly return Null

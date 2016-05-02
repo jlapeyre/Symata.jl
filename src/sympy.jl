@@ -23,16 +23,128 @@ function import_sympy()
     eval(parse("@pyimport mpmath"))
 end
 
+const PYDEBUGLEVEL = -1
+
+macro pydebug(level, a...)
+    if level <= PYDEBUGLEVEL
+        :((println("pydeb: ", $(a...));println()))
+    else
+        nothing
+    end
+end
+
+const SJDEBUGLEVEL = -1
+
+macro sjdebug(level, a...)
+    if level <= SJDEBUGLEVEL
+        :((println("sjdeb: ", $(a...));println()))
+    else
+        nothing
+    end
+end
 
 
-# Some SymPy functions are encoded this way. Others, not. Eg, Add, Mul are different
+######################################################
+#   Translation Dicts
+
+# SYMPY_TO_SJULIA_FUNCTIONS
+# 1) keys are sympy function names. values are the SJulia Head
+# The sympy functions are found via sympy.key and are stored
+# in the dict py_to_mx_dict, with values being the SJulia heads.
+# Some other special cases,
+# eg Add Mul are also stored in py_to_mx_dict.
+# The SJulia heads are looked up only at the beginning
+# of the main _pytosj routine.
+# An Mxpr is created by looking up the head and mapping
+# _pytosj over the args.
+#
+# 2) A reversed dict SJULIA_TO_SYMPY_FUNCTIONS is created from SYMPY_TO_SJULIA_FUNCTIONS.
+# This dict is used for two things a) to automatically lookup sympy docstrings associated
+# with SJulia heads in doc.jl. b) to populated mx_to_py_dict. This dict stores callable references
+# to sympy functions with keys being the SJulia heads. A few other sympy functions are put into
+# mx_to_py_dict "by hand" in populate_mx_to_py_dict().(does it need to be done this way ?)
+
 const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
-
-
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
+
+function set_pytosj(py,sj)
+    spy = symbol(py)
+    ssj = symbol(sj)
+    if haskey(SYMPY_TO_SJULIA_FUNCTIONS,spy)
+        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SJULIA_FUNCTIONS[spy], " can't set it to ", ssj)
+        return
+    end
+#    warn("### set_pytosj setting ", spy, " to ", ssj)
+    SYMPY_TO_SJULIA_FUNCTIONS[spy] = ssj
+end
+
+get_pytosj(py) = SYMPY_TO_SJULIA_FUNCTIONS[py]
+
+function set_sjtopy(sj,py)
+    spy = symbol(py)
+    ssj = symbol(sj)
+    if haskey(SJULIA_TO_SYMPY_FUNCTIONS,ssj)
+        warn("!!! set_sjtopy ", sj, " already has value ", SJULIA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
+        return
+    end
+#    warn("XXX set_sjtopy setting ", sj, " to ", py)
+    SJULIA_TO_SYMPY_FUNCTIONS[ssj] = spy
+end
+
+get_sjtopy(sj) = SJULIA_TO_SYMPY_FUNCTIONS[sj]
+
+#################################################################
+
+# described above
 const mx_to_py_dict =  Dict()   # Can we specify types for these Dicts ?
+
+# pymx_special_symbol_dict
+# If sympy returns an instance of Pi, Ep1, ImaginaryUnit, etc. it
+# is found in this table. This is currently neccesary. Without it:
+# * Pi causes an error exception because the default translation tries to call it.
+#    i.e. it is not a symbol, function, number ...
+# * E is returned as the function Exp1() it is caught by the
+#   is_Function check, and returns Exp1()
+# * I is caught by the default at the end, is callable and returns
+#   ImaginaryUnit(). It is not a symbol nor is_Function.
 const pymx_special_symbol_dict = Dict()
 
+# py_to_mx_symbol_dict
+# These are perhaps sympy 'symbols' rather than functions or instance.
+# Use this Dict to rely more on these lines:
+# head = sympy_to_mxpr_symbol(expr[:func][:__name__])
+#    return SJulia.mxpr(head, map(pytosj, expr[:args])...)
+# Gamma( a < b) returns the function gamma,
+# with one argument Comparison(a, > , b), which is caught
+# by the is_Function check. a, <, and b are caught by the
+# Symbol check. However, the symbols in this table do occur
+# sometimes.
+
+# NOTE: The test suite passes with this dict empty
+# So, we leave it empty until we see something we don't like.
+const py_to_mx_symbol_dict = Dict()
+
+# const py_to_mx_symbol_dict = Dict(
+#                                   :StrictLessThan => :<,
+#                                   :StrictGreaterThan => :>,
+#                                   :LessThan => :<=,
+#                                   :GreaterThan => :>=,
+#                                   :uppergamma => :Gamma,
+#                                   :Equality => :(==),
+#                                   :Unequality => :(!=)
+#                                   )
+
+
+# This does not refer the sympy 'rewrite' capability.
+# This refers to some kind of rewriting of functions or arguments
+# during sympy to sjulia translation.
+# This dict is populated below.
+const py_to_mx_rewrite_function_dict = Dict(
+                                            )
+# End translation Dicts
+######################################################
+
+# Digits of precision for Sympy
 const MPMATH_DPS = Int[0]
 
 get_mpmath_dps() = mpmath.mp[:dps]
@@ -43,26 +155,8 @@ end
 
 restore_mpmath_dps() = (mpmath.mp[:dps] = pop!(MPMATH_DPS))
 
-
-# TODO: populate this Dict. Collect the translation into fewer Dicts.
-# Use this Dict to rely more on these lines:
-#    head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # Maybe we can move this further up ?
-#    return SJulia.mxpr(head, map(pytosj, expr[:args])...)
-
-const py_to_mx_symbol_dict = Dict(
-                                  :StrictLessThan => :<,
-                                  :StrictGreaterThan => :>,
-                                  :LessThan => :<=,
-                                  :GreaterThan => :>=,
-                                  :uppergamma => :Gamma,
-                                  :Equality => :(==),
-                                  :Unequality => :(!=)
-                                  )
-
-
-# populated below
-const py_to_mx_rewrite_function_dict = Dict(
-                                            )
+# This translates key value pairs that we use to
+# describe the mapping from sj to py.
 function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
@@ -76,13 +170,14 @@ function get_sympy_math(x)
     return jf,sjf
 end
 
-# This only maps names. It does not write translation or calling code.
+# These are used for rewriting in both directions and function calling
+# via sympy.symbol
 function make_sympy_to_sjulia()
     symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
                       ( :InverseLaplaceTransform, :inverse_laplace_transform ),
                       (:InverseFourierTransform, :inverse_fourier_transform ),
                       (:FourierTransform, :fourier_transform),
-                      (:Cos, :cos), (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
+                      (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma),
                       (:PeriodicArgument, :periodic_argument)
@@ -96,7 +191,8 @@ function make_sympy_to_sjulia()
         for x in funclist
             if length(x) != 3 continue end
             (julia_func, sjulia_func, sympy_func) = x
-            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
+            set_pytosj(sympy_func, sjulia_func)
+            set_sjtopy(sjulia_func, sympy_func)            
         end
     end
 
@@ -106,33 +202,37 @@ function make_sympy_to_sjulia()
                      no_julia_function_three_args, no_julia_function_four_args)
         for x in funclist
             sjulia_func, sympy_func = get_sympy_math(x)
-            SYMPY_TO_SJULIA_FUNCTIONS[sympy_func] = sjulia_func
+            set_pytosj(sympy_func, sjulia_func)
+            set_sjtopy(sjulia_func, sympy_func)
         end
     end
 
-    for (k,v) in SYMPY_TO_SJULIA_FUNCTIONS
-        SJULIA_TO_SYMPY_FUNCTIONS[v] = k
-    end
-    SYMPY_TO_SJULIA_FUNCTIONS[:InverseLaplaceTransform] = :InverseLaplaceTransform
+    # for (py,sj) in SYMPY_TO_SJULIA_FUNCTIONS
+    #     set_sjtopy(sj,py)
+    # end
+    set_pytosj(:InverseLaplaceTransform,:InverseLaplaceTransform)
+
 #    SYMPY_TO_SJULIA_FUNCTIONS[:TupleArg] = :List does not work
 end
 
 function register_sjfunc_pyfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
-    SYMPY_TO_SJULIA_FUNCTIONS[symbol(py)] = symbol(sj)
-    SJULIA_TO_SYMPY_FUNCTIONS[symbol(sj)] = symbol(py)
+    set_pytosj(symbol(py), symbol(sj))
+    set_sjtopy(symbol(sj), symbol(py))
 end
 
+# Watch the order
 function register_only_pyfunc_to_sjfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
-    SYMPY_TO_SJULIA_FUNCTIONS[symbol(py)] = symbol(sj)
+    set_pytosj(py,sj)
 end
 
-
+## These two functions are only used in doc.jl to look up the
+# docstring corresponding to the symp function called by an SJulia head.
 function have_pyfunc_symbol(sjsym)
     haskey(SJULIA_TO_SYMPY_FUNCTIONS, sjsym)
 end
-
 function lookup_pyfunc_symbol(sjsym)
-    SJULIA_TO_SYMPY_FUNCTIONS[sjsym]
+    get_sjtopy(sjsym)
+#    SJULIA_TO_SYMPY_FUNCTIONS[sjsym]
 end
 
 ####################
@@ -180,10 +280,12 @@ have_function_sympy_to_sjulia_translation{T <: PyCall.PyObject}(expr::T) = haske
 get_function_sympy_to_sjulia_translation{T <: PyCall.PyObject}(expr::T) = py_to_mx_dict[pytypeof(expr)]
 have_rewrite_function_sympy_to_julia{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_rewrite_function_dict, name(expr))
 
-
-
+# May 2016. Added ComplexInfinity here. We added an mxpr method for
+# using Mxpr for head. sympy.zoo had been caught by the default method
+# for converting, and this resulted in an Mxpr for the head.
 function populate_special_symbol_dict()
     for onepair in (
+                    (sympy.numbers["ComplexInfinity"], :ComplexInfinity),
                     (sympy_core.numbers["Pi"], :Pi),
                     (sympy_core.numbers["EulerGamma"], :EulerGamma),
                     (sympy.numbers["Exp1"],  :E),
@@ -211,6 +313,7 @@ increment_pytosj_count() = SYMPYTRACENUM[1] += 1
 decrement_pytosj_count() = SYMPYTRACENUM[1] -= 1
 is_pytosj_trace() = SYMPYTRACE.trace
 
+## Note there are two underscores __pytosj
 function __pytosj(expr)
     increment_pytosj_count()
     if is_pytosj_trace()
@@ -266,29 +369,40 @@ end
 # py_to_mx_rewrite_function_dict["LessThan"] = pytosj_less_than_equal
 
 
-function pytosj_BooleanTrue(pyexpr)
-    return true
-end
-py_to_mx_rewrite_function_dict["BooleanTrue"] = pytosj_BooleanTrue
+pytosj_BooleanTrue(pyexpr) = true
 
+# Disable this and see what happens
+# py_to_mx_rewrite_function_dict["BooleanTrue"] = pytosj_BooleanTrue
 
+####
+####   Main _pytosj method
+####
 function _pytosj{T <: PyCall.PyObject}(expr::T)
+    @pydebug(3, "Entering with ", expr)
     if have_function_sympy_to_sjulia_translation(expr)
+        @pydebug(3, "function lookup trans. ", expr)
         return mxpr(get_function_sympy_to_sjulia_translation(expr), map(pytosj, expr[:args])...)
     end
     if have_rewrite_function_sympy_to_julia(expr)
+        @pydebug(3, "rewrite trans. ", expr)
         return rewrite_function_sympy_to_julia(expr)
     end
-    if expr[:is_Function] return pytosj_Function(expr) end   # perhaps a user defined function
+    if expr[:is_Function]
+        @pydebug(3, "is_Function trans. ", expr)
+        return pytosj_Function(expr)
+    end   # perhaps a user defined function
     for k in keys(pymx_special_symbol_dict)
         if pyisinstance(expr,k)
+            @pydebug(3, "special_symbol trans. ", expr)
             return pymx_special_symbol_dict[k]
         end
     end
     if pytypeof(expr) == sympy.Symbol
+        @pydebug(3, "pytype Symbol trans. ", expr)
         return sympy_to_mxpr_symbol(expr[:name])
     end
     if pyisinstance(expr, sympy.Number)
+        @pydebug(3, "number trans. ", expr)
         # Big ints are wrapped up in a bunch of stuff
         # There is a function n._to_mpmath(m) (dont know what m means) that returns GMP number useable by Julia
         # We need to check what kind of integer. searching methods. no luck
@@ -312,7 +426,12 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
         return convert(AbstractFloat, expr) # Need to check for big floats
     end
     head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # default
-    return mxpr(head, map(pytosj, expr[:args])...)
+    @pydebug(3, "default trans. ", expr, " new head ", head)
+    @pydebug(3, "typeof head ", typeof(head))
+    @pydebug(3, "args  ", expr[:args])
+    mxout =  mxpr(head, map(pytosj, expr[:args])...)
+    @pydebug(3, "mxout ", mxout)
+    mxout
 end
 
 # By default, Dict goes to Dict
@@ -356,7 +475,12 @@ function mk_mx_to_py_funcs()
     for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
-        obj = eval(parse("sympy." * pystr))
+        local obj
+        if length(pystr) > 6 && pystr[1:6] == "sympy_"  # These are wrapper function around sympy functions
+            obj = eval(pysym)
+        else
+            obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
+        end
         mx_to_py_dict[symbol(sjstr)] = obj
     end
 end
@@ -365,6 +489,7 @@ end
 ##     sjtopy
 #######################################################
 
+# NB wrapper to call _sjtopy
 function sjtopy(args...)
     if length(args) == 1
         res = _sjtopy(args[1])
@@ -375,6 +500,7 @@ function sjtopy(args...)
 end
 
 function _sjtopy(z::Complex)
+    @sjdebug(3,"complex ", z)
     if real(z) == 0
         res = mxpr(:Times, :I, imag(z))
     else
@@ -384,39 +510,13 @@ function _sjtopy(z::Complex)
 end
 
 function _sjtopy(mx::Mxpr{:List})
+    @sjdebug(3,"List ", mx)
     return [map(_sjtopy, mx.args)...]
-end
-
-# This is never used. (Yes it is!)
-function _sjtopy(mx::Mxpr{:Gamma})
-    ma = margs(mx)
-    if length(ma) == 1
-        sympy.gamma(_sjtopy(ma[1]))
-    elseif length(ma) == 2
-        pyargs = map(_sjtopy,ma)
-        result = sympy.uppergamma(pyargs...)
-        result
-    else
-        sympy.gamma(map(_sjtopy,ma)...)
-    end
-end
-
-# This information is in several places. I am not sure why it is here.
-function _sjtopy(mx::Mxpr{:Erf})
-    ma = margs(mx)
-    if length(ma) == 1
-        sympy.erf(_sjtopy(ma[1]))
-    elseif length(ma) == 2
-        pyargs = map(_sjtopy,ma)
-        result = erf2(pyargs...)
-        result
-    else
-        sympy.erf(map(_sjtopy,ma)...)  # This will fail for sure
-    end
 end
 
 # For now all infinities are mapped to one of two infinities
 function _sjtopy(mx::Mxpr{:DirectedInfinity})
+    @sjdebug(3,"Infinity ", mx)
     if mx == ComplexInfinity
         sympy.zoo
     elseif mx == MinusInfinity
@@ -465,6 +565,7 @@ function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
 end
 
 function _sjtopy(mx::Mxpr{:MeijerG})
+    @sjdebug(3,"MeijerG ", mx)
     pyhead = mx_to_py_dict[mhead(mx)]
     p = mx[1]
     q = mx[2]
@@ -493,38 +594,38 @@ function eval_meijerg(mx, p, q, z)
 end
 
 function _sjtopy(t::Tuple)
+    @sjdebug(3,"Tuple ", mx)
     (map(_sjtopy,t)...)
 end
 
 
-######
+###############################
 
+## Sympy functions are called here.
 function _sjtopy(mx::Mxpr)
+    @sjdebug(3,"Mxpr ", mx)
     if mhead(mx) in keys(mx_to_py_dict)
-        return mx_to_py_dict[mhead(mx)](map(_sjtopy, mx.args)...)
+        @sjdebug(1,"In mx_to_py_dict ", mx, " pyhead ", mx_to_py_dict[mhead(mx)] )
+        return mx_to_py_dict[mhead(mx)](map(_sjtopy, mx.args)...) # calling a function in our dictionary
     end
+    @sjdebug(1,"Make function ", mx)
     pyfunc = sympy.Function(string(mhead(mx)))  # Don't recognize the head, so make it a user function
     mxargs = margs(mx)
     if length(mxargs) == 0
-        return pyfunc(dummy_arg)
+        return pyfunc(dummy_arg)  # sympy functions must have at least one argument
     else
         return pyfunc(map(_sjtopy, mxargs)...)
     end
 end
 
+# mx is a julia Symbol
 function _sjtopy(mx::Symbol)
+    @sjdebug(3,"Symbol ", mx)
     if haskey(mx_to_py_dict,mx)
+        @sjdebug(1,"In mx_to_py_dixt ", mx)
         return mx_to_py_dict[mx]
     end
     return sympy.Symbol(mx)
-end
-
-function _sjtopy(mx::SSJSym)
-    name = symname(mx)
-    if haskey(mx_to_py_dict,name)
-        return conv_rev[name]
-    end
-    return sympy.Symbol(name)
 end
 
 _sjtopy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
@@ -537,9 +638,7 @@ _sjtopy{T}(a::Array{T,1}) =  map(_sjtopy, a)
 _sjtopy{T <: PyCall.PyObject}(expr::T) = expr
 
 
-function _sjtopy(x::AbstractString)
-    x
-end
+_sjtopy(x::AbstractString) =  x
 
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
@@ -559,10 +658,6 @@ function init_sympy()
     populate_special_symbol_dict()
     populate_mx_to_py_dict()
     mk_mx_to_py_funcs()
-    # jslexless{T<:PyCall.PyObject}(x::T,y::T) = true  # this is not catching what it should catch!!
-    # _jslexless{T<:PyCall.PyObject}(x::T,y::T) = true # this is not catching what it should catch!!
-    # Base.isless{T<:PyCall.PyObject}(x::T,y::T) = true     # works if I enter it by hand after the init. No idea why
-    # isless{T<:PyCall.PyObject}(x::T,y::T) = true     # works if I enter it by hand after the init. No idea why    
 end
 
 #####
@@ -612,11 +707,10 @@ function separate_rules{T<:Mxpr}(mx::T)
     return (nargs, kws)
 end
 
-
-# Mma uses the expression Rule(a,b) to represent a keyword argument. It also
-# uses Rule for many other things. This is awkward.
-# Here, we separate keyword Rules from all other args including Rules that
-# are not meant to be keywords.
+# Mma uses the expression Rule(a,b) to represent a keyword
+# argument. It also uses Rule for many other things. This is awkward.
+# Here, we separate keyword Rules from all other args including Rules
+# that are not meant to be keywords.
 # kws -- Dict of legal keywords wit their default values.
 # Only Rules with keywords in kws will be extracted
 function separate_known_rules{T<:Mxpr}(mx::T, kws)
@@ -669,7 +763,7 @@ end
 
 @mkapprule PyDoc :nargs => 1
 
-do_PyDoc(mx::Mxpr{:PyDoc},sym) = pydoc(sym)
+do_PyDoc(mx::Mxpr{:PyDoc},sym) = pydoc(string(sym))
 
 # Need a function that searchs or returns a list,...
 @sjdoc PyDoc "
@@ -680,11 +774,21 @@ for development.
 # Look up the sympy symbol in the "registry" and get the doc string
 function pydoc(sym)
     pyC = sympy.C
-    ! haskey(pyC,sym) && error("No symbol $sym")
-    str = try
-        pyC[sym][:__doc__]
-    catch
-        "no docmentation"
+    local str
+    if haskey(pyC,sym)
+        str = try
+            pyC[sym][:__doc__]
+        catch
+            "Symbol in registry, but no doc found."
+        end
+    else
+        warn("Symbol ", sym, " not in registry. Looking elsewhere...")
+        str =
+            try
+                eval(parse("sympy.$(string(sym))[:__doc__]"))
+            catch
+                "No documentation found"
+            end
     end
     println(str)
 end

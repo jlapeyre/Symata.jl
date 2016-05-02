@@ -90,7 +90,7 @@ set_pattributes([
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConstantArray","ConstantQ",
                   "Depth","DirtyQ","Dump","Example","ExpToTrig","Expand","ExpandA",
-                  "Factor","FactorInteger","Fixed","Flat","FullForm",
+                  "Factor","FactorInteger","FixedQ","Flat","FullForm",
                   "FullSimplify","Head","Help","Indeterminate","Infinity",
                   "Integer","Integers","IntegerDigits","JVar","Keys","LeafCount",
                   "Length","List","ListQ","Listable","Map","MatchQ","N",

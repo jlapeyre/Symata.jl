@@ -187,6 +187,10 @@ end
     nothing
 end
 
+function delete_sym(s::AbstractString)
+    delete_sym(symbol(s))
+end
+
 ##################################################################
 # Mxpr                                                           #
 # All SJulia expressions are represented by instances of Mxpr    #
@@ -214,6 +218,17 @@ typealias Symbolic Union{Mxpr,SJSym}
 @inline newargs{T<:Integer}(n::T) = Array(Any,n)
 @inline newargs(m::Mxpr) = newargs(length(m))
 @inline newargs(a::Array) = newargs(length(a))
+
+
+# is this just convenient ?
+function tomxprargs(args...)
+     nargs = MxprArgType[args...]
+end
+
+function tomxprargs(args::Array)
+     nargs = MxprArgType[args...]
+end
+
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 
 @inline mhead{T<:Mxpr}(mx::T) = mx.head
@@ -349,6 +364,28 @@ end
 # We have duplicate information about the Head in a field, as well.
 type GenHead
 end
+
+
+# New method May 2016. We do want to use Mxpr's as heads
+# We disable this for now. A number of expressions are interpreted incorrectly this way.
+# eg  s = [f,g]
+#   s[1](x) , should give f(x). But it is instead caught by this method.
+# I don't know how s[1](x) is handled, then !?
+# function mxpr(mxhead::Mxpr,args...)
+#     println("mxpr is  head method")
+#     nargs = Any[args...]
+#     mx = Mxpr{:Mxpr}(mxhead,nargs,false,false,newsymsdict(),0,0,Any)
+#     setage(mx)
+#     mx
+# end
+
+# # New method May 2016
+# function mxpr(mxhead::Mxpr,args::MxprArgs)
+#     println("mxpr is  head method, with args mxhead is ", mxhead, ", args are ", args)
+#     mx = Mxpr{:Mxpr}(mxhead,args,false,false,newsymsdict(),0,0,Any)
+#     setage(mx)
+#     mx
+# end
 
 # Non-symbolic Heads have type GenHead, for now
 function mxpr(s,args::MxprArgs)
@@ -536,16 +573,26 @@ function protectedsymbols()
 end
 
 # For now, we exclude Temporary symbols
-function usersymbols()
+# We return symbols as strings to avoid infinite eval loops
+function usersymbolsList()
     args = newargs()
     for s in keys(SYMTAB)
         if  get_attribute(s,:Temporary) continue end
-        if ! haskey(system_symbols, s) push!(args,getsym(s)) end
+        if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
     end
     mx = mxpr(:List, sort!(args)...)
     setcanon(mx)
     setfixed(mx)
     mx
+end
+
+function usersymbols()
+    args = newargs()
+    for s in keys(SYMTAB)
+        if  get_attribute(s,:Temporary) continue end
+        if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
+    end
+    return args
 end
 
 # For Heads that are not symbols

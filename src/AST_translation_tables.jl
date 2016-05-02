@@ -15,6 +15,12 @@
 # But, they are held in a separate table for output, so that unicode
 # output can be disabled.
 
+# Idea, but not implemented:
+# We could use  a.b for contexts, modules.  In Mma
+# a . b == a.b  == Dot[a,b], matrix and vector multiplication.
+# a`b is symbol b in context a.  a .* b is illegal in Mma, but a .* b is legal syntax in Julia
+# So: in SJulia  a.b for contexts,  and a .* b for matrix multiplication
+
 const JTOMSYM  =
  Dict(
       :(=) => :Set,

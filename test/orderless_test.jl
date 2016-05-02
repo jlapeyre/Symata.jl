@@ -1,7 +1,6 @@
 using Base.Test
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 @ex   ClearAll(a,c,z,za,zg,x,y,r,t,h,A,Z)
 @testex 0 == 0
@@ -106,5 +105,5 @@ using Base.Test
 
 #@testex Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
+

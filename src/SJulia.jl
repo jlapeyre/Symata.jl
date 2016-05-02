@@ -5,6 +5,9 @@ module SJulia
 import Base: /, *, +, -, ^, setindex!, getindex
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
+# For development
+export sympy, pytypeof
+
 include("early_kernelstate.jl")
 include("mxpr_util.jl")
 include("mxpr_type.jl")

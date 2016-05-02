@@ -1,6 +1,6 @@
 using Base.Test
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 # These are tests for functions that are written in SJulia. The code
 # that is tested is in code_in_SJulia.jl.
@@ -32,4 +32,5 @@ using Base.Test
 
 @ex ClearAll(a,x,y,F,q,z)
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
+

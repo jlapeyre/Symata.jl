@@ -1,9 +1,31 @@
-# Signals too many iterations when trying to meval to a fixed point.
-# This *must* be an exception
+#### RecursionLimitError
+
+# SJulia evaluates to a fixed point. This signals too many iterations of infseval
+# or meval. The recursion limit is normally around 1000. We throw the exception
+# and catch it in exfunc where the evaluation starts.
+
 type RecursionLimitError <: Exception
     msg::AbstractString
     mx::Mxpr
 end
+
+abstract SJuliaParseErr <: Exception
+
+type NoTranslationError <: SJuliaParseErr
+    head
+    expr
+end
+
+Base.showerror(io::IO, e::NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
+Base.showerror(io::IO, e::SJulia.NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
+
+
+#### Arg checking exceptions
+
+# We print a warning and proceed instead of throwing an exception.
+# This is what Mma does.
+# But, we still instantiate exceptions; we just print the error message.
+# So, maybe we, or the user, can switch to using exceptions.
 
 const NumWords = ["zero", "one", "two", "three", "four", "five", "six" ]
 

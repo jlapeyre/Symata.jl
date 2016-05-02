@@ -1,6 +1,6 @@
 using Base.Test
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 @ex ClearAll(fib)
 @ex fib(1) := 1
@@ -141,5 +141,4 @@ using Base.Test
 
 @ex ClearAll(f,g,fg,h,a,z,y,x,rate,m1,m2, rand, int, tabsum, h0, s, area, sq, fgh, meth)
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms

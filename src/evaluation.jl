@@ -24,6 +24,24 @@ function get_localized_symbol(s::Symbol)
     return gsym
 end
 
+@mkapprule ClearTemporary  :nargs => 0
+
+@sjdoc ClearTemporary "
+Remove temporary symbols, ie all beginnig with \"##\", from the symbol table.
+"
+
+# The Temporary attribute is not working. the symbols that escape are just gensysms
+@doap function ClearTemporary()
+    syms = usersymbols()
+    for sym in syms
+        ss = string(sym)
+        if length(ss) > 2 && ss[1:2] == "##"
+            delete_sym(symbol(sym))
+        end
+    end
+    Null
+end
+
 ## Macro for translation and evaluation, at repl or from file
 
 
@@ -39,11 +57,6 @@ macro ex(ex)   # use this macro from the julia prompt
     :(($(esc(mx))))
 end
 
-const LineNumber = Int[0]
-
-const Output = Any[]
-
-global do_we_print_outstring = true
 
 const number_of_Os = 10
 
@@ -52,24 +65,26 @@ for i in 1:number_of_Os
     push!(Os, symbol("O"^i))
 end
 
+# Bind O to O(n), where n is the most recent line number.
+# Bind OO to O(n-1), etc.  When O evaluates to Out(n), the Out rule evaluate
+# the expression bound to Out(n).
 macro bind_Os()
     expr = Expr(:block)
     for i in 1:number_of_Os
         sym =  string(Os[i])
         newex = :(
-                      if (length(Output) - $i + 1) >= 1
-                         setsymval(parse($sym), Output[length(Output)-$i+1])
-                         set_pattributes($sym, :Protected)
-                      end 
+                  if (length(Output) - $i + 1) >= 1
+                       oexp = mxpr(:Out, get_line_number() - $i + 1)
+                       setsymval(parse($sym), oexp)
+                       set_pattributes($sym, :Protected)
+                  end 
                      )
         push!(expr.args, newex)
     end
     expr
 end
 
-get_line_number() = LineNumber[1]
-set_line_number(n::Int) =  (LineNumber[1] = n)
-increment_line_number() = LineNumber[1] += 1
+
 
 function exfunc(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
@@ -89,7 +104,7 @@ function exfunc(ex)
     if isinteractive()
         set_sjulia_prompt(get_line_number() + 1)
     end
-    push!(Output,mx)
+    push_output(mx)
     @bind_Os
     symval(mx) == Null  && return nothing
     if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring    

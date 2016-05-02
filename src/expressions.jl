@@ -11,10 +11,11 @@ Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one lev
 a quoted Julia expression is evaluated so that we can embed Julia code.
 "
 
-apprules(mx::Mxpr{:Head}) = gethead(mx[1])
-gethead(mx::Mxpr) = mhead(mx)
-gethead(s::SJSym) = getsym(:Symbol)
-gethead(ex) = typeof(ex)
+@mkapprule Head  :nargs =>  1
+
+@doap Head(mx1::Mxpr) = mhead(mx1)
+@doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
+@doap Head(ex) = typeof(ex)
 
 #### ExpandA
 
@@ -384,6 +385,11 @@ FactorInteger(n) gives a list of prime factors of n and their multiplicities.
 "
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
+#### Level
+
+
+
+
 #### Map
 
 @sjdoc Map "
@@ -517,8 +523,6 @@ function do_GenHead(mx,head::Mxpr{:Cases})
     mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
 
-
-
 #### Push!
 
 @sjdoc Push! "
@@ -540,6 +544,7 @@ do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
 do_Push1(mx,x,val) = mx
 do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); val)
 
+#### Pop!
 
 @sjdoc Pop! "
 Pop!(expr) pops a value from the arguments of expr. This mutates expr.

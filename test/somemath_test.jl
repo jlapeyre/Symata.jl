@@ -6,10 +6,9 @@ using Base.Test
 # We are missing several test cases here.
 # But, do_Power and mpow should now reproduce, more or less what Mma does.
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 # This tests apprules and canonializer
-@ex ClearAll(z)
 
 @testex  Abs(-1) == 1
 @testex  Abs(-2.0) == 2.0
@@ -73,5 +72,4 @@ using Base.Test
 @testex Head((a*b)^(1/2)) == Power
 
 @ex ClearAll(z,a,b)
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms

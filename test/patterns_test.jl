@@ -1,6 +1,6 @@
 using Base.Test
 
-@testex Length(UserSyms()) == 0
+@ex testUserSyms
 
 SJulia.@ex ClearAll(a,b,c,d,p,f,d)
 @testex ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
@@ -143,5 +143,5 @@ SJulia.@testex ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),
 
 @ex ClearAll(result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@ex testUserSyms
+

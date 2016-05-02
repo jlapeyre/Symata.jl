@@ -69,7 +69,12 @@ do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = false
 AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
 However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
 "
-apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
+
+@mkapprule AtomQ  :nargs => 1
+
+@doap AtomQ(x) = atomq(x)
+
+#    apprules(mx::Mxpr{:AtomQ}) = atomq(mx[1])
 
 @sjdoc EvenQ "
 EvenQ(expr) returns true if expr is an even integer.

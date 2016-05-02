@@ -7,7 +7,8 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output
 
 # A space, or maybe not.
-const opspc = " "
+#const opspc = " "
+opspc() = getkerneloptions(:compact_output) ? "" : " "
 
 # Julia-like syntax
 const FUNCL = '('
@@ -40,7 +41,11 @@ fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
 needsparen{T<:Integer}(x::Rational{T}) = true
-needsparen{T<:Integer}(x::T) = x < 0
+
+# rational does as well !?
+#needsparen{T<:Integer}(x::T) = x < 0
+
+needsparen{T<:Integer}(x::Complex{T}) = real(x) != 0
 needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
 
@@ -103,7 +108,12 @@ function Base.show{T<:Integer}(io::IO, z::Complex{T})
     if imag(z) == 1
         print(io,Istring())
     else
-        show(io,imag(z))
+        iz = imag(z)
+        if iz == -1
+            print(io,"-")
+        else
+            show(io,iz)
+        end
         print(io,Istring())
     end
 end
@@ -202,7 +212,7 @@ function show_binary(io::IO, mx::Mxpr)
         else
             show(io,lop)
         end
-        print(io, opspc, mtojsym(mhead(mx)), opspc)
+        print(io, opspc(), mtojsym(mhead(mx)), opspc())
         rop = mx[2]
         if  needsparen(rop)
             print(io,"(")
@@ -264,23 +274,24 @@ function show_infix(io::IO, mx::Mxpr)
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     startind = 1
-    if is_Mxpr(mx,:Times) &&
-        length(args) > 0 && args[1] == -1
+    if is_Mxpr(mx,:Times) && length(args) > 0 && args[1] == -1
         print(io, "-")
         startind = 2
     end
     for i in startind:length(args)-1
-        if needsparen(args[i]) && i>1 # && wantparens
+        arg = args[i]
+#        if needsparen(args[i]) && i>1 # && wantparens
+        if needsparen(arg)  # && ! (atomq(arg) && i> 1)  #  when did we put this i> 1 in ?? it breaks stuff
             np = true
             print(io,"(")
         else
             np = false
         end
-        show(io,args[i])
+        show(io,arg)
         if np
             print(io,")")
         end
-        print(io, opspc, sepsym, opspc)
+        print(io, opspc(), sepsym, opspc())
     end
     if ! isempty(args)
         if needsparen(args[end]) #  && wantparens

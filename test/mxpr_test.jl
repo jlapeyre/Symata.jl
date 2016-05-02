@@ -1,7 +1,7 @@
 using Base.Test
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@ex testUserSyms
+
 
 # Fails in 0.5.0-dev+3385, probably because the parser has changed
 # ==(2,2) is an expression with Head '=='
@@ -117,5 +117,4 @@ SJulia.@test SJulia.a == "cat"
 @testex Apply(List,f(z,c,a)) == [z,c,a]
 @ex ClearAll(f,a,c,z,g,res,x)
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@ex testUserSyms

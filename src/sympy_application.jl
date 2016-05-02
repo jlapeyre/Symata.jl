@@ -25,6 +25,7 @@ macro make_simplify_func(mxprsym, sympyfunc)
         end
         set_pattributes( [$smxprsym], :Protected)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
+#        set_pytosj($ssympyfunc,$smxprsym)
     end)
 end
 
@@ -32,7 +33,8 @@ end
 #### Factor
 
 @sjdoc Factor "
-Factor(expr) factors expr. This function calls SymPy.
+Factor(expr) factors expr. Options are,  modulus, gaussian, extension, and domain.
+For example modulus => n, gaussian => False, extention => Sqrt(2).
 "
 
 @make_simplify_func :Factor factor
@@ -271,9 +273,17 @@ register_sjfunc_pyfunc("D", "diff")
 @sjdoc Together "
 Together(sum) rewrites a sum of terms as a product.
 "
-apprules(mx::Mxpr{:Together}) = mx[1] |> sjtopy |> sympy.together |> pytosj
 
-register_sjfunc_pyfunc("Together", "together")
+@make_simplify_func :Together together
+
+#@mkapprule Together :options => Dict( :deep => false )
+
+#@mkapprule Together
+#@doap Together(expr) = expr |> sjtopy |> sympy.together |> pytosj
+#do_Together(mx::Mxpr{:Together}, expr; kws...) = expr |> sjtopy |> sympy.together |> pytosj
+
+# apprules(mx::Mxpr{:Together}) = mx[1] |> sjtopy |> sympy.together |> pytosj
+# register_sjfunc_pyfunc("Together", "together")
 
 #### Apart
 
@@ -352,11 +362,14 @@ register_sjfunc_pyfunc("Cancel", "cancel")
 Collect(expr,x) collects terms involving the same power of x.
 Collect(expr,[x,y]) collects terms involving first x, then y.
 "
-apprules(mx::Mxpr{:Collect}) = do_Collect(mx,margs(mx)...)
 
-do_Collect(mx,expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
-do_Collect(mx,expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
-do_Collect(mx,args...) = mx
+@mkapprule Collect
+
+#apprules(mx::Mxpr{:Collect}) = do_Collect(mx,margs(mx)...)
+
+@doap Collect(expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
+@doap Collect(expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
+# @doap Collect(args...) = mx  hmmm, a better way to make the default rule ?
 
 register_sjfunc_pyfunc("Collect", "collect")
 
@@ -417,7 +430,7 @@ ToSymPy(expr) converts expr to a (python) PyObject.
 
 function apprules(mx::Mxpr{:ToSymPy})
     res = sjtopy(margs(mx)...)
-end 
+end
 
 #### ToSJulia
 
@@ -450,7 +463,7 @@ end
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     kws = Dict()
-    nargs = sjtopy_kw(mx,kws)    
+    nargs = sjtopy_kw(mx,kws)
     pyargs = sjtopy(nargs...)
     setdps::Bool = false
     if haskey(kws,"dps")

@@ -933,14 +933,14 @@ do_getage(mx,s::Mxpr) = Int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
 
-@sjdoc Fixed "
-Fixed(expr) returns the status of the fixed point bit, which tells whether expr
+@sjdoc FixedQ "
+FixedQ(expr) returns the status of the fixed point bit, which tells whether expr
 is expected to evaluate to itself in the current environment. This is partially
 implemented.
 "
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
 #apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
-apprules(mx::Mxpr{:Fixed}) = is_fixed(mx[1])
+apprules(mx::Mxpr{:FixedQ}) = is_fixed(mx[1])
 
 @sjdoc Unfix "
 Unfix(expr) unsets the fixed flag on expr, causing it to be evaluated.
@@ -974,7 +974,7 @@ apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 UserSyms() returns a List of non-Protected symbols, which is approximately
 all user defined symbols.
 "
-apprules(mx::Mxpr{:UserSyms}) = usersymbols()
+apprules(mx::Mxpr{:UserSyms}) = usersymbolsList()
 
 @sjdoc Help "
 Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).

@@ -114,10 +114,9 @@ end
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
 
-
 const single_arg_float_int_complex =
         [
-         (:conj,:Conjugate)
+         (:conj,:Conjugate,:conjugate)
          ]
 
     const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),
@@ -458,39 +457,39 @@ make_math()
 
 sjgamma{T<:AbstractFloat}(x::T) = gamma(x)
 sjgamma{T<:AbstractFloat}(x::Complex{T}) = gamma(x)
-sjgamma(a) = a |> sjtopy |> sympy.gamma |> pytosj
-sjgamma(a,z) = sympy.uppergamma(sjtopy(a),sjtopy(z)) |> pytosj
+sjgamma(a) = a |> sjtopy |> sympy_gamma |> pytosj
+sjgamma(a,z) = sympy_gamma(sjtopy(a),sjtopy(z)) |> pytosj
 
-do_Gamma(mx::Mxpr{:Gamma},a) = sjgamma(a)
-do_Gamma(mx::Mxpr{:Gamma},a,z) = sjgamma(a,z)
+@doap Gamma(a) = sjgamma(a)
+@doap Gamma(a,z) = sjgamma(a,z)
 
-# do_Gamma{T<:AbstractFloat}(mx::Mxpr{:Gamma},x::T) = gamma(x)         
-# do_Gamma{T<:AbstractFloat}(mx::Mxpr{:Gamma},x::Complex{T}) = gamma(x)
-# do_Gamma(mx::Mxpr{:Gamma},x) = pytosj(sympy.gamma(sjtopy(x)))         
-# do_Gamma(mx::Mxpr{:Gamma},x,y) = pytosj(sympy.uppergamma(sjtopy(x),sjtopy(y)))
-
-register_sjfunc_pyfunc(:Gamma,:gamma)
-register_only_pyfunc_to_sjfunc(:Gamma,:uppergamma)
+set_pytosj(:gamma, :Gamma)
+set_pytosj(:uppergamma, :Gamma)
+set_sjtopy(:Gamma, :sympy_gamma)
 
 #### Erf
 
 @mkapprule Erf :nargs => 1:2
 
-do_Erf{T<:AbstractFloat}(mx::Mxpr{:Erf},x::T) = erf(x) #julia function
-do_Erf{T<:AbstractFloat}(mx::Mxpr{:Erf},x::Complex{T}) = erf(x) #julia function 
-do_Erf(mx::Mxpr{:Erf},x) = pytosj(sympy.erf(sjtopy(x)))
-do_Erf(mx::Mxpr{:Erf},x,y) = pytosj(sympy.erf2(sjtopy(x),sjtopy(y)))
+sjerf{T<:AbstractFloat}(x::T) = erf(x)
+sjerf{T<:AbstractFloat}(x::Complex{T}) = erf(x)
+sjerf(a) = a |> sjtopy |> sympy_erf |> pytosj
+sjerf(a,z) = sympy_erf(sjtopy(a),sjtopy(z)) |> pytosj
 
-register_sjfunc_pyfunc(:Erf,:erf)
-register_only_pyfunc_to_sjfunc(:Erf,:erf2)
+@doap Erf(x) = sjerf(x)
+@doap Erf(x,y) = sjerf(x,y)
+
+set_pytosj(:erf, :Erf)
+set_pytosj(:erf2, :Erf)
+set_sjtopy(:Erf, :sympy_erf)
 
 #### InverseErf
 
 @mkapprule InverseErf :nargs => 1:2
 
-do_InverseErf{T<:AbstractFloat}(mx::Mxpr{:InverseErf},x::T) = x < 1 && x > -1 ? erfinv(x) : mx
-do_InverseErf(mx::Mxpr{:InverseErf},x) = pytosj(sympy.erfinv(sjtopy(x)))
-do_InverseErf(mx::Mxpr{:InverseErf},x,y) = pytosj(sympy.erf2inv(sjtopy(x),sjtopy(y)))
+@doap InverseErf{T<:AbstractFloat}(x::T) = x < 1 && x > -1 ? erfinv(x) : mx
+@doap InverseErf(x) = pytosj(sympy.erfinv(sjtopy(x)))
+@doap InverseErf(x,y) = pytosj(sympy.erf2inv(sjtopy(x),sjtopy(y)))
 
 register_sjfunc_pyfunc(:InverseErf,:erfinv)
 register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
@@ -675,9 +674,6 @@ Im(x) returns the imaginary part of z.
 # Mma allows complex numbers of mixed Real type. Julia does not.
 # Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
 
-# This is already created above
-#@mkapprule1 Re
-
 do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
 do_Re(mx::Mxpr{:Re}, x::Real) = x
 
@@ -697,7 +693,6 @@ function do_Re_imag_int(m,f)
     end
 end
 
-#@mkapprule1 Im
 do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
 do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
 

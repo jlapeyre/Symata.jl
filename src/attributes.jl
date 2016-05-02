@@ -32,6 +32,9 @@ apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 
 get_attributes(sj::SJSym) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
 
+get_attributes(s::AbstractString) = get_attributes(symbol(s))
+get_attributesList(s::AbstractString) = get_attributesList(symbol(s))
+
 function get_attributesList(sj::SJSym)
     ks = get_attributes(sj)
     mxpr(:List,ks...) # need to splat because array ks is not of type Any

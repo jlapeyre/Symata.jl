@@ -1,6 +1,6 @@
 @ex ClearAll(a,b,c,d,x)
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 @testex 1 == 1
 @testex !(1 != 1)
@@ -81,7 +81,7 @@
 @testex And(True,True,True) == True
 
 @ex ClearAll(a,b,c,f,x)
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+
+@testex testUserSyms
 
 

@@ -1,4 +1,5 @@
-@testex Length(UserSyms()) == 0
+@ex ClearTemporary()
+@testex testUserSyms
 
 @ex ClearAll(a,b)
 @testex  b^0 == 1
@@ -9,4 +10,5 @@
 @testex  -1*(a+b) == -a - b
 @ex ClearAll(a,b)
 
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
+

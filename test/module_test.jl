@@ -1,4 +1,4 @@
-@ex ClearAll(f,g,x,y, gcd)
+@testex testUserSyms
 
 @testex Module([], 1) == 1
 
@@ -48,6 +48,6 @@
 @testex f("dog") == "dog"
 @ex ClearAll(f,x)
 
-@ex Map(ClearAll, UserSyms())
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@ex ClearTemporary()
+@testex testUserSyms
+

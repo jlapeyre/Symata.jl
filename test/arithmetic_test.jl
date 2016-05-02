@@ -1,7 +1,6 @@
 using Base.Test
 
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+@testex testUserSyms
 
 @testex Head(1//1) == Int64
 @testex Head(3//1) == Int64
@@ -51,5 +50,5 @@ import SJulia: mpow, mxpr
 @testex Sqrt(-1)^2 == -1   # same bug
 
 @ex ClearAll(a,b)
-@ex If( Length(UserSyms()) > 0 ,  Println("**********", UserSyms()))
-@testex Length(UserSyms()) == 0
+
+@testex testUserSyms
