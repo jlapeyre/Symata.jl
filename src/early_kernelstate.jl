@@ -63,25 +63,62 @@ type SSJSym{T}  <: AbstractSJSym
     definition::Mxpr
 end
 
-#####################################################################
-# SSJSym                                                            #
-# data associated with SJulia symbols are instances of type SSJSym  #
-# SJSym is just Symbol. It is an older abstraction.                 #
-#####################################################################
+########################################################################
+# SSJSym                                                               #
+# data associated with SJulia symbols are instances of type SSJSym     #
+# SJSym is just Symbol. It is an older abstraction. Maybe we need it ! #
+########################################################################
 typealias SJSym Symbol
 
 #### Symbol Table
 
 ## symbol table for SJulia symbols
 
-newsymtable() = Dict{Symbol,SSJSym}()
+typealias SymTab Dict{Symbol,SSJSym}
+
+newsymtable() = SymTab()
 
 const SYMTAB = newsymtable()
 #const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
 
-const SYMTABLES = Dict{Symbol,Dict{Symbol,SSJSym}}()
+const SYMTABLES = Dict{Symbol,SymTab}()
 SYMTABLES[:System] = SYMTAB
-SYMTABLES[:Global] = newsymtable()
+SYMTABLES[:Main] = newsymtable()
+
+function get_context_symtab(context_name)
+    cn = symbol(context_name)
+    SYMTABLES[cn]
+end
+
+
+type CurrentContextT
+    name::Symbol    
+    symtab::SymTab
+end
+
+function CurrentContextT(name::Symbol)
+    CurrentContextT(name, get_context_symtab(name))
+end
+
+const CurrentContext = CurrentContextT(:System)
+
+function get_current_context_name()
+    CurrentContext.name
+end
+
+function set_current_context(name::Symbol)
+    CurrentContext.name = name
+    CurrentContext.symtab = get_context_symtab(name)
+    println("Set current context to $name")
+end
+
+function sjimportall(src::Symbol, targ::Symbol)
+    tc = get_context_symtab(targ)
+    for (k,v) in get_context_symtab(src)
+        tc[k] = v
+    end
+    nothing
+end
 
 #### Evalage
 

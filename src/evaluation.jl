@@ -60,10 +60,17 @@ end
 
 const number_of_Os = 10
 
-const Os = Array(Symbol,0)
+const Os = Array(SJSym,0)
 for i in 1:number_of_Os
     push!(Os, symbol("O"^i))
 end
+
+# Put this in the System symbol table
+# so that they are imported into Global
+for i in 1:number_of_Os
+    set_system_symval(Os[i], Null)
+end
+
 
 # Bind O to O(n), where n is the most recent line number.
 # Bind OO to O(n-1), etc.  When O evaluates to Out(n), the Out rule evaluate
@@ -75,7 +82,7 @@ macro bind_Os()
         newex = :(
                   if (length(Output) - $i + 1) >= 1
                        oexp = mxpr(:Out, get_line_number() - $i + 1)
-                       setsymval(parse($sym), oexp)
+                       set_system_symval(parse($sym), oexp)
                        set_pattributes($sym, :Protected)
                   end 
                      )
@@ -83,7 +90,6 @@ macro bind_Os()
     end
     expr
 end
-
 
 
 function exfunc(ex)
@@ -99,7 +105,7 @@ function exfunc(ex)
         mx = tryexfunc(res)
     end
     if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
-    setsymval(:ans,mx)  # Like Julia and matlab, not Mma
+    set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
     increment_line_number()
     if isinteractive()
         set_sjulia_prompt(get_line_number() + 1)

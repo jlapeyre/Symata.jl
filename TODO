@@ -1,13 +1,12 @@
-
 * AC matching
 
 * Match BlankSequence and BlankNullSequence
 
+* Finish implementing namespaces   
+   
 * Implement level specification
 
 * Implement autoload. e.g. for code written in SJulia
-
-* Fix chained comparison. Remove true comparison. Return conjunction.
 
 * We can't disable infseval because it does some computation.
 
@@ -24,8 +23,7 @@ result.
   Mma gives gensyms attribute 'Temporary' and removes them when they go out of scope.
   We should use a separate gensym counter for SJulia, eg. $ModuleNumber.
 
-* For 'Contexts', (like Julia modules), we should use ::, because the parser deals with it. Or '.',
-  which is waht Julia uses for modules.  Back tick will not work.
+* We want to use '.' for 'Contexts', 
 
 * Give exact values for CosD
 
@@ -36,8 +34,6 @@ result.
 
 * Allow user to set max number of mevals.
 
-* Allow user to set the output capture length   
-   
 * Module should convert single line to compound expression.
 
 * Getting error message "PyObject call" instead of unevaluated
@@ -67,12 +63,17 @@ result.
 * Derivative. Expressions with expressions as the head. Implemented
    but disabled because it breaks things.
 
-* O, OO, have problems. Need to evaluate them automatically
    
 ###############################################################################
 
  ===  DONE ===
 
+* Allow user to set the output capture length   
+   
+* Partly done, answer is correct. Fix chained comparison. Remove true comparison. Return conjunction.
+   
+* O, OO, have problems. Need to evaluate them automatically
+   
 * @doap fails with annotated arguments. The type parameters need to be
    quoted ors something.a   
    

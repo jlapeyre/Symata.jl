@@ -95,7 +95,7 @@ function apprules(mx::Mxpr{:Unprotect})
     mxprcf(:List, nargs)
 end
 
-function do_unprotect(mx,a::Symbol)
+function do_unprotect(mx,a::SJSym)
     if is_protected(a)
         unprotect(a)
         return string(a)
@@ -122,7 +122,7 @@ function apprules(mx::Mxpr{:Protect})
     mxprcf(:List, nargs)
 end
 
-function do_protect(mx,a::Symbol)
+function do_protect(mx,a::SJSym)
     if ! is_protected(a)
         protect(a)
         return string(a)

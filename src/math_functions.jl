@@ -633,7 +633,7 @@ end
 make_Mxpr_N()
 
 # We need to use dispatch as well, not conditionals
-function do_N(s::Symbol)
+function do_N(s::SJSym)
     if s == :Pi || s == :π
         return float(pi)
     elseif s == :E
@@ -876,7 +876,7 @@ do_Sign{T<:Number}(mx::Mxpr{:Sign}, x::T) = sign(x)
 do_Sign(mx::Mxpr{:Sign}, x) = mx
 
 # Maybe each symbol should be a type. Like irrational or Mxpr
-function do_Sign(mx::Mxpr{:Sign}, x::Symbol)
+function do_Sign(mx::Mxpr{:Sign}, x::SJSym)
     x == :Pi && return 1
     x == :E && return 1
     x == :EulerGamma && return 1

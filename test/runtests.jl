@@ -5,16 +5,18 @@ import Base.Test: @test
 
 @ex TimeOff()   # don't print hundreds of diagnostic lines
 
+# Disable for the moment since we are testing symbol name spaces
 @ex (testUserSyms;
      userSymList;
      userSymList = Map(ToString, UserSyms());
-     testUserSyms := If(  userSymList == Map(ToString,UserSyms()) , True,  (Println("**********", UserSyms()); False), (Println("**********", UserSyms()); False)))
+     testUserSyms := If(  userSymList == Map(ToString,UserSyms()) ,
+            True,  (Println("!!!!!!!!!!!!!!", UserSyms()); False), (Println("**********", UserSyms()," ",CurrentContext()); False)))
 
-#@ex x
-
+#@ex    testUserSyms = True
 @testex testUserSyms
 @testex testUserSyms
 
+include("flowcontrol_test.jl")
 include("math_functions_test.jl")
 include("mxpr_test.jl")
 include("integral_derivative_test.jl")
@@ -31,7 +33,6 @@ include("module_test.jl")
 include("io_test.jl")
 include("orderless_test.jl")
 include("somemath_test.jl")
-include("flowcontrol_test.jl")
 include("expressions_test.jl")
 include("arithmetic_test.jl")
 include("spec_fun_test.jl")

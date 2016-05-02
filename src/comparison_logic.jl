@@ -138,7 +138,7 @@ function do_Comparison{T<:Number,V<:Number}(mx::Mxpr{:Comparison},a::T,comp::SJS
     _do_Comparison(a,comp,b)
 end
 
-function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
+function _do_Comparison{T<:Number, V<:Number}(a::T, comp::SJSym, b::V)
     if comp == :<    # Test For loop shows this is much faster than evaling Expr
         return a < b
     elseif comp == :>
@@ -158,7 +158,7 @@ function _do_Comparison{T<:Number, V<:Number}(a::T, comp::Symbol, b::V)
 end
 
 # a == a  --> True, etc.  for unbound a
-function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
+function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
     if comp == :(==)
         res = a == b
         res && return res
@@ -178,7 +178,7 @@ function _do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T,comp
 end
 
 # TODO: Try to find why the Unions don't work and condense these methods
-function _do_Comparison(a::Mxpr,comp::Symbol,b::Mxpr)
+function _do_Comparison(a::Mxpr,comp::SJSym,b::Mxpr)
     if comp == :(==)
         res = a == b
         res && return res
@@ -191,7 +191,7 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Mxpr)
     return nothing
 end
 
-function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
+function _do_Comparison(a::Mxpr,comp::SJSym,b::SJSym)
     if comp == :(==)
         res = a == b
         res && return res
@@ -204,11 +204,11 @@ function _do_Comparison(a::Mxpr,comp::Symbol,b::Symbol)
     return nothing
 end
 
-_do_Comparison{T<:SJReal}(a::Symbol, comp::Symbol, b::T) = nothing
-_do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
-#_do_Comparison{T<:Union{Mxpr,Symbol,AbstractString,DataType}}(a::T, comp::Symbol, b::Symbol) = nothing
-_do_Comparison{T<:SJReal}(a::T, comp::Symbol, b::Mxpr) = nothing
-_do_Comparison{T<:SJReal}(a::Mxpr, comp::Symbol, b::T) = nothing
+_do_Comparison{T<:SJReal}(a::SJSym, comp::SJSym, b::T) = nothing
+_do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
+#_do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
+_do_Comparison{T<:SJReal}(a::T, comp::SJSym, b::Mxpr) = nothing
+_do_Comparison{T<:SJReal}(a::Mxpr, comp::SJSym, b::T) = nothing
 
 function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
     comp == :(==) && return false
@@ -234,7 +234,7 @@ end
 
 # Note the asymmetry between this and previous method.
 # This one, at least, is correct. and catches 2 < b
-function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Symbol)
+function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::SJSym)
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -242,10 +242,10 @@ function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Symbol)
 end
 
 # used this to search for bug
-# _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::Symbol, n::T) = false
+# _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::SJSym, n::T) = false
 
 function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
-    if typeof(comp) != Symbol
+    if typeof(comp) != SJSym
         error("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
     else
         error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol")

@@ -60,7 +60,7 @@ do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(f
 # objects and properties.
 
 # string to set attributes of sym
-function attributes_set_string{T<:Union{AbstractString, Symbol}}(sym::T)
+function attributes_set_string{T<:Union{AbstractString, SJSym}}(sym::T)
     a = get_attributes(sym)
     a = map(string,a)
     sym = string(sym)
@@ -85,7 +85,7 @@ function maybeprint(io::IO,s)
     if length(s)>0 println(io,s) end
 end
 
-function do_Definition{T<:Union{AbstractString, Symbol}}(mx::Mxpr{:Definition}, sym::T)
+function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, sym::T)
     write_definition(STDOUT,sym)
 end
 

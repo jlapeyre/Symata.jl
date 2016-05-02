@@ -1,5 +1,6 @@
 # For, While, Do, If, CompoundExpression
 
+# FIXME. We need to delete local variables before breaking or returning.
 macro checkbreak()
     return esc(:(
     if FLOWFLAGS[:Break]

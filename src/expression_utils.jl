@@ -1,13 +1,13 @@
 # return true if h occurs anywhere in tree as a head
 # Decided not to use this after it was written
-function has_head(mx::Mxpr, h::Symbol)
+function has_head(mx::Mxpr, h::SJSym)
     mhead(mx) == h && return true
     for i in 1:length(mx)
         has_head(mx[i],h) && return true
     end
     return false
 end
-has_head(x,h::Symbol) = false
+has_head(x,h::SJSym) = false
 #has_head(x) = error("has_head: unimplemented")
 
 # These should go somewhere else.
@@ -16,7 +16,7 @@ has_head(x,h::Symbol) = false
 # generally.
 function apply_upvalues_to_args!(mx::Mxpr)
     syms = listsyms(mx)
-    goodsyms = Array(Symbol,0)
+    goodsyms = Array(SJSym,0)
     for sym in syms
         if has_upvalues(sym)
             push!(goodsyms,sym)
@@ -49,6 +49,6 @@ function recursive_copy(mx::Mxpr)
     mxpr(mhead(mx),nargs)
 end
 recursive_copy(x) = copy(x)
-recursive_copy(x::Symbol) = x
+recursive_copy(x::SJSym) = x
 recursive_copy(x::DataType) = x
 recursive_copy(x::Number) = x

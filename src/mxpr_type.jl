@@ -2,12 +2,18 @@
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
+
 @inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
+
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
+
 @inline symname{T}(s::SSJSym{T}) = s.val[1]
+
 ## Typed SJ Symbols. Only experimental
 # Don't need T<:DataType here
+
 @inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
+
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]
 
@@ -15,13 +21,19 @@ symval(s::SJSym) = getssym(s).val[1]
 symval(s::SSJSym) = s.val[1]
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
+## Sets an already existing SJulia symbol
 function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
 
+# Sets the SJulia symbol that Julia symbol s is bound to
 function setsymval(s::SJSym,val)
     setsymval(getssym(s),val)
+end
+
+function set_system_symval(s::SJSym, val)
+    setsymval(get_system_ssym(s),val)
 end
 
 fastsetsymval(s::SJSym,val) = (getssym(s).val[1] = val)
@@ -164,26 +176,46 @@ function jlistupvaluedefs(sym::SJSym)
     uvlist
 end
 
+########################################################
+## SJSymbol access
+#######################################################
+
 ## Retrieve or create new symbol
-@inline function getssym(s::Symbol)
-    if haskey(SYMTAB,s)
-        return SYMTAB[s]
+function getssym(s::Symbol)
+    if haskey(CurrentContext.symtab,s)
+        return CurrentContext.symtab[s]
     else
         ns = ssjsym(s)
-        SYMTAB[s] = ns
+        CurrentContext.symtab[s] = ns
         return ns
     end
 end
-@inline getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
 
-@inline function createssym{T<:DataType}(s::Symbol,dT::T)
-    ns = ssjsym(s,dT)
-    SYMTAB[s] = ns
-    return ns
+function getssym(context_name::Symbol, s::Symbol)
+    symtab = get_context_symtab(context_name)
+    if haskey(symtab,s)
+        return symtab[s]
+    else
+        ns = ssjsym(s)
+        symtab[s] = ns
+        return ns
+    end
 end
 
+get_system_ssym(s::Symbol) = getssym(:System, s)
+
+getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
+
+# Unused
+# @inline function createssym{T<:DataType}(s::Symbol,dT::T)
+#     ns = ssjsym(s,dT)
+#     CurrentContext.symtab[s] = ns
+#     return ns
+# end
+
 @inline function delete_sym(s::Symbol)
-    delete!(SYMTAB,s)
+#    println("Deleteing " , s)
+    delete!(CurrentContext.symtab,s)
     nothing
 end
 
@@ -556,7 +588,7 @@ end
 
 function protectedsymbols_strings()
     symstrings = Array(ByteString,0)
-    for s in keys(SYMTAB)
+    for s in keys(CurrentContext.symtab)
         if get_attribute(s,:Protected) && s != :ans
             push!(symstrings,string(getsym(s))) end
     end
@@ -565,18 +597,35 @@ end
 
 function protectedsymbols()
     args = newargs()
-    for s in keys(SYMTAB)
+    for s in keys(CurrentContext.symtab)
         if get_attribute(s,:Protected) && s != :ans
             push!(args,getsym(s)) end
     end
     mx = mxpr(:List, sort!(args))
 end
 
+function usersymbols()
+    nargs = newargs()
+    for k in keys(get_context_symtab(:Main))
+        if ! haskey(get_context_symtab(:System),k)
+            push!(nargs,string(k))
+        end
+    end
+    return nargs
+end
+
+# This is the new version used by UserSyms()
+# Experiment with namespaces
+function usersymbolsList()
+        mxpr(:List, usersymbols())
+end
+
+# This is the old versions
 # For now, we exclude Temporary symbols
 # We return symbols as strings to avoid infinite eval loops
-function usersymbolsList()
+function usersymbolsListold()
     args = newargs()
-    for s in keys(SYMTAB)
+    for s in keys(CurrentContext.symtab)
         if  get_attribute(s,:Temporary) continue end
         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
     end
@@ -586,10 +635,10 @@ function usersymbolsList()
     mx
 end
 
-function usersymbols()
+function usersymbolsold()
     args = newargs()
-    for s in keys(SYMTAB)
-        if  get_attribute(s,:Temporary) continue end
+    for s in keys(CurrentContext.symtab)
+        if  get_attribute(s,:Temporary) continue end  # This does not help.
         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
     end
     return args

@@ -125,6 +125,7 @@ using Base.Test
 @testex Head(i) == Symbol
 
 @ex ClearAll(n,i,m)
+@ex ClearTemporary()
 
 @testex testUserSyms
 

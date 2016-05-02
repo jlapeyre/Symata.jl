@@ -173,13 +173,13 @@ end
 ##
 
 # optimize a bit for types
-function _expand_binomial_aux1(a::Symbol,b::Symbol,n)
+function _expand_binomial_aux1(a::SJSym,b::SJSym,n)
     mxpr(:Times,n,canonpower(a,(n-1)),b)
 end
 function _expand_binomial_aux1(a,b,n)
     flatcanon!(mxpr(:Times,n,canonpower(a,(n-1)),b))
 end
-function _expand_binomial_aux2(a::Symbol,b::Symbol,n)
+function _expand_binomial_aux2(a::SJSym,b::SJSym,n)
     mxpr(:Times,n,a,canonpower(b,(n-1)))
 end
 function _expand_binomial_aux2(a,b,n)

@@ -922,13 +922,13 @@ implemented feature.
 @sjseealso_group(HAge,Age,Fixed,Syms,DirtyQ,Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
-hdo_getage(mx,s::Symbol) = Int(symage(s))
+hdo_getage(mx,s::SJSym) = Int(symage(s))
 hdo_getage(mx,s::Mxpr) = Int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 hdo_getage(mx,x) = mx
 
 apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
-do_getage(mx,s::Symbol) = Int(symage(s))
+do_getage(mx,s::SJSym) = Int(symage(s))
 do_getage(mx,s::Mxpr) = Int(getage(s))
 #do_getage(mx,s::Mxpr) = do_getage(mx,meval(s))
 do_getage(mx,x) = mx
@@ -971,10 +971,32 @@ have the Protected attribute.
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 
 @sjdoc UserSyms "
-UserSyms() returns a List of non-Protected symbols, which is approximately
-all user defined symbols.
+UserSyms() returns a symbols that have not been imported from the System namespace.
+This is all user defined symbols (unless you have imported symbols from elsewhere).
 "
-apprules(mx::Mxpr{:UserSyms}) = usersymbolsList()
+
+@mkapprule UserSyms  :nargs => 0
+
+@doap UserSyms() = usersymbolsList()
+
+# This is the old version
+@mkapprule UserSyms2 :nargs => 0
+
+@doap UserSyms2() = usersymbolsListold()
+
+#apprules(mx::Mxpr{:UserSyms2}) = 
+
+@sjdoc CurrentContext "
+CurrentContext() returns the name of the current context.
+"
+
+@mkapprule CurrentContext :nargs => 0
+
+# This does not return a context or module type, because we need to
+# keep types out of the language as much as possible. Everything is
+# an expression! In fact, we should probably return a string.
+
+@doap CurrentContext() = string(get_current_context_name())
 
 @sjdoc Help "
 Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
@@ -1089,7 +1111,7 @@ do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
 
 do_Random(mx::Mxpr{:Random}) = rand()
 
-function do_Random(mx::Mxpr{:Random}, sym::Symbol)
+function do_Random(mx::Mxpr{:Random}, sym::SJSym)
     if sym == :Integer
         rand(0:1)
     elseif sym == :Real

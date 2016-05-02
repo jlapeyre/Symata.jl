@@ -1,7 +1,7 @@
 ## Pattern matching and rules
 
 # pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union{Mxpr,Symbol}
+typealias ExSym Union{Mxpr,SJSym}
 
 # fix this, made a mistake in documenting this
 # Pattern variable.
@@ -9,7 +9,7 @@ typealias ExSym Union{Mxpr,Symbol}
 # cond -- a condition that must be satisfied to match
 #   cond may be :All, which matches anything.
 type Pvar{T}
-    name::Symbol  # name
+    name::SJSym  # name
     head::T
     ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
@@ -54,7 +54,7 @@ function cmppat(ex,pat::PatternT, capt)
     return (success_flag,capt)  # report whether matched, and return captures
 end
 
-capturealloc() = Dict{Symbol,Any}()
+capturealloc() = Dict{SJSym,Any}()
 
 # capture expression ex in pvar, or return false if the new value conflicts with old.
 function capturepvar(capt,pvar,ex)
@@ -73,7 +73,7 @@ havecapt(sym,cd) = haskey(cd,sym)
 havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 
 # For instance, in x_Integer, we match Integer.
-function match_head(head::Symbol,ex)
+function match_head(head::SJSym,ex)
     head == :All && return true
     return is_Mxpr(ex,head)
 end

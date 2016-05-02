@@ -272,7 +272,7 @@ function do_ConstantArray(mx,expr::Mxpr,n)
     setfixed(mxpr(:List,nargs))
 end
 
-function do_ConstantArray{T<:Union{Number,Symbol}}(mx,expr::T,n)
+function do_ConstantArray{T<:Union{Number,SJSym}}(mx,expr::T,n)
     nargs = newargs(n)
     @inbounds for i in 1:n
         nargs[i] = expr
