@@ -24,7 +24,7 @@ end
 
 function _mpow{T<:Integer,V<:AbstractFloat}(x::T,y::V)
     x >= 0 && return convert(V,x)^y
-    res = convert(complex(V),x)^y
+    res = convert(Complex{V},x)^y
     imag(res) == 0 && return real(res)
     res
 end
