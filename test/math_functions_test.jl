@@ -60,8 +60,10 @@
 # No idea why.
 @testex Series(Gamma(x), [x, 0, 3])[1] == -EulerGamma
 
-# Its not clear this should be an automatic evaluation
 @testex Conjugate(Gamma(x)) == Gamma(Conjugate(x))
+
+#### HermiteH
+
 
 @ex ClearAll(a,x,z)
 @testex testUserSyms

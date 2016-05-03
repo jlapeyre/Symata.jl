@@ -1,4 +1,4 @@
-## Symbolic manipulation code
+## Symbolic manipulation language
 
 SJulia is a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of

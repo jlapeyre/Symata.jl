@@ -163,7 +163,8 @@ register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[Symbol(s)] = t
 # can be written to a file.
 const DOWNVALUEDEFDICT = Dict{Any,Any}()
 
-get_downvalue_def(lhs) = getkey(DOWNVALUEDEFDICT, lhs, NullMxpr)
+#get_downvalue_def(lhs) = getkey(DOWNVALUEDEFDICT, lhs, NullMxpr)
+get_downvalue_def(lhs) = get(DOWNVALUEDEFDICT, lhs, NullMxpr)
 set_downvalue_def(lhs,rhs) = (DOWNVALUEDEFDICT[lhs] = rhs)
 delete_downvalue_def(lhs) =  haskey(DOWNVALUEDEFDICT,lhs) ? delete!(DOWNVALUEDEFDICT,lhs) : nothing
 

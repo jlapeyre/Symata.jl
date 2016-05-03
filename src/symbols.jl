@@ -229,7 +229,7 @@ apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
 # The only difference is whether we return the rhs.
 # But, to save the definitions to a file, we need to record whether we had set or setdelayed,
 # so we use setdelayedval
-function setdelayed(mx,lhs::SJSymbol, rhs)
+function setdelayed(mx::Mxpr{:SetDelayed},lhs::SJSymbol, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)   # Using this works just as well. But, for printing, we don't whether Set or SetDelayed
     setdefinition(lhs, mx)
@@ -290,8 +290,10 @@ end
 
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
-do_Set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
+#do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
+
+@doap Set(lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
 #### Contexts
 

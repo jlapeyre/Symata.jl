@@ -67,11 +67,16 @@ fastsetsymval(s::SJSym,val) = (getssym(s).val[1] = val)
 
 fastsetsymval(s::SSJSym,val) = (s.val[1] = val)
 
-setdefinition(s::SSJSym, val::Mxpr) = s.definition = val
+function setdefinition(s::SSJSym, val::Mxpr)
+    s.definition = val
+end
 
 getdefinition(s::SSJSym) = s.definition
 
-setdefinition(sym::SJSymbol, val::Mxpr) = setdefinition(getssym(sym) , val)
+function setdefinition(sym::SJSymbol, val::Mxpr)
+    setdefinition(getssym(sym) , val)
+end
+
 getdefinition(sym::SJSymbol) = getdefinition(getssym(sym))
 
 #############################################################################
