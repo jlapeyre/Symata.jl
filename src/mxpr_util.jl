@@ -19,6 +19,7 @@ macro testex(expr)
     else
         retresult = false
     end
+    retresult || warn("Test failed: ", mx, " evaluated to ", retresult)
     Expr(:macrocall,Symbol("@test"),retresult)
 end
 
