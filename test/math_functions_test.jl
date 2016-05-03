@@ -3,17 +3,21 @@
 
 #### BigIntInput
 
-@ex BigIntInput(True)
+@ex bigintval = BigIntInput(True)
 @testex   2^1000 != 0
 @ex BigIntInput(False)
 @testex   2^1000 == 0
+@ex BigIntInput(bigintval)
+@ex ClearAll(bigintval)
 
 #### BigFloatInput
 
-@ex BigFloatInput(True)
+@ex bigfloatval = BigFloatInput(True)
 @testex   2.0^1000 != Infinity
 @ex BigFloatInput(False)
 @testex   2.0^10000 == Infinity
+@ex  BigFloatInput(bigfloatval)
+@ex ClearAll(bigfloatval)
 
 ## FIXME   1 < Infinity, etc. are not implemented
 
