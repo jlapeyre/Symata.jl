@@ -171,6 +171,9 @@ is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op &
 # is ex a call with len args (including the op) ?
 is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 
+# is of the form    a op b , where op is <,>, etc.  i.e. thi is  not a chained comparison
+is_single_comparison(ex::Expr, op::Symbol) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
+
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 is_unary_minus(ex::Expr) = is_call(ex, :-, 2)
@@ -217,8 +220,10 @@ function rewrite_expr(ex::Expr)
             ex.args[i] = eval(x)
         end
     end
-    if length(ex.args) > 0 && is_comparison_symbol(ex.args[1])  # should probably check that head is 'call'
+    if is_call(ex) && length(ex.args) > 0 && is_comparison_symbol(ex.args[1])
         ex = rewrite_to_comparison(ex)
+    elseif is_single_comparison(ex, :(.>))    # julia 0.4 parser does this. In 0.5, this is already a call
+        return Expr(:call, :(.>), ex.args[1], ex.args[3])
     elseif is_unary_minus(ex)    #  - b --> -1 * b
         ex = rewrite_unary_minus(ex)
     elseif is_binary_minus(ex)  #  a - b --> a + -b.
