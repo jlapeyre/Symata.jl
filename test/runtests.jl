@@ -16,6 +16,8 @@ import Base.Test: @test
 #@testex testUserSyms
 #@testex testUserSyms
 
+#@ex BigFloatInput(True)
+
 include("context_test.jl")
 include("flowcontrol_test.jl")
 include("math_functions_test.jl")

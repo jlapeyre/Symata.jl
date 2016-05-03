@@ -51,7 +51,7 @@ include("wrappers.jl")
 include("sympy.jl")
 include("math_functions.jl")
 include("sympy_application.jl")
-include("LambertW.jl")
+#include("LambertW.jl") # not yet used
 include("protected_symbols.jl")
 include("REPL_sjulia.jl")
 include("client_sjulia.jl")
