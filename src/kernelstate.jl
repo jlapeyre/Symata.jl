@@ -135,12 +135,12 @@ end
 
 const LineNumber = Int[0]
 get_line_number() = LineNumber[1]
-set_line_number(n::Int) =  (LineNumber[1] = n)
+set_line_number(n::Integer) =  (LineNumber[1] = n)
 increment_line_number() = LineNumber[1] += 1
 
 const Output = SavedOutput[]
 
-function get_saved_output_by_index(n::Int)
+function get_saved_output_by_index(n::Integer)
     if n > 0 && n <= length(Output)
         return Output[n].expr
     end
@@ -156,7 +156,7 @@ function push_output(expr)
     nothing
 end
 
-function get_output_by_line(lineno::Int)
+function get_output_by_line(lineno::Integer)
     idx = length(Output) - (get_line_number() - lineno)
     if idx <= length(Output) && idx > 0
         res = get_saved_output_by_index(idx)
@@ -297,7 +297,7 @@ HistoryLength(n) enables storing the n most recent output expressions.
 HistoryLength() returns the current value.
 "
 
-@doap function HistoryLength(n::Int)
+@doap function HistoryLength(n::Integer)
     oldn = getkerneloptions(:history_length)
     setkerneloptions(:history_length, n)
     for i in 1:(length(Output)-n)
