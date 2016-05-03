@@ -1,19 +1,19 @@
 ## Symbolic manipulation code
 
-SJulia is a language for symbolic computation.  It is largely
+sjulia is a language for symbolic computation.  It is largely
 modeled on the pattern matching and evaluation sequence of
 Mathematica. Evaluation, pattern matching, flow control, etc. are
-written in Julia. Much of the mathematics and symbolic manipulation is
+written in julia. Much of the mathematics and symbolic manipulation is
 achieved by wrapping SymPy. There are more than 300 functions
 implemented, including integration, tranformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. The best places for examples of what works (and
-what does not), are [the test directory](test/), and, at the SJulia
+what does not), are [the test directory](test/), and, at the sjulia
 prompt, the online help, TAB completion, and regex search `h"word"`.
 
 ### Installing
 
-SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
+sjulia is not a registered module, so it cannot be installed via `Pkg.add`.
 Instead, it can be installed and used as follows
 
 ```julia
@@ -22,16 +22,16 @@ julia> using SJulia
 sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-*Note*: `SJulia` depends on the Julia
+*Note*: `SJulia` depends on the julia
 [`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4 and v0.5 branches of julia. It will probably not work with v0.3.
 
 You can test it with `Pkg.test("SJulia")`.
 
-#### SJulia REPL mode
+#### sjulia REPL mode
 
-There is an SJulia command line (REPL) mode.  To use the mode, there
+There is an sjulia command line (REPL) mode.  To use the mode, there
 is an executable [`sjulia`](sjulia) included in top level directory of this distribution. It is a (UNIX
 sh) shell script that just starts julia and loads the module.
 
@@ -43,9 +43,9 @@ julia -i -e "using SJulia" $*
 The REPL is also available simply by loading the module in a julia session via
 `using SJulia`.
 
-Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
-(If loading SJulia from the `julia` prompt via `using SJulia`, you use `=` and backspace.)
-In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
+Toggle between julia and sjulia modes by typing `=` as the first character on a line.
+(If loading sjulia from the `julia` prompt via `using SJulia`, you use `=` and backspace.)
+In sjulia mode, the input is not interpreted as julia code, but rather sjulia code.
 You can do tab completion to see a list of functions and symbols.
 
 #### SymPy
@@ -54,12 +54,12 @@ Functions that call SymPy work like this. This SymPy call
 ```python
 integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
 ```
-corresponds to this SJulia expression
+corresponds to this sjulia expression
 ```julia
 Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 ```
 
-For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
+For many sjulia functions, the SymPy docstring is printed along with the sjulia documentation.
 
 #### Some results.
 
@@ -85,7 +85,7 @@ sjulia> Count(b, _:?(EvenQ))
 elapsed time: 0.075666716 seconds (3984008 bytes allocated)
 50000
 
-sjulia> Count(b, _:?( :( x -> x > 5 ) ) )    # Use a Julia function as the test
+sjulia> Count(b, _:?( :( x -> x > 5 ) ) )    # Use a julia function as the test
 elapsed time: 0.076713741 seconds (4780808 bytes allocated)
 99995
 
@@ -99,13 +99,13 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 
 #### Evaluation
 
-Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
+Like, Mma, sjulia does evaluation to a fixed point, always effectively re-evaluating in the
 current environment. There are pros and cons to this approach. In Mma there are a host
 of `HoldXXX` symbols to prevent evaluation, and in
 [Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
 functions and options to force it.
 
-Here is SJulia doing expansion (with the native `ExpandA`. The more capable `Expand` is a frontend to a
+Here is sjulia doing expansion (with the native `ExpandA`. The more capable `Expand` is a frontend to a
 SymPy function)
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
@@ -156,14 +156,14 @@ elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
 
-#### Alternate way to evaluate SJulia expressions
+#### Alternate way to evaluate sjulia expressions
 
-Instead of working with the SJulia REPL (by typing `=`)
+Instead of working with the sjulia REPL (by typing `=`)
 You can get the same thing by typing
 
 ```julia
 julia> using SJulia
-julia> @ex some SJulia expression
+julia> @ex some sjulia expression
 julia> @ex(some expression that may look like two expressions)
 ```
 
@@ -178,11 +178,11 @@ Type `Example(topic)` to run the examples. The input strings from the
 examples are pushed to the history so that they can be recalled and
 edited and re-evaluated.
 
-This documentation can be printed from within SJulia
+This documentation can be printed from within sjulia
 by entering `?, SymName` at the `sjulia` prompt. Note the comma, which
 is necessary because limitations in the provisional parsing method.
 `Help(Symname)` prints the same documentation. This allows you to type
-`@ex Help(SymName)` from Julia.
+`@ex Help(SymName)` from julia.
 
 To print a list of all help topics, type `?,` or `Help()`.
 
@@ -191,7 +191,7 @@ There are many examples in the test directory.
 
 ### A few examples
 
-Here are some examples of the SJulia mode.
+Here are some examples of the sjulia mode.
 
 ```julia
 sjulia> ClearAll(fib)
@@ -211,10 +211,10 @@ sjulia> h((a+b)^2)
 a + b
 ```
 
-Using the SJulia mode or the `@ex` macro is essentially using a language distinct
-from Julia. In particular, the evaluation sequence, and binding of symbols to
-storage is separate from Julia. But, some features allow
-using SJulia directly from Julia, and vice versa. For instance, these commands
+Using the sjulia mode or the `@ex` macro is essentially using a language distinct
+from julia. In particular, the evaluation sequence, and binding of symbols to
+storage is separate from julia. But, some features allow
+using sjulia directly from julia, and vice versa. For instance, these commands
 
 ```julia
 julia> using SJulia
@@ -224,7 +224,7 @@ julia> m = Expand((:a+:b)*(:x+1)^2)
 a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
 ````
 
-make Julia bindings of SJulia expressions to the symbols ex and m.
+make julia bindings of sjulia expressions to the symbols ex and m.
 (Only Expand works this way, but other functions can be added easily.)
 
 #### More on Evaluation
