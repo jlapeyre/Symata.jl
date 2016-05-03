@@ -330,6 +330,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         REPL.respond(SJulia_parse_REPL_line,
                       repl, sjulia_prompt) # stay in symjulia
 
+    if VERSION >= v"0.5"
     # Setup help mode
     help_mode = Prompt("help?> ",
         prompt_prefix = hascolor ? repl.help_color : "",
@@ -340,6 +341,24 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         # When we're done transform the entered line into a call to help("$line")
         on_done = respond(Docs.helpmode, repl, julia_prompt))
 
+    else
+            help_mode = Prompt("help?> ",
+        prompt_prefix = hascolor ? repl.help_color : "",
+        prompt_suffix = hascolor ?
+            (repl.envcolors ? Base.input_color : repl.input_color) : "",
+        keymap_func_data = repl,
+        complete = replc,
+        # When we're done transform the entered line into a call to help("$line")
+        on_done = respond(repl, julia_prompt) do line
+            line = strip(line)
+            haskey(Docs.keywords, symbol(line)) ? # Special-case keywords, which won't parse
+                :(Base.Docs.@repl $(symbol(line))) :
+                Base.syntax_deprecation_warnings(false) do
+                    parse("Base.Docs.@repl $line", raise=false)
+                end
+        end)
+    end        
+        
     # Set up shell mode
     shell_mode = Prompt("shell> ";
         prompt_prefix = hascolor ? repl.shell_color : "",
