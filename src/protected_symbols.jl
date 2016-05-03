@@ -103,7 +103,7 @@ set_pattributes([
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
                   "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
-                  "StringLength","StringQ","Symbol","Syms","Temporary","TimeOff","TimeOn",
-                  "ToString","ToSymPy","TrDownOff","TrDownOn","TrUpOff",
-                  "TrUpOn","TraceOff","TraceOn","TrigSimp","Unfix","Unpack",
+                  "StringLength","StringQ","Symbol","Syms","Temporary","Time",
+                  "ToString","ToSymPy","TraceDownValues","TraceUpValues",
+                  "Trace","TrigSimp","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing"], :Protected)

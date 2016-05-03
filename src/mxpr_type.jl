@@ -1,3 +1,5 @@
+typealias SJSymbol Union{SJSym,Qsym}
+
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
@@ -7,7 +9,12 @@
 
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
 
-@inline symname{T}(s::SSJSym{T}) = s.val[1]
+function symname{T}(s::SSJSym{T})
+    s.val[1]
+end
+
+symname(s::SJSym) = s
+symname(s::Qsym) = s.name
 
 ## Typed SJ Symbols. Only experimental
 # Don't need T<:DataType here
@@ -17,8 +24,24 @@
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]
 
-symval(s::SJSym) = getssym(s).val[1]
-symval(s::SSJSym) = s.val[1]
+# Don't make these one-line defintions. They are easier to search for this way.
+function symval(s::SJSym)
+    getssym(s).val[1]
+end
+
+function symval(s::Qsym)
+    ssym = getssym(s)
+    val = ssym.val[1]
+    if val == s.name
+        return s
+    end
+    val
+end
+
+function symval(s::SSJSym)
+    s.val[1]
+end
+
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
 ## Sets an already existing SJulia symbol
@@ -28,9 +51,13 @@ function setsymval(s::SSJSym,val)
 end
 
 # Sets the SJulia symbol that Julia symbol s is bound to
-function setsymval(s::SJSym,val)
+function setsymval(s::SJSymbol,val)
     setsymval(getssym(s),val)
 end
+
+# function setsymval(qs::Qsym,val)
+#     setsymval(getssym(qs),val)
+# end
 
 function set_system_symval(s::SJSym, val)
     setsymval(get_system_ssym(s),val)
@@ -44,20 +71,24 @@ setdefinition(s::SSJSym, val::Mxpr) = s.definition = val
 
 getdefinition(s::SSJSym) = s.definition
 
-setdefinition(sym::SJSym, val::Mxpr) = setdefinition(getssym(sym) , val)
-getdefinition(sym::SJSym) = getdefinition(getssym(sym))
+setdefinition(sym::SJSymbol, val::Mxpr) = setdefinition(getssym(sym) , val)
+getdefinition(sym::SJSymbol) = getdefinition(getssym(sym))
 
 #############################################################################
 # Any and all direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
 #############################################################################
 
-@inline symname(s::SJSym) = s
+
 
 #
 #symname(s::AbstractString) = symbol(s)
 
-@inline symattr(s::SJSym) = getssym(s).attr
+symattr(s::SJSymbol) = getssym(s).attr
+# symattr(s::Qsym) = getssym(s).attr
+# symattr(s::SJSym) = getssym(s).attr
+
+
 @inline getsym(s) = s  # careful, this is not getssym
 
 # Try storing values in a Dict instead of a field. Not much difference.
@@ -80,8 +111,14 @@ import Base:  ==
 downvalue_lhs_equal(x,y) = x == y
 downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
 
-function set_downvalue(mx::Mxpr, ins::SJSym, val)
-    s = getssym(ins)
+# Sets a downvalue associated with symbol 
+
+function set_downvalue(mx::Mxpr, s::SJSymbol, val)
+    set_downvalue(mx, getssym(s), val) 
+end
+
+function set_downvalue(mx::Mxpr, s::SSJSym, val)
+#    s = getssym(ins)
     dvs = s.downvalues
     isnewrule = true
     @inbounds for i in 1:length(dvs)
@@ -97,7 +134,7 @@ function set_downvalue(mx::Mxpr, ins::SJSym, val)
     s.age = increvalage()
 end
 
-function clear_downvalue_definitions(sym::SJSym)
+function clear_downvalue_definitions(sym::SJSymbol)
     s = getssym(sym)
     dvs = s.downvalues
     for i in 1:length(dvs)
@@ -111,10 +148,10 @@ function clear_downvalues(s::SJSym)
     getssym(s).downvalues = Array(Any,0)
 end
 
-@inline downvalues(s::SJSym) = getssym(s).downvalues
-@inline sjlistdownvalues(s::SJSym) = mxpr(:List,downvalues(s)...)
+downvalues(s::SJSymbol) = getssym(s).downvalues
+sjlistdownvalues(s::SJSymbol) = mxpr(:List,downvalues(s)...)
 
-function jlistdownvaluedefs(sym::SJSym)
+function jlistdownvaluedefs(sym::SJSymbol)
     s = getssym(sym)
     dvs = s.downvalues
     dvlist = Array{Any,1}()
@@ -188,6 +225,14 @@ function getssym(s::Symbol)
     end
 end
 
+function getssym(qs::Qsym)
+    res = getssym(qs.context, qs.name)
+    if res == qs.name
+        return qs
+    end
+    res
+end
+
 function getssym(context_name::Symbol, s::Symbol)
     symtab = get_context_symtab(context_name)
     if haskey(symtab,s)
@@ -203,8 +248,13 @@ get_system_ssym(s::Symbol) = getssym(:System, s)
 
 getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
 
-@inline function delete_sym(s::Symbol)
+function delete_sym(s::Symbol)
     delete!(CurrentContext.symtab,s)
+    nothing
+end
+
+function delete_sym(s::Qsym)
+    delete!(get_context_symtab(s),symname(s))
     nothing
 end
 
@@ -621,26 +671,30 @@ end
 get_attribute(args...) = false
 
 # Return true if sj has attribute attr
-@inline function get_attribute(sj::SJSym, attr::Symbol)
+function get_attribute(sj::SJSymbol, attr::Symbol)
     get(getssym(sj).attr,attr,false)
 end
 
+# function get_attribute(sj::Qsym, attr::Symbol)
+#     get(getssym(sj).attr,attr,false)
+# end
+
 # Return true if head of mx has attribute attr
-@inline function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
+function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
     get_attribute(T,attr)
 end
 
 # Related code in predicates.jl and attributes.jl
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
 protect(sj::SJSym) = set_attribute(sj,:Protected)
-set_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = true)
+set_attribute(sj::SJSymbol, attr::Symbol) = (getssym(sj).attr[attr] = true)
 
 # Better to delete the symbol
 #unset_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = false)
 
-unset_attribute(sj::SJSym, attr::Symbol) = delete!(getssym(sj).attr, attr)
+unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
 
-clear_attributes(sj::SJSym) =  empty!(getssym(sj).attr)
+clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
 
 ## Some types of Heads of Mxpr's
 

@@ -4,7 +4,8 @@ import Base: show
 
 import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs, is_type, getoptype, mtojsym,
-       mxpr, mxprcf, Infinity, getkerneloptions, unicode_output
+       mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
+       CurrentContext
 
 # A space, or maybe not.
 opspc() = getkerneloptions(:compact_output) ? "" : " "
@@ -327,5 +328,14 @@ function Base.show(io::IO, mx::Mxpr{:Pattern})
     show(io,mx[1])
     show(io,mx[2])
 end
+
+function Base.show(io::IO, qs::Qsym)
+    if qs.context != CurrentContext.name
+        show(io,qs.context)
+        print(io,".")
+    end
+    show(io,qs.name)    
+end
+
 
 end # module SJuliaIO

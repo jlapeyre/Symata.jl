@@ -154,6 +154,58 @@ function _do_Comparison{T<:Number, V<:Number}(a::T, comp::SJSym, b::V)
     eval(Expr(:comparison,a,comp,b)) # This will be slow.
 end
 
+## FIXME Uh this is just copied from above. This is required to disambiguate
+# from the catchall below
+function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::T)
+    if comp == :<    # Test For loop shows this is much faster than evaling Expr
+        return a < b
+    elseif comp == :>
+        return a > b
+    elseif comp == :(==)
+        return a == b
+    elseif comp == :(>=)
+        return a >= b
+    elseif comp == :(<=)
+        return a <= b
+    elseif comp == :(!=)
+        return a != b
+    elseif comp == :(===)
+        return a === b
+    end
+    eval(Expr(:comparison,a,comp,b)) # This will be slow.
+end
+
+# This catches some cases
+function _do_Comparison{T<: Number}(mx::Mxpr{:DirectedInfinity}, comp::SJSym, n::T)
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return nothing
+end
+
+function _do_Comparison{T<: Number}(n::T, comp::SJSym, mx::Mxpr{:DirectedInfinity})
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return nothing
+end
+
+# FIXME. duplicated code. Maybe SJulia needs its own Boolean type, one that is not <: Number
+function _do_Comparison(mx::Mxpr{:DirectedInfinity}, comp::SJSym, n::Bool)
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return nothing
+end
+
+function _do_Comparison(n::Bool, comp::SJSym, mx::Mxpr{:DirectedInfinity})
+    comp == :(==) && return false
+    comp == :(!=) && return true
+    comp == :(===) && return false
+    return nothing
+end
+
+
 # a == a  --> True, etc.  for unbound a
 function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
     if comp == :(==)
@@ -213,6 +265,13 @@ function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
     return false
 end
 
+function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
+    comp == :(==) && return a == b
+    comp == :(!=) && return a != b
+    comp == :(===) && return a == b
+    return false
+end
+
 function _do_Comparison(a, comp::SJSym, b::Bool)
     comp == :(==) && return false
     comp == :(!=) && return true
@@ -220,7 +279,9 @@ function _do_Comparison(a, comp::SJSym, b::Bool)
     return false
 end
 
-#
+_do_Comparison(a::Qsym, comp::Symbol, b::Bool) = nothing
+_do_Comparison{T<:Number}(a::Qsym, comp::SJSym, b::T) = nothing
+
 function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
     comp == :(==) && return false
     comp == :(!=) && return true
@@ -248,13 +309,48 @@ function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
     end
 end
 
-function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
-    comp == :(==) && return a == b
-    comp == :(!=) && return a != b
+# function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
+#     comp == :(==) && return a == b
+#     comp == :(!=) && return a != b
+#     comp == :(===) && return a == b
+#     return false  # I guess this is good
+# end
+
+# This is meant to be a catchall for any object.
+# But, we should use try catch because == may not be defined.
+# Currently, this catches qsym
+# function _do_Comparison{T}(a::T, comp::SJSym, b::T)
+#     comp == :(==) && return a == b ? true : nothing
+#     comp == :(!=) && return a != b ? nothing : true
+#     comp == :(===) && return a == b
+#     return nothing
+# end
+
+# function _do_Comparison{T}(a::T, comp::SJSym, b::T)
+#     comp == :(==) && return a == b ? true : nothing
+#     comp == :(!=) && return a != b ? nothing : true
+#     comp == :(===) && return a == b
+#     return nothing
+# end
+
+
+# FIXME. We need >=, <= like this in several places
+# Break them out into a function
+# NB. Mma leaves  a < a unevaluated.
+# This is probably good because a may be of a type for which there is no order
+function _do_Comparison{T<:Qsym}(a::T, comp::SJSym, b::T)
+    (comp == :(==) || comp == :(>=) || comp == :(<=))  && return a == b ? true : nothing
+    comp == :(!=) && return a == b ?  false : nothing
     comp == :(===) && return a == b
-    return false  # I guess this is good
+#    (comp == :(<) || comp == :(>)) && return a == b ? false : nothing
+    return nothing
 end
 
+#_do_Comparison(a::Qsym, comp::Symbol, b::Bool) = nothing
+
+# function _do_Comparison{T}(a::Qsym, comp::SJSym, b::T)
+#     return nothing
+# end
 
 ## These allow converting values returned by sympy, although we could do it differntly
 apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])

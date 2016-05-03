@@ -10,10 +10,10 @@ import Base: TTY
 import Base.Terminals
 import Base.REPL
 
-import Base: active_repl
+#import Base: active_repl, have_color
 
 import Base: text_colors, possible_formatting_symbols, available_text_colors, available_text_colors_docstring,
-have_color, default_color_warn, default_color_info, default_color_input,  default_color_answer,
+default_color_warn, default_color_info, default_color_input,  default_color_answer,
 color_normal, repl_color, warn_color, info_color, input_color, answer_color, repl_cmd,
 display_error, eval_user_input, syntax_deprecation_warnings, parse_input_line, incomplete_tag,
 try_include, process_options, load_machine_file, repl_hooks,

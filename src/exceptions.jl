@@ -16,9 +16,8 @@ type NoTranslationError <: SJuliaParseErr
     expr
 end
 
+# This is not working atm
 Base.showerror(io::IO, e::NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
-Base.showerror(io::IO, e::SJulia.NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
-
 
 #### Arg checking exceptions
 

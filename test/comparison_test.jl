@@ -51,6 +51,13 @@
 @testex (a >= a) == True
 @testex (a < 1) == (a < 1)
 
+#### Infinity
+
+@testex  1 != Infinity
+@testex  Not(1 == Infinity)
+@testex  1.0 != Infinity
+@testex  Not(1.0 == Infinity)
+
 #### Not
 
 @testex Not(a != a) == True

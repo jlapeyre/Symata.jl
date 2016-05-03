@@ -196,6 +196,11 @@ function infseval(mxin::Mxpr)
     return lcheckhash(mx)  # checking hash code is disbled.
 end
 
+function infseval(qs::Qsym)
+    mx = meval(qs)
+    return mx == qs ? qs : infseval(mx)
+end
+
 function infseval(s::SJSym)
     mx = meval(s)
     return mx == s ? s : infseval(mx)
@@ -226,7 +231,15 @@ meval{T<:Void}(x::T) = Null
 
 meval(x) = x
 
-@inline meval(s::SJSym) = symval(s) # this is where var subst happens
+meval(s::SJSym) = symval(s) # this is where var subst happens
+
+function meval(qs::Qsym)
+#    println("meval: Qsym ", qs)
+    res = symval(qs)
+#    println("meval: Qsym got res ", res)
+    res
+end
+
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > recursion_limit()

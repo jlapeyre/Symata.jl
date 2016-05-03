@@ -1,13 +1,13 @@
 #### This file should contain all state variables
-#### But, early_kernelstate.jl contains things that must be define first.
+#### But, early_kernelstate.jl contains things that must be defined first.
 
 # Data structure for monitoring evaluation
 type Meval
     entrycount::Int             # For trace
-    trace_ev_flag::Bool         # TraceOn()
-    trace_upvalues_flag::Bool   # TrUpOn()
-    trace_downvalues_flag::Bool # TrDownOn()
-    timingon::Bool              # TimeOn() does @time on every user input
+    trace_ev_flag::Bool         # Trace()
+    trace_upvalues_flag::Bool   # TraceUpValues()
+    trace_downvalues_flag::Bool # TraceDownValues()
+    timingon::Bool              # Time() does @time on every user input
     try_downvalue_count::Int
     try_upvalue_count::Int
 end
@@ -41,6 +41,78 @@ get_try_upvalue_count() = MEVAL.try_upvalue_count
 increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
 increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
 
+#### Tracing evaluation
+
+# For (possibly) improved efficiency, we don't include Trace() in the KernelOptions Dict below.
+# The value is checked twice on every pass through meval.
+
+@sjdoc Trace "
+Trace(True) enables tracing the evaluation loop
+Trace(False) disables tracing the evaluation loop
+The previous value is returned.
+Trace() returns the current value.
+"
+
+@mkapprule Trace  :nargs => 0:1
+
+@doap Trace() = is_meval_trace()
+
+@doap function Trace(v::Bool)
+    oldval = is_meval_trace()
+    v ? set_meval_trace() : unset_meval_trace()
+    oldval
+end
+
+#### Time  turn timing on and off
+
+@sjdoc Time "
+Time(True) enables printing CPU time consumed and memory allocated after each evaluation of command line input.
+Time(False) disables printing CPU time consumed and memory allocated.
+Time() returns the current value.
+"
+
+@mkapprule Time  :nargs => 0:1
+
+@doap Time() = is_timing()
+
+@doap function Time(v::Bool)
+    oldval = is_timing()
+    v ? set_timing() : unset_timing()
+    oldval
+end
+
+#### Tracing Up and Down value evaluation
+
+@sjdoc TraceDownValues "
+TraceDownValues(True) enables tracing attempted applications of DownRules.
+TraceDownValues(False) disables tracing attempted applications of DownRules.
+"
+
+@mkapprule TraceDownValues  :nargs => 0:1
+
+@doap TraceDownValues() = is_down_trace()
+
+@doap function TraceDownValues(v::Bool)
+    oldval = is_down_trace()
+    v ? set_down_trace() : unset_down_trace()
+    oldval
+end
+
+@sjdoc TraceUpValues "
+TraceUpValues(True) enables tracing attempted applications of UpRules.
+TraceUpValues(False) disables tracing attempted applications of UpRules.
+"
+
+@mkapprule TraceUpValues  :nargs => 0:1
+
+@doap TraceUpValues() = is_up_trace()
+
+@doap function TraceUpValues(v::Bool)
+    oldval = is_up_trace()
+    v ? set_up_trace() : unset_up_trace()
+    oldval
+end
+
 ##### More evaluation things
 
 type SavedOutput
@@ -51,7 +123,6 @@ const LineNumber = Int[0]
 get_line_number() = LineNumber[1]
 set_line_number(n::Int) =  (LineNumber[1] = n)
 increment_line_number() = LineNumber[1] += 1
-
 
 const Output = SavedOutput[]
 
@@ -79,7 +150,7 @@ function get_output_by_line(lineno::Int)
         Null
     end
 end
-          
+
 global do_we_print_outstring = true
 
 
@@ -96,7 +167,9 @@ const Kerneloptions = Dict{Any,Any}(
                                     :return_sympy => false,
                                     :sympy_error => nothing,
                                     :compact_output => true,
-                                    :history_length => 100
+                                    :history_length => 100,
+                                    :bigint_input => false,
+                                    :bigfloat_input => false
                                   )
 
 function getkerneloptions(sym::Symbol)
@@ -157,15 +230,34 @@ CompactOutput(True) (default) enables printing fewer spaces between operators.
 Compact() returns the current state.
 "
 
-@mkapprule HistoryLength  :nargs => 0:1
+#### BigIntInput
 
-@sjdoc HistoryLength "
-HistoryLength(n) enables storing the n most recent output expressions.
-HistoryLength() returns the current value.
+@mkapprule BigIntInput  :nargs => 0:1
+
+@sjdoc BigIntInput "
+BigIntInput(True) enables interpreting all integers as arbitrary precision BigInts.
+BigIntInput(False) (default) disables interpreting all integers as arbitrary precision BigInts.
+BigIntInput() returns the current state.
+
+You can always specify that an integer should be a BigInt by using BI(n).
 "
 
-for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:UnicodeOutput, :unicode_output), (:ReturnSymPy, :return_sympy), (:CompactOutput, :compact_output),
-                 (:HistoryLength, :history_length))
+#### BigFloatInput
+
+@mkapprule BigFloatInput  :nargs => 0:1
+
+@sjdoc BigFloatInput "
+BigFloatInput(True) enables interpreting all floating point numbers as arbitrary precision BigFloats.
+BigFloatInput(False) (default) disables interpreting all floating point numbers as arbitrary precision BigFloats.
+BigFloatInput() returns the current state.
+
+You can always specify that a float should be a BigFloat by using BF(n).
+"
+@sjseealso_group(BI, BigIntInput, BF, BigFloatInput)
+
+for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:UnicodeOutput, :unicode_output), (:ReturnSymPy, :return_sympy),
+                 (:CompactOutput, :compact_output), (:BigIntInput, :bigint_input),(:BigFloatInput, :bigfloat_input))
+
     fnf = symbol("do_",fn)
     fns = string(fn)
     ssym = string(sym)
@@ -182,8 +274,14 @@ for (fn,sym) in ((:SymPyError, :sympy_error),)
     @eval begin
         ($fnf)(mx::Mxpr{symbol($fns)}) = getkerneloptions(symbol($ssym))
     end
-end    
+end
 
+@mkapprule HistoryLength  :nargs => 0:1
+
+@sjdoc HistoryLength "
+HistoryLength(n) enables storing the n most recent output expressions.
+HistoryLength() returns the current value.
+"
 
 @doap function HistoryLength(n::Int)
     oldn = getkerneloptions(:history_length)
@@ -195,5 +293,3 @@ end
 end
 
 @doap HistoryLength() = getkerneloptions(:history_length)
-
-

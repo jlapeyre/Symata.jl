@@ -1,157 +1,10 @@
-##  Some 'apprules' definitions.
+# This file is a legacy from the start of the project, when all the
+# rules were in one file.  We are migrating everything here to other
+# files.
+#
+#  Some 'apprules' definitions.
 #   These evaluate expressions with builtin (protected) heads.
 #   They are called from meval.
-
-# One or more arguments
-# type OneOrMore end
-
-### This file is a legacy from the start of the project.
-### We are migrating everything here to other files.
-
-# Check if we are trying to add to a symbol bound to itself. If
-# so, we warn and return the unevaluated expression.
-macro checkunbound(mx,x,sv)
-    esc( quote
-           $sv = symval($x)
-           if $sv == $x
-             warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
-             setfixed($mx)
-             return $mx
-          end
-    end)
-end
-
-
-#### Set and SetDelayed
-
-function checkprotect(s::SJSym)
-    get_attribute(symname(s),:Protected) &&
-    error("Symbol '",symname(s), "' is protected.")
-end
-checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
-
-function warncheckprotect(s::SJSym)
-    if get_attribute(symname(s),:Protected)
-        warn(string("Symbol '",symname(s), "' is protected."))
-        return false
-    else
-        return true
-    end
-end
-warncheckprotect(mx::Mxpr) = warncheckprotect(mhead(mx))
-
-@sjdoc Set "
-Set(a,b), a = b
-Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
-obj[i,j,...] = val sets a part of obj to val. obj can be an SJulia expression
-or a Julia object, such as an Array or Dict.
-"
-
-@sjseealso_group( Set, SetDelayed, UpSet, DownValues, UpValues )
-
-@sjexamp( Set,
-         ("Clear(a,b,c)",""),
-         ("b = a", "a"),
-         ("a = 1", "1"),
-         ("c = a", "1"),
-         ("a = 2", "2"),
-         ("b", "2"),
-         ("c", "1"))
-
-@sjdoc SetDelayed "
-SetDelayed(a,b), a := b
-Whenever a is evaluated, b is evaluated and the result is assigned to a.
-So a is not set to the value of b at the time a := b is evaluated, but
-rather to the current value of b every time a is evaluated.
-"
-
-# Set SJSym value.
-# Set has HoldFirst, SetDelayed has HoldAll.
-
-@mkapprule Set
-
-function do_Set(mx::Mxpr{:Set})
-    warn("Set called with 0 arguments; 1 or more arguments are expected.")
-    setfixed(mx)
-    mx
-end
-
-function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
-    checkprotect(lhs)
-    rhs = mxprcf(:Sequence)
-    setsymval(lhs,rhs)
-    setdefinition(lhs, mx)
-    rhs
-end
-
-apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
-
-# getsym(symname(lhs)) is because a copy of symbol is being made somewhere
-# so we look up the original in the table
-# SetDelayed is not correct. rhs is also evaluated because
-# lhs is evaluated twice in order to find fixed point.
-# we have treat this specially somehow, not ordinary evaluation.
-#
-# Note added (Apr 2016): This is working AFAICT
-# For evaluation, we can use setsymval for both set and setdelayed
-# The only difference is whether we return the rhs.
-# But, to save the definitions to a file, we need to record whether we had set or setdelayed,
-# so we use setdelayedval
-function setdelayed(mx,lhs::SJSym, rhs)
-    checkprotect(lhs)
-    setsymval(lhs,rhs)   # Using this works just as well. But, for printing, we don't whether Set or SetDelayed
-    setdefinition(lhs, mx)
-    Null
-end
-
-function do_Set(mx::Mxpr{:Set},lhs::SJSym, rhs)
-    checkprotect(lhs)
-    setsymval(lhs,rhs)
-    setdefinition(lhs, mx)
-    rhs
-end
-
-# Create DownValue. "function" definition
-# eg f(x_) := x  defines a DownValue for the SJSym f
-function setdelayed(mx,lhs::Mxpr, rhs)
-    checkprotect(lhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    set_downvalue(mx,mhead(lhs),rule) # push DownValue
-    rule
-    Null
-end
-
-function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
-    error("$mx is not implemented")
-end
-
-# Mma is not clear but seems to evaluate the first arg to the lhs (the expression
-# whose part we want) exactly once. We should document what we do.
-# We check is_Number several times, because we may have a Dict.
-function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
-    ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
-    tinds = inds(lhs)
-    ex = ex0
-    for j in 1:length(tinds)-1
-        ind = doeval(tinds[j])
-        ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
-        ex = is_Number(ind) && ind == 0 ? mhead(ex) : ex[ind]
-    end
-    val = doeval(rhs)
-    ind = doeval(tinds[end])
-    ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
-    if is_Number(ind) && ind == 0
-        ex.head = val  #  TODO violation of abstraction
-    else
-        ex[ind] = val
-    end
-    unsetfixed(ex0) # maybe we can optimize this
-    val
-end
-
-# Optimize a bit. Localize variables once, not every time pattern is evaluated
-setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
-do_Set(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
 #### Increment
 
@@ -249,109 +102,6 @@ function do_AddTo1(mx,x,xval,val)
     return symval(x)
 end
 
-#### UpSet
-
-@sjdoc UpSet "
-UpSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
-"
-
-apprules(mx::Mxpr{:UpSet}) = upset(mx,mx[1],mx[2])
-
-function upset(mx,lhs::Mxpr, rhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    for i in 1:length(lhs)
-        m = lhs[i]
-        if is_Mxpr(m) && warncheckprotect(m)
-            set_upvalue(mx,mhead(m),rule)
-        elseif is_SJSym(m) && warncheckprotect(m)
-            set_upvalue(mx, m,rule)
-        end
-    end
-    return rhs
-end
-
-apprules(mx::Mxpr{:UpSetDelayed}) = upsetdelayed(mx,mx[1],mx[2])
-
-# I think the only difference with UpSet again, is we don't return the
-# rhs.
-function upsetdelayed(mx,lhs::Mxpr, rhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    for i in 1:length(lhs)
-        m = lhs[i]
-        if is_Mxpr(m) && warncheckprotect(m)
-            set_upvalue(mx,mhead(m),rule)
-        elseif is_SJSym(m) && warncheckprotect(m)
-            set_upvalue(mx, m,rule)
-        end
-    end
-    Null
-end
-
-
-function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
-    checkprotect(lhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    set_downvalue(mx, mhead(lhs),rule) # push DownValue
-    rule
-    nothing
-end
-
-
-#### Symbol
-
-@sjdoc Symbol "
-Symbol(str) converts the string str to a symbol. For example if a is 1,
-then Symbol(\"a\") returns 1.
-"
-
-function apprules(mx::Mxpr{:Symbol})
-    dosymbol(mx,mx[1])
-end
-dosymbol(mx,s::AbstractString) = getsym(symbol(s))
-dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
-
-#### Clear
-
-@sjdoc Clear "
-Clear(x,y,z) removes the values associated with x,y,z. It does not remove
-their DownValues.
-
-Clear(Out) deletes all of the saved Output lines. It actually replaces them with
-the value `Null'.
-"
-
-@sjseealso_group(Clear, ClearAll)
-
-# 'Clear' a value. ie. set symbol's value to its name
-function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
-    @inbounds for a in margs(mx)  # no inbounds does not work here
-        if a == :Out
-            for i in 1:length(Output)
-                Output[i] = :Null   # temporary solutions
-            end
-            return Null
-        end
-        checkprotect(a)
-        setsymval(a,symname(a))
-    end
-    Null
-end
-
-#### ClearAll
-
-@sjdoc ClearAll "
-ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. The
-symbols are removed from the symbol table and will not appear in the list returned
-by UserSyms().
-"
-
-# Remove all values associate with SJSym. values and DownValues
-function apprules(mx::Mxpr{:ClearAll})  # already threaded
-    for a in margs(mx)
-        checkprotect(a)
-        delete_sym(a)
-    end
-end
 
 #### Dump and DumpHold
 
@@ -789,18 +539,6 @@ do_Big{T<:Number}(mx,x::T) = big(x)
 
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
-#### Tracing evaluation
-
-@sjdoc TraceOn "
-TraceOn() turns on the tracing of SJulia evaluation.
-"
-@sjdoc TraceOff "
-TraceOff() turns off the tracing of SJulia evaluation.
-"
-@sjseealso_group(TraceOn,TraceOff)
-apprules(mx::Mxpr{:TraceOn}) = (set_meval_trace() ; nothing)
-apprules(mx::Mxpr{:TraceOff}) = (unset_meval_trace() ; nothing)
-
 #### Timing evaluation
 
 @sjdoc Timing "
@@ -808,7 +546,7 @@ Timing(expr) evaluates expr and returns a list of the elapsed CPU time
 and the result.
 "
 
-@sjseealso_group(Timing,Allocated,TimeOn,TimeOff,TrDownOn,TrDownOff,TrUpOn,TrUpOff)
+@sjseealso_group(Timing,Allocated,Time,Trace)
 function apprules(mxt::Mxpr{:Timing})
     t = @elapsed begin
         reset_meval_count()
@@ -817,50 +555,6 @@ function apprules(mxt::Mxpr{:Timing})
     end
     mxpr(:List,t,mx)
 end
-
-#### TimeOn and TimeOff
-
-@sjdoc TimeOn "
-TimeOn() enables printing CPU time consumed and memory allocated
-after each evaluation of command line input.
-"
-
-@sjdoc TimeOff "
-TimeOff() disables printing CPU time consumed and memory allocated
-after each evaluation of command line input.
-"
-
-@mkapprule TimeOn  :nargs => 0
-
-do_TimeOn(mx::Mxpr{:TimeOn}) = (set_timing() ; nothing)
-
-@mkapprule TimeOff  :nargs => 0
-
-do_TimeOff(mx::Mxpr{:TimeOff}) = (unset_timing(); nothing)
-
-#### Tracing Evaluation
-
-@sjdoc TrDownOn "
-TrDownOn() enables tracing attempted applications of DownRules.
-"
-
-@sjdoc TrDownOff "
-TrDownOff() disables tracing attempted applications of DownRules.
-"
-
-@sjdoc TrUpOn "
-TrUpOn() enables tracing attempted applications of UpRules.
-"
-
-@sjdoc TrUpOff "
-TrUpOff() disables tracing attempted applications of UpRules.
-"
-
-apprules(mx::Mxpr{:TrUpOn}) = (set_up_trace() ; nothing)
-apprules(mx::Mxpr{:TrUpOff}) = (unset_up_trace(); nothing)
-
-apprules(mx::Mxpr{:TrDownOn}) = (set_down_trace() ; nothing)
-apprules(mx::Mxpr{:TrDownOff}) = (unset_down_trace(); nothing)
 
 #### Allocated
 
@@ -977,14 +671,15 @@ regular expression regex. For example Help(r\"Set\"i) lists all topics that
 match \"Set\" case-independently.
 "
 
-apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
+#apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
+
+@mkapprule Help  :nodefault =>
 
 @doap Help() = print_doc("Help")
 
-function do_Help(mx::Mxpr{:Help})
-    print_doc("Help")
-end
-
+# function do_Help(mx::Mxpr{:Help})
+#     print_doc("Help")
+# end
 
 function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
     if r[1] == :All && r[2] == true
@@ -1025,7 +720,7 @@ do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body) = localize_module!(mxprcf(
 # transformed into LModules. The LModule is evaluated here
 # and local syms are removed afterwards.
 #
-# TODO: Its probably better to have and apprule for Module which
+# TODO: Its probably better to have an apprule for Module which
 # does the conversion to LModule, this is more robust than doing
 # it during Set and SetDelay... and then later, an even better
 # implementation.
@@ -1042,7 +737,7 @@ function apprules(mx::Mxpr{:LModule})
     return res
 end
 
-## ExpandA, only a bit is implemented
+#### ExpandA, only a bit is implemented. Sympy Expand is more capable.
 
 @sjdoc ExpandA "
 ExpandA(expr) expands products in expr. This is only partially implemented,
@@ -1051,10 +746,13 @@ sympy version Expand() is more capable, but slower.
 "
 apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
 
+#### RandomReal
 
 @mkapprule RandomReal
 
 do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
+
+#### Random
 
 @mkapprule Random
 
@@ -1072,6 +770,7 @@ function do_Random(mx::Mxpr{:Random}, sym::SJSym)
     end
 end
 
+#### Counts
 
 @mkapprule Counts
 
@@ -1090,3 +789,12 @@ function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
     end
     d
 end
+
+#### Pause
+
+@sjdoc Pause "
+Pause(x) pauses (i.e.sleeps) for x seconds.
+"
+
+@mkapprule Pause  :nargs => 1
+@doap Pause{T<:Real}(x::T) = sleep(x)

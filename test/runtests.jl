@@ -12,10 +12,11 @@ import Base.Test: @test
      testUserSyms := If(  userSymList == Map(ToString,UserSyms()) ,
             True,  (Println("!!!!!!!!!!!!!!", UserSyms()); False), (Println("**********", UserSyms()," ",CurrentContext()); False)))
 
-#@ex    testUserSyms = True
-@testex testUserSyms
-@testex testUserSyms
+@ex    testUserSyms = True
+#@testex testUserSyms
+#@testex testUserSyms
 
+include("context_test.jl")
 include("flowcontrol_test.jl")
 include("math_functions_test.jl")
 include("mxpr_test.jl")

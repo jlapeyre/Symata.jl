@@ -30,6 +30,15 @@ macro BF_str(s)
     parse(BigFloat,s)
 end
 
+function extomx{T<:Integer}(x::T)
+    getkerneloptions(:bigint_input) ? BigInt(x) : x
+end
+
+function extomx{T<:AbstractFloat}(x::T)
+    getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
+end
+
+
 extomx(x) = x
 # This system needs to be rationalized.
 # Comment out lines are no longer needed
@@ -78,6 +87,20 @@ function extomxarr(ain,aout)
     end
 end
 
+function parse_qualified_symbol(ex::Expr)
+    args = ex.args
+    length(args) != 2 && error("extomx: We can only handle context qualifications like this: a.b")
+    typeof(args[1]) == Symbol || error("extomx: expecting symbol as first argument to context qualification")
+    a2 = args[2]
+    typeof(a2) == Expr || error("extomx: error parsing second argument of ", ex)
+    typeof(a2.head) != Symbol && error("extomx: error parsing second argument of ", ex, ". Expected a symbol.")
+    a2.head != :quote && error("extomx: error parsing second argument of ", ex, ". Expected symbol 'quote'.")    
+    length(a2.args) == 1 || error("extomx: error parsing second argument of ", ex, ". Expected one arg in quote node.")
+    typeof(a2.args[1]) == Symbol || error("extomx: second argument of context qualification must be a symbol, got ", typeof(a2.args[1]))
+    qsym = Qsym(args[1],a2.args[1])
+    return(qsym)
+end
+
 ## Main translation routine
 # We use Julia for lexing/parsing. But we change the semantics:
 # sometimes a little, sometimes a lot.
@@ -122,6 +145,8 @@ function extomx(ex::Expr)
             head = :Span
             extomxarr(a,newa)
         end
+    elseif ex.head == :(.)  # don't need parens, but this is readable
+        return parse_qualified_symbol(ex)
     elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
         head = :Jxpr           # This allows running Julia code from within SJulia.
         push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
@@ -157,7 +182,7 @@ is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
 
 # save time, don't make SJulia meval convert //(a,b) to rational
 # we should also detect sums/products of like numbers, etc. and
-# combine them.
+# combine them. No* Sometimes we want to Hold expressions involving numbers.
 function is_rational(ex::Expr)
     is_call(ex, :(//), 3) && is_Number(ex.args[2]) &&
         is_Number(ex.args[3])

@@ -43,7 +43,7 @@ const _jstypeorder = Dict{DataType,Int}()
 # we'd like to put PyCall object in here, but we can't. Unless we generate the table at init time.
 function _mklexorder()
     i = 1   ## CAREFULL! We use literal index of Any below
-    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr)  
+    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr, Qsym)
         _jstypeorder[typ] = i   
         i += 1
     end
@@ -173,6 +173,14 @@ jslexless(x::SJSym, y::Mxpr{:Plus}) = jslexless(x,y[end])
 
 jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
+
+jslexless(x::Qsym, y::Qsym) = (x.context == y.context) ? jslexless(x.name, y.name) : jslexless(x.context, y.context)
+function jslexless{T}(x::T, y::Qsym)
+    true
+end
+function jslexless{T}(x::Qsym, y::T)
+    false
+end
 
 # TODO: do we need to define casecmp differently for MSWin ?
 # cmp(a::Symbol, b::Symbol) is in base/string.jl

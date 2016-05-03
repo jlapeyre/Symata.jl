@@ -60,6 +60,11 @@ type SSJSym{T}  <: AbstractSJSym
     definition::Mxpr
 end
 
+immutable Qsym
+    context::Symbol
+    name::Symbol
+end
+
 ########################################################################
 # SSJSym                                                               #
 # data associated with SJulia symbols are instances of type SSJSym     #
@@ -75,18 +80,33 @@ typealias SymTab Dict{Symbol,SSJSym}
 
 newsymtable() = SymTab()
 
-const SYMTAB = newsymtable()
-#const SYMVALTAB = Dict{Symbol,Any}()  # experiment with keep values elsewhere
+#const SYMTAB = newsymtable()
 
 const SYMTABLES = Dict{Symbol,SymTab}()
-SYMTABLES[:System] = SYMTAB
+SYMTABLES[:System] = newsymtable()
 SYMTABLES[:Main] = newsymtable()
 
-function get_context_symtab(context_name)
+function getcontexts()
+    sort!(map(string, collect(keys(SYMTABLES))))
+end
+
+function getsymbolsincontext(s)
+    c = symbol(s)
+    ! haskey(SYMTABLES,c) && error("No context named ", s)
+    sort!(map(string, collect(keys(SYMTABLES[c]))))
+end
+
+function  get_context_symtab{T<:Union{AbstractString,Symbol}}(context_name::T)
     cn = symbol(context_name)
+    if ! haskey(SYMTABLES, cn)
+        SYMTABLES[cn] = newsymtable()
+    end
     SYMTABLES[cn]
 end
 
+function get_context_symtab(s::Qsym)
+    get_context_symtab(s.context)
+end
 
 type CurrentContextT
     name::Symbol    
@@ -106,7 +126,7 @@ end
 function set_current_context(name::Symbol)
     CurrentContext.name = name
     CurrentContext.symtab = get_context_symtab(name)
-    println("Set current context to $name")
+#    println("Set current context to $name")
 end
 
 function sjimportall(src::Symbol, targ::Symbol)

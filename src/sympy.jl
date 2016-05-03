@@ -326,6 +326,7 @@ _pytosj(x) = x
 function pytosj_Function(pyexpr)
     head = symbol(name(pyexpr))
     targs = pyexpr[:args]
+    if  head == :_context  return Qsym(pytosj(targs[1]),pytosj(targs[2])) end
     if targs[1] == dummy_arg  # sympy does not allow functions without args, so we pass a dummy arg.
         return mxprcf(head, [])
     else
@@ -615,6 +616,11 @@ end
 _sjtopy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
 
 _sjtopy{T<:Number}(mx::T) = mx
+
+function _sjtopy{T<:Qsym}(s::T)
+    f = sympy.Function("_context")
+    f(_sjtopy(s.context),_sjtopy(s.name))
+end
 
 # For our LaplaceTransform code, (etc.)
 _sjtopy{T}(a::Array{T,1}) =  map(_sjtopy, a)

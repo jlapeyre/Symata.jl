@@ -2,7 +2,7 @@ import Base: LineEdit, REPL, Terminals
 
 import Base.LineEdit: CompletionProvider, transition
 
-import Base.REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon, print_response,
+import Base.REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon,
 REPLCompletionProvider, return_callback, Prompt, respond, ShellCompletionProvider,
 REPLHistoryProvider, find_hist_file, print_response, outstream, hist_from_file, hist_getline,
 history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface

@@ -1,6 +1,22 @@
 
 @testex testUserSyms
 
+#### BigIntInput
+
+@ex BigIntInput(True)
+@testex   2^1000 != 0
+@ex BigIntInput(False)
+@testex   2^1000 == 0
+
+#### BigFloatInput
+
+@ex BigFloatInput(True)
+@testex   2.0^1000 != Infinity
+@ex BigFloatInput(False)
+@testex   2.0^10000 == Infinity
+
+## FIXME   1 < Infinity, etc. are not implemented
+
 #### Erf
 
 @testex Erf(0) == 0

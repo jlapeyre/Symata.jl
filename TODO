@@ -60,9 +60,11 @@ result.
 
 * Map needs to take level argument, and Heads -> True   
 
-* Derivative. Expressions with expressions as the head. Implemented
-   but disabled because it breaks things.
+* Derivative. Expressions with expressions as the head. Implemented,
+  but disabled because it breaks things. This can be fixed.
 
+* Implement things like  Pi < 4 --> True. Maybe implement Pi like
+   julia irrationals.
    
 ###############################################################################
 
