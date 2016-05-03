@@ -35,7 +35,7 @@ Remove temporary symbols, ie all beginnig with \"##\", from the symbol table.
     for sym in syms
         ss = string(sym)
         if length(ss) > 2 && ss[1:2] == "##"
-            delete_sym(symbol(sym))
+            delete_sym(Symbol(sym))
         end
     end
     Null
@@ -61,7 +61,7 @@ const number_of_Os = 10
 
 const Os = Array(SJSym,0)
 for i in 1:number_of_Os
-    push!(Os, symbol("O"^i))
+    push!(Os, Symbol("O"^i))
 end
 
 # Put this in the System symbol table

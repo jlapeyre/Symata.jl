@@ -91,13 +91,13 @@ function getcontexts()
 end
 
 function getsymbolsincontext(s)
-    c = symbol(s)
+    c = Symbol(s)
     ! haskey(SYMTABLES,c) && error("No context named ", s)
     sort!(map(string, collect(keys(SYMTABLES[c]))))
 end
 
 function  get_context_symtab{T<:Union{AbstractString,Symbol}}(context_name::T)
-    cn = symbol(context_name)
+    cn = Symbol(context_name)
     if ! haskey(SYMTABLES, cn)
         SYMTABLES[cn] = newsymtable()
     end
@@ -155,7 +155,7 @@ getevalage() = evalage.t
 # After filling the Dict, its contents should be static.
 const system_symbols = Dict{Symbol,Bool}()
 register_system_symbol(s::Symbol) =  system_symbols[s] = true
-register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[symbol(s)] = true
+register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[Symbol(s)] = true
 
 #### Down values
 

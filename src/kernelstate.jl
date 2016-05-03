@@ -272,21 +272,21 @@ You can always specify that a float should be a BigFloat by using BF(n).
 for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:UnicodeOutput, :unicode_output), (:ReturnSymPy, :return_sympy),
                  (:CompactOutput, :compact_output), (:BigIntInput, :bigint_input),(:BigFloatInput, :bigfloat_input))
 
-    fnf = symbol("do_",fn)
+    fnf = Symbol("do_",fn)
     fns = string(fn)
     ssym = string(sym)
     @eval begin
-        ($fnf)(mx::Mxpr{symbol($fns)}, v::Bool) = v ? setkerneloptions(symbol($ssym), true) : setkerneloptions(symbol($ssym), false)
-        ($fnf)(mx::Mxpr{symbol($fns)}) = getkerneloptions(symbol($ssym))
+        ($fnf)(mx::Mxpr{Symbol($fns)}, v::Bool) = v ? setkerneloptions(Symbol($ssym), true) : setkerneloptions(Symbol($ssym), false)
+        ($fnf)(mx::Mxpr{Symbol($fns)}) = getkerneloptions(Symbol($ssym))
     end
 end
 
 for (fn,sym) in ((:SymPyError, :sympy_error),)
-    fnf = symbol("do_",fn)
+    fnf = Symbol("do_",fn)
     fns = string(fn)
     ssym = string(sym)
     @eval begin
-        ($fnf)(mx::Mxpr{symbol($fns)}) = getkerneloptions(symbol($ssym))
+        ($fnf)(mx::Mxpr{Symbol($fns)}) = getkerneloptions(Symbol($ssym))
     end
 end
 

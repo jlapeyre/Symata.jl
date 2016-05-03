@@ -29,7 +29,7 @@ macro mkapprule(args...)
     n = length(args)
     head = args[1]
     headstr = string(head)
-    fns = symbol("do_" * headstr)
+    fns = Symbol("do_" * headstr)
     mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
     local apprulecall
     apprulecall = :(apprules($mxarg) = $fns(mx, margs(mx)...))    
@@ -107,14 +107,14 @@ macro doap(func)
     if isa(sj_func_name0, Expr)                        # got  Headname{T,V}
         if ( sj_func_name0.head == :curly )
             sj_func_name = sj_func_name0.args[1]       #   get Headname
-            new_func_name = symbol("do_",sj_func_name) #  Headname --> do_Headname
+            new_func_name = Symbol("do_",sj_func_name) #  Headname --> do_Headname
             sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}      
         else
             error("Can't interpret ", sj_func_name)
         end
     else                                                       # got Headname(x,y)
         sj_func_name = sj_func_name0                 
-        new_func_name = symbol("do_",sj_func_name)             # do_Headname
+        new_func_name = Symbol("do_",sj_func_name)             # do_Headname
         prototype[1] = new_func_name                           # replace Headname --> do_Headname
     end
     local quote_sj_func_name

@@ -70,7 +70,7 @@ function Base.show(io::IO, s::SJSym)
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
-        Base.show_unquoted(io,symbol(ss))
+        Base.show_unquoted(io,Symbol(ss))
     end
 end
                            

@@ -51,7 +51,7 @@ function check_doc_query(ex)
     end
 end
 
-print_doc(s::AbstractString) = print_doc(symbol(s))
+print_doc(s::AbstractString) = print_doc(Symbol(s))
 
 function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
@@ -74,7 +74,7 @@ end
 
 
 function print_sympy_doc{T<:Union{AbstractString,Symbol}}(sjsymin::T)
-    sjsym = symbol(sjsymin)
+    sjsym = Symbol(sjsymin)
     if have_pyfunc_symbol(sjsym)
         println("\nSymPy documentation")
         pysym = lookup_pyfunc_symbol(sjsym)
@@ -262,7 +262,7 @@ function do_example(lines)
             end
             println("sjulia> ", ins)
             ex = parse(ins)
-            res = (eval(Expr(:macrocall,symbol("@ex"), ex)))
+            res = (eval(Expr(:macrocall,Symbol("@ex"), ex)))
             if res != nothing println(res) end
             sj_add_history(ins)
             if i < len

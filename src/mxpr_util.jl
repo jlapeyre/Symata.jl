@@ -11,7 +11,7 @@ using SJulia
 
 # For use in ../test/
 macro testex(expr)
-    mx = Expr(:macrocall, symbol("@ex"), expr)
+    mx = Expr(:macrocall, Symbol("@ex"), expr)
     result = eval(mx)
     retresult::Bool = true
     if typeof(result) <: Bool
@@ -19,7 +19,7 @@ macro testex(expr)
     else
         retresult = false
     end
-    Expr(:macrocall,symbol("@test"),retresult)
+    Expr(:macrocall,Symbol("@test"),retresult)
 end
 
 ## For compatibility with older code.

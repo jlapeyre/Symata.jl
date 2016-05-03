@@ -4,7 +4,7 @@
 
 function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
     for s in syms
-        ssym = symbol(s)
+        ssym = Symbol(s)
         clear_attributes(ssym)
         for a in attrs
             set_attribute(ssym,a)
@@ -69,8 +69,8 @@ apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 get_attributes(sj::SJSymbol) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
 
 
-get_attributes(s::AbstractString) = get_attributes(symbol(s))
-get_attributesList(s::AbstractString) = get_attributesList(symbol(s))
+get_attributes(s::AbstractString) = get_attributes(Symbol(s))
+get_attributesList(s::AbstractString) = get_attributesList(Symbol(s))
 
 function get_attributesList(sj::SJSymbol)
     ks = get_attributes(sj)
@@ -375,7 +375,7 @@ then Symbol(\"a\") returns 1.
 function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
-dosymbol(mx,s::AbstractString) = getsym(symbol(s))
+dosymbol(mx,s::AbstractString) = getsym(Symbol(s))
 dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
 
 #### Clear

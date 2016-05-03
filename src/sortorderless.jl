@@ -76,15 +76,15 @@ jslexless(x::Mxpr{:Pattern}, y::Mxpr{:Pattern}) = jslexless(x[1],y[1])
 for b in ("Blank","BlankSequence","BlankNullSequence")
     for b1 in ("Blank","BlankSequence","BlankNullSequence")
         @eval begin
-            function jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($b1)})
+            function jslexless(x::Mxpr{Symbol($b)},y::Mxpr{Symbol($b1)})
                 blankname(x) == blankname(y) == "" && return lessblanknoname(x,y)
                 jslexless(blankname(x),blankname(y))
             end
         end
     end
     @eval begin
-        jslexless(x::Mxpr{symbol($b)},y::Mxpr{:Pattern}) = true
-        jslexless(x::Mxpr{:Pattern},y::Mxpr{symbol($b)}) = false
+        jslexless(x::Mxpr{Symbol($b)},y::Mxpr{:Pattern}) = true
+        jslexless(x::Mxpr{:Pattern},y::Mxpr{Symbol($b)}) = false
     end
 end
 
@@ -103,23 +103,23 @@ end
 for b in ("Blank","BlankSequence","BlankNullSequence","Pattern")
     for o in ("Times","Plus","Power")
         @eval begin
-            jslexless(x::Mxpr{symbol($o)},y::Mxpr{symbol($b)}) = false
-            jslexless(x::Mxpr{symbol($b)},y::Mxpr{symbol($o)}) = true
+            jslexless(x::Mxpr{Symbol($o)},y::Mxpr{Symbol($b)}) = false
+            jslexless(x::Mxpr{Symbol($b)},y::Mxpr{Symbol($o)}) = true
         end
     end
     @eval begin
-        jslexless(x::Mxpr{symbol($b)},y::SJSym) = false
-        jslexless(x::SJSym, y::Mxpr{symbol($b)}) = true
+        jslexless(x::Mxpr{Symbol($b)},y::SJSym) = false
+        jslexless(x::SJSym, y::Mxpr{Symbol($b)}) = true
     end
 end
 
 # Try using Union type BlankXXX here. No, this causes ambiguity errors.
 for b in ("Blank","BlankSequence","BlankNullSequence")
     @eval begin
-        function jslexless(x::Mxpr, y::Mxpr{symbol($b)})
+        function jslexless(x::Mxpr, y::Mxpr{Symbol($b)})
             return false
         end
-        function  jslexless(x::Mxpr{symbol($b)},y::Mxpr)
+        function  jslexless(x::Mxpr{Symbol($b)},y::Mxpr)
             return true
         end
     end

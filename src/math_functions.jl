@@ -52,7 +52,7 @@ end
 function mtr(sym::Symbol)
     s = string(sym)
     sjf = capitalize_first_character(s)
-    (sym, symbol(sjf), sym)
+    (sym, Symbol(sjf), sym)
 end
 
 # We choose not to implement :cis. Julia has it. sympy and mma, not
@@ -269,7 +269,7 @@ function make_math()
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],1)
         end
-        set_attribute(symbol(sjf),:Listable)
+        set_attribute(Symbol(sjf),:Listable)
     end
 
     for x in single_arg_float
@@ -279,7 +279,7 @@ function make_math()
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],1)
         end
-        set_attribute(symbol(sjf),:Listable)
+        set_attribute(Symbol(sjf),:Listable)
     end
 
     for x in single_arg_float_int
@@ -424,8 +424,8 @@ function set_up_sympy_default(sjf, sympyf)
            end"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))
-    set_attribute(symbol(sjf),:Protected)
-    set_attribute(symbol(sjf),:Listable)
+    set_attribute(Symbol(sjf),:Protected)
+    set_attribute(Symbol(sjf),:Listable)
 end
 
 # Handle functions that do *not* fall back on SymPy
@@ -434,8 +434,8 @@ function do_common(sjf)
     aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))
-    set_attribute(symbol(sjf),:Protected)
-    set_attribute(symbol(sjf),:Listable)
+    set_attribute(Symbol(sjf),:Protected)
+    set_attribute(Symbol(sjf),:Listable)
 end
 
 make_math()

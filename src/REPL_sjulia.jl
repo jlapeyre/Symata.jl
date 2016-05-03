@@ -351,8 +351,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         # When we're done transform the entered line into a call to help("$line")
         on_done = respond(repl, julia_prompt) do line
             line = strip(line)
-            haskey(Docs.keywords, symbol(line)) ? # Special-case keywords, which won't parse
-                :(Base.Docs.@repl $(symbol(line))) :
+            haskey(Docs.keywords, Symbol(line)) ? # Special-case keywords, which won't parse
+                :(Base.Docs.@repl $(Symbol(line))) :
                 Base.syntax_deprecation_warnings(false) do
                     parse("Base.Docs.@repl $line", raise=false)
                 end
@@ -370,7 +370,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         # and pass into Base.repl_cmd for processing (handles `ls` and `cd`
         # special)
         on_done = respond(repl, julia_prompt) do line
-            Expr(:call, :(Base.repl_cmd), macroexpand(Expr(:macrocall, symbol("@cmd"),line)), outstream(repl))
+            Expr(:call, :(Base.repl_cmd), macroexpand(Expr(:macrocall, Symbol("@cmd"),line)), outstream(repl))
         end)
 
 

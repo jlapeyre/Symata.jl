@@ -82,7 +82,7 @@ getdefinition(sym::SJSymbol) = getdefinition(getssym(sym))
 
 
 #
-#symname(s::AbstractString) = symbol(s)
+#symname(s::AbstractString) = Symbol(s)
 
 symattr(s::SJSymbol) = getssym(s).attr
 # symattr(s::Qsym) = getssym(s).attr
@@ -246,7 +246,7 @@ end
 
 get_system_ssym(s::Symbol) = getssym(:System, s)
 
-getssym{T<:AbstractString}(ss::T) = getssym(symbol(ss))
+getssym{T<:AbstractString}(ss::T) = getssym(Symbol(ss))
 
 function delete_sym(s::Symbol)
     delete!(CurrentContext.symtab,s)
@@ -259,7 +259,7 @@ function delete_sym(s::Qsym)
 end
 
 function delete_sym(s::AbstractString)
-    delete_sym(symbol(s))
+    delete_sym(Symbol(s))
 end
 
 ##################################################################

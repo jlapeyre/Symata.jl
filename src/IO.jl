@@ -97,7 +97,7 @@ function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, s
 end
 
 function write_definition(io::IO, sym)
-    maybeprint(io,getdefinition(symbol(sym)))
+    maybeprint(io,getdefinition(Symbol(sym)))
     dvdefs = jlistdownvaluedefs(sym)
     if length(dvdefs) > 0
         for def in dvdefs

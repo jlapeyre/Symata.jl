@@ -8,7 +8,7 @@
 
 # At the command line h"topic" prints help
 macro h_str(s)
-    reg = eval(Expr(:macrocall, symbol("@r_str"), strip(s), "i"))
+    reg = eval(Expr(:macrocall, Symbol("@r_str"), strip(s), "i"))
     print_matching_topics(reg)
     :Null
 end
@@ -75,10 +75,10 @@ function parseblank(s::AbstractString)
     if length(blankname) == 0
         blank = mxpr(blanktype)
     else
-        blank = mxpr(blanktype,symbol(blankname))
+        blank = mxpr(blanktype,Symbol(blankname))
     end
     length(blankhead) == 0 && return blank
-    mxpr(:Pattern,symbol(blankhead),blank)
+    mxpr(:Pattern,Symbol(blankhead),blank)
 end
 
 function extomxarr(ain,aout)

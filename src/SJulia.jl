@@ -8,6 +8,20 @@ export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 # For development
 export sympy, pytypeof
 
+###### compatibility
+const have_new_Symbol =
+    try
+        Symbol("a","b")
+        true
+    catch
+        false
+    end
+
+if ! have_new_Symbol
+    Symbol(args...) = symbol(args...)
+end
+#####
+
 include("early_kernelstate.jl")
 include("mxpr_util.jl")
 include("mxpr_type.jl")

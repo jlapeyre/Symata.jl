@@ -68,8 +68,8 @@ const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
 function set_pytosj(py,sj)
-    spy = symbol(py)
-    ssj = symbol(sj)
+    spy = Symbol(py)
+    ssj = Symbol(sj)
     if haskey(SYMPY_TO_SJULIA_FUNCTIONS,spy)
         warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SJULIA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
@@ -80,8 +80,8 @@ end
 get_pytosj(py) = SYMPY_TO_SJULIA_FUNCTIONS[py]
 
 function set_sjtopy(sj,py)
-    spy = symbol(py)
-    ssj = symbol(sj)
+    spy = Symbol(py)
+    ssj = Symbol(sj)
     if haskey(SJULIA_TO_SYMPY_FUNCTIONS,ssj)
         warn("!!! set_sjtopy ", sj, " already has value ", SJULIA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
@@ -208,8 +208,8 @@ function make_sympy_to_sjulia()
 end
 
 function register_sjfunc_pyfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
-    set_pytosj(symbol(py), symbol(sj))
-    set_sjtopy(symbol(sj), symbol(py))
+    set_pytosj(Symbol(py), Symbol(sj))
+    set_sjtopy(Symbol(sj), Symbol(py))
 end
 
 # Watch the order
@@ -256,7 +256,7 @@ function mk_py_to_mx_funcs()
         pystr = string(pysym)
         sjstr = string(sjsym)
         if haskey(sympy.functions, pystr)
-            py_to_mx_dict[sympy.functions[pystr]] =  symbol(sjstr)
+            py_to_mx_dict[sympy.functions[pystr]] =  Symbol(sjstr)
         end
     end
 end
@@ -324,7 +324,7 @@ end
 _pytosj(x) = x
 
 function pytosj_Function(pyexpr)
-    head = symbol(name(pyexpr))
+    head = Symbol(name(pyexpr))
     targs = pyexpr[:args]
     if  head == :_context  return Qsym(pytosj(targs[1]),pytosj(targs[2])) end
     if targs[1] == dummy_arg  # sympy does not allow functions without args, so we pass a dummy arg.
@@ -335,7 +335,7 @@ function pytosj_Function(pyexpr)
 end
 
 macro pytosj_comparisons(fname, pyfname, sjsymbolstr)
-    sfname = symbol("pytosj_" * fname)
+    sfname = Symbol("pytosj_" * fname)
     sjsymbol = parse(":(" * sjsymbolstr * ")")  # careful we don't insert an unquoted symbol
     esc(quote
         function ($sfname)(pyexpr)
@@ -466,7 +466,7 @@ function mk_mx_to_py_funcs()
         else
             obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
         end
-        mx_to_py_dict[symbol(sjstr)] = obj
+        mx_to_py_dict[Symbol(sjstr)] = obj
     end
 end
 
