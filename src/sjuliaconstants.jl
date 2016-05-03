@@ -1,3 +1,5 @@
+const SJULIA_VERSION = v"0.0.1"
+
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
 
@@ -26,6 +28,8 @@ setcanon(_moosq2)
 setfixed(_oosq2)
 setcanon(_oosq2)
 
+setsymval(:BigInt, BigInt)
+setsymval(:BigFloat, BigFloat)
 setsymval(:Float64, Float64)
 setsymval(:Int64, Int64)
 setsymval(:Int, Int)

@@ -16,14 +16,14 @@ import Base.Test: @test
 #@testex testUserSyms
 #@testex testUserSyms
 
-#@ex BigFloatInput(True)
 
+function runall()
+include("output_test.jl")
+include("math_functions_test.jl")
 include("context_test.jl")
 include("flowcontrol_test.jl")
-include("math_functions_test.jl")
 include("mxpr_test.jl")
 include("integral_derivative_test.jl")
-include("output_test.jl")
 include("algebraic_transformations_test.jl")
 include("sympy_test.jl")
 include("up_downvalues_test.jl")
@@ -41,7 +41,18 @@ include("arithmetic_test.jl")
 include("spec_fun_test.jl")
 include("evaluation_test.jl")
 include("simple_expression_test.jl")
+end
 
+println("***************  Running with Int64")
 
+@ex BigIntInput(False)
+
+runall()
+
+println("***************  Running with BigInt")
+
+@ex BigIntInput(True)
+
+runall()
 
 #include("code_in_SJulia_test.jl")  # test slow loading code.

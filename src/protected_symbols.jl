@@ -81,7 +81,7 @@ set_pattributes(["Return","Break","Continue"], :Protected)
 
 set_pattributes(["HoldFirst","HoldAll","HoldRest","NHoldFirst","NHoldAll","NHoldRest"], :Protected)
 
-set_pattributes(["Int64", "Int", "Float64", "AbstractString"], :Protected)
+set_pattributes(["Int64", "Int", "Float64",  "BigFloat", "BigInt", "AbstractString"], :Protected)
 
 set_pattributes(["O","OO","OOO","OOOO","OOOOO","OOOOOO","OOOOOOO","OOOOOOOO","OOOOOOOOOO"], :Protected)
 

@@ -9,7 +9,9 @@
 @testex ToString( -I ) == "-I"
 @testex ToString(-1 * I) == "-I"
 @testex ToString(-2 * I) == "-2I"
-@testex ToString( - 1.0 * I ) == "-0.0 + -1.0I"
+# FIXME
+@testex If(BigIntInput(), True, ToString( - 1.0 * I ) == "-0.0 + -1.0I")
+#@testex ToString( - 1.0 * I ) == "-0.0 + -1.0I"
 @testex ToString(-I * a) == "-I*a"
 
 @ex CompactOutput(savestate)

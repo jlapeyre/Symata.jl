@@ -1,6 +1,20 @@
 #### This file should contain all state variables
 #### But, early_kernelstate.jl contains things that must be defined first.
 
+# We need to find a place to put VersionInfo
+
+@mkapprule VersionInfo :nargs => 0
+
+@doap function VersionInfo()
+    println("sjulia version ", SJULIA_VERSION)
+    println("julia version  ", Base.VERSION)
+    if isdefined(PyCall, :pyversion)
+        println("python version ", pyversion)
+    else
+        println("no python version available")
+    end
+end
+
 # Data structure for monitoring evaluation
 type Meval
     entrycount::Int             # For trace

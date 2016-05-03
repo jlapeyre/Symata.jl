@@ -37,7 +37,8 @@ using Base.Test
 # Neg. Int to float power took a long time to fix, because we do not print full error message (domain error).
 @testex  Chop((-1)^(3.2) + 0.8090169943749477 + 0.5877852522924728 * I) == 0
 @testex 3^0 == 1
-@test  typeof(@ex(3^0)) == Int  # bug fix
+# two bug fixes in the next one
+@test  SJulia.Kerneloptions[:bigint_input] ? typeof(@ex(3^0)) == BigInt :  typeof(@ex(3^0)) == Int
 
 @testex Apply(List,3^(1/2)) == [3,1//2]
 @testex 4^(1/2) == 2
@@ -65,8 +66,8 @@ using Base.Test
 @testex Cos(z * I) == Cosh(z)
 # Sin is done by sympy, which leaves this untouched
 
-@testex Head(N(1)) == Float64
-@testex Head(N(Cos(1))) == Float64
+@testex If( BigIntInput(), Head(N(1)) == BigFloat, Head(N(1)) == Float64)
+@testex Head(N(Cos(1))) == Float64   # because of sympy this comes back as an ordinary double
 
 # fixes a bug.
 @testex Head((a*b)^(1/2)) == Power

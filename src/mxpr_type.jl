@@ -320,7 +320,7 @@ setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
 # These should be fast: In the SJulia language, mx[0] gets the head, but not here.
 # TODO: iterator for mx that iterates over args would be useful
-@inline setindex!(mx::Mxpr, val, k::Int) = (margs(mx)[k] = val)
+setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
 @inline getindex{T<:Integer}(mx::Mxpr, k::T) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0

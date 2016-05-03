@@ -9,18 +9,21 @@ using Base.Test
 
 ## Head of Mxpr is Julia function
 
-SJulia.@ex ClearAll(f,g,x,c)
-SJulia.@ex       g = :( fftest(x) = x^2 ) # g is SJulia Symbol bound to Julia Function
+@ex ClearAll(f,g,x,c)
+#@ex       g = :( fftest(x) = x^2 ) # g is SJulia Symbol bound to Julia Function
+# We use an anomalous function to avoid the redefinition warning if this test
+# is run more than once.
+@ex       g = :( (x) -> x^2 ) # g is SJulia Symbol bound to Julia Function
 # Creates Mxpr with head of type Function.
 # The apprule for head Function is to call it on the args
-SJulia.@testex   g(3) == 9
+@testex   g(3) == 9
 # The following works because we have defined ^ for Symbols in Julia
-SJulia.@testex  g(c) == c^2
+@testex  g(c) == c^2
 
 @ex ClearAll(f,g,x,c)
 
 ## SetDelay for SJSym
-SJulia.@ex Clear(a,b,c)
+@ex Clear(a,b,c)
 @testex a == a
 @testex Apply(List, a < a) == [a,<,a]
 @testex Apply(List, a > a) == [a,>,a]
@@ -33,7 +36,7 @@ SJulia.@ex Clear(a,b,c)
 @testex (1 < 2 < 3) == True
 @testex (1 < 3 < 2) == False
 # This should perhaps evaluate to  a != b
-SJulia.@testex  (a == a != b) != True
+@testex  (a == a != b) != True
 @testex  (a != a == b) == False
 @ex (a = 1)
 @ex (b = a)
