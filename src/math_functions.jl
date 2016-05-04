@@ -31,7 +31,23 @@ else  # if VERSION < v"0.5.0-dev+1182"
 
 end
 
-# We want to put things into modules eventually
+#### SetPrecision
+
+@mkapprule SetPrecision :nargs => 1
+
+@sjdoc SetPrecision "
+SetPrecison(n) sets the precsion of BigFloat numbers to n decimal digits. If 'N' does not give the result you
+want, you can use SetPrecision.
+"
+
+@sjseealso_group(N,SetPrecision,BigFloatInput,BigIntInput,BI,BF)
+
+@doap function SetPrecision(n::Real)
+    setprecision(round(Int,3.322*n))
+    n
+end
+
+# This idea can be removed. It is not going anywhere.
 function evalmath(x)
     SJulia.eval(x)
 end
@@ -525,6 +541,7 @@ do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
 @sjdoc N "
 N(expr) tries to give a the numerical value of expr.
 N(expr,p) tries to give p decimal digits of precision.
+Sometime 'N' does not give the number of digits requested. In this case, you can use SetPrecision'
 "
 
 # N needs to be rewritten
@@ -558,9 +575,11 @@ function float_with_precision(x,p)
     if p > 16
         pr = precision(BigFloat)
         dig = round(Int,p*3.322)
+        set_mpmath_dps(dig)     # This is for some SymPy math. But, it is not clear when this will help us
         setprecision( BigFloat, dig) # new form
         res = BigFloat(x)
         setprecision(BigFloat, pr)
+        restore_mpmath_dps()
         return res
     else
         return float(x)
