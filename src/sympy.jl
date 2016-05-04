@@ -142,10 +142,12 @@ const py_to_mx_rewrite_function_dict = Dict(
 # End translation Dicts
 ######################################################
 
-# Digits of precision for Sympy
+##### Digits of precision for Sympy
+
 const MPMATH_DPS = Int[0]
 
 get_mpmath_dps() = mpmath.mp[:dps]
+
 function set_mpmath_dps(n)
     push!(MPMATH_DPS,mpmath.mp[:dps])
     mpmath.mp[:dps] = n
@@ -408,7 +410,7 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
             return Infinity  # need to see if this is maybe -Infinity
         end
 # should we check for floats earlier ?
-        return convert(AbstractFloat, expr) # Need to check for big floats
+        return convert(AbstractFloat, expr) # Need to check for BigFloat
     end
     head = sympy_to_mxpr_symbol(expr[:func][:__name__])  # default
     @pydebug(3, "default trans. ", expr, " new head ", head)

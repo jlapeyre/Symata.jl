@@ -67,7 +67,8 @@ result.
    julia irrationals.
 
 * N(Pi,1000) works
-  but, N(Sqrt(2),1000) gives too few digits.
+  but, N(Sqrt(2),1000) gives too few digits. We can get what we want
+   by explicitly using SetPrecision.
    
 ###############################################################################
 

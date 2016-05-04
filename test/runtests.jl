@@ -12,10 +12,7 @@ import Base.Test: @test
      testUserSyms := If(  userSymList == Map(ToString,UserSyms()) ,
             True,  (Println("!!!!!!!!!!!!!!", UserSyms()); False), (Println("**********", UserSyms()," ",CurrentContext()); False)))
 
-@ex    testUserSyms = True
-#@testex testUserSyms
-#@testex testUserSyms
-
+@ex  testUserSyms = True
 
 function runall()
 include("output_test.jl")
@@ -43,16 +40,40 @@ include("evaluation_test.jl")
 include("simple_expression_test.jl")
 end
 
-println("***************  Running with Int64")
-
-@ex BigIntInput(False)
-
-runall()
-
-println("***************  Running with BigInt")
-
-@ex BigIntInput(True)
-
-runall()
-
-#include("code_in_SJulia_test.jl")  # test slow loading code.
+if ! isdefined(Base.Test, :testset_forloop)
+    global tests_passed = 0
+    global tests_failed = 0
+    function custom_handler(r::Test.Failure)
+        warn("Error on custom handler: ", r.expr)
+        global tests_failed
+        tests_failed += 1
+    end
+    function custom_handler(r::Test.Success)
+        global tests_passed        
+        tests_passed += 1
+    end
+    custom_handler(r::Test.Error) = rethrow(r)
+    Base.Test.with_handler(custom_handler) do
+        println("***************  Running with Int64")
+        @ex BigIntInput(False)
+        runall()
+        
+        println("***************  Running with BigInt")
+        @ex BigIntInput(True)
+        runall()
+    end
+    println("\nPassed ", tests_passed)
+    println("Failed ", tests_failed)
+else
+    @testset  begin
+        
+        println("***************  Running with Int64")
+        @ex BigIntInput(False)
+        runall()
+        
+        println("***************  Running with BigInt")
+        @ex BigIntInput(True)
+        runall()
+        
+    end
+end

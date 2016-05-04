@@ -61,7 +61,9 @@
 @testex Gamma(a, Infinity) == 0
 @testex D(Gamma(x),x) == Gamma(x) * (PolyGamma(0,x))
 @testex Gamma(3,x) == 2 * (E ^ (-x)) + 2 * (E ^ (-x)) * x + E ^ (-x) * (x ^ 2)
-@testex Gamma(-1/2,x) == 2 * (E ^ (-x)) * (x ^ (-1/2)) + -2 * (Pi ^ (1/2)) * (1 + -Erf(x ^ (1/2)))
+# The first term in the || is for sympy < 1.0 (0.7 something). The second is for sympy 1.0
+@testex ( Gamma(-1/2,x) == 2 * (E ^ (-x)) * (x ^ (-1/2)) + -2 * (Pi ^ (1/2)) * (1 + -Erf(x ^ (1/2))) ) ||
+         ( Gamma(-1/2,x) ==  2(E^(-x))*(x^(-1/2)) + -2(Pi^(1/2))*Erfc(x^(1/2)))
 @testex Gamma(-2,x) == x ^ (-2) * (ExpIntegralE(3,x))
 # @testex
 # @testex

@@ -17,6 +17,11 @@ VersionInfo() returns the version numbers of SJulia, Julia, and Python.
     else
         println("no python version available")
     end
+    try
+        println("sympy version  " * sympy.__version__)
+    catch
+        println("sympy version unavailable")
+    end
 end
 
 # Data structure for monitoring evaluation

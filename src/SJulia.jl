@@ -8,20 +8,7 @@ export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 # For development
 export sympy, pytypeof
 
-###### compatibility
-const have_new_Symbol =
-    try
-        Symbol("a","b")
-        true
-    catch
-        false
-    end
-
-if ! have_new_Symbol
-    Symbol(args...) = symbol(args...)
-end
-#####
-
+include("sjcompat.jl")
 include("early_kernelstate.jl")
 include("mxpr_util.jl")
 include("mxpr_type.jl")
@@ -72,6 +59,9 @@ include("client_sjulia.jl")
 
 function __init__()
     init_sympy()
+    if ! isdefined(Base.Test, :testset_forloop)
+        eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
+    end
     Main.eval( :( using SJulia ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
