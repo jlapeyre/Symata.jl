@@ -1,4 +1,4 @@
-const SJULIA_VERSION = v"0.0.1"
+const SJULIA_VERSION = v"0.0.2"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
