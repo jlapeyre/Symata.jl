@@ -219,7 +219,7 @@ TempName() generates a unique temporary file path.
 
 @mkapprule DeleteFile :nargs => 1
 
-@sjdoc DelteFile "
+@sjdoc DeleteFile "
 DelteFile(file) deletes file
 "
 

@@ -65,6 +65,9 @@ result.
 
 * Implement things like  Pi < 4 --> True. Maybe implement Pi like
    julia irrationals.
+
+* N(Pi,1000) works
+  but, N(Sqrt(2),1000) gives too few digits.
    
 ###############################################################################
 
