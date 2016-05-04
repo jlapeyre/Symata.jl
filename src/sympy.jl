@@ -532,12 +532,8 @@ translated, but you may give the SymPy symbol, as well
 
 Examples
 
-> Rewrite(CatalanNumber(n), gamma)
-
-This is the same as
-
-> Rewrite(CatalanNumber(n), Gamma)
-Rewrite(CatalanNumber(1/2), gamma)
+Rewrite(CatalanNumber(n), Gamma)
+Rewrite(CatalanNumber(1/2), Gamma)
 Rewrite(CatalanNumber(n), HypergeometricPFQ)
 "
 
