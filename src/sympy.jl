@@ -513,6 +513,42 @@ function _sjtopy(mx::Mxpr{:DirectedInfinity})
     end
 end
 
+##### Rewrite
+
+# function _sjtopy(mx::Mxpr{:Rewrite})
+#     println("Trying $mx")
+# end
+
+const RewriteDict = Dict( :Gamma => :gamma,
+                          :HypergeometricPFQ => :hyper,
+                          :Binomial => :binomial)
+
+@mkapprule Rewrite :nargs => 2
+
+@sjdoc Rewrite "
+Rewrites(expr,form) rewrites expr in term of form. This is
+implemented for some functions that call SymPy. The second argument is
+translated, but you may give the SymPy symbol, as well
+
+Examples
+
+> Rewrite(CatalanNumber(n), gamma)
+
+This is the same as
+
+> Rewrite(CatalanNumber(n), Gamma)
+Rewrite(CatalanNumber(1/2), gamma)
+Rewrite(CatalanNumber(n), HypergeometricPFQ)
+"
+
+@doap function Rewrite(expr, form::Symbol)
+    arg1 = _sjtopy(mx[1])
+    transform = get(RewriteDict, form, form)
+    pyres = arg1[:rewrite](transform)
+    pytosj(pyres)
+end 
+
+
 ###### HypergeometricPFQ
 
 do_HypergeometricPFQ{W<:AbstractFloat}(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) =

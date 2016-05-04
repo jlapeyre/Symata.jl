@@ -21,6 +21,20 @@
 
 ## FIXME   1 < Infinity, etc. are not implemented
 
+#### CatalanNumber
+
+@testex  Table(CatalanNumber(i), [i,10]) == [1,2,5,14,42,132,429,1430,4862,16796]
+@testex  D(CatalanNumber(n),n) == CatalanNumber(n)*(Log(4) + -(PolyGamma(0,2 + n)) + PolyGamma(0,1/2 + n))
+@testex  Rewrite(CatalanNumber(n), HypergeometricPFQ) == HypergeometricPFQ(([1 + -n,-n]),[2],1)
+@testex  Rewrite(CatalanNumber(n), Gamma) == (4^n)*(Pi^(-1/2))*(Gamma(2 + n)^(-1))*Gamma(1/2 + n)
+@testex  Rewrite(CatalanNumber(1/2), Gamma) == (8/3)*(Pi^(-1))
+@testex  Rewrite(CatalanNumber(n), Binomial) == (Binomial((2n),n))*((1 + n)^(-1))
+@testex  CombSimp(CatalanNumber(n+1)/CatalanNumber(n)) == (4^(-n))*(4^(1 + n))*(Gamma(1/2 + n)^(-1))*Gamma(3/2 + n)*((2 + n)^(-1))
+# @testex  Rewrite(CombSimp(CatalanNumber(n+1)/CatalanNumber(n)), Binomial)  FIXME.
+# FIXME. A number is converted to a float
+#@testex  Rewrite(CatalanNumber(I), Gamma) == (0.183457 + 0.983028I)*(Pi^(-1/2))*(Gamma(2 + I)^(-1))*Gamma(1/2 + I)
+
+
 #### Erf
 
 @testex Erf(0) == 0
@@ -69,8 +83,6 @@
 @testex   HermiteH(2,x) == -2 + 4*(x^2)
 @testex   D(HermiteH(n,x), x) == 2*n*(HermiteH((-1 + n),x))
 @testex   HermiteH(n,-x) == (-1)^n*(HermiteH(n,x))
-
-
 
 @ex ClearAll(a,x,z)
 @testex testUserSyms
