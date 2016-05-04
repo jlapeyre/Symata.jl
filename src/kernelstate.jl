@@ -5,6 +5,10 @@
 
 @mkapprule VersionInfo :nargs => 0
 
+@sjdoc VersionInfo "
+VersionInfo() returns the version numbers of SJulia, Julia, and Python.
+"
+
 @doap function VersionInfo()
     println("sjulia version ", SJULIA_VERSION)
     println("julia version  ", Base.VERSION)

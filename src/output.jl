@@ -42,6 +42,7 @@ fullform(x) = fullform(STDOUT,x)
 needsparen(x::Mxpr) = length(x) > 1
 needsparen{T<:Integer}(x::Rational{T}) = true
 
+needsparen(x::Real) =  x < 0
 needsparen{T<:Integer}(x::Complex{T}) = real(x) != 0
 needsparen{T<:Real}(x::Complex{T}) = true
 needsparen(x) = false
@@ -271,9 +272,14 @@ function show_infix(io::IO, mx::Mxpr)
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     startind = 1
-    if is_Mxpr(mx,:Times) && length(args) > 0 && args[1] == -1
-        print(io, "-")
-        startind = 2
+    if is_Mxpr(mx,:Times) && length(args) > 0
+        if args[1] == -1
+            print(io, "-")
+            startind = 2            
+        elseif typeof(args[1]) <:Union{AbstractFloat,Integer}
+            print(io,args[1])
+            startind = 2
+        end
     end
     for i in startind:length(args)-1
         arg = args[i]

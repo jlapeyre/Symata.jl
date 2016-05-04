@@ -64,6 +64,13 @@
 
 #### HermiteH
 
+@testex   HermiteH(0,x) == 1
+@testex   HermiteH(1,x) == 2 * x
+@testex   HermiteH(2,x) == -2 + 4*(x^2)
+@testex   D(HermiteH(n,x), x) == 2*n*(HermiteH((-1 + n),x))
+@testex   HermiteH(n,-x) == (-1)^n*(HermiteH(n,x))
+
+
 
 @ex ClearAll(a,x,z)
 @testex testUserSyms
