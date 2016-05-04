@@ -521,7 +521,8 @@ end
 
 const RewriteDict = Dict( :Gamma => :gamma,
                           :HypergeometricPFQ => :hyper,
-                          :Binomial => :binomial)
+                          :Binomial => :binomial,
+                          :Sin => :sin)
 
 @mkapprule Rewrite :nargs => 2
 
@@ -686,13 +687,25 @@ end
 
 name{T <: PyCall.PyObject}(x::T) = pytypeof(x)[:__name__]
 
+
+const KeywordDict = Dict( :Complex => :complex,
+                          :Basic => :basic,
+                          :Conditions => :conds,
+                          :Modulus => :modulus,
+                          :Gaussian => :gaussian,
+                          :Force => :force,
+                          :Deep => :deep)
+
 # Convert Mxpr to sympy, pulling out Rule(a,b) to dict of keyword args.
+# That is, we separate keyword args from positional argss
 function sjtopy_kw{T<:Mxpr}(mx::T, kws)
     args = margs(mx)
     nargs = newargs()
     for i in 1:length(args)
         if is_Mxpr(args[i], :Rule)
-            kws[args[i][1]] = args[i][2]
+            lhs = get(KeywordDict, args[i][1], args[i][1])
+            rhs = args[i][2]
+            kws[lhs] = rhs
         else
             push!(nargs, sjtopy(args[i]))
         end

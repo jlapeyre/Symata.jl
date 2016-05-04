@@ -297,6 +297,8 @@ Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword opt
 @make_simplify_func :PowSimp powsimp
 @make_simplify_func :PowDenest powdenest
 @make_simplify_func :LogCombine logcombine
+@make_simplify_func :ExpandTrig expand_trig
+@make_simplify_func :ExpandLog expand_log
 @make_simplify_func :SeparateVars separatevars
 @make_simplify_func :BesselSimp besselsimp
 @make_simplify_func :HyperSimp hypersimp

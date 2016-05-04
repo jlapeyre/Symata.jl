@@ -23,25 +23,32 @@
 # This differs from sympy. We can't quite do Derivative(1)f yet
 @testex Collect( a*D(f(x),x) + b*D(f(x),x), D(f(x),x))  == (D(f(x),x))*(a + b)
 
+#### Common subexpression
+
+@testex Cse(Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4)) == [[[x0,Sin(x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
+@testex Cse(Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y))) == [[[x0,Cos(y) + Sin(1 + x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
+@testex Cse((x-y)*(z-y) + Sqrt((x-y)*(z-y))) == [[[x0,-y],[x1,(x + x0)*(x0 + z)]],[x1 + x1^(1/2)]]
+
 #### Factor, Expand
 
 @testex  Factor(Expand( (a+b)^2 )) == (a+b)^2
 @testex  Expand( (a + f(x)) ^2 ) == a ^ 2 + 2 * a * f(x) + f(x) ^ 2
 @testex  Expand(  (x+y+z)^2 ) == x^2 + 2*x*y + y^2 + 2*x*z + 2*y*z + z^2
 @testex  Expand( Exp(x+y) ) == (E^x)*(E^y)
-
-
+@testex  Expand(x + I * y, Complex => True) == I*Im(x) + -Im(y) + Re(x) + I*Re(y)
+@testex  Expand(Sin(x + I*y), Complex => True) == Cosh(Im(x) + Re(y))*Sin(-Im(y) + Re(x)) + I*Cos(-Im(y) + Re(x))*Sinh(Im(x) + Re(y))
 @ex      p = Expand((x-1)*(x-2)*(x-3)*(x^2 + x + 1))
 @testex  p == -6 + 5 * x + -1 * (x ^ 2) + 6 * (x ^ 3) + -5 * (x ^ 4) + x ^ 5
+@testex  Collect( Expand(x + I *y, Complex => True), I) == -Im(y) + I*(Im(x) + Re(y)) + Re(x)
 
 @testex  Factor(p) == (-3 + x) * (-2 + x) * (-1 + x) * (1 + x + x ^ 2)
 @testex  Factor(2*x^5 + 2*x^4*y + 4*x^3 + 4*x^2*y + 2*x + 2*y) == 2*((1 + x^2)^2)*(x + y)
-@testex  Factor(x^2 + 1, modulus => 2) == (1 + x)^2
-@testex  Factor(x^10 - 1, modulus => 2) == ((1 + x)^2)*((1 + x + x^2 + x^3 + x^4)^2)
-@testex  Factor(x^2 + 1, gaussian => True) == (-1I + x)*(I + x)
-# @testex  Factor(x^2 - 2, extension => Sqrt(2))  FIXME. raises exception
+@testex  Factor(x^2 + 1, Modulus => 2) == (1 + x)^2
+@testex  Factor(x^10 - 1, Modulus => 2) == ((1 + x)^2)*((1 + x + x^2 + x^3 + x^4)^2)
+@testex  Factor(x^2 + 1, Gaussian => True) == (-1I + x)*(I + x)
 @testex  Factor((x^2 + 4*x + 4)^10000000*(x^2 + 1)) == ((2 + x)^20000000)*(1 + x^2)
-@testex  Factor( 2^(x^2 + 2*x + 1), deep => True ) == 2^((1 + x)^2)
+@testex  Factor( 2^(x^2 + 2*x + 1), Deep => True ) == 2^((1 + x)^2)
+# @testex  Factor(x^2 - 2, extension => Sqrt(2))  FIXME. raises exception
 
 @ex ClearAll(a,b,c,p,x,y,f)
 
@@ -51,6 +58,15 @@
 @testex  Simplify(x*Gamma(x)*(1 + x)) == Gamma(x+2)
 # FIXME  Canononical order should be  x*(1+x)*Gamma(x).  We get x*Gamma(x)*(1+x)
 
+@testex  ExpandLog(Log(x^2), Force => True) == 2Log(x)
+@testex  ExpandLog(Log(x/y), Force => True) == Log(x) + -Log(y)
+@testex  ExpandLog(Log(x^n), Force => True) == n*Log(x)
+@testex  LogCombine( Log(x) + Log(y), Force => True) == Log(x*y)
+@testex  LogCombine( n*Log(z), Force => True) == Log(z^n)
+
+#### ExpandTrig
+
+@testex ExpandTrig(Sin(x + y)) == Cos(y)*Sin(x) + Cos(x)*Sin(y)
 
 #### Together, Apart
 
@@ -65,9 +81,18 @@
 @testex Together(1/Exp(x) + 1/(x*Exp(x))) == (E^(-x))*(x^(-1))*(1 + x)
 @testex Together(1/Exp(2*x) + 1/(x*Exp(3*x))) == (E^((-3)*x))*(x^(-1))*(1 + (E^x)*x)
 
-@testex Together(Exp(1/x + 1/y), deep => True) == E^((x^(-1))*(y^(-1))*(x + y))
+@testex Together(Exp(1/x + 1/y), Deep => True) == E^((x^(-1))*(y^(-1))*(x + y))
 @testex Together(Exp(1/x + 1/y)) == E^(x^(-1) + y^(-1))
 @testex Factor((x^2 - 1)/(x^2 + 4*x + 4)) == (-1 + x)*(1 + x)*((2 + x)^(-2))
+
+#### PowSimp
+
+@testex PowSimp(x^a * x^b) == x^(a + b)
+@testex PowSimp(t^c * z^c, Force => True) == (t*z)^c
+
+#### PowDenest
+
+@testex PowDenest( (x^a)^b, Force => True  ) ==  x^(a*b)
 
 #### TrigSimp
 
@@ -84,6 +109,10 @@
 #### FullSimplify
 
 @testex FullSimplify( -Sqrt(-2*Sqrt(2)+3)+Sqrt(2*Sqrt(2)+3) ) == 2
+
+#### Rewrite
+
+@testex Rewrite(Tan(x), Sin)  ==  2(Sin(2x)^(-1))*(Sin(x)^2)
 
 
 @ex ClearAll(x,y,z,f,deep,gaussian,modulus)
