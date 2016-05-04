@@ -33,11 +33,16 @@ function SJulia_eval_string(s)
 end
 
 # readstring is defined in julia 0.5, but not 0.4
-function sjreadstring(fname::AbstractString)
-    stream = open(fname, "r")
-    str = readall(stream)
-    close(stream)
-    str
+
+if isdefined(:readstring)
+    @eval sjreadstring(fname::AbstractString) = readstring(fname)
+else
+   @eval function sjreadstring(fname::AbstractString)
+       stream = open(fname, "r")
+       str = readall(stream)
+       close(stream)
+       str
+   end
 end
 
 function SJulia_eval_file(fname)
@@ -198,3 +203,29 @@ do_Out(mx::Mxpr{:Out}, x) = :Null
 # of the nothings from causing printing
 # ...No. this did not help
 apprules(expr::Void) = :Null
+
+##### TempName
+
+@mkapprule TempName :nargs => 0
+
+@sjdoc TempName "
+TempName() generates a unique temporary file path.
+"
+
+@doap TempName() = tempname()
+
+
+##### DeleteFile
+
+@mkapprule DeleteFile :nargs => 1
+
+@sjdoc DelteFile "
+DelteFile(file) deletes file
+"
+
+@doap DeleteFile(file::AbstractString) = rm(file)
+
+
+
+
+
