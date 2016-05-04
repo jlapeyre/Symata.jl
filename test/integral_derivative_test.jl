@@ -79,6 +79,10 @@
 
 @testex SineTransform(x*Exp(-a*x^2), x, k) == 1/4 * (2 ^ (1/2)) * (a ^ (-3/2)) * (E ^ (-1/4 * (a ^ (-1)) * (k ^ 2))) * k
 
+#### CosineTransform
+
+@testex CosineTransform(Exp(-a*x),x,k) == (2^(1/2))*a*((a^2 + k^2)^(-1))*(Pi^(-1/2))
+
 @ex ClearAll(x,k,a)
 
 #### HankelTransform
@@ -92,7 +96,6 @@
 #### D
 
 @testex  D(f,x) == 0
-
 @testex D(x^2,x) == 2 * x
 @testex D(x^3,x,2) == 6 * x
 # FIXME Exp is not translated properly
