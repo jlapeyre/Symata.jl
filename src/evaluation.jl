@@ -90,14 +90,6 @@ macro bind_Os()
     expr
 end
 
-function sjpreprocess_partial_line(line::AbstractString)
-    if length(line) > 1
-        if line[1] == '?'
-            line = "?," * line[2:end]
-        end
-    end
-    return line
-end
 
 function exfunc(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead

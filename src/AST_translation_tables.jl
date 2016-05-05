@@ -86,11 +86,16 @@ end
 jtomsym(x) = extomx(x)
 
 function mtojsym(x::Symbol)
+#    println("mtojsym $x")
+    if haskey(REVERSE_PREPROCESS_SYMBOL_TRANSLATION,x)
+         x = REVERSE_PREPROCESS_SYMBOL_TRANSLATION[x]
+     end
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]
     end
     return x
 end
+
 
 # Non-Symbol Heads translate to themselves
 mtojsym(x) = x
@@ -106,7 +111,7 @@ end
 
 const OPTYPE  = Dict{Symbol,Symbol}()
 
-for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power,
+for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
            :Set, :SetDelayed, :UpSet, :(*=), :(+=),
            :TimesBy, :AddTo ) # need :Set here
     OPTYPE[op] = :binary

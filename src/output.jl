@@ -10,6 +10,12 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
 # A space, or maybe not.
 opspc() = getkerneloptions(:compact_output) ? "" : " "
 
+function binaryopspc(s)
+    s == "->" || s == ":>" && return " "
+    return ""
+end
+
+
 # Julia-like syntax
 const FUNCL = '('
 const FUNCR = ')'
@@ -210,7 +216,8 @@ function show_binary(io::IO, mx::Mxpr)
         else
             show(io,lop)
         end
-        print(io, opspc(), mtojsym(mhead(mx)), opspc())
+        opstr = mtojsym(mhead(mx))
+        print(io, binaryopspc(opstr), opstr , binaryopspc(opstr))
         rop = mx[2]
         if  needsparen(rop)
             print(io,"(")
@@ -264,6 +271,7 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
     end
 end
 
+# This includes Times. No spaces surround the infix symbol
 function show_infix(io::IO, mx::Mxpr)
     args = margs(mx)
     np = false
