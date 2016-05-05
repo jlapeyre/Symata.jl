@@ -10,8 +10,10 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
 # A space, or maybe not.
 opspc() = getkerneloptions(:compact_output) ? "" : " "
 
+# These are binary operators that want one space before and one after.
+# The default, e.g  Power is no space. x^y
 function binaryopspc(s)
-    s == "->" || s == ":>" && return " "
+    s == :(->) || s == Symbol(":>")  || s == Symbol("^:=") && return " "
     return ""
 end
 

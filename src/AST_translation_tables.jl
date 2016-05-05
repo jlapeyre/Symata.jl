@@ -40,7 +40,7 @@ const JTOMSYM  =
       :(.>) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
       :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
 #      :(:) => :Span, # this is done specially in extomx. colon means various things
-#      :(&=) => :UpSetDelayed,  This is available, at least. Not sure we want to take it.
+      :(&=) => :UpSetDelayed,  # This is available, at least. Not sure we want to take it.
       :vcat => :List,
       :vect => :List,
       :ref => :Part,
@@ -86,9 +86,9 @@ end
 jtomsym(x) = extomx(x)
 
 function mtojsym(x::Symbol)
-#    println("mtojsym $x")
-    if haskey(REVERSE_PREPROCESS_SYMBOL_TRANSLATION,x)
-         x = REVERSE_PREPROCESS_SYMBOL_TRANSLATION[x]
+    # For output, reverse the rewrites done by preprocessing the input string befor parsing
+    if haskey(REVERSE_PREPROCESS_SYMBOL_TRANSLATION,x)  # .>  --> :>   for output
+         x = REVERSE_PREPROCESS_SYMBOL_TRANSLATION[x]   # =>  --> ->   
      end
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]

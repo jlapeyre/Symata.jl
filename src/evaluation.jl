@@ -43,7 +43,6 @@ end
 
 ## Macro for translation and evaluation, at repl or from file
 
-
 # Read a line of user input, translate Expr to Mxpr, but don't evaluate result
 macro exnoeval(ex)
     mx = extomx(ex)

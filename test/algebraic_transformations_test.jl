@@ -17,6 +17,11 @@
 @testex Collect(a*x^(2*c) + b*x^(2*c), x^c) == (a + b)*(x^(2*c))
 @testex Collect(a*Exp(2*x) + b*Exp(2*x), Exp(x)) == (a + b)*(E^(2*x))
 
+@ex      q = x*y + x*y^2 + x^2*y + x
+@testex  Collect(q,x) == (x^2)*y + x*(1 + y + y^2)
+@testex  Collect(q,y) == x + (x + x^2)*y + x*(y^2)
+@ex      ClearAll(q,x,y)
+
 # sympy does not do this unless we use Expand. Mma does the expansion
 @testex Collect(Expand((1+a+x)^4), x) == 1 + 4*a + 6*(a^2) + 4*(a^3) + a^4 + (4 + 12*a + 12*(a^2) + 4*(a^3))*x + (6 + 12*a + 6*(a^2))*(x^2) + (4 + 4*a)*(x^3) + x^4
 

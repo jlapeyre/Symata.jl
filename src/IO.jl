@@ -18,21 +18,21 @@ apprules(mx::Mxpr{:Print}) = (print(margs(mx)...); Null)
 
 # Read SJulia expressions from a string and evaluate them, one by one.
 function SJulia_eval_string(s)
+    s = sjpreprocess_string(s)
     i = 1
     local sjretval
     while !done(s,i)
-        expr, i = parse(s,i)   # probably need to trap errors here as well. And count, in order to give up
+        expr, i = parse(s,i)
         sjretval =
-        try
-            SJulia.exfunc(expr) # we should use the macro here, I think.
-        catch e
-            println("Reading file: got error ", e)
-        end
+            try
+                SJulia.exfunc(expr)
+            catch e
+                println("Reading file: got error ", e)
+            end
     end
     sjretval
 end
 
-# readstring is defined in julia 0.5, but not 0.4
 
 function SJulia_eval_file(fname)
     fname |> readstring |> SJulia_eval_string

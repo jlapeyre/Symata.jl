@@ -30,28 +30,36 @@ macro BF_str(s)
     parse(BigFloat,s)
 end
 
+# Better to only translate this to FullForm rather than an intermediate symbol.
+# But, for now, both symbols work on input.
 const PREPROCESS_SYMBOL_TRANSLATION = Dict{Any,Any}( "->" => "=>",
-                                                     ":>" => ".>")
+                                                     ":>" => ".>",
+                                                     "^:=" => "&=")
 
-const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,AbstractString}( :Rule => "->",
-                                                                   :RuleDelayed => ":>" )
+const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}( :Rule => :(->),
+                                                                   :RuleDelayed => Symbol(":>"),
+                                                                   :UpSetDelayed => Symbol("^:=")
+                                                                   ) # hard to write this symbol
 
 # SJulia language expressions are first processed here (at
 # least interactvley now. The string is rewritten and then
 # parse to an AST which is the input to exfunc. This is
 # mostly done to rewrite the string into legal Julia syntax.
 # Now, we only look for the help symbol "?" 
-function sjpreprocess_partial_line(line::AbstractString)
-    if length(line) > 1
-        if line[1] == '?'             # User want documentation
-            line = "?," * line[2:end] # We add a comma so that the julia parse will accept it.
-        end
+function sjpreprocess_interactive(line::AbstractString)
+    if length(line) > 1 && line[1] == '?'             # User wants documentation
+        line = "?," * line[2:end] # We add a comma so that the julia parse will accept it.
     end
+    sjpreprocess_string(line)
+end
+
+function sjpreprocess_string(line::AbstractString)
     for (k,v) in PREPROCESS_SYMBOL_TRANSLATION
         line = replace(line, k, v)
     end
     return line
 end
+
 
 #### extomx  translate a Julia expression ex, to an SJuia expression mx
 
