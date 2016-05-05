@@ -546,9 +546,29 @@ Sometime 'N' does not give the number of digits requested. In this case, you can
 
 # N needs to be rewritten
 function apprules(mx::Mxpr{:N})
-    do_N(margs(mx)...)
+    outer_N(margs(mx)...)
 end
 
+function outer_N(expr)
+    do_N(expr)
+end
+
+function outer_N(expr, p)
+    if p > 16
+        pr = precision(BigFloat)
+        dig = round(Int,p*3.322)
+        set_mpmath_dps(dig)     # This is for some SymPy math. But, it is not clear when this will help us
+        setprecision( BigFloat, dig) # new form
+        res = meval(do_N(expr,p))
+        setprecision(BigFloat, pr)
+        restore_mpmath_dps()
+        return res
+    else
+        do_N(expr)
+    end
+end
+
+do_N(x::Float64,dig) = x  # Mma does this
 do_N(x,dig) = x
 do_N(x) = x
 do_N{T<:AbstractFloat}(n::T) = n
@@ -559,31 +579,9 @@ do_N{T<:Real,V<:Integer}(n::T,p::V)  = float_with_precision(n,p)
 # p is number of decimal digits of precision
 # Julia doc says set_bigfloat_precision uses
 # binary digits, but it looks more like decimal.
-#
-# The length of the string printed is about
-# p digits long if we do set_bigfloat_precision(p).
-# Or not sometimes. Don't know what is happening.
-# propagation of precision with operations or something.
-#
-# One problem is that bigfloat arithmetic does not use the
-# precision of the input types, but rather the current working
-# precision.
-# So N(2*Pi,1000) does not do what we want.
-# It may be expensive to change it on the fly.
 
 function float_with_precision(x,p)
-    if p > 16
-        pr = precision(BigFloat)
-        dig = round(Int,p*3.322)
-        set_mpmath_dps(dig)     # This is for some SymPy math. But, it is not clear when this will help us
-        setprecision( BigFloat, dig) # new form
         res = BigFloat(x)
-        setprecision(BigFloat, pr)
-        restore_mpmath_dps()
-        return res
-    else
-        return float(x)
-    end
 end
 
 # These rely on fixed-point evaluation to continue with N, this is not efficient

@@ -22,8 +22,7 @@
 # so the user can play with them.
 
 # Single doc string for a symbol. Retrieved by:
-# sjulia>?, SomeHead
-# NOTE THE COMMA. it is just there so that Julia will parse the command.
+# sjulia>? SomeHead
 const SJDOCS = Dict{Symbol,AbstractString}()
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
@@ -336,4 +335,40 @@ function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
     seekend(hist.history_file)
     print(hist.history_file, entry)
     flush(hist.history_file)
+end
+
+#### Help
+
+@sjdoc Help "
+Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
+Help() lists most of the documented symbols. Due to parsing restrictions at the repl, for some
+topics, the input must be a string.
+
+h\"topic\" gives a case-insensitive regular expression search.
+
+In the REPL, hit TAB to see all the available completions.
+\"? topic\" is equivalent to Help(topic).
+
+Help(All => True) prints all of the documentation.
+
+Help(regex) prints a list of topics whose documentation text matches the
+regular expression regex. For example Help(r\"Set\"i) lists all topics that
+match \"Set\" case-independently.
+"
+
+@mkapprule Help  :nodefault =>
+
+@doap Help() = print_doc("Help")
+
+function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
+    if r[1] == :All && r[2] == true
+        print_all_docs()
+    end
+    Null
+end
+
+do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
+
+function do_Help{T<:Regex}(mx::Mxpr{:Help},r::T)
+    print_matching_topics(r)
 end

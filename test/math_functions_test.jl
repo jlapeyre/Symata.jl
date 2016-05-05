@@ -1,6 +1,10 @@
 
 @testex testUserSyms
 
+#### ArcSin
+
+# FIXME N(ArcSin(3)) domain error. julia requires explicity comlex input. We need to check for this.
+
 #### BigIntInput
 
 @ex bigintval = BigIntInput(True)
@@ -20,6 +24,10 @@
 @ex ClearAll(bigfloatval)
 
 ## FIXME   1 < Infinity, etc. are not implemented
+
+#### BesselJ
+
+@testex Rewrite(BesselJ(nu,z), jn) == (2^(1/2))*(Pi^(-1/2))*(z^(1/2))*(SphericalBesselJ((-1/2 + nu),z))
 
 #### CatalanNumber
 
@@ -88,3 +96,7 @@
 
 @ex ClearAll(a,x,z)
 @testex testUserSyms
+
+# FIXME. this returns false. should return true
+# c= Exp( Sin(Sqrt(2)) + BesselJ(3,4))
+#  NumericQ(c)

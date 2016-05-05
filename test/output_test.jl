@@ -4,7 +4,6 @@
 @ex savestate = CompactOutput(True)
 
 @testex ToString( (a+b)*x ) == "(a + b)*x"
-#@testex ToString( -2 * a) == "-2*a"
 @testex ToString( -2 * a) == "-2a"
 @testex ToString( -2a) == "-2a"
 @testex ToString( -1 * a) == "-a"

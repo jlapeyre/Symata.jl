@@ -9,7 +9,7 @@ implemented, including integration, tranformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. The best places for examples of what works (and
 what does not), are [the test directory](test/), and, at the SJulia
-prompt, the online help, TAB completion, and regex search `h"word"`.
+prompt, the online help, `? Topic`, with TAB completion, and regex search `h"word"`.
 
 ### Installing
 
@@ -178,14 +178,9 @@ Type `Example(topic)` to run the examples. The input strings from the
 examples are pushed to the history so that they can be recalled and
 edited and re-evaluated.
 
-This documentation can be printed from within SJulia
-by entering `?, SymName` at the `sjulia` prompt. Note the comma, which
-is necessary because limitations in the provisional parsing method.
-`Help(Symname)` prints the same documentation. This allows you to type
-`@ex Help(SymName)` from Julia.
-
-To print a list of all help topics, type `?,` or `Help()`.
-
+This documentation can be printed from within SJulia by entering `? SymName`
+at the `sjulia` prompt.  `Help(Symname)` prints the same
+documentation. This allows you to type `@ex Help(SymName)` from Julia.
 
 There are many examples in the test directory.
 

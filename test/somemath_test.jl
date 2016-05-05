@@ -17,7 +17,8 @@ using Base.Test
 @testex  Abs(-z) == Abs(z)
 @testex  Abs(-z^(1/2))^2 == Abs(z)
 
-@testex N(Cos(E),100) == :( cos(big(e)))
+# We fixed a bug, so this is no longer true
+#@testex N(Cos(E),100) == :( cos(big(e)))
 
 @testex Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
 @testex Arg(Complex(1,1)) == π/4

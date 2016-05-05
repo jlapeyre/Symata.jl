@@ -83,13 +83,21 @@ macro bind_Os()
                        oexp = mxpr(:Out, get_line_number() - $i + 1)
                        set_system_symval(parse($sym), oexp)
                        set_pattributes($sym, :Protected)
-                  end 
+                  end
                      )
         push!(expr.args, newex)
     end
     expr
 end
 
+function sjpreprocess_partial_line(line::AbstractString)
+    if length(line) > 1
+        if line[1] == '?'
+            line = "?," * line[2:end]
+        end
+    end
+    return line
+end
 
 function exfunc(ex)
     check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
@@ -112,7 +120,7 @@ function exfunc(ex)
     push_output(mx)
     @bind_Os
     symval(mx) == Null  && return nothing
-    if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring    
+    if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
     end
     mx
@@ -260,7 +268,7 @@ function meval(mx::Mxpr)
     @mdebug(2, "meval: done meval_apply_all_rules ", res)
     is_meval_trace() && println(ind,get_meval_count(), "<< ", res)
     decrement_meval_count()
-    @mdebug(2, "meval: returning ", res)    
+    @mdebug(2, "meval: returning ", res)
     return res
 end
 
@@ -274,13 +282,13 @@ function meval_apply_all_rules(nmx::Mxpr)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
     is_Mxpr(res) || return res
-    @mdebug(2, "meval_apply_all_rules: entering ev_upvalues ", res)        
+    @mdebug(2, "meval_apply_all_rules: entering ev_upvalues ", res)
     res = ev_upvalues(res)
-    @mdebug(2, "meval_apply_all_rules: exited ev_upvalues ", res)   
+    @mdebug(2, "meval_apply_all_rules: exited ev_upvalues ", res)
     res = ev_downvalues(res)
-    @mdebug(2, "meval_apply_all_rules: entering merge_args_if_empty_syms")        
+    @mdebug(2, "meval_apply_all_rules: entering merge_args_if_empty_syms")
     merge_args_if_emtpy_syms(res) # merge free symbol lists from arguments
-    @mdebug(2, "meval_apply_all_rules: exiting")    
+    @mdebug(2, "meval_apply_all_rules: exiting")
     return res
 end
 

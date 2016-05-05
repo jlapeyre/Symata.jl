@@ -1,25 +1,5 @@
 # NB. attributes for builtin symbols are mostly set in protected_symbols.jl
 
-#### set_pattributes for internal use to set default attributes of builtin symbols
-
-function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
-    for s in syms
-        ssym = Symbol(s)
-        clear_attributes(ssym)
-        for a in attrs
-            set_attribute(ssym,a)
-        end
-        set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
-        register_system_symbol(ssym)
-    end
-end
-
-set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
-set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
-set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
-set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
-set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])
-
 # Check if we are trying to add to a symbol bound to itself. If
 # so, we warn and return the unevaluated expression. This avoids
 # an infinite evaluation loop. This is what Mma does.

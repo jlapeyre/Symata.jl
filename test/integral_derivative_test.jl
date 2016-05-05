@@ -106,6 +106,18 @@
 @testex  D(ArcTan(x),x) == (1 + x ^ 2) ^ -1
 @testex  D(BesselJ(1,x),x) == (1//2) * (BesselJ(0,x)) + (-1//2) * (BesselJ(2,x))
 
-@ex ClearAll(x,s,t,conds,f)
+#### Product
+
+@testex Product(i, [i,1,k]) == Factorial(k)
+@testex Product(m, [i,1,k]) == m^k
+@testex Product(i, [i,1,k], [k,1,n]) == Product(Factorial(k),[k,1,n])
+@testex Product(1/(1+i), [i,1,n]) == (Pochhammer(2,n))^(-1)
+
+
+#### Sum
+
+@testex Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
+
+@ex ClearAll(x,s,t,conds,f,i,m,k)
 
 @testex testUserSyms

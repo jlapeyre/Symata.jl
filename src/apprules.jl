@@ -654,45 +654,6 @@ CurrentContext() returns the name of the current context.
 
 @doap CurrentContext() = string(get_current_context_name())
 
-@sjdoc Help "
-Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
-Help() lists most of the documented symbols. Due to parsing restrictions at the repl, for some
-topics, the input must be a string.
-
-h\"topic\" gives a case-insensitive regular expression search.
-
-In the REPL, hit TAB to see all the available completions.
-\"?, topic\" is equivalent to Help(topic).
-
-Help(All => True) prints all of the documentation.
-
-Help(regex) prints a list of topics whose documentation text matches the
-regular expression regex. For example Help(r\"Set\"i) lists all topics that
-match \"Set\" case-independently.
-"
-
-#apprules(mx::Mxpr{:Help}) = do_Help(mx,margs(mx)...)
-
-@mkapprule Help  :nodefault =>
-
-@doap Help() = print_doc("Help")
-
-# function do_Help(mx::Mxpr{:Help})
-#     print_doc("Help")
-# end
-
-function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
-    if r[1] == :All && r[2] == true
-        print_all_docs()
-    end
-    Null
-end
-
-do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
-
-function do_Help{T<:Regex}(mx::Mxpr{:Help},r::T)
-    print_matching_topics(r)
-end
 
 #### Module
 

@@ -44,7 +44,6 @@ if ! isdefined(Base.Test, :testset_forloop)
     global tests_passed = 0
     global tests_failed = 0
     function custom_handler(r::Test.Failure)
-        warn("Error on custom handler: ", r.expr)
         global tests_failed
         tests_failed += 1
     end

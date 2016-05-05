@@ -30,9 +30,6 @@ using Base.Test
 
 @ex ClearAll(a,b,x,y,z,p,q,rex,f)
 
-## Series
-
-@testex Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
 
 ## Orthoganal Polynomials, etc.
 

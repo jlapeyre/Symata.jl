@@ -34,19 +34,8 @@ end
 
 # readstring is defined in julia 0.5, but not 0.4
 
-if isdefined(:readstring)
-    @eval sjreadstring(fname::AbstractString) = readstring(fname)
-else
-   @eval function sjreadstring(fname::AbstractString)
-       stream = open(fname, "r")
-       str = readall(stream)
-       close(stream)
-       str
-   end
-end
-
 function SJulia_eval_file(fname)
-    fname |> sjreadstring |> SJulia_eval_string
+    fname |> readstring |> SJulia_eval_string
 end
 
 #### Get
@@ -66,7 +55,7 @@ do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  SJulia_eval_file(fname)
 @sjdoc ReadString  "
 ReadString(\"filename\") reads \"filename\" and returns the contents as a string.
 "
-do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = sjreadstring(fname)
+do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(fname)
 
 # Write SJulia expression as strings that can be used as input to define
 # objects and properties.

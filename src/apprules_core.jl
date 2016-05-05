@@ -135,3 +135,26 @@ end
 #  Usually, it is a user defined symbol
 
 apprules(x) = x
+
+#### set_pattributes for internal use to set default attributes of builtin symbols.
+# This is used to set several attributes for one symbol, or give several symbols multiple
+# attributes, etc. It is used when macro mkapprule above is called, and extensively in
+# protected_symbols.jl
+
+function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
+    for s in syms
+        ssym = Symbol(s)
+        clear_attributes(ssym)
+        for a in attrs
+            set_attribute(ssym,a)
+        end
+        set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
+        register_system_symbol(ssym)
+    end
+end
+
+set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
+set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
+set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
+set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
+set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])

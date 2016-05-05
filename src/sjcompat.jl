@@ -16,3 +16,14 @@ const have_new_Symbol =
 if ! have_new_Symbol
     Symbol(args...) = symbol(args...)
 end
+
+#### readstring
+
+if ! isdefined(:readstring)
+    function readstring(fname::AbstractString)
+       stream = open(fname, "r")
+       str = readall(stream)
+       close(stream)
+       str
+   end
+end

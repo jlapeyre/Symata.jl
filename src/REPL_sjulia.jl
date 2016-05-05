@@ -18,6 +18,7 @@ type SJuliaCompletionProvider <: CompletionProvider
 end
 
 function SJulia_parse_REPL_line(line)
+    line = sjpreprocess_partial_line(line)
     Base.parse_input_line("@SJulia.ex " * line)
 end
 
