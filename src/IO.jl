@@ -15,7 +15,8 @@ Print(expr1,expr2,...) prints the expressions.
 "
 apprules(mx::Mxpr{:Print}) = (print(margs(mx)...); Null)
 
-
+# We are using read_SJulia_file instead of this.
+# We should probably delete this at some point.
 # Read SJulia expressions from a string and evaluate them, one by one.
 function SJulia_eval_string(s)
     s = sjpreprocess_string(s)
@@ -38,7 +39,12 @@ function SJulia_eval_file(fname)
     fname |> readstring |> SJulia_eval_string
 end
 
+# TODO. Read more than one expression from a line.
+# TODO. Use a new exception type
+# Read and evaluate SJulia expressions from a file.
+# Return the last returned value.
 function read_SJulia_file(f::AbstractString)
+    oldval = set_issjinteractive(false)
     eline = ""
     local sjretval
     for (i,line) = enumerate(eachline(f))
@@ -48,8 +54,8 @@ function read_SJulia_file(f::AbstractString)
             try
                 parse(eline)
             catch
+                set_issjinteractive(oldval)
                 error("Syntax error in file $f, line $i: '", pline, "'")
-#                error("Syntax error in file $f, line $i: '", eline, "'")                
             end
         if typeof(expr) ==  Expr && expr.head == :incomplete
             continue
@@ -58,13 +64,16 @@ function read_SJulia_file(f::AbstractString)
             try
                 SJulia.exfunc(expr)
             catch e
-                println("Error in file $f,  line $i ", e)
+                set_issjinteractive(oldval)
+                error("Error in file $f,  line $i ", e)
             finally
                 eline = ""
             end
     end
+    set_issjinteractive(oldval)    
     sjretval
 end
+
 
 #### Get
 
@@ -75,7 +84,6 @@ Get(\"filename\") reads and evaluates SJulia expressions from file \"filename\".
 Try putting empty lines between expressions if you get errors on reading.
 "
 
-#do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  SJulia_eval_file(fname)
 do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_SJulia_file(fname)
 
 #### ReadString

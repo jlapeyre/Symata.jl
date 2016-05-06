@@ -103,15 +103,15 @@ function exfunc(ex)
         mx = tryexfunc(res)
     end
     if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
-    set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
-    increment_line_number()
-    if isinteractive()
+    if isinteractive() && is_sjinteractive()
+        increment_line_number()
+        set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma        
         set_sjulia_prompt(get_line_number() + 1)
         push_output(mx)
         @bind_Os
     end
     symval(mx) == Null  && return nothing
-    if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
+    if isinteractive() && is_sjinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
     end
     mx

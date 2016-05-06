@@ -33,8 +33,9 @@ type Meval
     timingon::Bool              # Time() does @time on every user input
     try_downvalue_count::Int
     try_upvalue_count::Int
+    is_sjinteractive::Bool
 end
-const MEVAL = Meval(0,false,false,false,false,0,0)
+const MEVAL = Meval(0,false,false,false,false,0,0,true)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -63,6 +64,14 @@ get_try_downvalue_count() = MEVAL.try_downvalue_count
 get_try_upvalue_count() = MEVAL.try_upvalue_count
 increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
 increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
+
+function set_issjinteractive(val::Bool)
+    oldval = MEVAL.is_sjinteractive
+    MEVAL.is_sjinteractive = val
+    return oldval
+end
+
+is_sjinteractive() = MEVAL.is_sjinteractive
 
 #### Tracing evaluation
 
