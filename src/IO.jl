@@ -38,6 +38,34 @@ function SJulia_eval_file(fname)
     fname |> readstring |> SJulia_eval_string
 end
 
+function read_SJulia_file(f::AbstractString)
+    eline = ""
+    local sjretval
+    for (i,line) = enumerate(eachline(f))
+        pline = sjpreprocess_string(line)
+        eline = eline * pline
+        expr =
+            try
+                parse(eline)
+            catch
+                error("Syntax error in file $f, line $i: '", pline, "'")
+#                error("Syntax error in file $f, line $i: '", eline, "'")                
+            end
+        if typeof(expr) ==  Expr && expr.head == :incomplete
+            continue
+        end
+        sjretval =
+            try
+                SJulia.exfunc(expr)
+            catch e
+                println("Error in file $f,  line $i ", e)
+            finally
+                eline = ""
+            end
+    end
+    sjretval
+end
+
 #### Get
 
 @mkapprule Get
@@ -47,7 +75,8 @@ Get(\"filename\") reads and evaluates SJulia expressions from file \"filename\".
 Try putting empty lines between expressions if you get errors on reading.
 "
 
-do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  SJulia_eval_file(fname)
+#do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  SJulia_eval_file(fname)
+do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_SJulia_file(fname)
 
 #### ReadString
 
