@@ -107,9 +107,9 @@ function exfunc(ex)
     increment_line_number()
     if isinteractive()
         set_sjulia_prompt(get_line_number() + 1)
+        push_output(mx)
+        @bind_Os
     end
-    push_output(mx)
-    @bind_Os
     symval(mx) == Null  && return nothing
     if isinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
