@@ -376,9 +376,7 @@ the value `Null'.
 function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
     @inbounds for a in margs(mx)  # no inbounds does not work here
         if a == :Out
-            for i in 1:length(Output)
-                Output[i] = :Null   # temporary solutions
-            end
+            clear_all_output()
             return Null
         end
         checkprotect(a)

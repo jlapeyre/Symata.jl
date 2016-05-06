@@ -165,7 +165,7 @@ STDERR is the standard output stream.
 "
 
 @sjdoc DevNull "
-DevNull is bound to julia stream DevNull.
+DevNull is bound to Julia output stream DevNull.
 "
 
 @mkapprule Out

@@ -142,6 +142,12 @@ type SavedOutput
     expr::Any
 end
 
+function clear_all_output()
+    for i in 1:length(Output)
+        Output[i].expr = :Null   # temporary solutions
+    end
+end
+
 const LineNumber = Int[0]
 get_line_number() = LineNumber[1]
 set_line_number(n::Integer) =  (LineNumber[1] = n)
