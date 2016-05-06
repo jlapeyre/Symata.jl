@@ -50,18 +50,109 @@ You can do tab completion to see a list of functions and symbols.
 
 #### SymPy
 
-Functions that call SymPy work like this. This SymPy call
+Functions that call SymPy work as follows (many more examples are in the test directory). This SymPy call
 ```python
 integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
 ```
 corresponds to this SJulia expression
 ```julia
-Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
+Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds -> "none")
 ```
+
+##### Update
+
+You can use the standard symbols `:>` for `RuleDelayed`, `->` for `Rule`, and `^:=` for `UpSetDelayed`.
+And, as before, `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
+are the symbols used for printed output, as well. This change is not yet visible in
+the [the test directory](test/), as this will require changes to the testing code.
+However, the tests should all pass.
 
 For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
 
-#### Some results.
+### Finding Help and Examples
+
+This documentation can be printed from within SJulia by entering `? SymName`
+at the `sjulia` prompt.  `Help(Symname)` prints the same
+documentation. This allows you to type `@ex Help(SymName)` from Julia.
+
+Try `Help()`. Type `h"topic"` to search for items containing the
+string `"topic"`.  Hit TAB at the command line REPL for a list of all
+builtin symbols. (i.e. variables and functions) Symbols that are
+associated with some functionality can be listed with
+`BuiltIns()`. Type `Example()` to see a list of topics with examples.
+Type `Example(topic)` to run the examples. (But, far more examples are in the test directory). The input strings from the
+examples are pushed to the history so that they can be recalled and edited and re-evaluated.
+
+### A few examples
+
+Here are some examples of the SJulia mode.
+
+```julia
+sjulia> ClearAll(fib)
+sjulia> fib(1) := 1
+sjulia> fib(2) := 1
+sjulia> fib(n_) := fib(n-1) + fib(n-2)
+sjulia> fib(10)
+55
+sjulia> addone(x_) := (a = 1,  x + a)  # compound expression
+sjulia> addone(y)
+1 + y
+sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
+sjulia> gt5(x_) := x > 5     # conditions on patterns
+sjulia> g(x_FloatingPoint:?(gt5)) = 1   # only matches floating point numbers > 5
+sjulia> h(x_^2) := x    # Structural matching
+sjulia> h((a+b)^2)
+a + b
+```
+
+#### Pattern matching.
+
+Patterns are used in several places. For example you can make a replacement rule like this
+
+```julia
+sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 -> 1;
+
+sjulia> Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)
+(a+b)^2 + Sin(a+c)^2
+
+sjulia> Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)
+1
+```
+
+But, in practice, you would use `TrigSimp` or `Simplify`.
+
+`Functions` are really replacement rules.  A replacement rule is associated with the symbol `f` like this
+```julia
+sjulia> f(x_) := x^2
+
+sjulia> f(a+b)
+(a+b)^2
+```
+
+When `f` is encountered as the head of an expression, a list of such rules is
+tried. The first that succeeds makes the transformation and that round of evaluation
+is done.
+
+#### Miscellaneous Tips
+
+To recall previous lines of input, use `O`, `OO`, etc. Or use `Out(n)` for the `n`th output.
+Type `? HistoryLength` to see how to control saving output.
+
+`BigIntInput(True)` enables making all input integers arbitary precision.
+
+You can use `Save` and `Get` to write and read SJulia code.
+
+#### Upvalues
+
+"Upvalues" are (partially) implemented:
+```julia
+sjulia> g(f(x_)) ^= x^2
+sjulia > g(f(z))
+ z ^ 2
+```
+
+
+#### Results on evaluation and efficiency
 
 Here is counting with patterns. The execution time is about the same as Mma 3.
 
@@ -97,7 +188,7 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 
 ```
 
-#### Evaluation
+#### Fixed-point evaluation
 
 Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
 current environment. There are pros and cons to this approach. In Mma there are a host
@@ -105,8 +196,9 @@ of `HoldXXX` symbols to prevent evaluation, and in
 [Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
 functions and options to force it.
 
-Here is SJulia doing expansion (with the native `ExpandA`. The more capable `Expand` is a frontend to a
-SymPy function)
+Here is SJulia doing expansion with the native `ExpandA`. `ExpandA` is only for demonstration;
+The much more capable `Expand` is a frontend to a SymPy function. However the results following
+the first line below, work as well if you call `Expand`.
 We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
 ```julia
 sjulia> m = ExpandA((a+b)^BI(1000));   # expand with BigInt exponent
@@ -167,44 +259,6 @@ julia> @ex some SJulia expression
 julia> @ex(some expression that may look like two expressions)
 ```
 
-### Finding Help and Examples
-
-Try `Help()`. Type `h"topic"` to search for items containing the
-string `"topic"`.  Hit TAB at the command line REPL for a list of all
-builtin symbols (i.e. variables and functions) Symbols that are
-associated with some functionality can be listed with
-`BuiltIns()`. Type `Example()` to see a list of topics with examples.
-Type `Example(topic)` to run the examples. The input strings from the
-examples are pushed to the history so that they can be recalled and
-edited and re-evaluated.
-
-This documentation can be printed from within SJulia by entering `? SymName`
-at the `sjulia` prompt.  `Help(Symname)` prints the same
-documentation. This allows you to type `@ex Help(SymName)` from Julia.
-
-There are many examples in the test directory.
-
-### A few examples
-
-Here are some examples of the SJulia mode.
-
-```julia
-sjulia> ClearAll(fib)
-sjulia> fib(1) := 1
-sjulia> fib(2) := 1
-sjulia> fib(n_) := fib(n-1) + fib(n-2)
-sjulia> fib(10)
-55
-sjulia> addone(x_) := (a = 1,  x + a)  # compound expression
-sjulia> addone(y)
-1 + y
-sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
-sjulia> gt5(x_) := x > 5     # conditions on patterns
-sjulia> g(x_FloatingPoint:?(gt5)) = 1   # only matches floating point numbers > 5
-sjulia> h(x_^2) := x    # Structural matching
-sjulia> h((a+b)^2)
-a + b
-```
 
 Using the SJulia mode or the `@ex` macro is essentially using a language distinct
 from Julia. In particular, the evaluation sequence, and binding of symbols to
@@ -229,42 +283,6 @@ choose infinite or single evaluation. The test suite relies on infinite evaluati
 enabled. Hashing and caching of expressions can also be chosen here, but it is not very
 useful at the moment.
 
-#### Pattern matching.
-
-Patterns are used in several places. For example you can make a replacement rule like this
-
-```julia
-sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1;
-
-sjulia> Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)
-(a+b)^2 + Sin(a+c)^2
-
-sjulia> Replace( Cos(a+b)^2 + Sin(a+b)^2, cossinrule)
-1
-```
-
-But, in practice, you would use `TrigSimp` or `Simplify`.
-
-`Functions` are really replacement rules.  A replacement rule is associated with the symbol `f` like this
-```julia
-sjulia> f(x_) := x^2
-
-sjulia> f(a+b)
-(a+b)^2
-```
-
-When `f` is encountered as the head of an expression, a list of such rules is
-tried. The first that succeeds makes the transformation and that round of evaluation
-is done.
-
-#### Upvalues
-
-"Upvalues" are (partially) implemented:
-```julia
-sjulia> g(f(x_)) ^= x^2
-sjulia > g(f(z))
- z ^ 2
-```
 
 <!--  LocalWords:  Mathematica SymPy julia sjulia PyCall Mma src
  -->
