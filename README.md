@@ -65,17 +65,20 @@ You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSe
 `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
 are also the symbols used for printed output, as well. This change is not visible everywhere in
 the [the test directory](test/), as this would (will) require changes to the testing code.
-However, the tests should all pass. Rather than writing the tests as Julia code
-with the SJulia expressions wrapped in a macro, one can write them directly in SJulia.
-This is done in the directory `sjtest`.
+However, the tests should all pass.
 
-For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
+Rather than writing the tests as Julia code with the SJulia
+expressions wrapped in a macro, one can write them directly in SJulia.
+This is done in [the directory sjtest.](sjtest/) All symbols listed above do appear
+in these tests. These tests will be maintained and extended.
+
 
 ### Finding Help and Examples
 
 This documentation can be printed from within SJulia by entering `? SymName`
 at the `sjulia` prompt.  `Help(Symname)` prints the same
 documentation. This allows you to type `@ex Help(SymName)` from Julia.
+For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
 
 Try `Help()`. Type `h"topic"` to search for items containing the
 string `"topic"`.  Hit TAB at the command line REPL for a list of all
