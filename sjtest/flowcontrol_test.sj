@@ -12,27 +12,27 @@ T a == 10
  (i = 0; Do( (i += 1; If(i>3, Break())) , [10]))
 T i == 4
 
+# Test that i is localized
  a = 0
  i = "zebra"
- Do(a = a + i , [i,10])  # what am I doing here ?
+ Do(a = a + i , [i,10]) 
 
- a == 55
- i == "zebra"
+T  a == 55
+T i == "zebra"
  a = 0
  Do(a = a + i , [i,10,1,-1])
- a == 55
+T  a == 55
  a = 0
  Do(a = a + x , [x,q, 5*q,q])
- a == 15*q
+T a == 15*q
 
-# disabling (a*b)^number -> a^number * b^number has broken this
-#  a = 0
-#  Do(a = a + x , [x,5*q,q,-q])
-#  a == 15*q
+  a = 0
+  Do(a = a + x , [x,5*q,q,-q])
+T  a == 15*q
 
  a = 0
  Do(a = a + x , [x,[1,2,3]])
- a == 6
+T a == 6
  ClearAll(a,i,x,q)
 
 #### For
@@ -40,7 +40,6 @@ T i == 4
  m = [0,0,0]
  For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
 T [2,3,4] == m
-# T symval(:res) == true  WE need to do soemthing else here
 
  For(i=1,i<10, (Increment(i); If(i>3, Break())))
 T i == 4

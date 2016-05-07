@@ -59,18 +59,21 @@ corresponds to this SJulia expression
 Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 ```
 
-##### Update
+##### Tests
 
 You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
 `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
-are also the symbols used for printed output, as well. This change is not visible everywhere in
-the [the test directory](test/), as this would (will) require changes to the testing code.
-However, the tests should all pass.
+are also the symbols used for printed output, as well.
 
-Rather than writing the tests as Julia code with the SJulia
-expressions wrapped in a macro, one can write them directly in SJulia.
-This is done in [the directory sjtest.](sjtest/) All symbols listed above do appear
-in these tests. These tests will be maintained and extended.
+You can run the test suite from the `sjulia` prompt with `Tests()`.
+This runs tests in [the directory sjtest.](sjtest/) All symbols listed above do appear
+in these tests.
+
+This change is not visible everywhere in the [the older test
+directory](test/), as this would (will) require changes to the testing
+code.  However, these tests should all still pass, with
+`Pkg.test("SJulia")` For reasons explained in the code, the tests in
+[sjtest](sjtest/) will be preferred over those in [test](test/).
 
 
 ### Finding Help and Examples

@@ -26,10 +26,9 @@ using Base.Test
 @ex Do(a = a + x , [x,q, 5*q,q])
 @ex a == 15*q
 
-# disabling (a*b)^number -> a^number * b^number has broken this
-# @ex a = 0
-# @ex Do(a = a + x , [x,5*q,q,-q])
-# @ex a == 15*q
+@ex a = 0
+@ex Do(a = a + x , [x,5*q,q,-q])
+@testex a == 15*q
 
 @ex a = 0
 @ex Do(a = a + x , [x,[1,2,3]])
@@ -41,7 +40,6 @@ using Base.Test
 @ex m = [0,0,0]
 @ex For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
 @testex ([2,3,4] == m)
-#@test symval(:res) == true
 
 @ex For(i=1,i<10, (Increment(i); If(i>3, Break())))
 @testex i == 4

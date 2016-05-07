@@ -62,3 +62,12 @@ function run_testsuite()
     startfile = joinpath(SJulia_test_path(), "sjruntests.jl")
     include(startfile)
 end
+
+@mkapprule Tests :nargs => 0
+
+@sjdoc Tests "
+Tests() runs the SJulia test suite. This runs the code in 'sjtest', this should
+be newer and better maintained than the code in the 'test' directory.
+"
+
+@doap Tests() = run_testsuite()
