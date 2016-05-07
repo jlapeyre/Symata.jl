@@ -13,7 +13,7 @@
 * Translation to and from SymPy is slow. For `Integrate' this is
 usually not a problem. But, manipulation (eg Expand) of large expressions
 may be hundreds of times faster in SymPy than the translation of the
-result.
+result. Update: This happens at the PyCall level, not the SJulia level.
 
 * [m, n] = [n, Mod(m, n)] Destructuring assignment
 
@@ -22,10 +22,6 @@ result.
  returned gensym symbols are entered again into the symbol table, with no special attributes.
   Mma gives gensyms attribute 'Temporary' and removes them when they go out of scope.
   We should use a separate gensym counter for SJulia, eg. $ModuleNumber.
-
-* We want to use '.' for 'Contexts', 
-
-* Give exact values for CosD
 
 * need a system for including packages and the associated sjulia capability only
  if the module is installed (or available)
@@ -66,14 +62,17 @@ result.
 * Implement things like  Pi < 4 --> True. Maybe implement Pi like
    julia irrationals.
 
-* N(Pi,1000) works
-  but, N(Sqrt(2),1000) gives too few digits. We can get what we want
-   by explicitly using SetPrecision.
+* Give exact values for CosD
+   
    
 ###############################################################################
 
  ===  DONE ===
 
+* N(Pi,1000) works
+  but, N(Sqrt(2),1000) gives too few digits. We can get what we want
+   by explicitly using SetPrecision.
+   
 * Allow user to set the output capture length   
    
 * Partly done, answer is correct. Fix chained comparison. Remove true comparison. Return conjunction.
