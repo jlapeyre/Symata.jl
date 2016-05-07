@@ -94,7 +94,7 @@ using Base.Test
 
 ## Set a Julia variable
 SJulia.@ex(SetJ(a,"cat"))
-SJulia.@test SJulia.a == "cat"
+@testex :( a == "cat" )
 
 ## Test compound expression
 

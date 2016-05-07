@@ -11,7 +11,8 @@ using Base.Test
 @ex     f = :( fff(x) = x^10 )
 @testex Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
 # We need to fix this. Inf is a Float64. Convert it to SJulia
-@testex Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == :( Inf )
+#@testex Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == :( Inf )
+@testex Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == Infinity
 # Mma 3 cannot do the following:
 @testex Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infinity) == 0
 

@@ -1,4 +1,8 @@
-### This is SJulia level IO. The code for printing Mxpr, etc. is in output.jl
+### This is SJulia level IO. The code for formatting and printing Mxpr, etc. is in output.jl
+
+function SJulia_module_path()
+    joinpath(Pkg.Dir.path(), "SJulia")
+end
 
 #### Println
 
@@ -39,38 +43,61 @@ function SJulia_eval_file(fname)
     fname |> readstring |> SJulia_eval_string
 end
 
+
 # TODO. Read more than one expression from a line.
 # TODO. Use a new exception type
 # Read and evaluate SJulia expressions from a file.
 # Return the last returned value.
-function read_SJulia_file(f::AbstractString)
+function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest() )
     oldval = set_issjinteractive(false)
     eline = ""
     local sjretval
-    for (i,line) = enumerate(eachline(f))
+    reading_test::Bool = false
+    incomplete_flag::Bool = false
+    incomplete_message = ""
+    local line_number
+    for (line_number,line) = enumerate(eachline(f))
         pline = sjpreprocess_string(line)
-        eline = eline * pline
+        if typeof(test) != SJulia_NullTest && length(pline) > 1 && pline[1:2] == "T "
+            reading_test = true
+            if length(pline) > 2
+                eline = eline * pline[3:end]
+            end
+        else
+            eline = eline * pline
+        end
         expr =
             try
                 parse(eline)
             catch
                 set_issjinteractive(oldval)
-                error("Syntax error in file $f, line $i: '", pline, "'")
+                error("Syntax error in file $f, line $line_number: '", chomp(pline), "'")
             end
         if typeof(expr) ==  Expr && expr.head == :incomplete
+            incomplete_flag = true
+            incomplete_message = expr.args[1]
             continue
         end
         sjretval =
             try
-                SJulia.exfunc(expr)
+                incomplete_flag = false
+                res = SJulia.exfunc(expr)
+                if typeof(test) != SJulia_NullTest && reading_test
+                    reading_test = false
+                    record_SJTest(test, f, line_number, res)
+                end
+                res
             catch e
                 set_issjinteractive(oldval)
-                error("Error in file $f,  line $i ", e)
+                error("SJ Error read file $f,  line $line_number\n", e)
             finally
                 eline = ""
             end
     end
-    set_issjinteractive(oldval)    
+    set_issjinteractive(oldval)
+    if incomplete_flag
+        error(incomplete_message, " in file $f line $line_number")
+    end
     sjretval
 end
 
@@ -250,8 +277,3 @@ DelteFile(file) deletes file
 "
 
 @doap DeleteFile(file::AbstractString) = rm(file)
-
-
-
-
-

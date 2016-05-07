@@ -56,16 +56,18 @@ integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
 ```
 corresponds to this SJulia expression
 ```julia
-Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds -> "none")
+Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 ```
 
 ##### Update
 
-You can use the standard symbols `:>` for `RuleDelayed`, `->` for `Rule`, and `^:=` for `UpSetDelayed`.
-And, as before, `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
-are the symbols used for printed output, as well. This change is not yet visible in
-the [the test directory](test/), as this will require changes to the testing code.
-However, the tests should all pass.
+You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
+`=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
+are also the symbols used for printed output, as well. This change is not visible everywhere in
+the [the test directory](test/), as this would (will) require changes to the testing code.
+However, the tests should all pass. Rather than writing the tests as Julia code
+with the SJulia expressions wrapped in a macro, one can write them directly in SJulia.
+This is done in the directory `sjtest`.
 
 For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
 
@@ -110,7 +112,7 @@ a + b
 Patterns are used in several places. For example you can make a replacement rule like this
 
 ```julia
-sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 -> 1;
+sjulia> cossinrule = Cos(x_)^2 + Sin(x_)^2 => 1;
 
 sjulia> Replace( Cos(a+b)^2 + Sin(a+c)^2, cossinrule)
 (a+b)^2 + Sin(a+c)^2
@@ -176,7 +178,7 @@ sjulia> Count(b, _:?(EvenQ))
 elapsed time: 0.075666716 seconds (3984008 bytes allocated)
 50000
 
-sjulia> Count(b, _:?( :( x -> x > 5 ) ) )    # Use a Julia function as the test
+sjulia> Count(b, _:?( :( x => x > 5 ) ) )    # Use a Julia function as the test
 elapsed time: 0.076713741 seconds (4780808 bytes allocated)
 99995
 

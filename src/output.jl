@@ -12,11 +12,18 @@ opspc() = getkerneloptions(:compact_output) ? "" : " "
 
 # These are binary operators that want one space before and one after.
 # The default, e.g  Power is no space. x^y
-function binaryopspc(s)
-    s == :(->) || s == Symbol(":>")  || s == Symbol("^:=") && return " "
+# This broke somehow
+function oldbinaryopspc(ss)
+    s = Symbol(ss)
+    (s == :(=>) || s == :(->) || s == Symbol(":>")  || s == Symbol("^:=")) && return " "
     return ""
 end
 
+function binaryopspc(ss)
+    s = string(ss)
+    (s == "=>" || s == "->" || s == ":>"  || s == "^:=") && return " "
+    return ""
+end
 
 # Julia-like syntax
 const FUNCL = '('
@@ -210,6 +217,7 @@ function show_binary(io::IO, mx::Mxpr)
     if length(mx) != 2
         show_prefix_function(io,mx)
     else
+        opstr = mtojsym(mhead(mx))
         lop = mx[1]
         if needsparen(lop)
             print(io,"(")
@@ -218,7 +226,6 @@ function show_binary(io::IO, mx::Mxpr)
         else
             show(io,lop)
         end
-        opstr = mtojsym(mhead(mx))
         print(io, binaryopspc(opstr), opstr , binaryopspc(opstr))
         rop = mx[2]
         if  needsparen(rop)

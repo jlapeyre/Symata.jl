@@ -30,22 +30,37 @@ macro BF_str(s)
     parse(BigFloat,s)
 end
 
-# Better to only translate this to FullForm rather than an intermediate symbol.
-# But, for now, both symbols work on input.
-const PREPROCESS_SYMBOL_TRANSLATION = Dict{Any,Any}( "->" => "=>",
-                                                     ":>" => ".>",
-                                                     "^:=" => "&=")
+# Complicated:
+# 1. preprocess :> to .>, because :> cannot be parsed
+#  on output write .> as :>, so that it can be read again. But, .> also works as input
+# 2. We want -> for Rule. But, IIRC, the precedence required parenthesizing more than we want.
+#   So, we use =>. We would then like to preprocess -> to => on input and the reverse on output.
+#   But, we want to be able to write:
+# sjulia > f = :( (x) -> x^2 ), which would be rewritten f = :( (x) => x^2 ).
+# We could, when analyzing the parsed :( (x) => x^2 ), convert => back to ->, but I don't want to risk
+# messing the precedence of ->, which is asymmetric and special. Mostly because I guess this example will
+# be one of the most common uses of :( expr ), to wrap a Julia function.
+# So... what to do. Let us try simply breaking with Mma and using => for Rule.
+# Perhaps we can also allow -> for Rule as well.
+# We would have to do more than simple replacement form string preprocessing. I don't want to do that.
+const PREPROCESS_SYMBOL_TRANSLATION = Dict{Any,Any}(
+#                                                    "->" => "=>",   #disable
+                                                    ":>" => ".>",
+                                                    "^:=" => "&=")
 
-const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}( :Rule => :(->),
-                                                                   :RuleDelayed => Symbol(":>"),
-                                                                   :UpSetDelayed => Symbol("^:=")
-                                                                   ) # hard to write this symbol
+
+const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
+#                                                                  :Rule => :(->), # disabled
+                                                                  :Rule => :(=>),
+                                                                  :RuleDelayed => Symbol(":>"),
+                                                                  :UpSetDelayed => Symbol("^:="))
+
 
 # SJulia language expressions are first processed here (at
 # least interactvley now. The string is rewritten and then
 # parse to an AST which is the input to exfunc. This is
 # mostly done to rewrite the string into legal Julia syntax.
-# Now, we only look for the help symbol "?" 
+# Now, we only look for the help symbol "?"
 function sjpreprocess_interactive(line::AbstractString)
     if length(line) > 1 && line[1] == '?'             # User wants documentation
         line = "?," * line[2:end] # We add a comma so that the julia parse will accept it.
@@ -120,14 +135,23 @@ function extomxarr(ain,aout)
     end
 end
 
+# Interactively, the second argument is an Expr.
+# Read from a file, it is a QuoteNode. Don't know why.
 function parse_qualified_symbol(ex::Expr)
     args = ex.args
     length(args) != 2 && error("extomx: We can only handle context qualifications like this: a.b")
     typeof(args[1]) == Symbol || error("extomx: expecting symbol as first argument to context qualification")
     a2 = args[2]
-    typeof(a2) == Expr || error("extomx: error parsing second argument of ", ex)
+    if typeof(a2) != Expr
+        if typeof(a2) != QuoteNode
+            dump(ex)
+            error("extomx: error parsing second argument $a2 of ", ex, " , Expected an Expr or QuoteNode, got ", typeof(a2))
+        end
+        qsym = Qsym(args[1],a2.value)
+        return qsym
+    end
     typeof(a2.head) != Symbol && error("extomx: error parsing second argument of ", ex, ". Expected a symbol.")
-    a2.head != :quote && error("extomx: error parsing second argument of ", ex, ". Expected symbol 'quote'.")    
+    a2.head != :quote && error("extomx: error parsing second argument of ", ex, ". Expected symbol 'quote'.")
     length(a2.args) == 1 || error("extomx: error parsing second argument of ", ex, ". Expected one arg in quote node.")
     typeof(a2.args[1]) == Symbol || error("extomx: second argument of context qualification must be a symbol, got ", typeof(a2.args[1]))
     qsym = Qsym(args[1],a2.args[1])

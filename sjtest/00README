@@ -1,0 +1,18 @@
+These tests can be run via
+
+julia> SJulia.run_testsuite()
+
+sjruntests.jl runs tests using SJulia itself.  The files (we choose
+suffix sj, but it does not matter) are read as SJulia code.
+
+One reason we do the tests in SJulia is that we preprocess the SJulia code
+(as a string) before calling Julia 'parse' on them. Thus, they are not valid Julia
+code and Julia macros will not understand them.
+
+Lines beginning with "T " and a new expression are required to return 'true'.
+This syntax "T ", is not part of SJulia, but is particular to the test code.
+
+These test files were translated from the ../test directory with the script
+convtosj.pl. Some were further edited a bit by hand.
+
+For now, the original Julia tests in ../test should still pass.

@@ -40,8 +40,8 @@ using Base.Test
 
 @ex m = [0,0,0]
 @ex For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
-@ex res = ([2,3,4] == m)
-@test symval(:res) == true
+@testex ([2,3,4] == m)
+#@test symval(:res) == true
 
 @ex For(i=1,i<10, (Increment(i); If(i>3, Break())))
 @testex i == 4
