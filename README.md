@@ -63,7 +63,7 @@ Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 
 You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
 `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
-are also the symbols used for printed output, as well.
+are also the symbols used for printed output.
 
 You can run the test suite from the `sjulia` prompt with `Tests()`.
 This runs tests in [the directory sjtest.](sjtest/) All symbols listed above do appear
