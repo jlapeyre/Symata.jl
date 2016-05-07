@@ -46,13 +46,9 @@ T i == 4
  For(i=10,i>0, (Decrement(i); If(i<5, Break())))
 T i == 4
 
-# Mma returns the head. we do not. we throw an exception. Mma.
-# warns and continues evaluation.
-# The message should be argtu as well.
-# 
-# For::argtu: For called with 1 argument; 3 or 4 arguments are expected.
-# T Head(For(1)) == For
-# T Head(For(1,2,3,4,5)) == For
+# Giving the wrong number of arguments
+T Head(For(1)) == For
+T Head(For(1,2,3,4,5)) == For
 
  ClearAll(m,i,res)
 
