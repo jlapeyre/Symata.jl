@@ -3,7 +3,9 @@
 # eg   (a + b + (c + d)) --> (a + b + c + d)
 
 # FlatT because Flat is already a symbol
-typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times}}
+typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
+# We do not rely only on the Flat attribute. We use FlatT in the hope that Julia compiles
+# efficient code for each type in the Union.
 
 # Might be faster to interleave the terms because they may need less
 # ordering then.  As it is, this is very fast for flattening two long
