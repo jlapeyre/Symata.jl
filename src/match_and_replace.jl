@@ -3,21 +3,10 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union{Mxpr,SJSym}
 
-# Pvar corresponds to Blank
-# fix this, made a mistake in documenting this
-# Pattern variable.
-# name -- the name, ending in underscore
-# cond -- a condition that must be satisfied to match
-#   cond may be :All, which matches anything.
-type Pvar{T}
-    name::SJSym  # name
-    head::T
-    ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
-end
-typealias ExSymPvar Union{ExSym,Pvar}
+typealias ExSymBlankT Union{ExSym,BlankT}
 
-# ast  -- the pattern including Pvars for capture.
-# cond -- condition to apply to any Pvars in the pattern
+# ast  -- the pattern including BlankTs for capture.
+# cond -- condition to apply to any BlankTs in the pattern
 # We don't need to use PatternT anymore. It could be Pattern.
 # Currently cannot be made immutable. And, only cond can have static type.
 type PatternT{T}
@@ -28,7 +17,7 @@ end
 
 PatternT(ast,cond) = PatternT(ast,cond,false)
 
-PatternT(ast::ExSymPvar) = PatternT(ast,:All)
+PatternT(ast::ExSymBlankT) = PatternT(ast,:All)
 
 # replacement rule
 # lhs -- a pattern for matching.
@@ -38,8 +27,8 @@ type PRule
     rhs::PatternT
 end
 
-getpvarptest(pvar::Pvar) = pvar.ptest
-getpvarhead(pvar::Pvar) = pvar.head
+getpvarptest(pvar::BlankT) = pvar.ptest
+getpvarhead(pvar::BlankT) = pvar.head
 
 #######  Matching
 
@@ -88,9 +77,9 @@ end
 match_head(head,ex) = error("matchpat: Can't match Head of type ", typeof(head))
 
 # Check if restrictions on Head and pattern test are satisfied.
-# TODO: reorganize. maybe make type of Pvar.head Any
+# TODO: reorganize. maybe make type of BlankT.head Any
 # so it can be a Symbol (only for finding SJSym),
-# or a DataType. This is determined when the Pvar is
+# or a DataType. This is determined when the BlankT is
 # created (of course later, this should be done once and stored with the downvalue)
 # Then, much of the logic below can be eliminated
 function matchpat(cvar,ex)
@@ -120,7 +109,7 @@ end
 # if the condition as checked by matchpat is satisfied.
 
 # capturevar -> false means contradicts previous capture
-_cmppat(mx, pat::Pvar, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
+_cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
 # Matching a non-atomic expression. The head and length must match
 # and each subexpression must match
@@ -133,7 +122,7 @@ function _cmppat(mx::Mxpr, pat::Mxpr, captures)
 end
 
 # This is a leaf on the tree, because mx is not an Mxpr and
-# pat is not a Pvar. We are matching atoms
+# pat is not a BlankT. We are matching atoms
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
 # Allow different kinds of integers and floats to match
@@ -230,7 +219,7 @@ function patsubst!(pat::Mxpr,cd)
 end
 
 patsubst!(pat::SJSym,cd) = return  havecapt(pat,cd) ? retrievecapt(pat,cd) : pat
-patsubst!(pat::Pvar,cd) = retrievecapt(pat,cd)
+patsubst!(pat::BlankT,cd) = retrievecapt(pat,cd)
 patsubst!(pat,cd) = pat
 
 ## ReplaceRepeated

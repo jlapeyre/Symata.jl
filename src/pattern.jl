@@ -1,4 +1,14 @@
-# apprules call this code, which then calls older pattern matching code
+# fix this, made a mistake in documenting this
+# Pattern variable.
+# name -- the name, ending in underscore
+# cond -- a condition that must be satisfied to match
+#   cond may be :All, which matches anything.
+type BlankT{T}
+    name::SJSym  # name
+    head::T
+    ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
+end
+
 
 function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs
@@ -56,12 +66,12 @@ function patterntopvar(mx::Mxpr{:Pattern})
     var = mx[1]
     blank = mx[2]
     if length(blank) == 0 # match any head
-       res = Pvar(symname(var),:All,:None)
+       res = BlankT(symname(var),:All,:None)
     else # match only if head is blank[1]
         head = blank[1]
         ehead = eval(head)  # Symbol may eval to DataType
         head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
-        res = Pvar(symname(var),head,:None)
+        res = BlankT(symname(var),head,:None)
     end
     res
 end
@@ -73,12 +83,12 @@ function patterntopvar(mx::Mxpr{:Blank})
     var = :_  # Underscore is currently illegal in SJulia identifiers, so this is safe.
     blank = mx
     if length(blank) == 0 # match any head
-       res = Pvar(var,:All,:None)
+       res = BlankT(var,:All,:None)
     else
         head = blank[1]
         ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
         head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
-        res = Pvar(symname(var),head,:None)
+        res = BlankT(symname(var),head,:None)
     end
     res
 end
