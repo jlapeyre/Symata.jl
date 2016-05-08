@@ -7,8 +7,13 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext
 
+
+const infix_with_space = Dict( :&& => true , :|| => true)
+
 # A space, or maybe not.
-opspc() = getkerneloptions(:compact_output) ? "" : " "
+#opspc() = getkerneloptions(:compact_output) ? "" : " "
+
+opspc(sym) = haskey(infix_with_space,sym) ? " " : getkerneloptions(:compact_output) ? "" : " "
 
 # These are binary operators that want one space before and one after.
 # The default, e.g  Power is no space. x^y
@@ -310,7 +315,8 @@ function show_infix(io::IO, mx::Mxpr)
         if np
             print(io,")")
         end
-        print(io, opspc(), sepsym, opspc())
+        spc = opspc(sepsym)
+        print(io, spc, sepsym, spc)
     end
     if ! isempty(args)
         if needsparen(args[end])

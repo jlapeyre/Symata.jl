@@ -135,6 +135,11 @@ function extomxarr(ain,aout)
     end
 end
 
+
+# We currently have two kinds of symbols.
+# 1) Those tagged by Julia symbols, forming a single namespace
+# 2) Those tagged by a.b or Qsym(a,b) in which a is a context or namespace.
+# The latter is an experiment, not well integrated with the rest of the language.
 # Interactively, the second argument is an Expr.
 # Read from a file, it is a QuoteNode. Don't know why.
 function parse_qualified_symbol(ex::Expr)

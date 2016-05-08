@@ -75,6 +75,8 @@ set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
 set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc"],
                 :Protected)
 
+set_pattributes(["And", "Or"], [:Flat, :HoldAll, :OneIdentity])
+
 set_pattributes(["UnicodeOutput"], :Protected)
 
 set_pattributes(["Return","Break","Continue"], :Protected)
@@ -87,8 +89,9 @@ set_pattributes(["O","OO","OOO","OOOO","OOOOO","OOOOOO","OOOOOOO","OOOOOOOO","OO
 
 set_pattributes(["System", "Main"], :Protected)
 
+
 set_pattributes([
-                  "!=","//","<","<=","==",">","===",">=","Age","All","And","Apply","AtomQ",
+                  "!=","//","<","<=","==",">","===",">=","Age","All","Apply","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConstantArray","ConstantQ",
@@ -98,7 +101,7 @@ set_pattributes([
                   "Integer","Integers","IntegerDigits","JVar","Keys","LeafCount",
                   "Length","List","ListQ","Listable","Map","MatchQ","N",
                   "None","Not","Null","Numerator","NumericFunction","NumericQ",
-                  "OneIdentity","Or","Order","Orderless","Pack","Permutations","PossibleClosedForm","Precision",
+                  "OneIdentity","Order","Orderless","Pack","Permutations","PossibleClosedForm","Precision",
                   "Primes","Print", "Println","Protected","RatSimp","Rational",
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",

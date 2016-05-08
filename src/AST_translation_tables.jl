@@ -117,7 +117,7 @@ for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
     OPTYPE[op] = :binary
 end
 
-for op in (:Plus, :Times, :Span, :And)
+for op in (:Plus, :Times, :Span, :And, :Or)
     OPTYPE[op] = :infix
 end
 
