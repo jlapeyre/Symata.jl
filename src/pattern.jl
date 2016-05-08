@@ -6,9 +6,11 @@
 type BlankT{T}
     name::SJSym  # name
     head::T
-    ptest::Any    # either symbol :None, or Mxpr to be mevaled for test.
+    pattern_test::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 
+getpvarpattern_test(pvar::BlankT) = pvar.pattern_test
+getpvarhead(pvar::BlankT) = pvar.head
 
 function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs
@@ -52,13 +54,13 @@ patterntopvar(mx::Mxpr{:PatternTest}) =  patterntopvar(mx,margs(mx)...)
 
 function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Symbol)
     pvar = patterntopvar(pattern)
-    pvar.ptest = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
+    pvar.pattern_test = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
     return pvar
 end
 
 function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Function)
     pvar = patterntopvar(pattern)
-    pvar.ptest = mxpr(cond,0)
+    pvar.pattern_test = mxpr(cond,0)
     return pvar
 end
 

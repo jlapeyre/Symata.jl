@@ -27,9 +27,6 @@ type PRule
     rhs::PatternT
 end
 
-getpvarptest(pvar::BlankT) = pvar.ptest
-getpvarhead(pvar::BlankT) = pvar.head
-
 #######  Matching
 
 # Perform match and capture.
@@ -86,7 +83,7 @@ function matchpat(cvar,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
     head = getpvarhead(cvar)  # head to match
     match_head(head,ex) || return false
-    cc = getpvarptest(cvar)   # This is an Mxpr or :None
+    cc = getpvarpattern_test(cvar)   # This is an Mxpr or :None
     cc == :None && return true
     is_Mxpr(cc) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
     cc.args[1] = ex           # we reuse a stored Mxpr.

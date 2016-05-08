@@ -91,7 +91,7 @@ set_pattributes(["System", "Main"], :Protected)
 
 
 set_pattributes([
-                  "!=","//","<","<=","==",">","===",">=","Age","All","Apply","AtomQ",
+                  "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConstantArray","ConstantQ",

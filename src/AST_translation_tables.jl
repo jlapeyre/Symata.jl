@@ -49,7 +49,8 @@ const JTOMSYM  =
       :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
       :! => :Not,
       :&& => :And,
-      :|| => :Or
+      :|| => :Or,
+      :| => :Alternatives   # Not implemented well, if at all
 )
 
 # Input translation
@@ -117,7 +118,7 @@ for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
     OPTYPE[op] = :binary
 end
 
-for op in (:Plus, :Times, :Span, :And, :Or)
+for op in (:Plus, :Times, :Span, :And, :Or, :Alternatives)
     OPTYPE[op] = :infix
 end
 

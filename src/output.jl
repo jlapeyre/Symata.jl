@@ -8,7 +8,7 @@ import SJulia: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        CurrentContext
 
 
-const infix_with_space = Dict( :&& => true , :|| => true)
+const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
 # A space, or maybe not.
 #opspc() = getkerneloptions(:compact_output) ? "" : " "
