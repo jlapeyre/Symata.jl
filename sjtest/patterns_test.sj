@@ -136,9 +136,12 @@ T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
 #### Currying
 
-      countprimes = Count(_:?(PrimeQ))
+   countprimes = Count(_:?(PrimeQ))
 T  countprimes(Range(100)) == 25
-      ClearAll(countprimes)
+   ClearAll(countprimes)
+
+# Use a Julia function to list the perfect squares less than 100.
+T  Cases(Range(100), _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
 
  ClearAll(result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 

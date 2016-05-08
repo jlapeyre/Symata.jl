@@ -41,10 +41,12 @@ _mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinp
 
 #mpow(x::Complex,y::Integer) = x^y handled below
 
-# FIXME: This code and
-# function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
+# FIXME: This code and function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
+# Maybe Fixed. We are using this routine.
 # Note: do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational) is disabled.
+# We could research how to do this instead of rolling our own. But, this seems to
+# work.
 function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
     x == 1 && return x
     local gotneg::Bool
@@ -73,25 +75,42 @@ function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
         end
         if r1 != 0
             newexp = r1//(y.den)
-            push!(newfacs,mxprcf(:Power,fac,newexp))
+            push!(newfacs,mxpr(:Power,fac,newexp)) # Optimize. at some point, do mxprfc and test
         end
     end
     if gotneg == true  # This at least not wrong, but it's not like Mma for y < 0
         (n,r) = divrem(y.num,y.den)
-        fac = y.den == 2 ? I : mxprcf(:Power, -1, r//y.den)
+        fac = y.den == 2 ? I : mxpr(:Power, -1, r//y.den)  
         if iseven(n)
             push!(newfacs, fac)
         else
-            push!(newfacs,mxprcf(:Times, -1, fac))
+            push!(newfacs,mxpr(:Times, -1, fac))
         end
     end
+    newfacs = mpow_test_for_integer_factors(newfacs)
     length(newfacs) == 1 && return newfacs[1]
-    mxprcf(:Times,newfacs...)  # make this more efficient
+    # We may need to doeval this to use in Julia functions. Or doeval in the function. Eg.
+    # pattern to test for perfect squares
+    # t = _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer ))
+    expr = mxpr(:Times, newfacs...) 
+    expr
 end
+
+# If all factors are integers, just multiply them
+function mpow_test_for_integer_factors(facs)
+    allints = true
+    for x in facs
+        typeof(x) <: Integer && continue
+        allints = false
+        break
+    end
+    return allints ? [*(facs...)] : facs
+end
+
 
 # Find if this is not called and remove it. Otherwise, get rid of it.
 function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
-    error("arithetic.jl: Calling stupid mpow")
+    error("arithmetic.jl: Calling useless mpow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 end
 

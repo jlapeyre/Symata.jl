@@ -392,8 +392,7 @@ makerat(mx,n,d) = mx
 # Probably faster to handle this in
 # canonicalization code. Some is done there. Some incorrectly.
 function apprules(mx::Mxpr{:Power})
-    res = do_Power(mx,mx[1],mx[2])
-    res
+    do_Power(mx,mx[1],mx[2])
 end
 
 # Don't handle this yet.
@@ -402,10 +401,12 @@ do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{
 
 do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
 
-do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}   ,b::V,n::T) = n == 1 ? b : n == 0 ? one(n) : mx
-do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+#do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : unsetfixed(mx) # does not help
+do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 
-do_Power{T<:Real}(mx::Mxpr{:Power},   b::Mxpr{:Power},exp::T) = mpow(base(b), mmul(exp,expt(b)))
+# For some reason, we need this integer rule. For instance for (a^2)^2 --> a^4
+do_Power{T<:Integer}(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Real}(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
 
 do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
@@ -572,14 +573,14 @@ function apprules(mxt::Mxpr{:Allocated})
     mxpr(:List,a,mx)
 end
 
-#### HAge, Fixed and UnFix
+#### HAge, FixedQ and UnFix
 
 @sjdoc HAge "
 HAge(s) returns the timestamp for the expression or symbol s.
 Using this timestamp to avoid unnecessary evaluation is a partially
 implemented feature.
 "
-@sjseealso_group(HAge,Age,Fixed,Syms,DirtyQ,Unfix)
+@sjseealso_group(HAge,Age,FixedQ,Syms,DirtyQ,Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
 hdo_getage(mx,s::SJSym) = Int(symage(s))
@@ -597,7 +598,6 @@ is expected to evaluate to itself in the current environment. This is partially
 implemented.
 "
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
-#apprules(mx::Mxpr{:Fixed}) = is_fixed(symval(mx[1]))
 apprules(mx::Mxpr{:FixedQ}) = is_fixed(mx[1])
 
 @sjdoc Unfix "

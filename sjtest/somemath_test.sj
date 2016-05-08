@@ -22,13 +22,20 @@ T  Abs(-z^(1/2))^2 == Abs(z)
 T Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
 T Arg(Complex(1,1)) == π/4
 
- ClearAll(z)
+ClearAll(z)
 
-T 27^(1/3) == 3
+T 100^(1/2) == 10  # fix bug in commit following 06ca924038273a0309b2dbb2ea7c84d540bd84dd
+
+# Fix bug. we can't do setfixed in canonexpr!(mx::Mxpr{:Power}) or this is broken
+res = 102^(1/2)
+T res^2 == 102
+
+ClearAll(res)
+
 T 27^(1/3) == 3
 
 # TODO: we don't want the following
-T Apply(List, 26^(1/3)) == [13 ^ (1//3),2 ^ (1//3)]  # FIXME
+T Apply(List, 26^(1/3)) == [2 ^ (1//3), 13 ^ (1//3)]  # FIXME
 
 T 27^(2/3) == 9
 T (-27)^(2/3) == (-1) ^ (2//3) * 9
@@ -42,9 +49,9 @@ T  If( BigIntInput() , Head((3^0)) == BigInt ,  Head((3^0)) == Int)
 
 T Apply(List,3^(1/2)) == [3,1//2]
 T 4^(1/2) == 2
-T Apply(List, 28^(1/3)) == [7 ^ (1//3),2 ^ (2//3)]
+T Apply(List, 28^(1/3)) == [2 ^ (2//3), 7 ^ (1//3)]
 T Apply(List,(49*7*3*3)^(1/3)) == [7,3^(2//3)]
-T 27^(1/3) == 3
+
 T Chop((-1.0)^(1//3) - (0.5 + 0.8660254037844387 * I)) == 0
 T Chop(N((-1)^(1//3)) - (0.5 + 0.8660254037844387 * I)) == 0
 

@@ -445,6 +445,7 @@ function _canonexpr_orderless!(mx)
             @mdebug(2,"_canonexpr_orderless!, returned from collectordered!: ", mx)
             # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
+#                println("mulpowers")
                 mx = mulpowers(mx)
             end  # add numeric exponents when base is same
         end
@@ -470,9 +471,10 @@ function canonexpr!(mx::Mxpr{:Power})
         mx = canonexpr!(mx)
     end
     setcanon(mx)
-    #  setfixed(mx) # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do this
-    if ! is_Mxpr(mx,:Power)  # but some Power mxprs are not evaled completely.
-        setfixed(mx)
+    # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do setfixed below
+    # But, we can't do this: ex = 102^(1/2); ex^2 does not return 102 if we setfixed.
+    if ! is_Mxpr(mx,:Power) 
+#        setfixed(mx)  
     end
     return mx
 end

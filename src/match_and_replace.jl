@@ -3,6 +3,7 @@
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union{Mxpr,SJSym}
 
+# Pvar corresponds to Blank
 # fix this, made a mistake in documenting this
 # Pattern variable.
 # name -- the name, ending in underscore
@@ -39,6 +40,8 @@ end
 
 getpvarptest(pvar::Pvar) = pvar.ptest
 getpvarhead(pvar::Pvar) = pvar.head
+
+#######  Matching
 
 # Perform match and capture.
 function cmppat(ex,pat::PatternT)
@@ -117,8 +120,11 @@ end
 # if the condition as checked by matchpat is satisfied.
 
 # capturevar -> false means contradicts previous capture
-_cmppat(mx,pat::Pvar,captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
-function _cmppat(mx::Mxpr,pat::Mxpr,captures)
+_cmppat(mx, pat::Pvar, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
+
+# Matching a non-atomic expression. The head and length must match
+# and each subexpression must match
+function _cmppat(mx::Mxpr, pat::Mxpr, captures)
     (mhead(pat) == mhead(mx) && length(pat) == length(mx)) || return false
     @inbounds for i in 1:length(mx)      # match and capture subexpressions
          _cmppat(mx[i],pat[i],captures) == false && return false
@@ -126,13 +132,19 @@ function _cmppat(mx::Mxpr,pat::Mxpr,captures)
     return true
 end
 
+# This is a leaf on the tree, because mx is not an Mxpr and
+# pat is not a Pvar. We are matching atoms
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
+
 # Allow different kinds of integers and floats to match
 _cmppat{T<:Integer,V<:Integer}(mx::T,pat::V,captures) = mx == pat
+
 _cmppat{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
+
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
 _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 
+#######  Replacing
 
 # match and capture on ex with pattern pat1.
 # Replace pattern vars in pat2 with expressions captured from ex.

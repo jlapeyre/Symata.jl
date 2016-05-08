@@ -1,13 +1,10 @@
-
-
-
 T testUserSyms
 
 #### Limit
 
 T Limit(x, x => 0) == 0
 T Limit(Sin(x)/x, x => Infinity) == 0
-     f = :( fff(x) = x^10 )
+  f = :( fff(x) = x^10 )
 T Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
 # We need to fix this. Inf is a Float64. Convert it to SJulia
 T Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == Infinity
@@ -16,7 +13,7 @@ T Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infin
 
 ## Solve
 
-      res = Solve([x+y-1, x - y + 1], [x,y])
+   res = Solve([x+y-1, x - y + 1], [x,y])
 T  res[x] == 0
 T  res[y] == 1
 T  Solve(x^4-1,x) == [-1,1,-1I,I]
@@ -24,11 +21,10 @@ T  Solve(x^3-1,x) == [1,-1//2 + (-1//2*I) * (3 ^ (1//2)),-1//2 + (1//2*I) * (3 ^
 
 ## Roots
 
-      q = x^2 - 8x + 8
+   q = x^2 - 8x + 8
 T  Roots(q) == [[4 + -2 * (2 ^ (1//2)),1],[4 + 2 * (2 ^ (1//2)),1]]
 
  ClearAll(a,b,x,y,z,p,q,rex,f)
-
 
 ## Orthoganal Polynomials, etc.
 
