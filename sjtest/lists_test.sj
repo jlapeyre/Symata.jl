@@ -66,7 +66,14 @@ T Length(f(a,Nothing,b)) == 3
 ex = Hold([Nothing,1,2])
 T ex[1,3] == 2
 
-ClearAll(a,b,c,ex)
+T  ReplaceAll([a,b,c,d], c => Nothing) == [a,b,d]
+
+T [[ a, b, Nothing], [c, d, Nothing]] == [[a,b],[c,d]]
+
+# FIXME: using _p:?(PrimeQ) does not work.
+T ReplaceAll( Range(20) ,  _:?(PrimeQ) => Nothing) == [1,4,6,8,9,10,12,14,15,16,18,20]
+
+ClearAll(a,b,c,d,ex)
 
 T testUserSyms
 

@@ -284,6 +284,7 @@ function meval_apply_all_rules(nmx::Mxpr)
 end
 
 # Evaluate arguments of mx, construct and return new Mxpr
+# FIXME: Implement use of Evaluate here.
 function meval_arguments(mx::Mxpr)
     nhead = doeval(mhead(mx))
     local nargs::MxprArgs
