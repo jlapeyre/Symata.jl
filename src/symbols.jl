@@ -342,8 +342,8 @@ function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     set_downvalue(mx, mhead(lhs),rule) # push DownValue
-    rule
-    nothing
+    rhs
+#    nothing  # No, set returns the rhs. This is checked
 end
 
 
