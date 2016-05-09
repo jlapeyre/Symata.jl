@@ -20,15 +20,20 @@ end
 capturealloc() = Dict{SJSym,Any}()
 
 # capture expression ex in pvar, or return false if the new value conflicts with old.
-function capturepvar(capt,pvar,ex)
+# An example of the later case is f(x_,x_) on f(2,3).
+function capturepvar(capt,pvar::BlankT,ex)
     name = pvar.name
+    capturepvar(capt,name,ex)
+end
+
+function capturepvar(capt,name::Symbol,ex)
     haskey(capt,name) && capt[name] != ex  && return false
     capt[name] = ex
     return true
 end
 
 # store captured expression in Dict. Here only the capture var name
-storecapt(pat,cap,cd) = cd[pat] = cap
+# storecapt(pat,cap,cd) = cd[pat] = cap  # not used
 # retrieve captured expression by caption var name
 retrievecapt(sym,cd) = cd[sym]
 retrievecapt(sym::SJSym,cd) = cd[symname(sym)]
@@ -83,11 +88,22 @@ end
 _cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
 # FIXME. ambiguity warnings for the next three methods
-# FIXME. We need to set unmatched named Blanks to Sequence[]
+# lots of room for increasing efficiency here
 function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
-    for alt in margs(pat)
+    for i in 1:length(pat)
+        alt = pat[i]
         res = _cmppat(mx, alt, captures)
-        if res != false return res end
+        if res != false
+            names = Symbol[]
+            for j in 1:length(pat)
+                i == j && continue
+                append!(names,get_blank_names(pat[j]))
+            end
+            for name in names
+                capturepvar(captures,name,mxpr(:Sequence))
+            end
+            return res
+        end  # return the first alternative
     end
     false
 end
@@ -95,16 +111,16 @@ end
 function _cmppat(mx, pat::Mxpr{:Except}, captures)
     if length(margs(pat)) == 1
         res = _cmppat(mx, pat[1], captures)
-        if res == false
-            res = _cmppat(mx, patterntopvar(mxpr(:Blank)), captures)
-            res == false && error("Programming error matching 'Except'") # assert
+        if res == false    # no match
+            res = _cmppat(mx, patterntopvar(mxpr(:Blank)), captures) # match anything
+            res == false && error("Programming error matching 'Except'") # use assert
             return res
         end
         return false   # hmmm, but the capture is still there. We probably should delete it.
     elseif length(margs(pat)) == 2
         res = _cmppat(mx, pat[1], captures)
-        if res == false
-            res = _cmppat(mx, pat[2], captures)
+        if res == false   # need no match with pat[1] ....
+            res = _cmppat(mx, pat[2], captures)  # and a match with pat[2]
             return res
         end
         return false
@@ -136,6 +152,22 @@ _cmppat{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
 
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
 _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
+
+function get_blank_names(ex)
+    names = Symbol[]
+    _get_blank_names(names,ex)
+    return names
+end
+
+_get_blank_names(names,x) = nothing
+
+_get_blank_names(names, b::BlankT) = push!(names,b.name)
+
+function _get_blank_names(names,mx::Mxpr)
+    for arg in margs(mx)
+        _get_blank_names(names,arg)
+    end
+end
 
 #######  Replacing
 

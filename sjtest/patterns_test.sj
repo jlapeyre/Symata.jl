@@ -37,7 +37,32 @@ T MatchQ( 1, _Integer | _String)
 T MatchQ( "dog", _Integer | _String)
 T ReplaceAll( [a, b, c, d, a, b, b, b],  a | b => x) == [x,x,c,d,x,x,x,x]
 
-ClearAll(a,b,c)
+f(x_, x_ | y_String) := [x,y]
+
+# y is replaced by Sequence()
+T f(2,2) == [2]
+
+# Here, it is not
+T f(2,"cat") == [2,"cat"]
+
+# No match
+T  Head(f(2,3)) == f
+
+g(x_, x_ | h(y_String)) := [x,y]
+T g(2,2) == [2]
+T Head(g(2,"dog")) == g
+T g(2,h("dog")) == [2,"dog"]
+
+ClearAll(h,p,a,bc,d)
+h(a | b) := p
+T [h(a), h(b), h(c), h(d)] == [p,p,h(c),h(d)]
+
+T ReplaceAll([1, x, x^2, x^3, y^2] , (x | x^_) => q) == [1,q,q,q,y^2]
+
+# FIXME. This is not parsed correctly. We get Span
+# (f : (a | b))(x_) => r(f, x)
+
+ClearAll(a,b,c,f,g,h,p,x,y)
 
 ClearAll(f,a,x)
  f(x_) := Module([a],(a=1,x+a))

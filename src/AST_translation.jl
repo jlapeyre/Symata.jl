@@ -106,9 +106,14 @@ function extomx(s::Symbol)
 end
 
 # Underscore is not allowed in symbols. Instead,
-# they signify part of a pattern. This follows Mma,
-# and we don't consume and Julia syntax to signify patterns.
-# We don't yet parse three blanks in a row.
+# they signify part of a pattern.
+# TODO. This is the only way we construct patterns at the moment.
+# But the name of the pattern, the first arg, can refer to not just a Blank,
+# but an entire pattern expression. Mma does this with a colon.
+# f:(_^_), or f:_^_  --> Pattern[x, Power[Blank[], Blank[]]].
+# We are using colon for Span. I don't know what we can do.
+# Mma does  Fullform[a::b] --> MessageName[a, "b"]. We could take
+# :: for Pattern
 function parseblank(s::AbstractString)
     a = split(s,['_'], keep=true)
     length(a) > 4 && error("parseblank: Illegal Pattern expression '$s'")

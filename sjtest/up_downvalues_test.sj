@@ -35,11 +35,11 @@ T  g(2.0) == "float"
 T  h((a+b)^2) == a + b
  ClearAll(h)
 
- h(x_,x_) := 1
+ h(x_,x_) := x
  h(x_,y_) := 2
-T h(a,a) == 1
+T h(a,a) == a
 T h(a,b) == 2
- ClearAll(h)
+ ClearAll(h,a,b)
 
 ## Restrictions on patterns. Match head and/or "pattern test"
 
@@ -97,17 +97,16 @@ T y == 101
 
 #### UpSetDelayed
 
-     UpSetDelayed( f(g(x_)) , fg(x) )
+  UpSetDelayed( f(g(x_)) , fg(x) )
 T [f(g(2)), f(h(2))] == [fg(2),f(h(2))]
 
-# FIXME.  Implement logical and operator  &&, And
-      UpSetDelayed( rand(int) , Random(Integer))
-      tabsum = Apply(Plus,Table(rand(int), [100]))
+UpSetDelayed( rand(int) , Random(Integer))
+tabsum = Apply(Plus,Table(rand(int), [100]))
 T  tabsum != 0
 T  tabsum != 100
 
-     f(h(0)) ^= h0
-     UpSetDelayed( f(h(x_)) , 2 * f(h(x - 1)))
+ f(h(0)) ^= h0
+ UpSetDelayed( f(h(x_)) , 2 * f(h(x - 1)))
 T f(h(10)) == 1024 * h0
 
 # FIXME. We cannot yet handle more than one arg on the lhs
