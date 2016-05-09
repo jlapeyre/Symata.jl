@@ -144,6 +144,12 @@ T h(3) == 9
 T h(3.0) == 9
 T Head(h(1/2)) == h
 
- ClearAll(f,g,fg,h,a,z,y,x,rate,m1,m2, rand, int, tabsum, h0, s, area, sq, fgh, meth)
+ClearAll(f,g,fg,h,a,z,y,x,rate,m1,m2, rand, int, tabsum, h0, s, area, sq, fgh, meth)
+
+# Use Set, rather than SetDelayed.
+f(x_) = x^2
+T f(3) == 9   # 9, rather than 3^2
+
+ClearAll(f)
 
 T testUserSyms

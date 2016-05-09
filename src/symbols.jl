@@ -340,7 +340,8 @@ end
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
-    unsetfixed(rhs)
+    unsetfixed(rhs)  # This allows f(3) to return 9, rather than 3^2 with f(x_) = x^2
+                     # Not sure if this is the correct solution
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     set_downvalue(mx, mhead(lhs),rule) # push DownValue
     rhs # Set always returns the rhs. This is checked
