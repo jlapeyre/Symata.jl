@@ -1,6 +1,7 @@
 
 testUserSyms
 
+# Only Blank is currently useful
 T Head(_) == Blank
 T Head(__) == BlankSequence
 T Head(___) == BlankNullSequence
@@ -8,7 +9,7 @@ T _b == Blank(b)
 T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
 
-# Alternatives does nothing yet
+# Alternatives is implemented
 T a | b == Alternatives(a,b)
 
 ClearAll(a,b,c,d,p,f,d)
