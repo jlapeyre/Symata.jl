@@ -1,7 +1,15 @@
 
- testUserSyms
+testUserSyms
 
- ClearAll(a,b,c,d,p,f,d)
+T Head(_) == Blank
+T Head(__) == BlankSequence
+T Head(___) == BlankNullSequence
+T _b == Blank(b)
+T __b == BlankSequence(b)
+T ___b == BlankNullSequence(b)
+
+ClearAll(a,b,c,d,p,f,d)
+
 T ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
 T Apply(List,ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y))) == [f(c),p(a + b)]
 T ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),2*d(-2)]

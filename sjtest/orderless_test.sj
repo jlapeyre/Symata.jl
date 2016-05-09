@@ -102,7 +102,7 @@ T Head(3 * π) == Times
 T Head(3.0 * π) == Float64
 
 
-#T Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
+T Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
 
 T testUserSyms
 

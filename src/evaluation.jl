@@ -96,7 +96,7 @@ function exfunc(ex)
     reset_meval_count()
     reset_try_downvalue_count()
     reset_try_upvalue_count()
-    if is_timing()
+    if is_timing() && is_sjinteractive()
         @time mx = tryexfunc(res)
         println("tryrule count: downvalue ", get_try_downvalue_count(),", upvalue ", get_try_upvalue_count())
     else

@@ -111,14 +111,18 @@ end
 # We don't yet parse three blanks in a row.
 function parseblank(s::AbstractString)
     a = split(s,['_'], keep=true)
-    length(a) > 3 && error("parseblank: Illegal Pattern expression '$s'")
+    length(a) > 4 && error("parseblank: Illegal Pattern expression '$s'")
     if length(a) == 2
         blanktype = :Blank
         (blankhead,blankname) = (a[1],a[2])
-    else
+    elseif length(a) == 3
         a[2] != "" && error("parseblank: Illegal Pattern expression '$s'")
         blanktype = :BlankSequence
         (blankhead,blankname) = (a[1],a[3])
+    else
+        a[2] != "" && a[3] != "" && error("parseblank: Illegal Pattern expression '$s'")
+        blanktype = :BlankNullSequence
+        (blankhead,blankname) = (a[1],a[4])
     end
     if length(blankname) == 0
         blank = mxpr(blanktype)
