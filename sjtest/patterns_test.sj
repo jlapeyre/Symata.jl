@@ -222,8 +222,16 @@ ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, 
 T x_y:0 == Optional(Pattern(x,Blank(y)),0)
 T x_y:(a*b) == Optional(Pattern(x,Blank(y)),Times(a,b))
 
-
 ClearAll(a,b,x, y)
+
+T p_ == Pattern(p,Blank())
+T p_q  == Pattern(p,Blank(q))
+T p_Integer:?(PrimeQ) == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
+T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
+T _^_ == Power(Blank(),Blank())
+
+ClearAll(p,q)
+
 
  testUserSyms
 
