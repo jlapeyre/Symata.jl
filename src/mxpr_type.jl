@@ -704,7 +704,9 @@ clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
 ## Some types of Heads of Mxpr's
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
-typealias Blanks Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
+
+# Don't do this. Use abstract Blanks instead
+# typealias Blanks Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 
 # Everything except Bool is what we want
 # Maybe we actually need a separate Bool from julia

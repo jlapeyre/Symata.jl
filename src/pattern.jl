@@ -1,16 +1,30 @@
+# TODO. Implement this:
+# FullForm( x_ | y_ )
+# Alternatives(Pattern(x,Blank()),Pattern(y,Blank()))
+
 # fix this, made a mistake in documenting this
 # Pattern variable.
 # name -- the name, ending in underscore
 # cond -- a condition that must be satisfied to match
 #   cond may be :All, which matches anything.
-type BlankT{T}
+
+abstract Blanks
+
+type BlankT{T}  <: Blanks
     name::SJSym  # name
     head::T
     pattern_test::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 
-getpvarpattern_test(pvar::BlankT) = pvar.pattern_test
-getpvarhead(pvar::BlankT) = pvar.head
+# Not yet implemented
+type BlankSequenceT{T}  <: Blanks
+    name::SJSym  # name
+    head::T
+    pattern_test::Any    # either symbol :None, or Mxpr to be mevaled for test.
+end
+
+getpvarpattern_test(pvar::Blanks) = pvar.pattern_test
+getpvarhead(pvar::Blanks) = pvar.head
 
 function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs
@@ -94,6 +108,21 @@ function patterntopvar(mx::Mxpr{:Blank})
     end
     res
 end
+
+function patterntopvar(mx::Mxpr{:BlankSequence})
+    var = :__  # Underscore is currently illegal in SJulia identifiers, so this is safe.
+    blank = mx
+    if length(blank) == 0 # match any head
+       res = BlankSequenceT(var,:All,:None)
+    else
+        head = blank[1]
+        ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
+        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+        res = BlankSequenceT(symname(var),head,:None)
+    end
+    res
+end
+
 
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     prule = Rule_to_PRule(rd)
