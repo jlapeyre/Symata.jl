@@ -505,6 +505,13 @@ function apprules(mx::Mxpr{:Cases})
     do_Cases(mx,margs(mx)...)
 end
 
+function sjcopy(s::AbstractString)
+    identity(s)
+end
+
+function sjcopy(x)
+    copy(x)
+end
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 function do_Cases(mx,expr,pat)
@@ -514,7 +521,7 @@ function do_Cases(mx,expr,pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
         (gotmatch,capt) = cmppat(args[i],jp,capt)
-        gotmatch ? push!(nargs,copy(args[i])) : nothing
+        gotmatch ? push!(nargs,sjcopy(args[i])) : nothing
     end
     rmx = mxpr(mhead(expr),nargs)
     return rmx
@@ -527,8 +534,49 @@ end
 
 # operator form of Cases
 function do_GenHead(mx,head::Mxpr{:Cases})
-    mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+    mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
 end
+
+
+#### DeleteCases
+
+@sjdoc DeleteCases "
+DeleteCases(expr,pattern) deletes the elements in expr that match the pattern.
+Matching on only one level is supported. DelteCases(pattern) can be used as the head of an expression, as an operator.
+eg: noints = DeleteCases(_Integer). The head of the returned object is the same as that of expr.
+"
+
+@sjexamp( DeleteCases,
+         ("DeleteCases([1,2.0,3,\"dog\"], _Integer)", "[2.0,\"dog\"]"))
+
+
+@mkapprule DeleteCases
+
+# Allocating outside loop and sending Dict as arg is 3x faster in one test
+@doap function DeleteCases(expr,pat)
+    args = margs(expr)
+    nargs = newargs()
+    jp = just_pattern(pat)
+    capt = capturealloc()
+    @inbounds for i in 1:length(args)
+        (gotmatch,capt) = cmppat(args[i],jp,capt)
+        gotmatch ? nothing : push!(nargs,sjcopy(args[i])) # The difference from Cases
+    end
+    rmx = mxpr(mhead(expr),nargs)
+    return rmx
+end
+
+# for operator form.
+# Using @doap is not transparent!
+@doap function DeleteCases(pat)
+    mx
+end
+
+# operator form of DeleteCases
+function do_GenHead(mx,head::Mxpr{:DeleteCases})
+    mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
+end
+
 
 #### Push!
 

@@ -162,7 +162,17 @@ T  countprimes(Range(100)) == 25
 # Use a Julia function to list the perfect squares less than 100.
 T  Cases(Range(100), _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
 
- ClearAll(result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
+T Cases([1,2.0,3,"dog"], _String) == ["dog"]
+T DeleteCases([1,2.0,3,"dog"], _String) == [1,2.0,3]
+
+# Currying, or operator form.
+dstring = DeleteCases(_String)
+T dstring([1,2.0,3,"dog"]) == [1,2.0,3]
+
+T Cases([f(1),2.0,3,f("dog")], f(x_)) == [f(1),f("dog")]
+T Cases([f(1),2.0,3,f("dog")], f(x_String)) == [f("dog")]
+
+ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
  testUserSyms
 
