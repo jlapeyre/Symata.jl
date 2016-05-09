@@ -2,14 +2,11 @@
 # FullForm( x_ | y_ )
 # Alternatives(Pattern(x,Blank()),Pattern(y,Blank()))
 
-# fix this, made a mistake in documenting this
-# Pattern variable.
-# name -- the name, ending in underscore
-# cond -- a condition that must be satisfied to match
-#   cond may be :All, which matches anything.
-
 abstract Blanks
 
+# name -- the name, ending in underscore
+# cond -- a condition that must be satisfied to match
+#         cond may be :All, which matches anything.
 type BlankT{T}  <: Blanks
     name::SJSym  # name
     head::T
@@ -25,6 +22,31 @@ end
 
 getpvarpattern_test(pvar::Blanks) = pvar.pattern_test
 getpvarhead(pvar::Blanks) = pvar.head
+
+# pieces of expressions that we operate on are Symbols and expressions
+typealias ExSym Union{Mxpr,SJSym}
+typealias ExSymBlankT Union{ExSym,Blanks}
+
+# ast  -- the pattern including BlankTs for capture.
+# cond -- condition to apply to any BlankTs in the pattern
+# We don't need to use PatternT anymore. It could be Pattern.
+# Currently cannot be made immutable. And, only cond can have static type.
+type PatternT{T}
+    ast::Any
+    cond::T
+    isdelayed::Bool  # if true, we evaluate before trying
+end
+
+PatternT(ast,cond) = PatternT(ast,cond,false)
+PatternT(ast::ExSymBlankT) = PatternT(ast,:All)
+
+# replacement rule
+# lhs -- a pattern for matching.
+# rhs -- a template pattern for replacing.
+type PRule
+    lhs::PatternT
+    rhs::PatternT
+end
 
 function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
     local lhs

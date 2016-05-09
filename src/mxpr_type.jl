@@ -705,9 +705,6 @@ clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
 
-# Don't do this. Use abstract Blanks instead
-# typealias Blanks Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
-
 # Everything except Bool is what we want
 # Maybe we actually need a separate Bool from julia
 typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned}

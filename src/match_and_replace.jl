@@ -1,31 +1,5 @@
 ## Pattern matching and rules
 
-# pieces of expressions that we operate on are Symbols and expressions
-typealias ExSym Union{Mxpr,SJSym}
-
-typealias ExSymBlankT Union{ExSym,BlankT}
-
-# ast  -- the pattern including BlankTs for capture.
-# cond -- condition to apply to any BlankTs in the pattern
-# We don't need to use PatternT anymore. It could be Pattern.
-# Currently cannot be made immutable. And, only cond can have static type.
-type PatternT{T}
-    ast::Any
-    cond::T
-    isdelayed::Bool  # if true, we evaluate before trying
-end
-
-PatternT(ast,cond) = PatternT(ast,cond,false)
-
-PatternT(ast::ExSymBlankT) = PatternT(ast,:All)
-
-# replacement rule
-# lhs -- a pattern for matching.
-# rhs -- a template pattern for replacing.
-type PRule
-    lhs::PatternT
-    rhs::PatternT
-end
 
 #######  Matching
 
