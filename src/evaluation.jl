@@ -290,7 +290,8 @@ function meval_arguments(mx::Mxpr)
     mxargs::MxprArgs = margs(mx)
     len::Int = length(mxargs)
     if len == 0
-        nargs = newargs(0)
+#        nargs = newargs(0)
+        return mxpr(nhead)
     elseif get_attribute(nhead,:HoldFirst)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
@@ -313,6 +314,42 @@ function meval_arguments(mx::Mxpr)
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
     return nmx
 end
+
+# We do meval_arguments specially for List, in order to remove occurrances of Nothing
+function meval_arguments(mx::Mxpr{:List})
+    nhead = :List
+    local nargs::MxprArgs
+    mxargs::MxprArgs = margs(mx)
+    len::Int = length(mxargs)
+    # maybe using this flag is efficient. 'Nothing' is relatively rare.
+    got_nothing::Bool = false
+    if len == 0
+        return mxpr(:List)
+#        nargs = newargs(0)
+    else
+        nargs = newargs(len)
+        @inbounds for i in 1:len
+            nargs[i] = doeval(mxargs[i])
+            if nargs[i] == :Nothing
+                got_nothing = true  
+            end
+        end
+    end
+    if got_nothing
+        ninds = Array(Int,0)
+        for i in 1:len
+            if nargs[i] == :Nothing
+                push!(ninds,i)
+            end
+        end
+        deleteat!(nargs,ninds)
+    end
+    splice_sequences!(nargs)
+    nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
+    return nmx
+end
+
+
 
 # Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
 # That input has been mevaled at least once and the result is mx, the argument

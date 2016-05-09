@@ -285,6 +285,23 @@ function do_ConstantArray(mx,expr::AbstractString,n)
     setfixed(mxpr(:List,nargs))
 end
 
+#### Nothing
+
+# Nothing is removed where it appears in a List, but not from expressions with other Heads.
+# This is too expensive to implement as a rule. Better to write special code in evaluation.jl
+
+@mkapprule Nothing :nodefault => true
+
+@sjdoc Nothing "
+Nothing(args...) evaluates to Nothing
+Instances of Nothing as arguments to List are removed.
+[a,b,Nothing,c] == [a,b,c].
+Nothing is only removed from the arguments of expressions with head List.
+"
+
+# I can't find the attributes of Mma's Nothing
+@doap Nothing(args...) = :Nothing
+
 #### Table
 
 ## Newer Table.

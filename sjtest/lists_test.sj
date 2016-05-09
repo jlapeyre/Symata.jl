@@ -42,7 +42,7 @@ T  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
       ClearAll(x,y,a,d,m)
 
-## ConstantArray
+#### ConstantArray
 
  a = ConstantArray(1+d^2,3)
  a[2,2,2] = 3
@@ -50,7 +50,20 @@ T a[2] == 1 + d^3
 T a[1] == 1 + d^2
 T a[3] == 1 + d^2
 
- ClearAll(a,d,i)
+ClearAll(a,d,i)
+
+#### Nothing
+
+T Nothing() == Nothing
+T Nothing(a,b) == Nothing
+T Nothing(1,[3,4]) == Nothing
+T [Nothing] == []
+T [1,Nothing] == [1]
+T [a,Nothing,b,Nothing,Nothing,c] == [a,b,c]
+T Length(f(a,Nothing,b)) == 3
+
+ClearAll(a,b,c)
+
 T testUserSyms
 
 
