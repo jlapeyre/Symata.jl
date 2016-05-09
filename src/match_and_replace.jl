@@ -87,12 +87,32 @@ function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
     for alt in margs(pat)
         res = _cmppat(mx, alt, captures)
         if res != false return res end
-        # if matchpat(alt,mx)
-        #     return capturepvar(captures,alt,mx)
-        # end 
     end
     false
 end
+
+function _cmppat(mx, pat::Mxpr{:Except}, captures)
+    if length(margs(pat)) == 1
+        res = _cmppat(mx, pat[1], captures)
+        if res == false
+            res = _cmppat(mx, patterntopvar(mxpr(:Blank)), captures)
+            res == false && error("Programming error matching 'Except'") # assert
+            return res
+        end
+        return false   # hmmm, but the capture is still there. We probably should delete it.
+    elseif length(margs(pat)) == 2
+        res = _cmppat(mx, pat[1], captures)
+        if res == false
+            res = _cmppat(mx, pat[2], captures)
+            return res
+        end
+        return false
+    end
+    # FIXME  Except::argt: Except called with 3 arguments; 1 or 2 arguments are expected.
+    # warning message only occurs when Except is "used"
+    false  # number of args < 1  or > 2 is not documented.
+end
+
 
 # Matching a non-atomic expression. The head and length must match
 # and each subexpression must match

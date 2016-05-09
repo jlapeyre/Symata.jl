@@ -178,6 +178,18 @@ T dstring([1,2.0,3,"dog"]) == [1,2.0,3]
 T Cases([f(1),2.0,3,f("dog")], f(x_)) == [f(1),f("dog")]
 T Cases([f(1),2.0,3,f("dog")], f(x_String)) == [f("dog")]
 
+#### Except
+
+T MatchQ( "cat",  Except("dog"))
+T MatchQ( "cat",  Except("cat")) == False
+T MatchQ( "cat",  Except(3,"cat"))
+T MatchQ( "cat",  Except(3,"dog")) == False
+T MatchQ( "cat",  Except("cat","dog")) == False
+
+T Cases([a, b, 0, 1, 2, x, y], Except(_Integer)) == [a,b,x,y]
+T Cases([1, 0, 2, 0, 3], Except(0)) == [1,2,3]
+T Cases([a, b, 0, 1, 2, x, y], Except(0,_Integer)) == [1,2]
+
 ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
  testUserSyms

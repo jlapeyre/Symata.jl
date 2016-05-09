@@ -99,7 +99,7 @@ set_pattributes([
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConstantArray","ConstantQ",
-                  "Depth","DirtyQ","Dump","Example","ExpToTrig","Expand","ExpandA",
+                  "Depth","DirtyQ","Dump","Example","Except","ExpToTrig","Expand","ExpandA",
                   "Factor","FactorInteger","FixedQ","Flat","FullForm",
                   "FullSimplify","Head","Help","Indeterminate","Infinity",
                   "Integer","Integers","IntegerDigits","JVar","Keys","LeafCount",

@@ -505,7 +505,7 @@ function apprules(mx::Mxpr{:Cases})
     do_Cases(mx,margs(mx)...)
 end
 
-function sjcopy(s::AbstractString)
+function sjcopy{T<:Union{AbstractString,Symbol}}(s::T)
     identity(s)
 end
 
