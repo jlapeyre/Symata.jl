@@ -1,7 +1,3 @@
-# TODO. Implement this:
-# FullForm( x_ | y_ )
-# Alternatives(Pattern(x,Blank()),Pattern(y,Blank()))
-
 abstract Blanks
 
 # name -- the name, ending in underscore
@@ -36,6 +32,13 @@ type BlankSequenceT{T}  <: Blanks
     name::SJSym  # name
     head::T
     pattern_test::Any    # either symbol :None, or Mxpr to be mevaled for test.
+end
+
+# Not yet implemented
+type BlankNullSequenceT{T}  <: Blanks
+    name::SJSym  # name
+    head::T
+    pattern_test::Any
 end
 
 getpvarpattern_test(pvar::Blanks) = pvar.pattern_test

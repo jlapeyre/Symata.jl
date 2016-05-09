@@ -137,6 +137,12 @@ T  f2(g(3),h(4)) == gh(12)
 # FIXME:  WARNING: Symbol 'Pattern' is protected
 #  UpSetDelayed( a_mod + b_mod ,  modPlus(a, b))
 
+# Alternatives in DownValue rules
+h(x_Integer | x_Float) := x^2
+
+T h(3) == 9
+T h(3.0) == 9
+T Head(h(1/2)) == h
 
  ClearAll(f,g,fg,h,a,z,y,x,rate,m1,m2, rand, int, tabsum, h0, s, area, sq, fgh, meth)
 

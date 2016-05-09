@@ -82,6 +82,18 @@ end
 # capturevar -> false means contradicts previous capture
 _cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
+# FIXME. We need to set unmatched named Blanks to Sequence[]
+function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
+    for alt in margs(pat)
+        res = _cmppat(mx, alt, captures)
+        if res != false return res end
+        # if matchpat(alt,mx)
+        #     return capturepvar(captures,alt,mx)
+        # end 
+    end
+    false
+end
+
 # Matching a non-atomic expression. The head and length must match
 # and each subexpression must match
 function _cmppat(mx::Mxpr, pat::Mxpr, captures)

@@ -53,6 +53,13 @@ const JTOMSYM  =
       :| => :Alternatives   # Not implemented well, if at all
 )
 
+# FIXME  NB Alternatives: This is nary, but not Flat. So we need to parse
+# a | b | c as Alternatives(a,b,c) rather than nested Alternatives as we do now.
+# (a | b) | c is nested, and is not flattend.
+# Other operators, such as Times are nary but Flat, so the flattening happens during the
+# evaluations sequence.
+
+
 # Input translation
 const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :γ => :EulerGamma,

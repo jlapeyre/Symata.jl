@@ -30,9 +30,15 @@ T MatchQ( b^2, x_^2) == true
 T MatchQ( b^2, _^2) == true
 T MatchQ(f(b^2), f(x_^2)) == true
 T MatchQ( gg(xx) , _gg)
- Clear(a)
 
- ClearAll(f,a,x)
+# Alternatives
+T MatchQ( 1, _Integer | _String)
+T MatchQ( "dog", _Integer | _String)
+T ReplaceAll( [a, b, c, d, a, b, b, b],  a | b => x) == [x,x,c,d,x,x,x,x]
+
+ClearAll(a,b,c)
+
+ClearAll(f,a,x)
  f(x_) := Module([a],(a=1,x+a))
 T  f(3) == 4
  ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)
