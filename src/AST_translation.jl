@@ -133,7 +133,7 @@ function parseblank(s::AbstractString)
     mxpr(:Pattern,Symbol(blankhead),blank)
 end
 
-function extomxarr(ain,aout)
+function extomxarr!(ain,aout)
     for x in ain
         push!(aout,extomx(x))
     end
@@ -185,13 +185,13 @@ function extomx(ex::Expr)
     elseif ex.head == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
-        extomxarr(a,newa)
+        extomxarr!(a,newa)
     elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
         head = :Set
-        extomxarr(a,newa)
+        extomxarr!(a,newa)
     elseif ex.head == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
-            if is_type(a[1], Symbol) && is_type(a[2], Expr) &&
+            if is_type(a[1], Symbol) && is_type(a[2], Expr) &&   # FIXME use isa() here
                 (a[2].args)[1] == :(?)
                 ptargs = a[2].args
                 length(ptargs) != 2 && error("extomx: too many args to PatternTest")
@@ -204,12 +204,17 @@ function extomx(ex::Expr)
                 head = :PatternTest
                 push!(newa,extomx(a[1]),pt)
             else
+                lhs = extomx(a[1])
+                if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
+                                                                   # Maybe : represents too many things. 
+                    return mxpr(:Optional,lhs,extomx(a[2]))
+                end
                 head = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
-                extomxarr(a,newa) # We may have to change the syntax
+                extomxarr!(a,newa) # We may have to change the syntax
             end
         else
             head = :Span
-            extomxarr(a,newa)
+            extomxarr!(a,newa)
         end
     elseif ex.head == :(.)  # don't need parens, but this is readable
         return parse_qualified_symbol(ex)
@@ -221,7 +226,7 @@ function extomx(ex::Expr)
         return eval(ex )
     elseif ex.head == :string
         head = :StringInterpolation
-        extomxarr(a,newa)
+        extomxarr!(a,newa)
     else
         dump(ex)
         error("extomx: No translation for Expr head '$(ex.head)' in $ex")

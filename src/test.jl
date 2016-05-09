@@ -63,6 +63,7 @@ function run_testsuite()
     include(startfile)
 end
 
+## FIXME. Sometimes errors silently cut the testing short, reporting only successes
 @mkapprule Tests :nargs => 0
 
 @sjdoc Tests "
