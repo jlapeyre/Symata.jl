@@ -82,6 +82,7 @@ end
 # capturevar -> false means contradicts previous capture
 _cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
+# FIXME. ambiguity warnings for the next three methods
 # FIXME. We need to set unmatched named Blanks to Sequence[]
 function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
     for alt in margs(pat)
