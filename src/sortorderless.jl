@@ -43,7 +43,7 @@ const _jstypeorder = Dict{DataType,Int}()
 # we'd like to put PyCall object in here, but we can't. Unless we generate the table at init time.
 function _mklexorder()
     i = 1   ## CAREFULL! We use literal index of Any below
-    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr,AbstractMxpr, Qsym)
+    for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr, Mxpr, Qsym)
         _jstypeorder[typ] = i   
         i += 1
     end

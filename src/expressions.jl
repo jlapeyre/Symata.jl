@@ -1,4 +1,7 @@
-## Expand, Apply, Reverse
+## TODO: Reorganize this. Migrate most of the Heads handled here elsewhere.
+## Which heads should be here ?
+
+## ExpandA, Apply, Reverse
 
 import Combinatorics: permutations
 
@@ -16,6 +19,24 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 @doap Head(mx1::Mxpr) = mhead(mx1)
 @doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
 @doap Head(ex) = typeof(ex)
+
+#### ReleaseHold
+
+typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
+
+@mkapprule ReleaseHold :nargs => 1
+
+@sjdoc ReleaseHold "
+ReleaseHold(expr) removes the outer layer of Hold, HoldForm, HoldPattern, and HoldComplete from expr.
+"
+
+@doap function ReleaseHold(mxa::Holds)
+    length(margs(mxa)) == 0 && return mxpr(:Sequence)
+    length(margs(mxa)) > 1 && return  mxpr(:Sequence,margs(mxa)...)
+    return mxa[1]
+end
+
+@doap ReleaseHold(ex) = ex
 
 #### ExpandA
 

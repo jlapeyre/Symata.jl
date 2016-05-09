@@ -29,6 +29,9 @@ T   2.0^10000 == Infinity
 
 T Rewrite(BesselJ(nu,z), jn) == (2^(1/2))*(Pi^(-1/2))*(z^(1/2))*(SphericalBesselJ((-1/2 + nu),z))
 
+# FIXME: translate jn somehow
+ClearAll(jn)
+
 #### CatalanNumber
 
 T  Table(CatalanNumber(i), [i,10]) == [1,2,5,14,42,132,429,1430,4862,16796]

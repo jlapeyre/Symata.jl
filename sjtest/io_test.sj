@@ -37,7 +37,8 @@ T Head(f(3)) == f
 
 # Read the definitions back from the file and delete the file
  Get(file)
- Delete(file)
+### TODO. check that file is deleted
+ DeleteFile(file)
 
 # Test that the defintions are restored
 T f(2,3) == 8

@@ -62,7 +62,11 @@ T [1,Nothing] == [1]
 T [a,Nothing,b,Nothing,Nothing,c] == [a,b,c]
 T Length(f(a,Nothing,b)) == 3
 
-ClearAll(a,b,c)
+# Hold prevents removal of Nothing
+ex = Hold([Nothing,1,2])
+T ex[1,3] == 2
+
+ClearAll(a,b,c,ex)
 
 T testUserSyms
 

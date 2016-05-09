@@ -2,10 +2,10 @@
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
-import SJulia: runtest, @ex, setkerneloptions
+import SJulia: runtest, @ex, setkerneloptions, SJulia_Plain_Test, print_test_results
 
 # Standard test type
-test = SJulia.SJulia_Plain_Test()
+test = SJulia_Plain_Test()
 
 @ex testUserSyms = True
 
@@ -41,11 +41,26 @@ function runalltests()
 end
 
 # Test once with Int as default integer type
-setkerneloptions(:bigint_input, false)
-runalltests()
+save_biginput_state = setkerneloptions(:bigint_input, false)
+
+try 
+    runalltests()
+catch
+    warn("Failed running SJulia tests")
+finally
+    setkerneloptions(:bigint_input, save_biginput_state)
+end
 
 # Test once with BigInt as default integer type
-setkerneloptions(:bigint_input, true)
-runalltests()
 
-SJulia.print_test_results(test)
+setkerneloptions(:bigint_input, true)
+
+try 
+    runalltests()
+catch
+    warn("Failed running SJulia tests")
+finally
+    setkerneloptions(:bigint_input, save_biginput_state)
+end
+
+print_test_results(test)

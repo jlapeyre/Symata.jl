@@ -7,6 +7,8 @@ set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldFor
                  "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSJulia"],
                 :HoldAll)
 
+set_pattributes("HoldComplete", [:HoldAllComplete])
+
 set_pattributes("Save", [:HoldRest])
 
 set_pattributes("Attributes",[:HoldAll,:Listable])
@@ -32,7 +34,7 @@ set_pattributes(["CompoundExpression","Sum","Product"],[:ReadProtected,:HoldAll]
 
 set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
                  "FourierTransform","InverseFourierTransform", "Integrate", "DSolve", "ReadString",
-                 "STDOUT", "STDERR", "DevNull"
+                 "STDOUT", "STDERR", "DevNull", "HoldAllComplete"
                  ],:ReadProtected)
 
 # We kinda need Exp, see the apprules.
@@ -72,7 +74,9 @@ set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart",
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
 
-set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc"],
+# Some symbols that may be particular to SymPy
+# We should use GaussianIntegers instead of Gaussian
+set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc", "Modulus","Force", "Deep", "Gaussian"],
                 :Protected)
 
 set_pattributes(["And", "Or"], [:Flat, :HoldAll, :OneIdentity])

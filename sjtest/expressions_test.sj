@@ -50,12 +50,24 @@ T Position(m,c(d)) == [[3,2,2,1]]
 T Position(m, c(d,b)) == [[3,1],[4]]
  ClearAll(f,a,b,g,c,d,m)
 
-# Test Span
+#### Span
  ClearAll(m)
  m = Range(10)
  m[3] = Range(10)*4
 T m[3,4:6] == [16,20,24]
 T m[3,1:10:2] == [4,12,20,28,36]
- ClearAll(m)
+ClearAll(m)
+
+#### ReleaseHold
+
+T ReleaseHold(Hold()) == Sequence()
+T ReleaseHold(HoldForm()) == Sequence()
+T ReleaseHold(HoldPattern()) == Sequence()
+T ReleaseHold(HoldComplete()) == Sequence()
+T ReleaseHold(Hold(a)) == a
+T List(ReleaseHold(Hold(a,b))) == [a,b] 
+T ReleaseHold(f(a,b)) == f(a,b)
+
+ClearAll(a,b,f)
 
 T testUserSyms

@@ -61,19 +61,16 @@ Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 
 ##### Tests
 
-You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
-`=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`. These
-are also the symbols used for printed output.
-
-You can run the test suite from the `sjulia` prompt with `Tests()`.
-This runs tests in [the directory sjtest.](sjtest/) All symbols listed above do appear
+Run the test suite from the `sjulia` prompt with `Tests()`.
+This runs tests in [the directory sjtest.](sjtest/)
 in these tests.
 
-This change is not visible everywhere in the [the older test
-directory](test/), as this would (will) require changes to the testing
-code.  However, these tests should all still pass, with
-`Pkg.test("SJulia")` For reasons explained in the code, the tests in
-[sjtest](sjtest/) will be preferred over those in [test](test/).
+
+`Pkg.test("SJulia")` runs the older test suite. For reasons explained
+in the code, the tests in [sjtest](sjtest/) will be preferred over
+those in [test](test/). For the same reasons, some symbols, eg `:>`
+for `RuleDelayed`, and `^:=` for `UpSetDelayed`, are replaced by other
+symbols in this old test code.
 
 
 ### Finding Help and Examples
@@ -149,6 +146,12 @@ Type `? HistoryLength` to see how to control saving output.
 `BigIntInput(True)` enables making all input integers arbitary precision.
 
 You can use `Save` and `Get` to write and read SJulia code.
+
+##### Rules
+
+You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
+`=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`.
+
 
 #### Upvalues
 

@@ -13,8 +13,11 @@ typealias MxprArgs Array{Any,1}
 typealias MxprArgType Any
 typealias FreeSyms Dict{Symbol,Bool}
 
-abstract AbstractMxpr
-type Mxpr{T} <: AbstractMxpr
+# AbstractMxpr is not used for anything
+# abstract AbstractMxpr
+# type Mxpr{T} <: AbstractMxpr
+
+type Mxpr{T}
     head::Any  # making this Any instead of Symbol slows things a bit
     args::MxprArgs
     fixed::Bool
