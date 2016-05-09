@@ -1,15 +1,16 @@
 ## Symbolic manipulation language
 
-SJulia is a language for symbolic computation.  It is largely
-modeled on the pattern matching and evaluation sequence of
+SJulia is a language for symbolic computation.  It is largely modeled
+on the pattern matching and evaluation sequence of
 Mathematica. Evaluation, pattern matching, flow control, etc. are
 written in Julia. Much of the mathematics and symbolic manipulation is
 achieved by wrapping SymPy. There are more than 300 functions
 implemented, including integration, tranformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. The best places for examples of what works (and
-what does not), are [the test directory](test/), and, at the SJulia
-prompt, the online help, `? Topic`, with TAB completion, and regex search `h"word"`.
+what does not), are [the test directory](sjtest/), and, at the SJulia
+prompt, the online help, `? Topic`, with TAB completion, and regex
+search `h"word"`.
 
 ### Installing
 
@@ -65,13 +66,9 @@ Run the test suite from the `sjulia` prompt with `Tests()`.
 This runs tests in [the directory sjtest.](sjtest/)
 in these tests.
 
-
-`Pkg.test("SJulia")` runs the older test suite. For reasons explained
-in the code, the tests in [sjtest](sjtest/) will be preferred over
-those in [test](test/). For the same reasons, some symbols, eg `:>`
-for `RuleDelayed`, and `^:=` for `UpSetDelayed`, are replaced by other
-symbols in this old test code.
-
+`Pkg.test("SJulia")` runs the older test suite. It is not being updated and is less complete
+than the suite described above. For reasons explained in the code, the
+tests in [sjtest](sjtest/) are preferred over those in [test](test/).
 
 ### Finding Help and Examples
 
