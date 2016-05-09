@@ -275,7 +275,7 @@ Replace(expr,rule) replaces parts in expr according to Rule rule.
           "1", "This expression does match the pattern."))
 apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
 
-typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
+#typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
 
 doreplace(mx,a,b) = mx

@@ -54,7 +54,7 @@ is_Constant(x) = false
 
 is_protected(sj::SJSym) = get(getssym(sj).attr,:Protected,false)
 
-typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
+# BlankXXX defined in sjuliaconstants.jl
 is_blankxxx{T<:BlankXXX}(mx::T) = true
 is_blankxxx{T<:Mxpr}(x::T) = false
 

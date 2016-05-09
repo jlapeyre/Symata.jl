@@ -192,5 +192,12 @@ T Cases([a, b, 0, 1, 2, x, y], Except(0,_Integer)) == [1,2]
 
 ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
+# Optional is parsed, but is not yet implemented (used) anywhere.
+T x_y:0 == Optional(Pattern(x,Blank(y)),0)
+T x_y:(a*b) == Optional(Pattern(x,Blank(y)),Times(a,b))
+
+
+ClearAll(a,b,x, y)
+
  testUserSyms
 

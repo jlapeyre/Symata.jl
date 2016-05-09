@@ -22,7 +22,7 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 
 #### ReleaseHold
 
-typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
+#typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
 
 @mkapprule ReleaseHold :nargs => 1
 
@@ -244,7 +244,7 @@ function expand_binomial{T<:Integer}(a,b,n::T)
 end
 
 # Big increase in efficiency (> 10x) for both these types
-typealias ExpNoCanon Union{SJSym,Number}
+# typealias ExpNoCanon Union{SJSym,Number} move to sjuliaconstants.jl
 
 # Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
 function _expand_mulpowers(fac,b1,e1,b2,e2)

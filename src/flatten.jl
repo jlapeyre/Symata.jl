@@ -3,7 +3,7 @@
 # eg   (a + b + (c + d)) --> (a + b + c + d)
 
 # FlatT because Flat is already a symbol
-typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
+#typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
 # We do not rely only on the Flat attribute. We use FlatT in the hope that Julia compiles
 # efficient code for each type in the Union.
 

@@ -1,4 +1,4 @@
-const SJULIA_VERSION = v"0.0.3"
+const SJULIA_VERSION = v"0.0.4"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
@@ -33,3 +33,20 @@ setsymval(:BigFloat, BigFloat)
 setsymval(:Float64, Float64)
 setsymval(:Int64, Int64)
 setsymval(:Int, Int)
+
+#### typealiases
+
+# used in predicates.jl
+typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
+
+# used in apprules.jl
+typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
+
+# used in expressions.jl
+typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
+
+# used in sortorderless.jl
+typealias ExpNoCanon Union{SJSym,Number}
+
+# used in flatten.jl
+typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
