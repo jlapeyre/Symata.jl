@@ -16,8 +16,6 @@ T replacerepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
  ClearAll(codefile, cosfixedpoint,replacerepeated, x,i, y,a)
 
  ClearTemporary()
-# FIXME, I think  f(x_) = x does not give the correct result
-#  f(x_) := x does work.
 
  ClearAll(f)
 

@@ -1,5 +1,9 @@
 These tests can be run via
 
+sjulia> Tests()
+
+or
+
 julia> SJulia.run_testsuite()
 
 sjruntests.jl runs tests using SJulia itself.  The files (we choose
