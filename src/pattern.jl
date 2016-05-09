@@ -13,6 +13,24 @@ type BlankT{T}  <: Blanks
     pattern_test::Any    # either symbol :None, or Mxpr to be mevaled for test.
 end
 
+# This dict translates the requested Head to match in a Blank
+#
+# Julia will complain if we use 'String'. For the moment, we
+# do this replacement. This probably still allows matching different
+# Julia string types.
+#
+# We allow both Float and Real for AbstractFloat. In Mma, 'Real' means
+# real floating point number.
+const blank_head_dict = Dict(    :String => :AbstractString,
+                                 :Float => :AbstractFloat,
+                                 :Real => :AbstractFloat)
+
+# Disbled translating here. It happens below in process_blank_head
+function makeBlankT(name,head,pattern_test)
+    BlankT(name,head,pattern_test)
+    #    newhead = get(blank_head_dict,head,head)
+end
+
 # Not yet implemented
 type BlankSequenceT{T}  <: Blanks
     name::SJSym  # name
@@ -73,7 +91,7 @@ end
 
 # Works on just a blank, and ... ?
 
-just_pattern(s) =         PatternT(patterntopvar(s), :All)
+just_pattern(s) =   PatternT(patterntopvar(s), :All)
 
 function patterntopvar(mx::Mxpr)
     nargs = newargs()
@@ -100,16 +118,21 @@ function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Function)
     return pvar
 end
 
+function process_blank_head(head)
+    head = get(blank_head_dict, head, head)
+    ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
+    head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+end
+
 function patterntopvar(mx::Mxpr{:Pattern})
     var = mx[1]
     blank = mx[2]
     if length(blank) == 0 # match any head
-       res = BlankT(symname(var),:All,:None)
+       res = makeBlankT(symname(var),:All,:None)
     else # match only if head is blank[1]
         head = blank[1]
-        ehead = eval(head)  # Symbol may eval to DataType
-        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
-        res = BlankT(symname(var),head,:None)
+        head = process_blank_head(head)
+        res = makeBlankT(symname(var),head,:None)
     end
     res
 end
@@ -121,12 +144,11 @@ function patterntopvar(mx::Mxpr{:Blank})
     var = :_  # Underscore is currently illegal in SJulia identifiers, so this is safe.
     blank = mx
     if length(blank) == 0 # match any head
-       res = BlankT(var,:All,:None)
+       res = makeBlankT(var,:All,:None)
     else
         head = blank[1]
-        ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
-        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
-        res = BlankT(symname(var),head,:None)
+        head = process_blank_head(head)
+        res = makeBlankT(symname(var),head,:None)
     end
     res
 end
@@ -138,8 +160,7 @@ function patterntopvar(mx::Mxpr{:BlankSequence})
        res = BlankSequenceT(var,:All,:None)
     else
         head = blank[1]
-        ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
-        head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+        head = process_blank_head(head)
         res = BlankSequenceT(symname(var),head,:None)
     end
     res

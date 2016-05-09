@@ -8,6 +8,9 @@ T _b == Blank(b)
 T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
 
+# Alternatives does nothing yet
+T a | b == Alternatives(a,b)
+
 ClearAll(a,b,c,d,p,f,d)
 
 T ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
@@ -53,7 +56,15 @@ T   pf(a,b) == a(b)
 
 T Count(Range(10), 2) == 1
 T Count(Range(10), _Integer) == 10
+T Count(Range(10), b_Integer) == 10
 T Count(Range(10), _AbstractString) == 0
+# We translate 'String' to avoid Julia's warning
+T Count(Range(10), _String) == 0
+# For the moment, we don't consider Integer's to be Real. Real is translated to AbstractFloat
+T Count([1,2,3.0] , _Real) == 1
+T Count([1,2,3.0] , _Float) == 1
+
+ClearAll(b)
 
 T ReplaceAll( [x,x^2,a,b],  x => 3 ) == [3,9,a,b]
 T ReplaceAll( [x,x^2,x^3,a,b],  x^2  => y) == [x,y,x^3,a,b]
@@ -150,9 +161,6 @@ T  countprimes(Range(100)) == 25
 
 # Use a Julia function to list the perfect squares less than 100.
 T  Cases(Range(100), _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
-
-# Alternatives does nothing yet
-T Head( a | b ) == Alternatives
 
  ClearAll(result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
