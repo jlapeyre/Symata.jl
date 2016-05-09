@@ -64,7 +64,7 @@ function print_doc(qs...)
         end
         as = get_attributes(q)
         if length(as) > 0
-            println("\n Attributes(", string(q), ") = ", as)
+            println("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
         end
         if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end        
     end
