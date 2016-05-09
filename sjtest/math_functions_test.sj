@@ -97,7 +97,12 @@ T   HermiteH(2,x) == -2 + 4*(x^2)
 T   D(HermiteH(n,x), x) == 2*n*(HermiteH((-1 + n),x))
 T   HermiteH(n,-x) == (-1)^n*(HermiteH(n,x))
 
- ClearAll(a,x,z)
+#### IntegerDigits
+
+T IntegerDigits(100) == [1,0,0]
+T IntegerDigits(100,2) == [1,1,0,0,1,0,0]
+
+ClearAll(a,x,z)
 T testUserSyms
 
 # FIXME. this returns false. should return true
