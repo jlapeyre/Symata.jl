@@ -41,10 +41,13 @@ T  Rewrite(CatalanNumber(n), Gamma) == (4^n)*(Pi^(-1/2))*(Gamma(2 + n)^(-1))*Gam
 T  Rewrite(CatalanNumber(1/2), Gamma) == (8/3)*(Pi^(-1))
 T  Rewrite(CatalanNumber(n), Binomial) == (Binomial((2n),n))*((1 + n)^(-1))
 T  CombSimp(CatalanNumber(n+1)/CatalanNumber(n)) == (4^(-n))*(4^(1 + n))*(Gamma(1/2 + n)^(-1))*Gamma(3/2 + n)*((2 + n)^(-1))
-# T  Rewrite(CombSimp(CatalanNumber(n+1)/CatalanNumber(n)), Binomial)  FIXME.
+T  CombSimp(Rewrite(CatalanNumber(n+1)/CatalanNumber(n), Binomial)) ==  2(1 + 2n)*((2 + n)^(-1))
 # FIXME. A number is converted to a float
 #T  Rewrite(CatalanNumber(I), Gamma) == (0.183457 + 0.983028I)*(Pi^(-1/2))*(Gamma(2 + I)^(-1))*Gamma(1/2 + I)
 
+#### EllipticF
+
+T Series(EllipticF(z,m), [z,0,6]) == z + (1/6)*m*(z^3) + ((-1/30)*m + (3/40)*(m^2))*(z^5) + Order((z^6),[z,0])
 
 #### Erf
 
@@ -76,7 +79,8 @@ T Gamma(3,x) == 2 * (E ^ (-x)) + 2 * (E ^ (-x)) * x + E ^ (-x) * (x ^ 2)
 T ( Gamma(-1/2,x) == 2 * (E ^ (-x)) * (x ^ (-1/2)) + -2 * (Pi ^ (1/2)) * (1 + -Erf(x ^ (1/2))) ) ||
          ( Gamma(-1/2,x) ==  2(E^(-x))*(x^(-1/2)) + -2(Pi^(1/2))*Erfc(x^(1/2)))
 T Gamma(-2,x) == x ^ (-2) * (ExpIntegralE(3,x))
-# T
+
+T CombSimp(Gamma(x)*Gamma(1-x)) == Pi*(Sin(Pi*x)^(-1))
 # T
 # T
 # T 
