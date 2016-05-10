@@ -35,8 +35,13 @@ end
 SJulia_Plain_Test() = SJulia_Plain_Test(0,0)
 
 function print_test_results(test::SJulia_Plain_Test)
-    println(test.pass, " passed.")
-    println(test.total - test.pass, " failed.")
+    print_with_color(:green, string(test.pass), " passed.\n")
+    failed = test.total - test.pass
+    if failed == 0
+        println("$failed failed.")
+    else
+        print_with_color(:red, "$failed failed.")
+    end
 end
 
 function record_SJTest(test::SJulia_Plain_Test, fname, linenumber, res)

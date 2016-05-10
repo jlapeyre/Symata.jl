@@ -116,6 +116,10 @@ end
 do_IntegerQ{T<:Integer}(mx::Mxpr{:IntegerQ}, x::T) = true
 do_IntegerQ(mx::Mxpr{:IntegerQ}, x) = false
 
+#### ListQ
+@mkapprule ListQ :nargs => 1
+@doap ListQ(x::Mxpr{:List}) = true
+@doap ListQ(x) = false
 
 #### PermuationQ
 

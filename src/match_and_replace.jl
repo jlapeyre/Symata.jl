@@ -153,8 +153,9 @@ function _cmppat(mx, pat::Mxpr{:Condition}, captures)
     lhs = doeval(pat[1])
     res = _cmppat(mx, lhs, captures)
     res == false && return false
-    # We must copy, otherwise, on repeated calls to this function, rhs has the previous substituted value on entry
-    rhs = sjcopy(pat[2]) 
+    # We must copy, otherwise, on repeated calls to this function, rhs has the previous substituted value on entry.
+    # Must be deep because replacements can be deep.
+    rhs = deepcopy(pat[2]) 
     patsubst!(rhs, captures)
     condres = doeval(rhs)
     condres != true && return false  # Anything other than true is failure

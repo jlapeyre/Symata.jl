@@ -167,6 +167,9 @@ T Replace( a, r1) == 3
 T Replace( a, r2) == 4
  ClearAll(a,b)
 
+# FIXME, we need to implement level specifications
+# Replace([1, 7, "Hi", 3, Indeterminate], Except(_:?NumericQ) :> 0, 1)
+
 T ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
 
 T ReplaceRepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
@@ -219,6 +222,11 @@ T Cases([a, b, 0, 1, 2, x, y], Except(_Integer)) == [a,b,x,y]
 T Cases([1, 0, 2, 0, 3], Except(0)) == [1,2,3]
 T Cases([a, b, 0, 1, 2, x, y], Except(0,_Integer)) == [1,2]
 
+# This works, but only with parens around IntegerQ, otherwise it is interpreted as
+# conditional. Syntax needs work.
+T MatchQ(1, Except(_:?(IntegerQ))) == False
+T MatchQ(a, Except(_:?(IntegerQ)))
+
 ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
 # Optional is parsed, but is not yet implemented (used) anywhere.
@@ -232,6 +240,11 @@ T p_q  == Pattern(p,Blank(q))
 T p_Integer:?(PrimeQ) == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
 T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
 T _^_ == Power(Blank(),Blank())
+
+# This should evaluate to True, but does not.
+# Mma has PatternTest evaluation parts of held expressions. So 2 + 3 should be evaluated,
+# at least to match their behavior. No explanation is given for why this is so.
+#T MatchQ(Hold(2 + 3), Hold(_:?IntegerQ))
 
 # Try using :: for Pattern
 # Pattern is not implemented with this usage. We only test parsing here.
@@ -252,9 +265,9 @@ ClearAll(p,q,a,b,c)
 T  MatchQ( -2 , Condition( x_ , x < 0))
 T  MatchQ( 1 , Condition( x_ , x < 0)) == False
 T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition( x_ , x < 0) => w ) == [6,w,3,2,w,w]
+T  Cases( [[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
 
-
-ClearAll(x)
+ClearAll(x,y,a,b,d)
 
 
 
