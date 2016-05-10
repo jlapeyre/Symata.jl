@@ -223,7 +223,7 @@ T Cases([1, 0, 2, 0, 3], Except(0)) == [1,2,3]
 T Cases([a, b, 0, 1, 2, x, y], Except(0,_Integer)) == [1,2]
 
 # This works, but only with parens around IntegerQ, otherwise it is interpreted as
-# conditional. Syntax needs work.
+# Optional. Syntax needs work.
 T MatchQ(1, Except(_:?(IntegerQ))) == False
 T MatchQ(a, Except(_:?(IntegerQ)))
 

@@ -55,7 +55,6 @@ typealias ExSymBlankT Union{ExSym,Blanks}
 
 # ast  -- the pattern including BlankTs for capture.
 # cond -- condition to apply to any BlankTs in the pattern
-# We don't need to use PatternT anymore. It could be Pattern.
 # Currently cannot be made immutable. And, only cond can have static type.
 type PatternT{T}
     ast::Any
