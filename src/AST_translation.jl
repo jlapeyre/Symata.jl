@@ -138,6 +138,11 @@ function parseblank(s::AbstractString)
     mxpr(:Pattern,Symbol(blankhead),blank)
 end
 
+# Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
+function parsepattern(ex)
+    mxpr(:Pattern,map(extomx,ex.args))
+end
+
 function extomxarr!(ain,aout)
     for x in ain
         push!(aout,extomx(x))
@@ -194,6 +199,8 @@ function extomx(ex::Expr)
     elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
         head = :Set
         extomxarr!(a,newa)
+    elseif ex.head == :(::)
+        return parsepattern(ex)
     elseif ex.head == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
             if is_type(a[1], Symbol) && is_type(a[2], Expr) &&   # FIXME use isa() here

@@ -230,7 +230,11 @@ T p_Integer:?(PrimeQ) == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
 T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
 T _^_ == Power(Blank(),Blank())
 
-ClearAll(p,q)
+# Try using :: for Pattern
+# Not implemented: This is parsed, but will raise an error if you try to use it.
+T a::(b_^c_) == Pattern(a,Power(Pattern(b,Blank()),Pattern(c,Blank())))
+
+ClearAll(p,q,a,b,c)
 
 
  testUserSyms
