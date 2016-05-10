@@ -25,6 +25,10 @@ T   2.0^10000 == Infinity
 
 ## FIXME   1 < Infinity, etc. are not implemented
 
+#### Binomial
+
+T CombSimp(Binomial(n+1, k+1)/Binomial(n, k)) == ((1 + k)^(-1))*(1 + n)
+
 #### BesselJ
 
 T Rewrite(BesselJ(nu,z), jn) == (2^(1/2))*(Pi^(-1/2))*(z^(1/2))*(SphericalBesselJ((-1/2 + nu),z))
@@ -59,6 +63,11 @@ T Erf(-Infinity) == -1
 T Erf(-z) == -Erf(z)
 T Conjugate(Erf(-z)) == -Erf(Conjugate(z))
 T Args(Conjugate(Erf(-z))) == [-1,Erf(Conjugate(z))]
+
+#### Factorial
+
+T CombSimp(Factorial(n)/Factorial(n-3)) == n*(-2 + n)*(-1 + n)
+
 
 #### Gamma
 
