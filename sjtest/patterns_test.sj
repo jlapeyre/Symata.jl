@@ -244,7 +244,7 @@ T _^_ == Power(Blank(),Blank())
 # This should evaluate to True, but does not.
 # Mma has PatternTest evaluation parts of held expressions. So 2 + 3 should be evaluated,
 # at least to match their behavior. No explanation is given for why this is so.
-#T MatchQ(Hold(2 + 3), Hold(_:?IntegerQ))
+#T MatchQ(Hold(2 + 3), Hold(_:?(IntegerQ)))
 
 # Try using :: for Pattern
 # Pattern is not implemented with this usage. We only test parsing here.
