@@ -1,5 +1,10 @@
 abstract Blanks
 
+# TODO: We don't have this right. The name belongs to Pattern, not
+# Blank. We need Julia type structure that preserves the structure
+# of SJulia expressions, so that we can
+# handle expressions like  f:(_^_)
+
 # name -- the name, ending in underscore
 # cond -- a condition that must be satisfied to match
 #         cond may be :All, which matches anything.

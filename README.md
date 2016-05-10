@@ -46,7 +46,7 @@ The REPL is also available simply by loading the module in a julia session via
 
 Toggle between Julia and SJulia modes by typing `=` as the first character on a line.
 (If loading SJulia from the `julia` prompt via `using SJulia`, you use `=` and backspace.)
-In SJulia mode, the input is not interpreted as Julia code, but rather SJulia code.
+In SJulia mode, the input is not interpreted as Julia expressions, but rather SJulia expressions.
 You can do tab completion to see a list of functions and symbols.
 
 #### SymPy

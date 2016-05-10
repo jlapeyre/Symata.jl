@@ -87,29 +87,33 @@ end
 # capturevar -> false means contradicts previous capture
 _cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
+#### Alternatives
+
 # FIXME. ambiguity warnings for the next three methods
-# lots of room for increasing efficiency here
+# Lots of room for optimization here. But, we want to avoid premature optimization
 function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
     for i in 1:length(pat)
         alt = pat[i]
         res = _cmppat(mx, alt, captures)
-        if res != false
-            names = Symbol[]
+        if res != false       # We accept the first match
+            names = Symbol[]  # We bind all the symbols that don't match to Sequence[], so they disappear
             for j in 1:length(pat)
-                i == j && continue
-                append!(names,get_blank_names(pat[j]))
+                i == j && continue  # skip the alternative that did match
+                append!(names,get_blank_names(pat[j]))  # get all blank names
             end
             for name in names
-                capturepvar(captures,name,mxpr(:Sequence))
+                capturepvar(captures,name,mxpr(:Sequence)) # we could use a const empty sequence here.
             end
-            return res
-        end  # return the first alternative
+            return res # return the matching alternative
+        end
     end
-    false
+    false  # no alternative matched
 end
 
+#### Except
+
 function _cmppat(mx, pat::Mxpr{:Except}, captures)
-    if length(margs(pat)) == 1
+    if length(margs(pat)) == 1   # Not matching is matching
         res = _cmppat(mx, pat[1], captures)
         if res == false    # no match
             res = _cmppat(mx, patterntopvar(mxpr(:Blank)), captures) # match anything
@@ -117,7 +121,7 @@ function _cmppat(mx, pat::Mxpr{:Except}, captures)
             return res
         end
         return false   # hmmm, but the capture is still there. We probably should delete it.
-    elseif length(margs(pat)) == 2
+    elseif length(margs(pat)) == 2  # Must not match first and must match second
         res = _cmppat(mx, pat[1], captures)
         if res == false   # need no match with pat[1] ....
             res = _cmppat(mx, pat[2], captures)  # and a match with pat[2]
@@ -125,14 +129,18 @@ function _cmppat(mx, pat::Mxpr{:Except}, captures)
         end
         return false
     end
-    # FIXME  Except::argt: Except called with 3 arguments; 1 or 2 arguments are expected.
-    # warning message only occurs when Except is "used"
+    # In Mma, warning message only occurs when Except is "used". It is here, in a Pattern rule,
+    # rather than a standard evaluation rule.
+    # FIXME. For Cases([1, 0, 2, 0, 3], Except(0,1,2)), Mma prints this warning message once.
+    # We print if 5 times, one for each test. I think the reason  is that evaluating Cases is aborted rather,
+    # than the message surpressed. Maybe, we do want to throw an exception. But, how is it done in general ?
+    sjthrow(TwoNumArgsErr("Except", 1:2, length(pat)))
     false  # number of args < 1  or > 2 is not documented.
 end
 
+#### General Mxpr
 
-# Matching a non-atomic expression. The head and length must match
-# and each subexpression must match
+# Matching a non-atomic expression. The head and length must match and each subexpression must match.
 function _cmppat(mx::Mxpr, pat::Mxpr, captures)
     (mhead(pat) == mhead(mx) && length(pat) == length(mx)) || return false
     @inbounds for i in 1:length(mx)      # match and capture subexpressions
@@ -141,8 +149,10 @@ function _cmppat(mx::Mxpr, pat::Mxpr, captures)
     return true
 end
 
+##### Atoms (perhaps what Macsyma calls 'mapatoms')
+
 # This is a leaf on the tree, because mx is not an Mxpr and
-# pat is not a BlankT. We are matching atoms
+# pat is not a BlankT. 
 _cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
 # Allow different kinds of integers and floats to match
@@ -153,6 +163,7 @@ _cmppat{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
 _cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 
+# Collect all the names of blanks in expression ex or its subexpressions
 function get_blank_names(ex)
     names = Symbol[]
     _get_blank_names(names,ex)

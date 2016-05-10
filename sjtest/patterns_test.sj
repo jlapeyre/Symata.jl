@@ -177,11 +177,11 @@ T ReplaceRepeated( Expand( (a+b)^3 ) , x_Integer => 1)  == a +  a * b + b
 T  ReplaceRepeated(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * (Log(a) + e * (Log(b) + d * Log(c)))
 T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e))
 
-# Why do we get this ? Looks like we perform the currying. Mma does not do it.
+# Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
 # sjulia > f(a)(b)(c)(d)
 # f(a,b,c,d)
 
-# tests a bug that caused julia-level error in the following line
+# tests a fix for bug that caused julia-level error in the following line
  ex = Hold(f(a)(b)(c)(d))
 T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
@@ -231,8 +231,14 @@ T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
 T _^_ == Power(Blank(),Blank())
 
 # Try using :: for Pattern
-# Not implemented: This is parsed, but will raise an error if you try to use it.
+# Pattern is not implemented with this usage.
+# It is parsed, but will raise an error if you try to use it.
+# NB We use both :: and :, while Mma uses : in all instances below.
+# It would be nice if we could use one symbol
+# We use : for Span, as well. Mma uses :: for Message and ;; for Span.
+T a::b == Pattern(a,b)
 T a::(b_^c_) == Pattern(a,Power(Pattern(b,Blank()),Pattern(c,Blank())))
+T _:0 == Optional(Blank(),0)
 
 ClearAll(p,q,a,b,c)
 

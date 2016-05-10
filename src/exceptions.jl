@@ -9,6 +9,7 @@ type RecursionLimitError <: Exception
     mx::Mxpr
 end
 
+# We don't have these working yet. We just use error for now
 abstract SJuliaParseErr <: Exception
 
 type NoTranslationError <: SJuliaParseErr
@@ -20,6 +21,8 @@ end
 Base.showerror(io::IO, e::NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
 
 #### Arg checking exceptions
+
+# checkargscode is the interface called from rules for the various Heads
 
 # We print a warning and proceed instead of throwing an exception.
 # This is what Mma does.
@@ -82,6 +85,8 @@ function checkargscode(var, head, nargsspec::Int)
               end )
 end
 
+###### RangeNumArgsErr
+
 type RangeNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
@@ -108,6 +113,27 @@ function checkargscode(var, head, nargsspec::UnitRange)
                end
              end )
 end
+
+###### TwoNumArgsErr
+
+type TwoNumArgsErr <: ArgCheckErr
+    msg::AbstractString
+end
+
+function TwoNumArgsErr_string(head,argrange,ngot)
+    hstr = string(head)
+    if length(hstr) > 7    # Strip the package qualification, SJulia
+        hstr = hstr[8:end]
+    end
+    msg = hstr * "::argt: " * hstr * " called with " * num_args_string(ngot) * "; " *
+     string(argrange.start) * " or " * string(argrange.stop) * " arguments are expected."
+end
+
+function TwoNumArgsErr(head,argrange,ngot)
+    msg = TwoNumArgsErr_string(head,argrange,ngot)
+    TwoNumArgsErr(msg)
+end
+
 
 macro checknargs(var, head, nargsspec)
     code = checkargscode(var,head,nargsspec)
