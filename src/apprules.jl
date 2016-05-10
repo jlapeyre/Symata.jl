@@ -283,7 +283,8 @@ doreplace(mx,a,b) = mx
 #### ReplaceAll
 
 @sjdoc ReplaceAll "
-ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule.
+ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule. This includes
+the Head of expr, and the entire expr.
 ReplaceAll(expr,List(rule1,rule2,...)) replaces parts at all levels in expr according to the
 list or rules. If given explicitly, the rules should be given as List(...) rather than
 [...] because of a parsing error.
@@ -312,6 +313,10 @@ doreplaceall(mx,a,b) = mx
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
 
 @mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
+
+@sjdoc ReplaceRepeated "
+ReplaceRepeated(expr,rules) performs ReplaceAll(expr,rules) repeatedly until expr no longer changes.
+"
 
 do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,Rule_to_PRule(r); kws...)
 

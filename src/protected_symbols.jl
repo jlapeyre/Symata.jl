@@ -2,7 +2,7 @@
 
 set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo"], :HoldFirst)
 
-set_pattributes(["Module","LModule","Clear", "ClearAll", "HoldPattern", "HoldForm", "Hold",
+set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "For", "If", "While", "Do",
                  "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSJulia"],
                 :HoldAll)

@@ -82,14 +82,14 @@ end
 # a subexpression of pattern `pat', then the subexpressions in
 # mx and pat must match exactly.
 # If pat is a capture var, then it matches the subexpression ex,
-# if the condition as checked by matchpat is satisfied.
+# if the 'test' as checked by matchpat is satisfied.
 
 # capturevar -> false means contradicts previous capture
 _cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
 
 #### Alternatives
 
-# FIXME. ambiguity warnings for the next three methods
+# FIXME. ambiguity warnings for the next several methods
 # Lots of room for optimization here. But, we want to avoid premature optimization
 function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
     for i in 1:length(pat)
@@ -137,6 +137,31 @@ function _cmppat(mx, pat::Mxpr{:Except}, captures)
     sjthrow(TwoNumArgsErr("Except", 1:2, length(pat)))
     false  # number of args < 1  or > 2 is not documented.
 end
+
+#### Condition
+
+# Get both of these messages. Usage with number of args != 2 is not documented.
+# Condition::argm: Condition called with 0 arguments; 1 or more arguments are expected.
+# Condition::argm: Condition called with 0 arguments; 2 or more arguments are expected.
+# NB. Condition[1,2,3] --> 1 /; Sequence[2, 3]
+function _cmppat(mx, pat::Mxpr{:Condition}, captures)
+    if length(pat) != 2  # For now, we require 2 args
+#        sjthrow(MoreNumArgsErr("Condition", 1, length(pat)))
+        sjthrow(ExactNumArgsErr("Condition", 2, length(pat)))        
+        return false
+    end
+    lhs = doeval(pat[1])
+    res = _cmppat(mx, lhs, captures)
+    res == false && return false
+    # We must copy, otherwise, on repeated calls to this function, rhs has the previous substituted value on entry
+    rhs = sjcopy(pat[2]) 
+    patsubst!(rhs, captures)
+    condres = doeval(rhs)
+    condres != true && return false  # Anything other than true is failure
+    return res                       # return the match with captures
+end
+
+
 
 #### General Mxpr
 

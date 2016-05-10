@@ -64,7 +64,7 @@ end
 
 function ExactNumArgsErr_string(head,ngot, nexpected)
     hstr = string(head)
-    if length(hstr) > 7    # Strip the package qualification
+    if length(hstr) > 7 && hstr[1:7] == "SJulia."   # Strip the package qualification
         hstr = hstr[8:end]
     end
     msg = hstr * "::argr: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -93,7 +93,7 @@ end
 
 function RangeNumArgsErr_string(head,argrange,ngot)
     hstr = string(head)
-    if length(hstr) > 7    # Strip the package qualification
+    if length(hstr) > 7  && hstr[1:7] == "SJulia."  # Strip the package qualification
         hstr = hstr[8:end]
     end
     msg = hstr * "::argb: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -105,6 +105,7 @@ function RangeNumArgsErr(head,argrange,ngot)
     RangeNumArgsErr(msg)
 end
 
+# TODO. if length(nargsspec) == 2, use TwoNumArgsErr
 function checkargscode(var, head, nargsspec::UnitRange)
     head = string(:($head))
     return :( begin
@@ -120,19 +121,40 @@ type TwoNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
 
-function TwoNumArgsErr_string(head,argrange,ngot)
+function TwoNumArgsErr_string(head,argrange::UnitRange,ngot)
     hstr = string(head)
-    if length(hstr) > 7    # Strip the package qualification, SJulia
+    if length(hstr) > 7 && hstr[1:7] == "SJulia."   # Strip the package qualification, SJulia
         hstr = hstr[8:end]
     end
     msg = hstr * "::argt: " * hstr * " called with " * num_args_string(ngot) * "; " *
      string(argrange.start) * " or " * string(argrange.stop) * " arguments are expected."
 end
 
-function TwoNumArgsErr(head,argrange,ngot)
+function TwoNumArgsErr(head,argrange::UnitRange,ngot)
     msg = TwoNumArgsErr_string(head,argrange,ngot)
     TwoNumArgsErr(msg)
 end
+
+###### MoreNumArgsErr
+
+type MoreNumArgsErr <: ArgCheckErr
+    msg::AbstractString
+end
+
+function MoreNumArgsErr_string(head,argmin,ngot)
+    hstr = string(head)
+    if length(hstr) > 7 && hstr[1:7] == "SJulia."    # Strip the package qualification, SJulia
+        hstr = hstr[8:end]
+    end
+    msg = hstr * "::argm: " * hstr * " called with " * num_args_string(ngot) * "; " *
+     string(argmin) * " or more arguments are expected."
+end
+
+function MoreNumArgsErr(head,argrange,ngot)
+    msg = MoreNumArgsErr_string(head,argrange,ngot)
+    MoreNumArgsErr(msg)
+end
+
 
 
 macro checknargs(var, head, nargsspec)

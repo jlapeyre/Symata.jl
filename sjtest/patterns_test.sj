@@ -185,6 +185,9 @@ T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e
  ex = Hold(f(a)(b)(c)(d))
 T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
+T ReplaceAll( [[[x]]], x => 3) == [[[3]]]
+ClearAll(x)
+
 #### Currying
 
    countprimes = Count(_:?(PrimeQ))
@@ -231,8 +234,8 @@ T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
 T _^_ == Power(Blank(),Blank())
 
 # Try using :: for Pattern
-# Pattern is not implemented with this usage.
-# It is parsed, but will raise an error if you try to use it.
+# Pattern is not implemented with this usage. We only test parsing here.
+# It will raise an error if you try to use it.
 # NB We use both :: and :, while Mma uses : in all instances below.
 # It would be nice if we could use one symbol
 # We use : for Span, as well. Mma uses :: for Message and ;; for Span.
@@ -241,6 +244,18 @@ T a::(b_^c_) == Pattern(a,Power(Pattern(b,Blank()),Pattern(c,Blank())))
 T _:0 == Optional(Blank(),0)
 
 ClearAll(p,q,a,b,c)
+
+#### Condition
+
+# Condition is implemented for the case that the first arguement is a pattern.
+# It is also used with SetDelayed and RuleDelayed, but these are not yet implemented.
+T  MatchQ( -2 , Condition( x_ , x < 0))
+T  MatchQ( 1 , Condition( x_ , x < 0)) == False
+T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition( x_ , x < 0) => w ) == [6,w,3,2,w,w]
+
+
+ClearAll(x)
+
 
 
  testUserSyms
