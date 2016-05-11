@@ -242,13 +242,13 @@ T Cases(expr , _Symbol, [4]) == [b,c]
 T Cases(expr , _Symbol, [5]) == []
 T Cases(expr , _Symbol, [2,3]) == [b,g,f,a]
 T Cases(expr , _Symbol, [2,4]) == [b,g,f,a,b,c]
-T Cases(expr , _Symbol, -1) ==  Cases(expr , _Symbol, Depth(expr) - 1)
-T Cases(expr , _Symbol, -2) ==  Cases(expr , _Symbol, Depth(expr) - 2)
+T Cases(expr , _Symbol, -1) ==  Cases(expr , _Symbol, Depth(expr) - 1) ==  Cases(expr , _Symbol, 4)
+T Cases(expr , _Symbol, -2) ==  Cases(expr , _Symbol, Depth(expr) - 2) ==  Cases(expr , _Symbol, 3)
 T Cases(expr , _Symbol, -3) ==  Cases(expr , _Symbol, Depth(expr) - 3)
 
 T Cases(expr , _Symbol, [-1]) ==  Cases(expr , _Symbol, [Depth(expr) - 1])
-T Cases(expr , _Symbol, [-2]) ==  Cases(expr , _Symbol, [Depth(expr) - 2])
-T Cases(expr , _Symbol, [-3]) ==  Cases(expr , _Symbol, [Depth(expr) - 3])
+T Cases(expr , _Symbol, [-2]) ==  Cases(expr , _Symbol, [Depth(expr) - 2]) ==  Cases(expr , _Symbol, [3])
+T Cases(expr , _Symbol, [-3]) ==  Cases(expr , _Symbol, [Depth(expr) - 3]) ==  Cases(expr , _Symbol, [2])
 
 ClearAll(a,b,c,d,g,f,h,y,expr)
 
