@@ -592,7 +592,8 @@ end
 @inline is_canon(x) = false
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false
-@inline unsetfixed(x) = false  # sometimes we have a Julia object
+#unsetfixed(x) = false  # sometimes we have a Julia object
+unsetfixed(x) = x  # This behavior is more useful
 
 # We need to think about copying in the following. Support both refs and copies ?
 # where is this used ?

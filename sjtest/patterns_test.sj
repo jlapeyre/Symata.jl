@@ -132,6 +132,10 @@ T ReplaceAll( Hold(x + x) , RuleDelayed(x , 2^2) ) == Hold(2 ^ 2 + 2 ^ 2)
 
 T Replace(x^2, x^2 => a + b) == a + b
 T Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
+
+# Level specification
+T Replace(1 + x^2, x^2 => a + b, [1]) == 1 + a + b
+
 T ReplaceAll( x + y , List(x => a, y => b)) == a + b
 
  result = ReplaceAll( [x,x,x,x,x],  x  => RandomReal() )

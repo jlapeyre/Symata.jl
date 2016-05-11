@@ -273,12 +273,21 @@ Replace(expr,rule) replaces parts in expr according to Rule rule.
           "Cos(a + b)^2 + Sin(a + c)^2", "This expression does not match the pattern."),
          ("Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
           "1", "This expression does match the pattern."))
-apprules(mx::Mxpr{:Replace}) = doreplace(mx,mx[1],mx[2])
+function apprules(mx::Mxpr{:Replace})
+    doreplace(mx,margs(mx)...)
+end
 
 #typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
 
+function doreplace{T<:Rules}(mx,expr,r::T,inlevelspec)
+    levelspec = make_level_specification(expr,inlevelspec)
+    replace(levelspec,expr,Rule_to_PRule(r))
+end
+
 doreplace(mx,a,b) = mx
+
+doreplace(mx,args...) = mx
 
 #### ReplaceAll
 

@@ -66,11 +66,15 @@ type LevelAction
     data::Any    
     doaction::Function
     levelind::Int
-    subexprind::Int
+    subind::Int
     parent::Any
 end
 
 LevelAction(data,doaction) = LevelAction(data,doaction,0,0,Null)
+
+has_level_zero(spec::LevelSpecAtDepth) = spec.level == 0
+has_level_zero(spec::LevelSpecToDepth) = spec.level == 0
+has_level_zero(spec::LevelSpecRange) = spec.start == 0
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
     if action.levelind == spec.level
@@ -79,7 +83,7 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
         action.parent = expr
         for i in 1:length(expr)
             action.levelind += 1
-            action.subexprind = i
+            action.subind = i
             traverse_levels!(action,spec,expr[i])
             action.levelind -= 1            
         end
@@ -91,8 +95,10 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
         action.doaction(action.data, expr)
     end
     if action.levelind < spec.level
+        action.parent = expr
         for i in 1:length(expr)
             action.levelind += 1
+            action.subind = i
             traverse_levels!(action,spec,expr[i])
             action.levelind -= 1            
         end
@@ -104,8 +110,10 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
         action.doaction(action.data, expr)
     end
     if action.levelind < spec.stop
+        action.parent = expr
         for i in 1:length(expr)
             action.levelind += 1
+            action.subind = i
             traverse_levels!(action,spec,expr[i])
             action.levelind -= 1            
         end
@@ -115,8 +123,10 @@ end
 function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
     action.doaction(action.data, expr)
     if isa(expr,Mxpr)
+        action.parent = expr
         for i in 1:length(expr)
             action.levelind += 1
+            action.subind = i
             traverse_levels!(action,spec,expr[i])
             action.levelind -= 1            
         end

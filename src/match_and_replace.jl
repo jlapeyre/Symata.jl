@@ -233,19 +233,32 @@ function replace(ex::ExSym, r::PRule)
     res === false ? ex : res    
 end
 
-# type ReplaceData
-#     rule
-# end
+type ReplaceData
+    rule
+end
 
-# function replace(levelspec::LevelSpec, ex::ExSym, r::PRule)
-# #    data = ReplaceData(rule)
-#     action = LevelAction(data, function  (data, expr)
-#                          res = patrule(expr,data.rule.lhs, data.rule.rhs)
-#                          res !== false && return res
-#                          return expr
-#                          end)
-#     traverse_levels!(action,levelspec,ex)
-# end
+function replace(levelspec::LevelSpec, ex::ExSym, r::PRule)
+    data = ReplaceData(r)
+    action = LevelAction(data,
+                         function (data, expr)
+                            action.levelind == 0 && return 
+                         res = patrule(expr,data.rule.lhs, data.rule.rhs)
+                         if res !== false
+                             action.parent[action.subind] = res
+                         else
+                            nothing
+                         end 
+                         end)
+    exnew = deepcopy(ex)  # This is expensive. We need something more efficient.
+    if has_level_zero(levelspec)
+        res = patrule(exnew,r.lhs, r.rhs)
+        if res !== false
+            exnew = res
+        end
+    end
+    traverse_levels!(action,levelspec,exnew)
+    unsetfixed(exnew)
+end
 
 
 function replacefail(ex::ExSym, r::PRule)
