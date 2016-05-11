@@ -226,7 +226,31 @@ T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [x_,y_]) == [[1,2],[5,4
 # Cases returns expression with head List, not the head of input expression.
 T Cases(f(1,2,3,a), _Symbol) == [a]
 
-ClearAll(a,f,y)
+# Level specifications
+expr = f(1,2,3,a,[b],d,[g,f, h(a, h(b)) , h(h(c))] )
+T Cases(expr , _Symbol) == [a,d]
+T Cases(expr , _Symbol, 1) == [a,d]
+T Cases(expr , _Symbol, [1]) == [a,d]
+T Cases(expr , _Symbol, 2) == [a,b,d,g,f]
+T Cases(expr , _Symbol, 3) == [a,b,d,g,f,a]
+T Cases(expr , _Symbol, 4) == [a,b,d,g,f,a,b,c]
+T Cases(expr , _Symbol, 5) == [a,b,d,g,f,a,b,c]
+T Cases(expr , _Symbol, Infinity) == [a,b,d,g,f,a,b,c]
+T Cases(expr , _Symbol, [2]) == [b,g,f]
+T Cases(expr , _Symbol, [3]) == [a]
+T Cases(expr , _Symbol, [4]) == [b,c]
+T Cases(expr , _Symbol, [5]) == []
+T Cases(expr , _Symbol, [2,3]) == [b,g,f,a]
+T Cases(expr , _Symbol, [2,4]) == [b,g,f,a,b,c]
+T Cases(expr , _Symbol, -1) ==  Cases(expr , _Symbol, Depth(expr) - 1)
+T Cases(expr , _Symbol, -2) ==  Cases(expr , _Symbol, Depth(expr) - 2)
+T Cases(expr , _Symbol, -3) ==  Cases(expr , _Symbol, Depth(expr) - 3)
+
+T Cases(expr , _Symbol, [-1]) ==  Cases(expr , _Symbol, [Depth(expr) - 1])
+T Cases(expr , _Symbol, [-2]) ==  Cases(expr , _Symbol, [Depth(expr) - 2])
+T Cases(expr , _Symbol, [-3]) ==  Cases(expr , _Symbol, [Depth(expr) - 3])
+
+ClearAll(a,b,c,d,g,f,h,y,expr)
 
 #### Except
 

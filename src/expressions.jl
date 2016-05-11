@@ -230,7 +230,10 @@ end
 
 @sjdoc Cases "
 Cases(expr,pattern) returns the elements in expr that match the pattern.
-Matching on only one level is supported. Cases(pattern) can be used as the head of an expression, as an operator.
+
+Cases(expr,pattern,levelspec) returns the elements in expr on levels specified by levelspec that match the pattern.
+
+Cases(pattern) can be used as the head of an expression, as an operator.
 eg: getints = Cases(_Integer). The head of the returned object is the same as that of expr.
 "
 
@@ -248,7 +251,7 @@ function sjcopy(x)
 end
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
-@doap function Cases(expr,pat)
+@doap function Casesold(expr,pat)
     args = margs(expr)
     nargs = newargs()
     jp = just_pattern(pat)
@@ -258,14 +261,46 @@ end
         (gotmatch,capt) = cmppat(ex,jp,capt)
         gotmatch ? push!(nargs,sjcopy(ex)) : nothing
     end
-#    mxpr(mhead(expr),nargs)  # Cases returns an expression with head List, not the head of expr.
     mxpr(:List,nargs) 
 end
 
+# Allocating outside loop and sending Dict as arg is 3x faster in one test
+
+type CasesData
+    nargs
+    jp
+    capt
+end
+
+@doap function Cases(expr,pat)
+    nargs = newargs()
+    jp = just_pattern(pat)
+    capt = capturealloc()
+    data = CasesData(nargs,jp,capt)
+    action = LevelAction(data, function (data, expr)
+                            (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                            gotmatch ? push!(data.nargs,sjcopy(expr)) : nothing
+                         end)
+    traverse_levels!(action,LevelSpecAtDepth(1),expr)
+    mxpr(:List,nargs) 
+end
+
+function _doCases(levelspec::LevelSpec, expr ,pat)
+    nargs = newargs()
+    jp = just_pattern(pat)
+    capt = capturealloc()
+    data = CasesData(nargs,jp,capt)
+    action = LevelAction(data, function (data, expr)
+                            (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                            gotmatch ? push!(data.nargs,sjcopy(expr)) : nothing
+                         end)
+    traverse_levels!(action,levelspec,expr)
+    mxpr(:List,nargs)     
+end
+
 @doap function Cases(expr,pat,inlevelspec)
-    levelspec = make_level_specification(inlevelspec)
-    warn("Level specs not yet implemented for Cases")
-    Null
+    levelspec = make_level_specification(expr, inlevelspec)
+    _doCases(levelspec,expr,pat)
 end
 
 # for operator form.
