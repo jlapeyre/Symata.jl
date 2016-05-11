@@ -44,8 +44,7 @@ T Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
 
 ####  MellinTransform
 
-# FIXME infinity unicode ∞ is not translated to Infinity on reading
-T MellinTransform(Exp(-x),x,s) == [Γ(s),[0,Infinity],True]
+T MellinTransform(Exp(-x),x,s) == [Gamma(s),[0,Infinity],True]
 
 ####  InverseMellinTransform
 

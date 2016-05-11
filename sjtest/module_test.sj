@@ -35,13 +35,13 @@ T Chop(f(2.0) + 0.36651292058166435) == 0
 #  Module([m = m0, n = n0, ntmp, cnt = 0],
 #   (While(n != 0, (Increment(cnt), ntmp = n, n = Mod(m, n), m = ntmp, Println(m," ",n), If(cnt>10,Break()) )), m))
 
-# FIXME. Should return y + 1, but returns 2
-# ReplaceAll( incr(y), incr(x_) -> Module([y = 1], x + y))
+ClearAll(incr,x,y)
 
- ClearAll(gcd, f,g,x,y)
-###
+T ReplaceAll( incr(y), incr(x_) => Module([y = 1], x + y)) == y + 1
 
- f(x_) := Module([], (If(x < 10, x*f(x+1), x),))
+ClearAll(gcd, incr, f,g,x,y)
+
+f(x_) := Module([], (If(x < 10, x*f(x+1), x),))
 T f(1) == 3628800
 T f(9) == 90
 T f(10) == 10

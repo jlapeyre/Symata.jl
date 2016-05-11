@@ -49,6 +49,12 @@ T  CombSimp(Rewrite(CatalanNumber(n+1)/CatalanNumber(n), Binomial)) ==  2(1 + 2n
 # FIXME. A number is converted to a float
 #T  Rewrite(CatalanNumber(I), Gamma) == (0.183457 + 0.983028I)*(Pi^(-1/2))*(Gamma(2 + I)^(-1))*Gamma(1/2 + I)
 
+#### EllipticE
+
+T EllipticE(0) == (1/2)*Pi
+T Series(EllipticE(z,m), [z,0,6]) == z + (-1/6)*m*(z^3) + ((1/30)*m + (-1/40)*(m^2))*(z^5) + Order((z^6),[z,0])
+T Chop(EllipticE(2.0 - I) - (0.991052601328069 + 0.8187942139560901I)) == 0
+
 #### EllipticF
 
 T Series(EllipticF(z,m), [z,0,6]) == z + (1/6)*m*(z^3) + ((-1/30)*m + (3/40)*(m^2))*(z^5) + Order((z^6),[z,0])
