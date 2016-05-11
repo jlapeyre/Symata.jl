@@ -90,9 +90,9 @@ T Count(Range(10), 2) == 1
 T Count(Range(10), _Integer) == 10
 T Count(Range(10), b_Integer) == 10
 T Count(Range(10), _AbstractString) == 0
-# We translate 'String' to avoid Julia's warning
+# We translate 'String' to avoid Julia warning
 T Count(Range(10), _String) == 0
-# For the moment, we don't consider Integer's to be Real. Real is translated to AbstractFloat
+# For the moment, we do not consider Integer to be Real. Real is translated to AbstractFloat
 T Count([1,2,3.0] , _Real) == 1
 T Count([1,2,3.0] , _Float) == 1
 
