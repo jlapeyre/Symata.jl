@@ -292,7 +292,9 @@ list or rules. If given explicitly, the rules should be given as List(...) rathe
 
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 
-doreplaceall{T<:Rules}(mx,expr,r::T) = replaceall(expr,Rule_to_PRule(r))
+function doreplaceall{T<:Rules}(mx,expr,r::T)
+    replaceall(expr,Rule_to_PRule(r))
+end
 
 function doreplaceall(mx,expr,rs::Mxpr{:List})
     rsa = Array(PRule,0)

@@ -222,13 +222,17 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
 end
 
 # Same as patrule, except if match fails, return original expression
-function tpatrule(ex,pat1,pat2)
-    res = patrule(ex,pat1,pat2)
-    res === false ? ex : res
-end
+# function tpatrule(ex,pat1,pat2)
+#     res = patrule(ex,pat1,pat2)
+#     res === false ? ex : res
+# end
 
 # apply replacement rule r to expression ex
-replace(ex::ExSym, r::PRule) = tpatrule(ex,r.lhs,r.rhs)
+function replace(ex::ExSym, r::PRule)
+    res = patrule(ex,r.lhs,r.rhs)
+    res === false ? ex : res    
+#    tpatrule(ex,r.lhs,r.rhs)
+end
 
 function replacefail(ex::ExSym, r::PRule)
     patrule(ex,r.lhs,r.rhs)
