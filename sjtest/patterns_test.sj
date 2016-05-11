@@ -210,6 +210,18 @@ T dstring([1,2.0,3,"dog"]) == [1,2.0,3]
 T Cases([f(1),2.0,3,f("dog")], f(x_)) == [f(1),f("dog")]
 T Cases([f(1),2.0,3,f("dog")], f(x_String)) == [f("dog")]
 
+T Cases([1, 1, f(a), 2, 3, y, f(8), 9, f(10)], _Integer) == [1,1,2,3,9]
+T Cases([1, 1, f(a), 2, 3, y, f(8), 9, f(10)], Except(_Integer)) == [f(a),y,f(8),f(10)]
+# FIXME, Implement this:
+#T Cases([1, 1, f(a), 2, 3, y, f(8), 9, f(10)], f(x_) => x)
+T Cases(_Integer)([1, 1, f(a), 2, 3, y, f(8), 9, f(10)]) == [1,1,2,3,9]
+# FIXME. This should match all lists with two elements
+# Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) --> [[3,3],[a,a]]
+# Giving explicit names makes it work, but ought not be neccessary
+T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [x_,y_]) == [[1,2],[5,4],[3,3],[a,a]]
+
+ClearAll(a,f,y)
+
 #### Except
 
 T MatchQ( "cat",  Except("dog"))

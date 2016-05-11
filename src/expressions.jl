@@ -500,10 +500,13 @@ eg: getints = Cases(_Integer). The head of the returned object is the same as th
 @sjexamp( Cases,
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
 
-set_pattributes("Cases")
-function apprules(mx::Mxpr{:Cases})
-    do_Cases(mx,margs(mx)...)
-end
+
+
+@mkapprule Cases
+# function apprules(mx::Mxpr{:Cases})
+#     do_Cases(mx,margs(mx)...)
+# end
+# set_pattributes("Cases")
 
 function sjcopy{T<:Union{AbstractString,Symbol}}(s::T)
     identity(s)
@@ -514,7 +517,7 @@ function sjcopy(x)
 end
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
-function do_Cases(mx,expr,pat)
+@doap function Cases(expr,pat)
     args = margs(expr)
     nargs = newargs()
     jp = just_pattern(pat)
