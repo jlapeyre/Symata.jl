@@ -25,8 +25,10 @@ T  !( 3 < 2 < 1)
 
 T  (1 < 2 < b) == (2 < b)
 
-# T  (1 < 2 < b < c == c < 4 < 10) == (2 < b && (b < c) && (c < 4))  # FIXME. This should be true. it returns unevaluated
 
+T ((1 < 2 < b < c == c < 4 < 10)) == ((2 < b) && (b < c) && (c < 4))
+
+ClearAll(b,c)
 #  1 < x < 1  --> 1 < x && x < 1).   FIXME. this should return false.
 
 # This, at least, works.
