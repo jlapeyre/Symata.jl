@@ -237,13 +237,7 @@ eg: getints = Cases(_Integer). The head of the returned object is the same as th
 @sjexamp( Cases,
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
 
-
-
 @mkapprule Cases
-# function apprules(mx::Mxpr{:Cases})
-#     do_Cases(mx,margs(mx)...)
-# end
-# set_pattributes("Cases")
 
 function sjcopy{T<:Union{AbstractString,Symbol}}(s::T)
     identity(s)
@@ -260,11 +254,18 @@ end
     jp = just_pattern(pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
-        (gotmatch,capt) = cmppat(args[i],jp,capt)
-        gotmatch ? push!(nargs,sjcopy(args[i])) : nothing
+        ex = args[i]
+        (gotmatch,capt) = cmppat(ex,jp,capt)
+        gotmatch ? push!(nargs,sjcopy(ex)) : nothing
     end
-    rmx = mxpr(mhead(expr),nargs)
-    return rmx
+#    mxpr(mhead(expr),nargs)  # Cases returns an expression with head List, not the head of expr.
+    mxpr(:List,nargs) 
+end
+
+@doap function Cases(expr,pat,inlevelspec)
+    levelspec = make_level_specification(inlevelspec)
+    warn("Level specs not yet implemented for Cases")
+    Null
 end
 
 # for operator form.

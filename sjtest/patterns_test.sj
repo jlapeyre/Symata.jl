@@ -197,6 +197,9 @@ ClearAll(x)
 T  countprimes(Range(100)) == 25
    ClearAll(countprimes)
 
+
+#### Cases
+
 # Use a Julia function to list the perfect squares less than 100.
 T  Cases(Range(100), _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
 
@@ -219,6 +222,9 @@ T Cases(_Integer)([1, 1, f(a), 2, 3, y, f(8), 9, f(10)]) == [1,1,2,3,9]
 # Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) --> [[3,3],[a,a]]
 # Giving explicit names makes it work, but ought not be neccessary
 T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [x_,y_]) == [[1,2],[5,4],[3,3],[a,a]]
+
+# Cases returns expression with head List, not the head of input expression.
+T Cases(f(1,2,3,a), _Symbol) == [a]
 
 ClearAll(a,f,y)
 
