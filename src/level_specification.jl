@@ -66,16 +66,20 @@ type LevelAction
     data::Any    
     doaction::Function
     levelind::Int
+    subexprind::Int
+    parent::Any
 end
 
-LevelAction(data,doaction) = LevelAction(data,doaction,0)
+LevelAction(data,doaction) = LevelAction(data,doaction,0,0,Null)
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
     if action.levelind == spec.level
         action.doaction(action.data, expr)
     elseif action.levelind < spec.level
+        action.parent = expr
         for i in 1:length(expr)
             action.levelind += 1
+            action.subexprind = i
             traverse_levels!(action,spec,expr[i])
             action.levelind -= 1            
         end

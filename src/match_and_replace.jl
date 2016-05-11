@@ -231,8 +231,22 @@ end
 function replace(ex::ExSym, r::PRule)
     res = patrule(ex,r.lhs,r.rhs)
     res === false ? ex : res    
-#    tpatrule(ex,r.lhs,r.rhs)
 end
+
+# type ReplaceData
+#     rule
+# end
+
+# function replace(levelspec::LevelSpec, ex::ExSym, r::PRule)
+# #    data = ReplaceData(rule)
+#     action = LevelAction(data, function  (data, expr)
+#                          res = patrule(expr,data.rule.lhs, data.rule.rhs)
+#                          res !== false && return res
+#                          return expr
+#                          end)
+#     traverse_levels!(action,levelspec,ex)
+# end
+
 
 function replacefail(ex::ExSym, r::PRule)
     patrule(ex,r.lhs,r.rhs)
