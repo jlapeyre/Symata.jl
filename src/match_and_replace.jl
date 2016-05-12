@@ -244,14 +244,17 @@ function replace(levelspec::LevelSpec, ex::ExSym, r::PRule)
                             action.levelind == 0 && return 
                          res = patrule(expr,data.rule.lhs, data.rule.rhs)
                          if res !== false
+#                         println("expr: $expr")
+#                         println("subind: ", action.subind, ". res = $res, parent = ", action.parent)
                              action.parent[action.subind] = res
+#                             println("Done setting.")
                          else
                             nothing
                          end 
                          end)
     exnew = deepcopy(ex)  # This is expensive. We need something more efficient.
     if has_level_zero(levelspec)
-        res = patrule(exnew,r.lhs, r.rhs)
+        res = patrule(exnew, r.lhs, r.rhs)
         if res !== false
             exnew = res
         end
