@@ -71,7 +71,7 @@ You can do tab completion to see a list of functions and symbols.
 
 #### Finding Help and Examples
 
-This documentation can be printed from within SJulia by entering `?
+The documentation can be printed from within SJulia by entering `?
 SymName` at the `sjulia` prompt.  `Help(Symname)` prints the same
 documentation. For many SJulia functions, the SymPy docstring is
 printed along with the SJulia documentation.
