@@ -136,6 +136,16 @@ T Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
 # Level specification
 T Replace(1 + x^2, x^2 => a + b, [1]) == 1 + a + b
 
+T Replace(1 + a + f(a) + g(f(a)), a => b, 0) == 1 + a + f(a) + g(f(a))
+T Replace(1 + a + f(a) + g(f(a)), a => b, 1) == 1 + b + f(a) + g(f(a))
+T Replace(1 + a + f(a) + g(f(a)), a => b, 2) == 1 + b + f(b) + g(f(a))
+T Replace(1 + a + f(a) + g(f(a)), a => b, 3) == 1 + b + f(b) + g(f(b))
+T Replace(1 + a + f(a) + g(f(a)), a => b, [1]) == 1 + b + f(a) + g(f(a))
+T Replace(1 + a + f(a) + g(f(a)), a => b, [2]) == 1 + a + f(b) + g(f(a))
+T Replace(1 + a + f(a) + g(f(a)), a => b, [3]) == 1 + a + f(a) + g(f(b))
+
+ClearAll(a,b,f,)
+
 T ReplaceAll( x + y , List(x => a, y => b)) == a + b
 
  result = ReplaceAll( [x,x,x,x,x],  x  => RandomReal() )

@@ -85,10 +85,8 @@ function length_for_level(mx::Mxpr)
     return length(mx)
 end
 
-function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
-    if action.levelind == spec.level
-        action.doaction(action.data, expr)
-    elseif action.levelind < spec.level
+macro travcode()
+    return quote
         elen = length_for_level(expr)
         if elen > 0
             action.parent = expr
@@ -99,6 +97,24 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
                 action.levelind -= 1            
             end
         end
+    end
+end
+
+function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
+    if action.levelind == spec.level
+        action.doaction(action.data, expr)
+    elseif action.levelind < spec.level
+        @travcode
+        # elen = length_for_level(expr)
+        # if elen > 0
+        #     action.parent = expr
+        #     for i in 1:elen
+        #         action.levelind += 1
+        #         action.subind = i
+        #         traverse_levels!(action,spec,expr[i])
+        #         action.levelind -= 1            
+        #     end
+        # end
     end
 end
 
@@ -107,16 +123,17 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
         action.doaction(action.data, expr)
     end
     if action.levelind < spec.level
-        elen = length_for_level(expr)
-        if elen > 0
-            action.parent = expr
-            for i in 1:elen
-                action.levelind += 1
-                action.subind = i
-                traverse_levels!(action,spec,expr[i])
-                action.levelind -= 1            
-            end
-        end        
+        @travcode
+        # elen = length_for_level(expr)
+        # if elen > 0
+        #     action.parent = expr
+        #     for i in 1:elen
+        #         action.levelind += 1
+        #         action.subind = i
+        #         traverse_levels!(action,spec,expr[i])
+        #         action.levelind -= 1            
+        #     end
+        # end 
     end
 end
 
@@ -125,37 +142,31 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
         action.doaction(action.data, expr)
     end
     if action.levelind < spec.stop
-        elen = length_for_level(expr)
-        if elen > 0
-            action.parent = expr
-            for i in 1:elen
-                action.levelind += 1
-                action.subind = i
-                traverse_levels!(action,spec,expr[i])
-                action.levelind -= 1            
-            end
-        end                
+        @travcode        
+        # elen = length_for_level(expr)
+        # if elen > 0
+        #     action.parent = expr
+        #     for i in 1:elen
+        #         action.levelind += 1
+        #         action.subind = i
+        #         traverse_levels!(action,spec,expr[i])
+        #         action.levelind -= 1            
+        #     end
+        # end                
     end
 end
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
     action.doaction(action.data, expr)
-    elen = length_for_level(expr)
-    if elen > 0
-        action.parent = expr
-        for i in 1:elen
-            action.levelind += 1
-            action.subind = i
-            traverse_levels!(action,spec,expr[i])
-            action.levelind -= 1            
-        end
-    end                    
-    # if isa(expr,Mxpr)
-    #     for i in 1:length_for_level(expr)
+    @travcode
+    # elen = length_for_level(expr)
+    # if elen > 0
+    #     action.parent = expr
+    #     for i in 1:elen
     #         action.levelind += 1
     #         action.subind = i
     #         traverse_levels!(action,spec,expr[i])
     #         action.levelind -= 1            
     #     end
-    # end
+    # end                    
 end
