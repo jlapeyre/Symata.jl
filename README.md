@@ -90,7 +90,6 @@ re-evaluated.
 
 Run the test suite from the `sjulia` prompt with `Tests()`.
 This runs tests in [the directory sjtest.](sjtest/)
-in these tests.
 
 `Pkg.test("SJulia")` runs the older test suite. It is not being updated and is less complete
 than the suite described above. For reasons explained in the code, the
