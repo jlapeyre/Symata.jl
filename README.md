@@ -1,6 +1,6 @@
 ## Symbolic mathematics language
 
-### What SJulia is (or wants to be)
+### What SJulia is
 
 1. SJulia is a language for symbolic computations and mathematics, where, for
 the most part, "mathematics" means what it typically
