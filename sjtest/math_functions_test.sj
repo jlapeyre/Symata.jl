@@ -84,7 +84,7 @@ T Gamma(0) == ComplexInfinity
 T Gamma(1) == 1
 T Gamma(4) == 6
 T Chop(Gamma(1,.5) - 0.6065306597126334) == 0
-#T isapprox(Gamma(.5), 1.772453850905516)  don't know if this is worth the trouble
+#T isapprox(Gamma(.5), 1.772453850905516)  do not know if this is worth the trouble
 T Gamma(1,2) == E^(-2)
 T Gamma(a,0) == Gamma(a)
 T Gamma(a, Infinity) == 0

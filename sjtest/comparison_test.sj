@@ -93,7 +93,7 @@ T And(False,False) == False
 T And(True,True,True) == True
 
 # Test flatten! with And
-T Args(a || b || c || d ) == [a,b,c,d]
+T Args(a && b && c && d ) == [a,b,c,d]
 
  ClearAll(a,b,c,d,f,x)
 
