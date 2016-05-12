@@ -63,7 +63,7 @@ end
 #### Structure for performing action at levels
 
 type LevelAction
-    data::Any    
+    data::Any
     doaction::Function
     levelind::Int
     subind::Int
@@ -94,7 +94,7 @@ macro travcode()
                 action.levelind += 1
                 action.subind = i
                 traverse_levels!(action,spec,expr[i])
-                action.levelind -= 1            
+                action.levelind -= 1
             end
         end
     end
@@ -105,16 +105,6 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
         action.doaction(action.data, expr)
     elseif action.levelind < spec.level
         @travcode
-        # elen = length_for_level(expr)
-        # if elen > 0
-        #     action.parent = expr
-        #     for i in 1:elen
-        #         action.levelind += 1
-        #         action.subind = i
-        #         traverse_levels!(action,spec,expr[i])
-        #         action.levelind -= 1            
-        #     end
-        # end
     end
 end
 
@@ -124,16 +114,6 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
     end
     if action.levelind < spec.level
         @travcode
-        # elen = length_for_level(expr)
-        # if elen > 0
-        #     action.parent = expr
-        #     for i in 1:elen
-        #         action.levelind += 1
-        #         action.subind = i
-        #         traverse_levels!(action,spec,expr[i])
-        #         action.levelind -= 1            
-        #     end
-        # end 
     end
 end
 
@@ -142,31 +122,11 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
         action.doaction(action.data, expr)
     end
     if action.levelind < spec.stop
-        @travcode        
-        # elen = length_for_level(expr)
-        # if elen > 0
-        #     action.parent = expr
-        #     for i in 1:elen
-        #         action.levelind += 1
-        #         action.subind = i
-        #         traverse_levels!(action,spec,expr[i])
-        #         action.levelind -= 1            
-        #     end
-        # end                
+        @travcode
     end
 end
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
     action.doaction(action.data, expr)
     @travcode
-    # elen = length_for_level(expr)
-    # if elen > 0
-    #     action.parent = expr
-    #     for i in 1:elen
-    #         action.levelind += 1
-    #         action.subind = i
-    #         traverse_levels!(action,spec,expr[i])
-    #         action.levelind -= 1            
-    #     end
-    # end                    
 end
