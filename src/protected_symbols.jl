@@ -93,6 +93,8 @@ set_pattributes(["O","OO","OOO","OOOO","OOOOO","OOOOOO","OOOOOOO","OOOOOOOO","OO
 
 set_pattributes(["System", "Main"], :Protected)
 
+# True and False are actually parsed as Julia true and false. But, this is a quick way to get TAB completion for them
+set_pattributes(["True", "False"], :Protected)
 
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","AtomQ",

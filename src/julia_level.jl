@@ -6,6 +6,13 @@ export Expand
 Cos(x) = apprules(mxpr(:Cos,x))
 export Cos
 
+Factor(mx::Mxpr) = apprules(mxpr(:Factor,mx))
+Factor(x) = x
+export Factor
+
+Integrate(mx::Mxpr,symorlist) = apprules(mxpr(:Integrate,mx,symorlist))
+export Integrate
+
 Pi = :Pi
 export Pi
 

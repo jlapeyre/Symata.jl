@@ -1,4 +1,4 @@
-const SJULIA_VERSION = v"0.0.5"
+const SJULIA_VERSION = v"0.0.6"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
@@ -10,6 +10,8 @@ const Indeterminate = :Indeterminate
 
 const I = complex(0,1)
 
+setsymval(:True, true)
+setsymval(:False, true)
 setsymval(:Infinity, Infinity)
 setsymval(:ComplexInfinity, ComplexInfinity)
 mergesyms(Infinity,:nothing)

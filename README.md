@@ -1,16 +1,36 @@
 ## Symbolic mathematics language
 
-SJulia is a language for symbolic computation.  It is largely modeled
-on the pattern matching and evaluation sequence of
+### What SJulia is (or wants to be)
+
+1. SJulia is a language for symbolic computations and mathematics, where, for
+the most part, "mathematics" means what it typically
+does for a scientist or engineer.
+
+2. It is a language based mostly on expressions, on "evaluating" and
+rewriting them, like Wolfram, Maple, or Maxima. It is neither a language,
+nor an extension of a language, that is mostly procedural, or designed
+around data types and functions, or a hierarchy of classes, etc.,
+like C or Python or Java. Nor is it language like Sage;
+that is, one meant to provide a unifying interface to a number of
+mathematics languages with various programming models.
+
+3. It is meant to be useful to people who do not like to program computers, as
+well as those who do. The former includes people who prefer not to
+think about classes, methods, objects, dispatch, stack traces, etc.
+
+SJulia is largely modeled on the pattern matching and evaluation sequence of
 Mathematica. Evaluation, pattern matching, flow control, etc. are
 written in Julia. Much of the mathematics and symbolic manipulation is
 achieved by wrapping SymPy. There are more than 300 functions
-implemented, including integration, tranformation of special
+implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. The best places for examples of what works (and
 what does not), are [the test directory](sjtest/), and, at the SJulia
 prompt, the online help, `? Topic`, with TAB completion, and regex
 search `h"word"`.
+
+The core of SJulia is not complete. But, a large number of features are implemented;
+enough to be useful.
 
 ### Installing
 
@@ -30,7 +50,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 
 You can test it with `Pkg.test("SJulia")`.
 
-#### SJulia REPL mode
+### SJulia REPL mode
 
 There is an SJulia command line (REPL) mode.  To use the mode, there
 is an executable [`sjulia`](sjulia) included in top level directory of this distribution. It is a (UNIX
@@ -49,16 +69,22 @@ Toggle between Julia and SJulia modes by typing `=` as the first character on a 
 In SJulia mode, the input is not interpreted as Julia expressions, but rather SJulia expressions.
 You can do tab completion to see a list of functions and symbols.
 
-#### SymPy
+#### Finding Help and Examples
 
-Functions that call SymPy work as follows (many more examples are in the test directory). This SymPy call
-```python
-integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
-```
-corresponds to this SJulia expression
-```julia
-Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
-```
+This documentation can be printed from within SJulia by entering `?
+SymName` at the `sjulia` prompt.  `Help(Symname)` prints the same
+documentation. For many SJulia functions, the SymPy docstring is
+printed along with the SJulia documentation.
+
+Try `Help()`. Type `h"topic"` to search for items containing the
+string `"topic"`.  Hit TAB at the command line REPL for a list of all
+builtin symbols. (i.e. variables and functions) Symbols that are
+associated with some functionality can be listed with
+`BuiltIns()`. Type `Example()` to see a list of topics with examples.
+Type `Example(topic)` to run the examples. (But, far more examples are
+in the test directory). The input strings from the examples are pushed
+to the history so that they can be recalled and edited and
+re-evaluated.
 
 ##### Tests
 
@@ -70,22 +96,7 @@ in these tests.
 than the suite described above. For reasons explained in the code, the
 tests in [sjtest](sjtest/) are preferred over those in [test](test/).
 
-### Finding Help and Examples
-
-This documentation can be printed from within SJulia by entering `? SymName`
-at the `sjulia` prompt.  `Help(Symname)` prints the same
-documentation. This allows you to type `@ex Help(SymName)` from Julia.
-For many SJulia functions, the SymPy docstring is printed along with the SJulia documentation.
-
-Try `Help()`. Type `h"topic"` to search for items containing the
-string `"topic"`.  Hit TAB at the command line REPL for a list of all
-builtin symbols. (i.e. variables and functions) Symbols that are
-associated with some functionality can be listed with
-`BuiltIns()`. Type `Example()` to see a list of topics with examples.
-Type `Example(topic)` to run the examples. (But, far more examples are in the test directory). The input strings from the
-examples are pushed to the history so that they can be recalled and edited and re-evaluated.
-
-### A few examples
+#### A few examples
 
 Here are some examples of the SJulia mode.
 
@@ -101,10 +112,21 @@ sjulia> addone(y)
 1 + y
 sjulia> g(x_) := Module([a,b],(a=1,b=3,a+b+x))  # lexically scoped local vars
 sjulia> gt5(x_) := x > 5     # conditions on patterns
-sjulia> g(x_FloatingPoint:?(gt5)) = 1   # only matches floating point numbers > 5
+sjulia> g(x_Float:?(gt5)) = 1   # only matches floating point numbers > 5
 sjulia> h(x_^2) := x    # Structural matching
 sjulia> h((a+b)^2)
 a + b
+```
+
+#### SymPy
+
+Functions that call SymPy work as follows (many more examples are in the test directory). This SymPy call
+```python
+integrate(exp(-t) * t**(a-1), (t,0,oo), conds='none')
+```
+corresponds to this SJulia expression
+```julia
+Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none")
 ```
 
 #### Pattern matching.
@@ -140,11 +162,11 @@ is done.
 To recall previous lines of input, use `O`, `OO`, etc. Or use `Out(n)` for the `n`th output.
 Type `? HistoryLength` to see how to control saving output.
 
-`BigIntInput(True)` enables making all input integers arbitary precision.
+`BigIntInput(True)` enables making all input integers arbitrary precision.
 
 You can use `Save` and `Get` to write and read SJulia code.
 
-##### Rules
+##### Rules and Assignment
 
 You can use the symbols `:>` for `RuleDelayed`, `=>` for `Rule`, `^:=` for `UpSetDelayed`,
 `=` for `Set`, `:=` for `SetDelayed`, and `^=` for `UpSet`.
@@ -158,7 +180,6 @@ sjulia> g(f(x_)) ^= x^2
 sjulia > g(f(z))
  z ^ 2
 ```
-
 
 #### Results on evaluation and efficiency
 
@@ -198,16 +219,15 @@ elapsed time: 0.167145648 seconds (16778920 bytes allocated)
 
 #### Fixed-point evaluation
 
-Like, Mma, SJulia does evaluation to a fixed point, always effectively re-evaluating in the
-current environment. There are pros and cons to this approach. In Mma there are a host
-of `HoldXXX` symbols to prevent evaluation, and in
-[Maxima] (http://maxima.sourceforge.net/) and Maple a menagerie of `eval`
-functions and options to force it.
+SJulia does evaluation to a fixed point, always effectively re-evaluating in the
+current environment.
 
-Here is SJulia doing expansion with the native `ExpandA`. `ExpandA` is only for demonstration;
-The much more capable `Expand` is a frontend to a SymPy function. However the results following
-the first line below, work as well if you call `Expand`.
-We need to quickly evaluate an expression and track whether it needs to be re-evaluated:
+Here is SJulia doing expansion with the native `ExpandA`. `ExpandA` is
+only for demonstration; The much more capable `Expand` is a frontend
+to a SymPy function. However the results following the first line
+below, work as well if you call `Expand`.  We need to quickly evaluate
+an expression and track whether it needs to be re-evaluated:
+
 ```julia
 sjulia> m = ExpandA((a+b)^BI(1000));   # expand with BigInt exponent
 elapsed time: 0.008785756 seconds
@@ -256,45 +276,34 @@ elapsed time: 0.005774109 seconds
 4999950000 + d
 ```
 
-#### Alternate way to evaluate SJulia expressions
+#### Using SJulia language features directly from Julia
 
-Instead of working with the SJulia REPL (by typing `=`)
-You can get the same thing by typing
+As an experiment, a few functions can be called directly from Julia
 
 ```julia
-julia> using SJulia
-julia> @ex some SJulia expression
-julia> @ex(some expression that may look like two expressions)
+julia> Cos(3*Pi)
+-1
+
+julia> ex = Expand( (:x+:y)^3)
+x^3 + y^3 + 3x*(y^2) + 3y*(x^2)
+
+julia> Factor(ex)
+(x + y)^3
+
+julia> Integrate(:x^2, [:x,0,1])
+1/3
+
+julia> Integrate(:x^2, :x)
+(1/3)*(x^3)
+
+julia> Integrate(Cos(:x^2), :x)
+(1/8)*(2^(1/2))*(Pi^(1/2))*(Gamma(5/4)^(-1))*FresnelC(x*(2^(1/2))*(Pi^(-1/2)))*Gamma(1/4)
 ```
 
 
-Using the SJulia mode or the `@ex` macro is essentially using a language distinct
-from Julia. In particular, the evaluation sequence, and binding of symbols to
-storage is separate from Julia. But, some features allow
-using SJulia directly from Julia, and vice versa. For instance, these commands
-
-```julia
-julia> using SJulia
-julia> ex = :x + 1
-1 + x
-julia> m = Expand((:a+:b)*(:x+1)^2)
-a + b + 2*a*x + 2*b*x + a*(x^2) + b*(x^2)
-````
-
-make Julia bindings of SJulia expressions to the symbols ex and m.
-(Only Expand works this way, but other functions can be added easily.)
-
-#### More on Evaluation
-
-There are lines at the top of the file `src/mxpr.jl` to control evaluation. You can
-choose infinite or single evaluation. The test suite relies on infinite evaluation being
-enabled. Hashing and caching of expressions can also be chosen here, but it is not very
-useful at the moment.
-
-
-<!--  LocalWords:  Mathematica SymPy julia sjulia PyCall Mma src
+<!--  LocalWords:  Mathematica SymPy julia sjulia PyCall Mma src REPL
  -->
-<!--  LocalWords:  EvenQ countprimes PrimeQ HoldXXX Maxima eval
+<!--  LocalWords:  EvenQ countprimes PrimeQ HoldXXX Maxima eval regex
  -->
 <!--  LocalWords:  Mathics SJulia's backend ExpandA BigInt ClearAll
  -->
@@ -302,5 +311,9 @@ useful at the moment.
  -->
 <!--  LocalWords:  Symname addone lexically FloatingPoint cossinrule
  -->
-<!--  LocalWords:  TrigSimp Upvalues
+<!--  LocalWords:  TrigSimp Upvalues SJulia sjtest docstring builtin
+ -->
+<!--  LocalWords:  oo conds th HistoryLength BigIntInput RuleDelayed
+ -->
+<!--  LocalWords:  UpSetDelayed SetDelayed UpSet frontend FresnelC
  -->
