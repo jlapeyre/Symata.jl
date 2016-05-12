@@ -135,30 +135,6 @@ apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
 symjlength(mx::Mxpr) = length(margs(mx))
 symjlength(x) = length(x)
 
-#### LeafCount
-
-@sjdoc LeafCount "
-LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
-This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
-A more accurate name is NodeCount.
-"
-apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
-
-#### ByteCount
-
-@sjdoc ByteCount "
-ByteCount(expr) gives number of bytes in expr.
-"
-apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
-
-#### Depth
-
-@sjdoc Depth "
-Depth(expr) gives the maximum number of indices required to specify
-any part of expr, plus 1.
-"
-apprules(mx::Mxpr{:Depth}) = depth(mx[1])
-
 #### Part
 
 @sjdoc Part "
@@ -671,48 +647,6 @@ CurrentContext() returns the name of the current context.
 @doap CurrentContext() = string(get_current_context_name())
 
 
-#### Module
-
-@sjdoc Module "
-Module creates a lexical scope block for variables. Warning, this is broken
-in the sense that nested calls to a Module are not supported.
-"
-@sjexamp( Module,
-         ("ClearAll(f,a)",""),
-         ("f(x_) := Module([a],(a=1, a+x))","","This module has local variable 'a'"),
-         ("f(3)","4"),
-         ("a","a","The global variable 'a' is not affected."))
-
-
-@mkapprule Module  :nargs => 1:2
-
-do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body::Mxpr{:CompoundExpression}) = localize_module!(mx)
-
-do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body) = localize_module!(mxprcf(:Module,vars,mxprcf(:CompoundExpression, body)))
-
-# localizing is done above during setting the rule.
-# LModule is "localized module"
-# This is a quick way to implement Modules
-# The localization happens when they are set and they are
-# transformed into LModules. The LModule is evaluated here
-# and local syms are removed afterwards.
-#
-# TODO: Its probably better to have an apprule for Module which
-# does the conversion to LModule, this is more robust than doing
-# it during Set and SetDelay... and then later, an even better
-# implementation.
-function apprules(mx::Mxpr{:LModule})
-    body = mx[1]
-    vars = margs(body[1])
-    res = doeval(body)
-    for v in vars
-        delete_sym(v)
-    end
-    if  is_Mxpr(res,:Return) # TODO: check somewhere for excess args
-        return length(res) == 0 ? Null : res[1]
-    end
-    return res
-end
 
 #### ExpandA, only a bit is implemented. Sympy Expand is more capable.
 

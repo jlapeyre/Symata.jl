@@ -68,3 +68,29 @@ function depth(mx::Mxpr)
     end
     return d + 1
 end
+
+################
+
+#### LeafCount
+
+@sjdoc LeafCount "
+LeafCount(expr) gives the number of indivisible (Part can't be taken) elements in expr.
+This amounts to counting all the Heads and all of the arguments that are not of type Mxpr.
+A more accurate name is NodeCount.
+"
+apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
+
+#### ByteCount
+
+@sjdoc ByteCount "
+ByteCount(expr) gives number of bytes in expr.
+"
+apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
+
+#### Depth
+
+@sjdoc Depth "
+Depth(expr) gives the maximum number of indices required to specify
+any part of expr, plus 1.
+"
+apprules(mx::Mxpr{:Depth}) = depth(mx[1])
