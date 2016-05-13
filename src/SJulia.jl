@@ -6,7 +6,7 @@ import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
 # For development
-export sympy, pytypeof
+export sympy, pytypeof, mxpr, canonexpr!
 
 include("sjcompat.jl")
 include("early_kernelstate.jl")
