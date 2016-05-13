@@ -37,6 +37,10 @@ T (a^2)^t == a^(2*t)
 T Part((a^t)^z,2) == z
 T Apply(List,( y + z  + 1) * ( y + z)) == [(y + z),1 + y + z]  # bug fix
 
+T Args(a^(b+c)*a^d) == [a,b + c + d]
+T Args(a^(b+c)*a^d*a) == [a,1 + b + c + d]
+T Args(a^(b+c)*a^d*a*a^3) == [a,4 + b + c + d]
+
 # FIXME: this should return true.
 # T Apply(List, a + b*a + b) == [a,b,a*b]
 
@@ -103,6 +107,7 @@ T Head(3.0 * π) == Float64
 
 
 T Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
+
 
 T testUserSyms
 

@@ -613,9 +613,9 @@ end
 # Replace n repeated terms expr by expr*x, and factors expr by expr^n
 # This assumes that terms have been ordered so that collectable
 # terms are neighboring.
-# ** collectmul! does do this: expr^n * expr^m  --> expr^(n+m) for numeric n,m. But,
-# FIXME. Here or elsewhere  expr^n * expr^m with m and or n symbolic (symbols or expressions) should
-#  also go to expr^(n+m)
+# We now used newcollectmmul! below which collects exponents
+# with m and or n symbolic (symbols or expressions)
+# expr^n * expr^m  --> expr^(n+m)
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
 collectordered!(mx::Mxpr{:Times}) = newcollectmmul!(mx)
@@ -711,12 +711,10 @@ function newcollectmmul!(mx::Mxpr)
     while n < length(a)
         is_type_less(a[n],Number) && (n += 1; continue)
         (success,fac) = _matchfacs2a(a[n],a[n+1],cumterms)
-#        println("n $n, a[n] $(a[n]), a[n+1] $(a[n+1]), suc $success, fac $fac, cumterms $cumterms")
         if success
             count = 1
             @inbounds for i in (n+1):(length(a)-1)
                 (success1,fac1) = _matchfacs2b(fac,a[i+1],cumterms)
-#                println("n $n, fac $fac, i:$i, a[i+1] $(a[i+1]), suc1 $success1, fac1 $fac1, cumterms $cumterms")
                 if success1
                     count += 1
                 else
