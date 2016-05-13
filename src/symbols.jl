@@ -376,6 +376,7 @@ the value `Null'.
 # 'Clear' a value. ie. set symbol's value to its name
 function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
     @inbounds for a in margs(mx)  # no inbounds does not work here
+        a = typeof(a) <: AbstractString ?  Symbol(a) : a
         if a == :Out
             clear_all_output()
             return Null
@@ -398,6 +399,7 @@ by UserSyms().
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
+        a = typeof(a) <: AbstractString ?  Symbol(a) : a
         checkprotect(a)
         delete_sym(a)
     end
