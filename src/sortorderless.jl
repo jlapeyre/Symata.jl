@@ -618,7 +618,7 @@ end
 #  also go to expr^(n+m)
 collectordered!(x) = x
 collectordered!(mx::Mxpr{:Plus}) = collectmplus!(mx)
-collectordered!(mx::Mxpr{:Times}) = collectmmul!(mx)
+collectordered!(mx::Mxpr{:Times}) = newcollectmmul!(mx)
 for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
                           (:mmul,:collectmmul!,:_matchfacs))
     @eval begin
@@ -665,3 +665,78 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
         end
     end
 end
+
+function any_expt(x::Mxpr{:Power})
+    expt(x)
+end
+any_expt(x::Number) = 1
+any_expt(x) = 1
+
+function any_expt_and_base(a)
+    n = any_expt(a)
+    return n == 1 ? (n,a) : (n,base(a))
+end
+
+# Same as above, but for products
+function _matchfacs2a(a,b,cumterms)
+    (na,a1) = any_expt_and_base(a)
+    (nb,b1) = any_expt_and_base(b)
+    if a1 == b1
+        push!(cumterms,na)
+        push!(cumterms,nb)
+        return(true,a1)
+    else
+        return (false,a1)
+    end
+end
+
+function _matchfacs2b(a,b,cumterms)
+    (na,a1) = any_expt_and_base(a)
+    (nb,b1) = any_expt_and_base(b)
+    if a1 == b1
+        push!(cumterms,nb)
+        return(true,a1)
+    else
+        return (false,a1)
+    end
+end
+
+function newcollectmmul!(mx::Mxpr)
+    length(mx) < 2 && return mx
+    a = margs(mx)
+    n = 1
+    count = 0
+    coeffcount = 0
+    cumterms = Array(Any,0)
+    while n < length(a)
+        is_type_less(a[n],Number) && (n += 1; continue)
+        (success,fac) = _matchfacs2a(a[n],a[n+1],cumterms)
+#        println("n $n, a[n] $(a[n]), a[n+1] $(a[n+1]), suc $success, fac $fac, cumterms $cumterms")
+        if success
+            count = 1
+            @inbounds for i in (n+1):(length(a)-1)
+                (success1,fac1) = _matchfacs2b(fac,a[i+1],cumterms)
+#                println("n $n, fac $fac, i:$i, a[i+1] $(a[i+1]), suc1 $success1, fac1 $fac1, cumterms $cumterms")
+                if success1
+                    count += 1
+                else
+                    break
+                end
+            end
+            newex =
+                length(cumterms) == 0 ? 0 : length(cumterms) == 1 ? (cumterms[1] == 1 ? fac : mxpr(:Power,fac,cumterms[1])) :
+                    mxpr(:Power,fac,mxpr(:Plus, cumterms...))
+            splice!(a,n:n+count,[newex])
+            empty!(cumterms)
+        end
+        n += 1
+    end
+    if  length(a) == 1
+        return a[1]
+    end
+    if length(a) == 0
+        return 1
+    end
+    return mx
+end
+

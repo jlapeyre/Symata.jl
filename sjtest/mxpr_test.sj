@@ -93,7 +93,7 @@ T Replace( b , a => 1) == b
 
 ## Set a Julia variable
 (SetJ(a,"cat"))
-T :( a == "cat" )
+T :( Main.a == "cat" )
 
 ## Test compound expression
 

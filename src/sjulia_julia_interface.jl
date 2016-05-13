@@ -22,7 +22,10 @@ are separate from those in Julia, ie, their table of bindings to symbols are sep
 function apprules(mx::Mxpr{:SetJ})
     lhs = mx[1]
     rhs = mx[2]
-    eval(Expr(:(=),symname(lhs),rhs))
+    if typeof(rhs) == Symbol
+        rhs = QuoteNode(rhs)
+    end
+    Main.eval(Expr(:(=),symname(lhs),rhs))
 end
 
 #### Jxpr
