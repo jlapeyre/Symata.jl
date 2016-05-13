@@ -89,7 +89,8 @@ function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest
                 res
             catch e
                 set_issjinteractive(oldval)
-                error("SJ Error read file $f,  line $line_number\n", e)
+                warn("SJ Error reading file $f,  line $line_number\n")
+                rethrow(e)
             finally
                 eline = ""
             end

@@ -313,10 +313,10 @@ function rewrite_expr(ex::Expr)
         ex = rewrite_binary_minus(ex)
     elseif is_division(ex) # a / b --> a + b^(-1)
         ex = rewrite_division(ex)
-    elseif is_call(ex, :^,3) && ex.args[2] == :E
-        ex = Expr(:call, :Exp, ex.args[3])
-    # elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x  # No, we don't want this
-    #     ex = Expr(:call, :^, :E, ex.args[2])
+    # elseif is_call(ex, :^,3) && ex.args[2] == :E
+    #     ex = Expr(:call, :Exp, ex.args[3])
+    elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
+        ex = Expr(:call, :^, :E, ex.args[2])
     elseif is_call(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
     elseif is_rational(ex)

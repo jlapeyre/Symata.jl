@@ -387,6 +387,24 @@ function apprules(mx::Mxpr{:Power})
     do_Power(mx,mx[1],mx[2])
 end
 
+# @doap Power{T<:AbstractFloat}(b::SJSym, expt::T) = b == :E ? exp(expt) : mx
+do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+
+@doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
+dopowerE{T<:AbstractFloat}(mx, expt::T) = exp(expt)
+dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
+
+function dopowerE(mx, expt)
+    syexpt = sjtopy(expt)
+    syres = sympy.exp(syexpt)
+    res = pytosj(syres)
+    if is_Mxpr(res, :Exp)
+        res[1] == expt && return mx
+        return mxpr(:Power, :E, margs(res)...)
+    end
+    res
+end
+
 # Don't handle this yet.
 do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Rational{V}) = mx
 do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{Rational{V}}) = mx
@@ -394,15 +412,14 @@ do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{
 do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
 
 #do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : unsetfixed(mx) # does not help
-do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+
 
 # For some reason, we need this integer rule. For instance for (a^2)^2 --> a^4
 do_Power{T<:Integer}(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
 do_Power{T<:Real}(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
 
-do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power},exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
+do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power}, exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::T) = b == :E ? exp(expt) : mx
 do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
 
 do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)

@@ -1,4 +1,3 @@
-
 # Much of this file is really testing mpow.
 # Numerical powers are either passed to mpow or else
 # returned unevaluated by do_Power, depending on the type of args.
@@ -15,9 +14,6 @@ T  Abs(z^3) == Abs(z)^3
 T  Abs(z^4.1) == Abs(z)^4.1
 T  Abs(-z) == Abs(z)
 T  Abs(-z^(1/2))^2 == Abs(z)
-
-# We fixed a bug, so this is no longer true
-#T N(Cos(E),100) == :( cos(big(e)))
 
 T Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
 T Arg(Complex(1,1)) == π/4
@@ -62,19 +58,6 @@ T (I + 2)^(-3) == 2/125 - 11/125 * I
 
 T Log(2,8) == 3
 T Apply(List,Log(2,9)) == [2,9]
-
-T Cos(0) == 1
-
-T Chop(Abs(Cos(1.0 + 2.0 * I) - (2.0327230070196656 + -3.0518977991518 * I))) == 0
-T Cos(Pi) == -1
-T Cos(Pi/2) == 0
-T Cos(3*Pi/2) == 0
-# Cos is handled in  It follows Mma...
-T Cos(z * I) == Cosh(z)
-# Sin is done by sympy, which leaves this untouched
-
-T If( BigIntInput(), Head(N(1)) == BigFloat, Head(N(1)) == Float64)
-T Head(N(Cos(1))) == Float64   # because of sympy this comes back as an ordinary double
 
 # fixes a bug.
 T Head((a*b)^(1/2)) == Power

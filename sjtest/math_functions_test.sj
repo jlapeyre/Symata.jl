@@ -99,9 +99,10 @@ T Gamma(1,2) == Exp(-2)
 T Gamma(a,0) == Gamma(a)
 T Gamma(a, Infinity) == 0
 T D(Gamma(x),x) == Gamma(x) * (PolyGamma(0,x))
-#T Gamma(3,x) == 2 * (E ^ (-x)) + 2 * (E ^ (-x)) * x + E ^ (-x) * (x ^ 2)
+#T Gamma(3,x) == 2Exp(-x) + (x^2)*Exp(-x) + 2x*Exp(-x)
+T Gamma(3,x) == 2 * (E ^ (-x)) + 2 * (E ^ (-x)) * x + E ^ (-x) * (x ^ 2)
 # FIXME: Canonical order bug. The RHS above and below are not put in the same order, even when pasted at the CLI
-T Gamma(3,x) == 2 * (E ^ (-x)) +  E ^ (-x) * (x ^ 2) +  2 * (E ^ (-x)) * x 
+#T Gamma(3,x) == 2 * (E ^ (-x)) +  E ^ (-x) * (x ^ 2) +  2 * (E ^ (-x)) * x 
 # The first term in the || is for sympy < 1.0 (0.7 something). The second is for sympy 1.0
 T ( Gamma(-1/2,x) == 2 * (E ^ (-x)) * (x ^ (-1/2)) + -2 * (Pi ^ (1/2)) * (1 + -Erf(x ^ (1/2))) ) ||
          ( Gamma(-1/2,x) ==  2(E^(-x))*(x^(-1/2)) + -2(Pi^(1/2))*Erfc(x^(1/2)))

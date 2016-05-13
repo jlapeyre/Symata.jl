@@ -107,8 +107,9 @@ end
 # ie. two_args1, two_args2. Then explain in comment the particulars. A naming
 # scheme to capture all possibilities is to cumbersome.
 
+#  mtr(:exp)  <-- trying with and without this
    const single_arg_float_complex =   # check, some of these can't take complex args
-    [ mtr(:sin), mtr(:cos), mtr(:exp), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
+    [ mtr(:sin), mtr(:cos), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
          (:sinpi,:SinPi), (:cospi,:CosPi), mtr(:sinh), mtr(:cosh),
          mtr(:tanh), (:acos,:ArcCos,:acos), (:asin,:ArcSin,:asin),
          (:atan,:ArcTan,:atan),(:atan2,:ArcTan2,:atan2),(:acosd,:ArcCosD), (:asind,:ArcSinD),
@@ -843,8 +844,7 @@ do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
 # The parser normally takes care of this,
 # But, when converting expressions from Sympy, we get Exp, so we handle it here.
 # TODO: don't throw away other args. (but, we hope this is only called with returns from Sympy)
-# apprules(mx::Mxpr{:Exp}) = mxpr(:Power,:E,mx[1])
-
+apprules(mx::Mxpr{:Exp}) = mxpr(:Power,:E,mx[1])
 
 # TODO: handle 3rd argument
 #### Mod
