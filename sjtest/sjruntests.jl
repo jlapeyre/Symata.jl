@@ -13,6 +13,7 @@ test = SJulia_Plain_Test()
 function runalltests()
     for f in (
               "patterns_test.sj",
+              "trig_test.sj",
               "context_test.sj",   #    breaks
               "output_test.sj",
               "math_functions_test.sj",
@@ -23,7 +24,6 @@ function runalltests()
               "sympy_test.sj",
               "up_downvalues_test.sj",
               "lists_test.sj",
-              "trig_test.sj",
               "comparison_test.sj",  # No idea why emacs indents like this.
         "attributes_test.sj",
         "module_test.sj",
@@ -45,8 +45,9 @@ save_biginput_state = setkerneloptions(:bigint_input, false)
 
 try 
     runalltests()
-catch
+catch e
     warn("Failed running SJulia tests")
+    rethrow(e)
 finally
     setkerneloptions(:bigint_input, save_biginput_state)
 end
