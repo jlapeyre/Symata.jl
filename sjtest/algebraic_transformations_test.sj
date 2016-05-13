@@ -99,6 +99,10 @@ T PowSimp(t^c * z^c, Force => True) == (t*z)^c
 
 T PowDenest( (x^a)^b, Force => True  ) ==  x^(a*b)
 
+#### RatSimp
+
+T RatSimp(1/x + 1/y) == (x^(-1))*(y^(-1))*(x + y)
+
 #### TrigSimp
 
 T TrigSimp(2*Sin(x)^2 + 2* Cos(x)^2) == 2

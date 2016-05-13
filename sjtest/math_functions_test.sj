@@ -59,6 +59,16 @@ T Chop(EllipticE(2.0 - I) - (0.991052601328069 + 0.8187942139560901I)) == 0
 
 T Series(EllipticF(z,m), [z,0,6]) == z + (1/6)*m*(z^3) + ((-1/30)*m + (3/40)*(m^2))*(z^5) + Order((z^6),[z,0])
 
+#### EllipticK
+
+T EllipticK(0) == Pi/2
+T Chop(EllipticK(1.0 + I) - (1.509236954051273 + 0.6251464152026969I)) == 0
+T Series(EllipticK(z), [z,0,3]) == (1/2)*Pi + (1/8)*Pi*z + (9/128)*Pi*(z^2) + Order((z^3),[z,0])
+
+#### EllipticPi
+
+T Series(EllipticPi(n,z,m), [z,0,4]) == z + ((1/6)*m + (1/3)*n)*(z^3) + Order((z^4),[z,0])
+
 #### Erf
 
 T Erf(0) == 0
