@@ -6,8 +6,6 @@
 
 * Implement Optional for Pattern
    
-* Implement level specification
-
 * Implement autoload. e.g. for code written in SJulia
 
 * We can't disable infseval because it does some computation.
@@ -71,6 +69,8 @@ result. Update: This happens at the PyCall level, not the SJulia level.
 
  ===  DONE ===
 
+* Implement level specification
+   
 * N(Pi,1000) works
   but, N(Sqrt(2),1000) gives too few digits. We can get what we want
    by explicitly using SetPrecision.
