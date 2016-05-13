@@ -698,6 +698,23 @@ const KeywordDict = Dict( :Complex => :complex,
                           :Force => :force,
                           :Deep => :deep)
 
+@sjdoc Deep "
+Deep is an option for the functions Together and Expand.
+"
+
+@sjdoc Conditions "
+Conditions is an option for the Integrate and other integral transforms.
+"
+
+@sjdoc Modulus "
+Modulus is an option for Factor.
+"
+
+@sjdoc Gaussian "
+Gaussian is an option specifiying that solutions including Gaussian integers should be returned.
+"
+
+
 # Convert Mxpr to sympy, pulling out Rule(a,b) to dict of keyword args.
 # That is, we separate keyword args from positional argss
 function sjtopy_kw{T<:Mxpr}(mx::T, kws)
