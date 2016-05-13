@@ -153,10 +153,10 @@ const single_arg_float_int_complex =
 
 # Do NDigits by hand for now!
 @mkapprule NDigits :nargs => 1:2
-do_NDigits{T<:Integer,V<:Integer}(mx::Mxpr{:NDigits},n::T,b::V) = ndigits(n,b)
-do_NDigits{T<:Integer}(mx::Mxpr{:NDigits},n::T) = ndigits(n)
-do_NDigits(mx::Mxpr{:NDigits},n) = mx
-do_NDigits(mx::Mxpr{:NDigits},n,b) = mx
+@doap NDigits{T<:Integer,V<:Integer}(n::T,b::V) = ndigits(n,b)
+@doap NDigits{T<:Integer}(n::T) = ndigits(n)
+@doap NDigits(n) = mx
+@doap NDigits(n,b) = mx
 
 # TODO
 #  Two or more args
