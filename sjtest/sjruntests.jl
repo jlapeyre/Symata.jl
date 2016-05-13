@@ -12,6 +12,7 @@ test = SJulia_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "predicate_test.sj",              
               "patterns_test.sj",
               "trig_test.sj",
               "context_test.sj",   #    breaks

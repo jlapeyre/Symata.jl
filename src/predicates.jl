@@ -17,6 +17,7 @@ is_Mxpr(x) = false
 is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
 is_Mxpr(x,s::Symbol) = false
 
+# isa(x,Number) would work
 is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
 
@@ -32,8 +33,9 @@ is_Float(x) = false
 is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
 is_imaginary_integer(x) = false
 
-atomq{T<:Mxpr}(x::T) = false
-atomq(x) = true
+atomq(x) = ! isa(x,Mxpr)
+# atomq{T<:Mxpr}(x::T) = false
+# atomq(x) = true
 
 is_Indeterminate(x::Symbol) = x == Indeterminate
 is_Indeterminate(x) = false
@@ -111,10 +113,21 @@ function is_Numeric{T<:Mxpr}(x::T)
     return true
 end
 
+#### NumberQ
+
+@mkapprule NumberQ :nargs => 1
+
+@sjdoc NumberQ "
+NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Julia type Number.
+"
+
+@doap NumberQ(x) = isa(x,Number)
+
 #### IntegerQ
 @mkapprule IntegerQ :nargs => 1
-do_IntegerQ{T<:Integer}(mx::Mxpr{:IntegerQ}, x::T) = true
-do_IntegerQ(mx::Mxpr{:IntegerQ}, x) = false
+@doap IntegerQ(x) = isa(x,Integer)
+# do_IntegerQ{T<:Integer}(mx::Mxpr{:IntegerQ}, x::T) = true
+# do_IntegerQ(mx::Mxpr{:IntegerQ}, x) = false
 
 #### ListQ
 @mkapprule ListQ :nargs => 1
