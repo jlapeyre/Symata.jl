@@ -337,8 +337,10 @@ function apprules(mx::Mxpr{:Table})
     ex = deepcopy(expr)
     args = do_Table(ex,iter)
     mx1 = mxpr(:List,args) # takes no time
-    setcanon(mx1)
-    setfixed(mx1)
+    # The following prevent Nothing from being removed from List.
+    # At some point, we can try to optimize this.
+    # setcanon(mx1)
+    # setfixed(mx1)
     return mx1
 end
 

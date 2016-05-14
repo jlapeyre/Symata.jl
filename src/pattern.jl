@@ -47,7 +47,7 @@ type BlankNullSequenceT{T}  <: Blanks
 end
 
 getpvarpattern_test(pvar::Blanks) = pvar.pattern_test
-getpvarhead(pvar::Blanks) = pvar.head
+getBlankhead(pvar::Blanks) = pvar.head
 
 # pieces of expressions that we operate on are Symbols and expressions
 typealias ExSym Union{Mxpr,SJSym}
@@ -81,7 +81,7 @@ function Rule_to_PRule(mx::Mxpr{:RuleDelayed})
         lhs = mx[1]
     end
     rhs = mx[2]
-    ptp = patterntopvar(lhs)
+    ptp = patterntoBlank(lhs)
     nlhs = PatternT(ptp,:All)
     nrhs = PatternT(rhs,:All, true)  # rhs is delayed
     PRule(nlhs,nrhs)                 # true means rhs delayed
@@ -90,7 +90,7 @@ end
 function Rule_to_PRule(mx::Mxpr{:Rule})
     lhs = mx[1]
     rhs = mx[2]
-    ptp = patterntopvar(lhs)
+    ptp = patterntoBlank(lhs)
     nlhs = PatternT(ptp,:All)
     nrhs = PatternT(rhs,:All)
     PRule(nlhs,nrhs)
@@ -98,29 +98,29 @@ end
 
 # Works on just a blank, and ... ?
 
-just_pattern(s) =   PatternT(patterntopvar(s), :All)
+just_pattern(s) =   PatternT(patterntoBlank(s), :All)
 
-function patterntopvar(mx::Mxpr)
+function patterntoBlank(mx::Mxpr)
     nargs = newargs()
     for x in mx.args
-        nx = patterntopvar(x)
+        nx = patterntoBlank(x)
         push!(nargs,nx)
     end
     nmx = mxpr(mhead(mx), nargs...)
     nmx
 end
 
-patterntopvar(x) = x
-patterntopvar(mx::Mxpr{:PatternTest}) =  patterntopvar(mx,margs(mx)...)
+patterntoBlank(x) = x
+patterntoBlank(mx::Mxpr{:PatternTest}) =  patterntoBlank(mx,margs(mx)...)
 
-function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Symbol)
-    pvar = patterntopvar(pattern)
+function patterntoBlank(mx::Mxpr{:PatternTest}, pattern, cond::Symbol)
+    pvar = patterntoBlank(pattern)
     pvar.pattern_test = mxpr(symval(cond),0) # reserve 1 arg, allocate mxpr here, not in loop using pattern.
     return pvar
 end
 
-function patterntopvar(mx::Mxpr{:PatternTest}, pattern, cond::Function)
-    pvar = patterntopvar(pattern)
+function patterntoBlank(mx::Mxpr{:PatternTest}, pattern, cond::Function)
+    pvar = patterntoBlank(pattern)
     pvar.pattern_test = mxpr(cond,0)
     return pvar
 end
@@ -131,7 +131,7 @@ function process_blank_head(head)
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
-function patterntopvar(mx::Mxpr{:Pattern})
+function patterntoBlank(mx::Mxpr{:Pattern})
     var = mx[1]
     blank = mx[2]
     if length(blank) == 0 # match any head
@@ -147,7 +147,7 @@ end
 # Be careful this is not called depth-first.
 # It should apply when Blank is  not wrapped in Pattern.
 # Eg. MatchQ( a, _Integer)
-function patterntopvar(mx::Mxpr{:Blank})
+function patterntoBlank(mx::Mxpr{:Blank})
     var = :_  # Underscore is currently illegal in SJulia identifiers, so this is safe.
     blank = mx
     if length(blank) == 0 # match any head
@@ -160,8 +160,8 @@ function patterntopvar(mx::Mxpr{:Blank})
     res
 end
 
-function patterntopvar(mx::Mxpr{:BlankSequence})
-    var = :__  # Underscore is currently illegal in SJulia identifiers, so this is safe.
+function patterntoBlank(mx::Mxpr{:BlankSequence})
+    var = :__ 
     blank = mx
     if length(blank) == 0 # match any head
        res = BlankSequenceT(var,:All,:None)

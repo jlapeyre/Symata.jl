@@ -19,14 +19,14 @@ end
 
 capturealloc() = Dict{SJSym,Any}()
 
-# capture expression ex in pvar, or return false if the new value conflicts with old.
+# capture expression ex in blank, or return false if the new value conflicts with old.
 # An example of the later case is f(x_,x_) on f(2,3).
-function capturepvar(capt,pvar::BlankT,ex)
-    name = pvar.name
-    capturepvar(capt,name,ex)
+function captureblank(capt,blank::BlankT,ex)
+    name = blank.name
+    captureblank(capt,name,ex)
 end
 
-function capturepvar(capt,name::Symbol,ex)
+function captureblank(capt,name::Symbol,ex)
     haskey(capt,name) && capt[name] != ex  && return false
     capt[name] = ex
     return true
@@ -58,11 +58,11 @@ match_head(head,ex) = error("matchpat: Can't match Head of type ", typeof(head))
 # or a DataType. This is determined when the BlankT is
 # created (of course later, this should be done once and stored with the downvalue)
 # Then, much of the logic below can be eliminated
-function matchpat(cvar,ex)
+function matchpat(blank::BlankT,ex)
     @mdebug(1, "matchpat entering ex = ", ex)
-    head = getpvarhead(cvar)  # head to match
+    head = getBlankhead(blank)  # head to match
     match_head(head,ex) || return false
-    cc = getpvarpattern_test(cvar)   # This is an Mxpr or :None
+    cc = getpvarpattern_test(blank)   # This is an Mxpr or :None
     cc == :None && return true
     is_Mxpr(cc) || error("matchpat: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
     cc.args[1] = ex           # we reuse a stored Mxpr.
@@ -71,7 +71,7 @@ function matchpat(cvar,ex)
     res == true && return true
     res == false && return false
     if has_downvalues(cc)
-        return infseval(applydownvalues(cc)) == true  # or maybe just return what infseval gives
+        return doeval(applydownvalues(cc)) == true  # or maybe just return what infseval gives        
     else
         return false
     end
@@ -85,7 +85,7 @@ end
 # if the 'test' as checked by matchpat is satisfied.
 
 # capturevar -> false means contradicts previous capture
-_cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? capturepvar(captures,pat,mx) : false
+_cmppat(mx, pat::BlankT, captures)  = matchpat(pat,mx) ? captureblank(captures,pat,mx) : false
 
 #### Alternatives
 
@@ -102,7 +102,7 @@ function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
                 append!(names,get_blank_names(pat[j]))  # get all blank names
             end
             for name in names
-                capturepvar(captures,name,mxpr(:Sequence)) # we could use a const empty sequence here.
+                captureblank(captures,name,mxpr(:Sequence)) # we could use a const empty sequence here.
             end
             return res # return the matching alternative
         end
@@ -116,7 +116,7 @@ function _cmppat(mx, pat::Mxpr{:Except}, captures)
     if length(margs(pat)) == 1   # Not matching is matching
         res = _cmppat(mx, pat[1], captures)
         if res == false    # no match
-            res = _cmppat(mx, patterntopvar(mxpr(:Blank)), captures) # match anything
+            res = _cmppat(mx, patterntoBlank(mxpr(:Blank)), captures) # match anything
             res == false && error("Programming error matching 'Except'") # use assert
             return res
         end
@@ -162,8 +162,6 @@ function _cmppat(mx, pat::Mxpr{:Condition}, captures)
     return res                       # return the match with captures
 end
 
-
-
 #### General Mxpr
 
 # Matching a non-atomic expression. The head and length must match and each subexpression must match.
@@ -175,7 +173,7 @@ function _cmppat(mx::Mxpr, pat::Mxpr, captures)
     return true
 end
 
-##### Atoms (perhaps what Macsyma calls 'mapatoms')
+##### Atoms
 
 # This is a leaf on the tree, because mx is not an Mxpr and
 # pat is not a BlankT. 
@@ -216,7 +214,7 @@ function patrule(ex,pat1::PatternT,pat2::PatternT)
     res == false && return false # match failed
     # We need something more efficient than deepcopy !
     # deep copy and x_ -> pat(x) original
-    npat = pat2.isdelayed ? deepcopy(infseval(pat2)) : deepcopy(pat2)
+    npat = pat2.isdelayed ? deepcopy(doeval(pat2)) : deepcopy(pat2)
     nnpat = patsubst!(npat.ast,capt) # do replacement
     return nnpat
 end

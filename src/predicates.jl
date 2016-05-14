@@ -123,6 +123,19 @@ NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Juli
 
 @doap NumberQ(x) = isa(x,Number)
 
+#### MachineNumberQ
+
+# Should we check for smaller floats ?
+@mkapprule MachineNumberQ :nargs => 1
+@doap MachineNumberQ(x::Float64) = true
+@doap MachineNumberQ(x::Complex{Float64}) = true
+@doap MachineNumberQ(x) = false
+
+#### InexactNumberQ
+
+@mkapprule InexactNumberQ :nargs => 1
+@doap InexactNumberQ(x) = isa(x,AbstractFloat)
+
 #### IntegerQ
 @mkapprule IntegerQ :nargs => 1
 @doap IntegerQ(x) = isa(x,Integer)

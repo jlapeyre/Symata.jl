@@ -72,6 +72,8 @@ T [[ a, b, Nothing], [c, d, Nothing]] == [[a,b],[c,d]]
 
 T ReplaceAll( Range(20) ,  _:?(PrimeQ) => Nothing) == [1,4,6,8,9,10,12,14,15,16,18,20]
 
+T Table(Nothing,[10]) == []
+
 ClearAll(a,b,c,d,ex)
 
 T testUserSyms

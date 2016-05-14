@@ -355,7 +355,13 @@ end
 
 function Base.show(io::IO, mx::Mxpr{:Pattern})
     show(io,mx[1])
-    show(io,mx[2])
+    if is_Mxpr(mx[2],:Blank)
+        show(io,mx[2])
+    else
+        print(io,"::(")
+        show(io,mx[2])
+        print(io,")")        
+    end
 end
 
 function Base.show(io::IO, qs::Qsym)
