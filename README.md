@@ -46,9 +46,14 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 *Note*: `SJulia` depends on the Julia
 [`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
+*Note* `SymPy` here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
+(sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
+[SymPy](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
-You can test it with `Pkg.test("SJulia")`.
+You'll also need to install the `mpmath` package for python.
+On OS X, If you use `pip`, you should just be able to run `pip install mpmath`.
+
+`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
 
 ### SJulia REPL mode
 
