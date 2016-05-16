@@ -187,6 +187,13 @@ sjulia > g(f(z))
 
 #### Results on evaluation and efficiency
 
+*Note* Some of the times below are currently worse, since the matching code has
+been rewritten to include more features, but not optimized. (The pattern test is no longer "compiled", but
+is reevaluated every time the pattern is used.)
+
+*Note* As with everything in Julia, the following are not the times you get the first time you run
+these commands, as Julia must first compile the code.
+
 Here is counting with patterns. The execution time is about the same as Mma 3.
 
 ```
@@ -209,7 +216,7 @@ sjulia> Count(b, _:?(EvenQ))
 elapsed time: 0.075666716 seconds (3984008 bytes allocated)
 50000
 
-sjulia> Count(b, _:?( :( x => x > 5 ) ) )    # Use a Julia function as the test
+sjulia> Count(b, _:?( :( x -> x > 5 ) ) )    # Use a Julia function as the test
 elapsed time: 0.076713741 seconds (4780808 bytes allocated)
 99995
 
