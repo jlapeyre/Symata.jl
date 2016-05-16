@@ -96,6 +96,7 @@ macro travcode()
                 action.levelind += 1
                 action.subind = i
                 traverse_levels!(action,spec,expr[i])
+                action.levelbreak && return
                 action.levelind -= 1
             end
         end
