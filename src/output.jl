@@ -94,7 +94,7 @@ function Base.show(io::IO, s::SJSym)
         Base.show_unquoted(io,Symbol(ss))
     end
 end
-                           
+
 # Overwrite Base definition
 function Base.show(io::IO, x::Rational)
     show(io, num(x))
@@ -297,7 +297,7 @@ function show_infix(io::IO, mx::Mxpr)
     if is_Mxpr(mx,:Times) && length(args) > 0
         if args[1] == -1
             print(io, "-")
-            startind = 2            
+            startind = 2
         elseif typeof(args[1]) <:Union{AbstractFloat,Integer}
             print(io,args[1])
             startind = 2
@@ -360,7 +360,7 @@ function Base.show(io::IO, mx::Mxpr{:Pattern})
     else
         print(io,"::(")
         show(io,mx[2])
-        print(io,")")        
+        print(io,")")
     end
 end
 
@@ -369,7 +369,7 @@ function Base.show(io::IO, qs::Qsym)
         show(io,qs.context)
         print(io,".")
     end
-    show(io,qs.name)    
+    show(io,qs.name)
 end
 
 

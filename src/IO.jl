@@ -27,7 +27,9 @@ function SJulia_eval_string(s)
     i = 1
     local sjretval
     while !done(s,i)
-        expr, i = parse(s,i)
+        Base.syntax_deprecation_warnings(false) do
+            expr, i = parse(s,i)
+        end
         sjretval =
             try
                 SJulia.exfunc(expr)
@@ -68,7 +70,9 @@ function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest
         end
         expr =
             try
-                parse(eline)
+                Base.syntax_deprecation_warnings(false) do
+                    parse(eline)
+                end
             catch
                 set_issjinteractive(oldval)
                 error("Syntax error in file $f, line $line_number: '", chomp(pline), "'")

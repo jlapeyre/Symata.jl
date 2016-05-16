@@ -11,5 +11,3 @@ T ProductLog(-1/E,-1) == -1
 #T ProductLog(0,-1) ===  DirectedInfinity(-1)
 
 T testUserSyms
-
-

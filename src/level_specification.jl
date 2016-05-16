@@ -56,7 +56,7 @@ function _make_level_specification(expr, spec::Mxpr{:List}, start::Integer, stop
     LevelSpecRange(start, stop)
 end
 
-function _make_level_specification(spec::Mxpr{:List},args...)
+function _make_level_specification(expr, spec::Mxpr{:List},args...)
     error("Level specification $spec is not of the form n, {n}, or {m, n}.")
 end
 
@@ -68,13 +68,15 @@ type LevelAction
     levelind::Int
     subind::Int
     parent::Any
+    levelbreak::Bool
 end
 
-LevelAction(data,doaction) = LevelAction(data,doaction,0,0,Null)
+LevelAction(data,doaction) = LevelAction(data,doaction,0,0,Null,false)
 
 has_level_zero(spec::LevelSpecAtDepth) = spec.level == 0
 has_level_zero(spec::LevelSpecToDepth) = spec.level == 0
 has_level_zero(spec::LevelSpecRange) = spec.start == 0
+has_level_zero(spec::LevelSpecAll) = true
 
 # This is length for mapping purposes
 function length_for_level(x)
@@ -103,6 +105,7 @@ end
 function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
     if action.levelind == spec.level
         action.doaction(action.data, expr)
+        action.levelbreak && return
     elseif action.levelind < spec.level
         @travcode
     end
@@ -111,6 +114,7 @@ end
 function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
     if action.levelind <= spec.level
         action.doaction(action.data, expr)
+        action.levelbreak && return
     end
     if action.levelind < spec.level
         @travcode
@@ -120,6 +124,7 @@ end
 function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
     if action.levelind <= spec.stop && action.levelind >= spec.start
         action.doaction(action.data, expr)
+        action.levelbreak && return
     end
     if action.levelind < spec.stop
         @travcode
@@ -128,5 +133,6 @@ end
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
     action.doaction(action.data, expr)
+    action.levelbreak && return
     @travcode
 end

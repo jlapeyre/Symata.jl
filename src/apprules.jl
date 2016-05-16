@@ -253,12 +253,15 @@ function apprules(mx::Mxpr{:Replace})
     doreplace(mx,margs(mx)...)
 end
 
-#typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
-doreplace{T<:Rules}(mx,expr,r::T) = replace(expr,Rule_to_PRule(r))
+function doreplace(mx,expr,r::Rules)
+    (success, result) = replace(expr,r)
+    result
+end
 
-function doreplace{T<:Rules}(mx,expr,r::T,inlevelspec)
+function doreplace(mx,expr,r::Rules,inlevelspec)
     levelspec = make_level_specification(expr,inlevelspec)
-    replace(levelspec,expr,Rule_to_PRule(r))
+    (success, result) = replace(levelspec,expr,r)
+    result
 end
 
 doreplace(mx,a,b) = mx
@@ -278,15 +281,16 @@ list or rules. If given explicitly, the rules should be given as List(...) rathe
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 
 function doreplaceall{T<:Rules}(mx,expr,r::T)
-    replaceall(expr,Rule_to_PRule(r))
+    replaceall(expr,r)
 end
 
 function doreplaceall(mx,expr,rs::Mxpr{:List})
-    rsa = Array(PRule,0)
+    rsa = Array(Any,0)
     for i in 1:length(rs)
-        if typeof(rs[i]) <: Rules
-            push!(rsa, Rule_to_PRule(rs[i]))
+        if isa(rs[i],Rules)
+            push!(rsa, rs[i])
         else
+            warn("ReplaceRepeated expected Rule  got ", rs[i])            
             nothing  # do something better here, like return mx
         end
     end
@@ -305,14 +309,15 @@ doreplaceall(mx,a,b) = mx
 ReplaceRepeated(expr,rules) performs ReplaceAll(expr,rules) repeatedly until expr no longer changes.
 "
 
-do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,Rule_to_PRule(r); kws...)
+do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,r; kws...)
 
 function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
-    rsa = Array(PRule,0)
-    for i in 1:length(rs)
-        if typeof(rs[i]) <: Rules
-            push!(rsa, Rule_to_PRule(rs[i]))
+    rsa = Array(Any,0)
+    for i in 1:length(rs) 
+        if isa(rs[i],Rules)
+            push!(rsa, rs[i])
         else
+            warn("ReplaceRepeated expected Rule, got ", rs[i])
             nothing  # do something better here, like return mx
         end
     end

@@ -39,7 +39,7 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
 
 # We kinda need Exp, see the apprules.
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
-                 "Cot", "Cosh","Sinh","Log","Minus","Abs","Re","Im","Exp", "Sqrt",
+                 "Cot", "Cosh","Sinh","Minus","Abs","Re","Im","Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
                  "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma"
                  ],
@@ -61,7 +61,7 @@ set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 # This is not quite what Mma has for these. I don't understand why. Eg. CosIntegral is not a NumericFunction
 # Many are not Listable in the docs, although they are in practice.
 set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS",
-                 "HarmonicNumber", "BellB", "InverseErf"],
+                 "HarmonicNumber", "BellB", "InverseErf", "Log"],
                 [:Listable,:NumericFunction,:ReadProtected])
 
 # BellB should be split into BellB and BellY
@@ -95,6 +95,8 @@ set_pattributes(["System", "Main"], :Protected)
 
 # True and False are actually parsed as Julia true and false. But, this is a quick way to get TAB completion for them
 set_pattributes(["True", "False"], :Protected)
+
+set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","AtomQ",

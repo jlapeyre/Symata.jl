@@ -1,6 +1,8 @@
 
 testUserSyms
 
+#### Blanks
+
 # Only Blank is currently useful
 T Head(_) == Blank
 T Head(__) == BlankSequence
@@ -8,9 +10,6 @@ T Head(___) == BlankNullSequence
 T _b == Blank(b)
 T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
-
-# Alternatives is implemented
-T a | b == Alternatives(a,b)
 
 ClearAll(a,b,c,d,p,f,d)
 
@@ -32,7 +31,12 @@ T MatchQ( b^2, _^2) == true
 T MatchQ(f(b^2), f(x_^2)) == true
 T MatchQ( gg(xx) , _gg)
 
-# Alternatives
+# Test that two blanks do not have to match the same thing.
+T MatchQ( a^b, _^_)
+
+#### Alternatives
+
+T a | b == Alternatives(a,b)
 T MatchQ( 1, _Integer | _String)
 T MatchQ( "dog", _Integer | _String)
 T ReplaceAll( [a, b, c, d, a, b, b, b],  a | b => x) == [x,x,c,d,x,x,x,x]
@@ -59,8 +63,11 @@ T [h(a), h(b), h(c), h(d)] == [p,p,h(c),h(d)]
 
 T ReplaceAll([1, x, x^2, x^3, y^2] , (x | x^_) => q) == [1,q,q,q,y^2]
 
+# The head can be either a or b and it is bound to f
 # FIXME. This is not parsed correctly. We get Span
 # (f : (a | b))(x_) => r(f, x)
+# FIXME. This is parsed as named pattern, but the rest of the parsing is wrong.
+# (f::(a | b))(x_) => r(f, x)
 
 ClearAll(a,b,c,f,g,h,p,x,y)
 
@@ -181,8 +188,7 @@ T Replace( a, r1) == 3
 T Replace( a, r2) == 4
  ClearAll(a,b)
 
-# FIXME, we need to implement level specifications
-# Replace([1, 7, "Hi", 3, Indeterminate], Except(_:?NumericQ) :> 0, 1)
+Replace([1, 7, "Hi", 3, Indeterminate], Except(_:?(NumericQ)) :> 0, 1)
 
 T ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
 
@@ -193,6 +199,9 @@ T ReplaceRepeated( Expand( (a+b)^3 ) , x_Integer => 1)  == a +  a * b + b
       rules = [Log(x_ * y_) => Log(x) + Log(y), Log(x_^k_) => k * Log(x)]
 T  ReplaceRepeated(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * (Log(a) + e * (Log(b) + d * Log(c)))
 T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e))
+
+# Pattern name for complex (compound) pattern
+T ReplaceAll( b^b, a::(_^_) => g(a)) == g(b^b)
 
 # Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
 # sjulia > f(a)(b)(c)(d)
@@ -264,7 +273,15 @@ T Cases(expr , _Symbol, [-1]) ==  Cases(expr , _Symbol, [Depth(expr) - 1])
 T Cases(expr , _Symbol, [-2]) ==  Cases(expr , _Symbol, [Depth(expr) - 2]) ==  Cases(expr , _Symbol, [3])
 T Cases(expr , _Symbol, [-3]) ==  Cases(expr , _Symbol, [Depth(expr) - 3]) ==  Cases(expr , _Symbol, [2])
 
-ClearAll(a,b,c,d,g,f,h,y,expr)
+# Cases with replacement rule
+T Cases([a,b,c,c], k::(Except(c)) => k^2) == [a^2,b^2]
+# Cases with replacement rule at level 2 only
+T Cases([a,b,c,c,[z]], k::(Except(c)) => k^2, [2]) == [z^2]
+
+# Match a Rule
+T Cases([a => b, c => d], HoldPattern(a => _)) == [a => b]
+
+ClearAll(a,b,c,d,g,f,h,y,z,expr)
 
 #### Except
 
@@ -285,12 +302,6 @@ T MatchQ(a, Except(_:?(IntegerQ)))
 
 ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
-# Optional is parsed, but is not yet implemented (used) anywhere.
-T x_y:0 == Optional(Pattern(x,Blank(y)),0)
-T x_y:(a*b) == Optional(Pattern(x,Blank(y)),Times(a,b))
-
-ClearAll(a,b,x, y)
-
 T p_ == Pattern(p,Blank())
 T p_q  == Pattern(p,Blank(q))
 T p_Integer:?(PrimeQ) == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
@@ -303,29 +314,139 @@ T _^_ == Power(Blank(),Blank())
 #T MatchQ(Hold(2 + 3), Hold(_:?(IntegerQ)))
 
 # Try using :: for Pattern
-# Pattern is not implemented with this usage. We only test parsing here.
-# It will raise an error if you try to use it.
 # NB We use both :: and :, while Mma uses : in all instances below.
 # It would be nice if we could use one symbol
 # We use : for Span, as well. Mma uses :: for Message and ;; for Span.
 T a::b == Pattern(a,b)
 T a::(b_^c_) == Pattern(a,Power(Pattern(b,Blank()),Pattern(c,Blank())))
-T _:0 == Optional(Blank(),0)
 
-ClearAll(p,q,a,b,c)
+ClearAll(p,q,a,b,c,g,f,x,y)
+
+#### Optional
+
+T _:0 == Optional(Blank(),0)
+T x_y:0 == Optional(Pattern(x,Blank(y)),0)
+T x_y:(a*b) == Optional(Pattern(x,Blank(y)),Times(a,b))
+
+f(x_, y_:3) := x + y
+
+T f(1,5) == 6
+T f(1) == 4
+T f(a+b) == 3 + a + b
+T f(a+b,z) == a + b + z
+
+ClearAll(a,b,z,f,x,y)
+
+f(x_, y_Integer:3) := x + y
+
+T f(1) == 4
+T f(1,5) == 6
+T Head(f(1,4.0)) == f
+T Args(f(1,4.0)) == [1,4.0]
+
+ClearAll(a,b,z,f,x,y)
+
+g(x_:"cat") := x
+
+T g(1) == 1
+T g() == "cat"
+
+ClearAll(g,x)
+
+f(x_, y_:a, z_:b) := [x,y,z]
+
+T f(1) == [1,a,b]
+T f(1,2) == [1,2,b]
+T f(1,2,3) == [1,2,3]
+
+ClearAll(x,y,a,b,g,f)
 
 #### Condition
 
-# Condition is implemented for the case that the first arguement is a pattern.
-# It is also used with SetDelayed and RuleDelayed, but these are not yet implemented.
 T  MatchQ( -2 , Condition( x_ , x < 0))
 T  MatchQ( 1 , Condition( x_ , x < 0)) == False
 T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition( x_ , x < 0) => w ) == [6,w,3,2,w,w]
+
+# Note this condition is on the RHS.
+T  ReplaceAll([1,2,3, "cat"], x_Integer => Condition( y, x > 2)) == [1,2,y,"cat"]
+
 T  Cases( [[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
 
-ClearAll(x,y,a,b,d)
+# Condition on definition
+f(x_) :=  Condition(x^2, x > 3)
+T f(4) == 16
+T Head(f(2)) == f
 
+ClearAll(x,y,a,b,d,f)
 
+#### Repeated RepeatedNull
+
+T MatchQ([a,a,a], [Repeated(a)])
+T MatchQ([a], [Repeated(a)])
+T ! MatchQ([], [Repeated(a)])
+T ! MatchQ([a,a,b], [Repeated(a)])
+T ! MatchQ([a,b,a], [Repeated(a)])
+T MatchQ([a,a,b], [Repeated(a),b])
+T MatchQ([a,a,b,c,c,c], [Repeated(a),b, Repeated(c)])
+
+T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ Repeated(f(_)) ] => x ) == [[],x,[f(a),f(a,b)],x]
+T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(Repeated(a)) => x ) == [x,f(a,b),x]
+
+T MatchQ([a,a,b], [Repeated(_Symbol)])
+T ! MatchQ([a,a,b,3], [Repeated(_Symbol)])
+T MatchQ([a,a,b,3], [Repeated(_Symbol),_ ])
+
+T ! MatchQ([1,2,3], [Repeated(_Integer,1)])
+T ! MatchQ([1,2,3], [Repeated(_Integer,2)])
+T MatchQ([1,2,3], [Repeated(_Integer,3)])
+T MatchQ([1,2,3], [Repeated(_Integer,4)])
+T ! MatchQ([1,2,3], [Repeated(_Integer,[2])])
+T ! MatchQ([1,2,3], [Repeated(_Integer,[4])])
+T MatchQ([1,2,3], [Repeated(_Integer,[3])])
+T MatchQ([1,2,3], [Repeated(_Integer,[1,4])])
+T MatchQ([1,2,3], [Repeated(_Integer,[1,3])])
+T ! MatchQ([1,2,3], [Repeated(_Integer,[4,10])])
+T ! MatchQ([1,2,3], [Repeated(_Integer,[1,2])])
+T MatchQ([1,2,3], [Repeated(_Integer,[0,4])])
+T MatchQ([], [Repeated(_Integer,[0,4])])
+T MatchQ([a,b,c,3], [Repeated(Except(_Integer)), _Integer] )
+
+# Between 1 and 0, so this fails
+T ! MatchQ([], [Repeated(_Integer,0)])
+
+T MatchQ([], [RepeatedNull(_Integer)])
+T MatchQ([1,2], [RepeatedNull(_Integer)])
+T ! MatchQ([1,2], [RepeatedNull(_Integer,0)])
+T MatchQ([], [RepeatedNull(_Integer,0)])
+T MatchQ([], [RepeatedNull(_Integer, [0,4])])
+
+ClearAll(f,a,b,c,d,x)
+
+#### FreeQ
+
+T ! FreeQ(a,a)
+T FreeQ(a,b)
+T ! FreeQ([a],a)
+T FreeQ([a],a, [0])
+T ! FreeQ([[f(a)],b,c], a)
+T FreeQ([[f(a)],b,c], a, 1)
+T FreeQ([[f(a)],b,c], a, 2)
+T ! FreeQ([[f(a)],b,c], a, 3)
+T FreeQ([[f(a)],b,c], a, [4])
+T ! FreeQ([[f(a)],b,c], a, 4)
+T ! FreeQ(1, _Integer)
+T FreeQ(a, _Integer)
+T ! FreeQ([a,f(f(f(3)))], _Integer)
+T FreeQ([a,f(f(f(3)))], _Integer, 3)
+T ! FreeQ([a,f(f(f(3)))], _Integer, 4)
+
+# Factor out constant
+# No AC matching, although this will work in a few simple cases.
+# f(c_ * x_, x_) := Condition( c * f(x, x) , FreeQ(c, x))
+
+# Fails. we are not matching heads.
+# Table(FreeQ(Integrate(x^n, x), Log), [n, -5, 5])
+
+ClearAll(f,a,b,c)
 
  testUserSyms
-

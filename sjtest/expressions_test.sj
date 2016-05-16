@@ -65,7 +65,7 @@ T ReleaseHold(HoldForm()) == Sequence()
 T ReleaseHold(HoldPattern()) == Sequence()
 T ReleaseHold(HoldComplete()) == Sequence()
 T ReleaseHold(Hold(a)) == a
-T List(ReleaseHold(Hold(a,b))) == [a,b] 
+T List(ReleaseHold(Hold(a,b))) == [a,b]
 T ReleaseHold(f(a,b)) == f(a,b)
 
 ClearAll(a,b,f)

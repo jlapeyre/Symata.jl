@@ -521,19 +521,19 @@ apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
 do_Primes(mx,args...) = mx
 do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
-# TODO, use to symp
+# TODO, use to sympy
 do_common("Log")
 do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
 do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = z > 0 ? log(b,z) : log(b,complex(z))
 
-# This is probably quite slow, but might be correct in many cases
-# The same idea could be used for other functions, such as sqrts etc.
+# This is probably quite slow.
 function do_Log(mx::Mxpr{:Log},b::Integer,x::Integer)
     res = round(Int,log(b,x))
     return b^res == x ? res : mx
 end
+@doap Log(x::Integer) = x == 0 ? MinusInfinity : mx
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b,e) = mx
 do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx

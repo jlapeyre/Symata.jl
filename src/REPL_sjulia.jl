@@ -20,8 +20,10 @@ end
 function SJulia_parse_REPL_line(line)
 #    println("Input line '$line'")
     line = sjpreprocess_interactive(line)
-#    println("Preprocessed line '$line'")    
-    Base.parse_input_line("@SJulia.ex " * line)
+    #    println("Preprocessed line '$line'")
+    Base.syntax_deprecation_warnings(false) do
+        Base.parse_input_line("@SJulia.ex " * line)
+    end
 end
 
 function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
@@ -108,7 +110,7 @@ global RunSJuliaREPL
 
 # Handles BasicREPL
 function RunSJuliaREPL(repl)
-    sjulia_run_repl(repl)    
+    sjulia_run_repl(repl)
 end
 
 function RunSJuliaREPL(repl::LineEditREPL)
@@ -360,8 +362,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                     parse("Base.Docs.@repl $line", raise=false)
                 end
         end)
-    end        
-        
+    end
+
     # Set up shell mode
     shell_mode = Prompt("shell> ";
         prompt_prefix = hascolor ? repl.shell_color : "",

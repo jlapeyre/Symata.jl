@@ -102,7 +102,7 @@ T D(Gamma(x),x) == Gamma(x) * (PolyGamma(0,x))
 #T Gamma(3,x) == 2Exp(-x) + (x^2)*Exp(-x) + 2x*Exp(-x)
 T Gamma(3,x) == 2 * (E ^ (-x)) + 2 * (E ^ (-x)) * x + E ^ (-x) * (x ^ 2)
 # FIXME: Canonical order bug. The RHS above and below are not put in the same order, even when pasted at the CLI
-#T Gamma(3,x) == 2 * (E ^ (-x)) +  E ^ (-x) * (x ^ 2) +  2 * (E ^ (-x)) * x 
+#T Gamma(3,x) == 2 * (E ^ (-x)) +  E ^ (-x) * (x ^ 2) +  2 * (E ^ (-x)) * x
 # The first term in the || is for sympy < 1.0 (0.7 something). The second is for sympy 1.0
 T ( Gamma(-1/2,x) == 2 * (E ^ (-x)) * (x ^ (-1/2)) + -2 * (Pi ^ (1/2)) * (1 + -Erf(x ^ (1/2))) ) ||
          ( Gamma(-1/2,x) ==  2(E^(-x))*(x^(-1/2)) + -2(Pi^(1/2))*Erfc(x^(1/2)))
@@ -111,7 +111,7 @@ T Gamma(-2,x) == x ^ (-2) * (ExpIntegralE(3,x))
 T CombSimp(Gamma(x)*Gamma(1-x)) == Pi*(Sin(Pi*x)^(-1))
 # T
 # T
-# T 
+# T
 
 # FIXME.
 # Cutting and pasting the output of the Series
@@ -136,11 +136,29 @@ ClearAll(a,x,z)
 T IntegerDigits(100) == [1,0,0]
 T IntegerDigits(100,2) == [1,1,0,0,1,0,0]
 
+#### Log
+
+T Series(Log(1 + x), [x, 0, 5]) == x + (-1/2)*(x^2) + (1/3)*(x^3) + (-1/4)*(x^4) + Order((x^5),[x,0])
+T Log(E) == 1
+T Log(2,1024) == 10
+T Simplify(Log(3,3^(-12))) == -1/12
+# FIXME Can't do these
+# T Log(Pi,Pi^(1/2))
+T Log(0) == -Infinity
+# This should be -Infinity
+T Log(0.0) == -Inf
+# This is what Mma does:
+# Log(ComplexInfinity) == Infinity
+T NumericQ(Log(1+E))
+# Check this: T Log(x,y) == Log(x)/Log(y)
+
 #### NDigits
 
 T NDigits(10) == 2
 T NDigits(99) == 2
 T NDigits(2^10-1,2) == 10
+
+ClearAll(x)
 
 T testUserSyms
 

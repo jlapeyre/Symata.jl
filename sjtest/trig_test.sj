@@ -47,6 +47,3 @@ T Integrate(Cosh(x),x) == Sinh(x)
 
  ClearAll(x)
 T testUserSyms
-
-
-

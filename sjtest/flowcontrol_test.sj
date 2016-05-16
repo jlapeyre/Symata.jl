@@ -15,7 +15,7 @@ T i == 4
 # Test that i is localized
  a = 0
  i = "zebra"
- Do(a = a + i , [i,10]) 
+ Do(a = a + i , [i,10])
 
 T  a == 55
 T i == "zebra"
@@ -122,4 +122,3 @@ T Head(i) == Symbol
  ClearTemporary()
 
 T testUserSyms
-

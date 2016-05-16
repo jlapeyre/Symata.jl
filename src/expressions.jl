@@ -251,51 +251,71 @@ function sjcopy(x)
 end
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
-@doap function Casesold(expr,pat)
-    args = margs(expr)
-    nargs = newargs()
-    jp = just_pattern(pat)
-    capt = capturealloc()
-    @inbounds for i in 1:length(args)
-        ex = args[i]
-        (gotmatch,capt) = cmppat(ex,jp,capt)
-        gotmatch ? push!(nargs,sjcopy(ex)) : nothing
-    end
-    mxpr(:List,nargs) 
-end
+# @doap function Casesold(expr,pat)
+#     args = margs(expr)
+#     nargs = newargs()
+#     jp = just_pattern(pat)
+#     capt = capturealloc()
+#     @inbounds for i in 1:length(args)
+#         ex = args[i]
+#         (gotmatch,capt) = cmppat(ex,jp,capt)
+#         gotmatch ? push!(nargs,sjcopy(ex)) : nothing
+#     end
+#     mxpr(:List,nargs)
+# end
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 
 type CasesData
-    nargs
+    new_args
     jp
     capt
 end
 
+# We have no level spec
 @doap function Cases(expr,pat)
-    nargs = newargs()
+    new_args = newargs()
     jp = just_pattern(pat)
     capt = capturealloc()
-    data = CasesData(nargs,jp,capt)
-    action = LevelAction(data, function (data, expr)
-                            (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
-                            gotmatch ? push!(data.nargs,sjcopy(expr)) : nothing
-                         end)
+    data = CasesData(new_args,jp,capt)
+    local action
+    if is_Mxpr(pat,:Rule)
+        action = LevelAction(data, function (data, expr)
+                             (gotmatch,res) = replace(expr,data.jp)
+                             gotmatch ? push!(data.new_args,res) : nothing
+                             end)
+    else
+        action = LevelAction(data, function (data, expr)
+                             (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                             gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
+                             end)
+    end
     traverse_levels!(action,LevelSpecAtDepth(1),expr)
-    mxpr(:List,nargs) 
+    mxpr(:List,new_args)
 end
 
 function _doCases(levelspec::LevelSpec, expr ,pat)
-    nargs = newargs()
+    new_args = newargs()
     jp = just_pattern(pat)
     capt = capturealloc()
-    data = CasesData(nargs,jp,capt)
-    action = LevelAction(data, function (data, expr)
-                            (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
-                            gotmatch ? push!(data.nargs,sjcopy(expr)) : nothing
-                         end)
+    data = CasesData(new_args,jp,capt)
+    # action = LevelAction(data, function (data, expr)
+    #                         (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+    #                         gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
+    #                      end)
+    if is_Mxpr(pat,:Rule)
+        action = LevelAction(data, function (data, expr)
+                             (gotmatch,res) = replace(expr,data.jp)
+                             gotmatch ? push!(data.new_args,res) : nothing
+                             end)
+    else
+        action = LevelAction(data, function (data, expr)
+                             (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                             gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
+                             end)
+    end
     traverse_levels!(action,levelspec,expr)
-    mxpr(:List,nargs)     
+    mxpr(:List,new_args)
 end
 
 @doap function Cases(expr,pat,inlevelspec)
@@ -331,14 +351,14 @@ eg: noints = DeleteCases(_Integer). The head of the returned object is the same 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 @doap function DeleteCases(expr,pat)
     args = margs(expr)
-    nargs = newargs()
+    new_args = newargs()
     jp = just_pattern(pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
         (gotmatch,capt) = cmppat(args[i],jp,capt)
-        gotmatch ? nothing : push!(nargs,sjcopy(args[i])) # The difference from Cases
+        gotmatch ? nothing : push!(new_args,sjcopy(args[i])) # The difference from Cases
     end
-    rmx = mxpr(mhead(expr),nargs)
+    rmx = mxpr(mhead(expr),new_args)
     return rmx
 end
 
@@ -353,6 +373,13 @@ function do_GenHead(mx,head::Mxpr{:DeleteCases})
     mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
 end
 
+#### FreeQ
+
+@mkapprule FreeQ :nargs => 2:3
+
+@doap FreeQ(expr, pattern) = freeq(LevelSpecAll(),expr,pattern)
+
+@doap FreeQ(expr, pattern, inlevelspec)  = freeq(make_level_specification(expr, inlevelspec), expr, pattern)
 
 #### Push!
 

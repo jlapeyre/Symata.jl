@@ -44,7 +44,7 @@ const _jstypeorder = Dict{DataType,Int}()
 function _mklexorder()
     i = 1   ## CAREFULL! We use literal index of Any below
     for typ in (Float64,BigFloat,Int,BigInt,Any,Rational,Symbol,SJSym,Expr, Mxpr, Qsym)
-        _jstypeorder[typ] = i   
+        _jstypeorder[typ] = i
         i += 1
     end
     i = 1
@@ -451,7 +451,7 @@ function _canonexpr_orderless!(mx)
         end
     end
     setcanon(mx)
-    @mdebug(2,"exiting: _canonexpr_orderless! ", mx)    
+    @mdebug(2,"exiting: _canonexpr_orderless! ", mx)
     mx
 end
 
@@ -473,8 +473,8 @@ function canonexpr!(mx::Mxpr{:Power})
     setcanon(mx)
     # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do setfixed below
     # But, we can't do this: ex = 102^(1/2); ex^2 does not return 102 if we setfixed.
-    if ! is_Mxpr(mx,:Power) 
-#        setfixed(mx)  
+    if ! is_Mxpr(mx,:Power)
+#        setfixed(mx)
     end
     return mx
 end
@@ -547,7 +547,7 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return handle_coefficient_is_zero(mx,sum0)) : :())
             sum0 != $id && unshift!(a,sum0)
-            @mdebug(3, $name, ": checking length: ",a)            
+            @mdebug(3, $name, ": checking length: ",a)
             length(a) == 1 && return a[1]
             @mdebug(3, $name, ": returning at end")
             return mx
@@ -737,4 +737,3 @@ function newcollectmmul!(mx::Mxpr)
     end
     return mx
 end
-

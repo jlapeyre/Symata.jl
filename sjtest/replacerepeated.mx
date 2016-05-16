@@ -9,4 +9,3 @@ replacerepeated(ex_, rules_) :=
                                            If(res1 == res, Break())));
             If(i == maxits, Warn(StringJoin("maxits reached ",ToString(i))));
             Return(res)))
-

@@ -192,7 +192,7 @@ function make_sympy_to_sjulia()
             if length(x) != 3 continue end
             (julia_func, sjulia_func, sympy_func) = x
             set_pytosj(sympy_func, sjulia_func)
-            set_sjtopy(sjulia_func, sympy_func)            
+            set_sjtopy(sjulia_func, sympy_func)
         end
     end
 
@@ -545,7 +545,7 @@ Rewrite(CatalanNumber(n), HypergeometricPFQ)
     transform = get(RewriteDict, form, form)
     pyres = arg1[:rewrite](transform)
     pytosj(pyres)
-end 
+end
 
 
 ###### HypergeometricPFQ

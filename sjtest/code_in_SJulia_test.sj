@@ -32,4 +32,3 @@ T  Sin(-z^2)^2 == Sin(z^2)^2
  ClearAll(a,x,y,F,q,z)
 
 T testUserSyms
-

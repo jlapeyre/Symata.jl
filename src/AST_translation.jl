@@ -218,7 +218,7 @@ function extomx(ex::Expr)
             else
                 lhs = extomx(a[1])
                 if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
-                                                                   # Maybe : represents too many things. 
+                                                                   # Maybe : represents too many things.
                     return mxpr(:Optional,lhs,extomx(a[2]))
                 end
                 head = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
