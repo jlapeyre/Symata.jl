@@ -65,9 +65,7 @@ function process_blank_head(head)
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
-# Be careful this is not called depth-first.
-# It should apply when Blank is  not wrapped in Pattern.
-# Eg. MatchQ( a, _Integer)
+
 function patterntoBlank(mx::Mxpr{:Blank})
     blank = mx
     if length(blank) == 0 # match any head
@@ -93,7 +91,7 @@ function patterntoBlank(mx::Mxpr{:BlankSequence})
 end
 
 # Try a downvalue
-# hmmm, may this be Rule rather than RuleDelayed
+# hmmm, is it possible is is Rule rather than RuleDelayed ?
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     local lhs
     lhs = rd[1]
@@ -140,7 +138,7 @@ function tryupvalues(mx::Mxpr,m::SJSym)
     return false
 end
 
-# Maybe need to setunfixed here, as well
+# Maybe need to unsetfixed here, as well
 function applyupvalues(mx::Mxpr,m::Mxpr)
     res = tryupvalues(mx,mhead(m))
     res === false && return mx
@@ -166,7 +164,7 @@ applyupvalues(x) = x
 # pattern may be almost anything: a literal atom or literal Mxpr.
 # Or contain blanks, alternatives, conditions, etc., at any level.
 # In particular, Mxpr{:Pattern} specifies a pattern and a name to associate
-# the matching text. Any subsequenct matches via Pattern with the same name
+# the matching text. Any subsequent matches via Pattern with the same name
 # must match identical text. This information is stored in the Dict 'capt'.
 # We had a few optimizations, but they are removed for flexibility.
 function cmppat(expr,pattern)
@@ -284,7 +282,7 @@ function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
             names = Symbol[]  # We bind all the symbols that don't match to Sequence[], so they disappear
             for j in 1:length(pat)
                 i == j && continue  # skip the alternative that did match
-                append!(names,get_pattern_names(pat[j]))  # get all blank names
+                append!(names,get_pattern_names(pat[j]))  # get all pattern names
             end
             for name in names
                 capturepatternname(captures,name,mxpr(:Sequence)) # we could use a const empty sequence here.
@@ -348,7 +346,7 @@ end
 
 # When this method is called, the optional argument has
 # been supplied, so we just check if it matches. Of course, failure
-# does not revert to the optional value.
+# does not revert to the default value.
 function _cmppat(mx, pat::Mxpr{:Optional}, captures)
     if length(pat) != 2
         sjthrow(ExactNumArgsErr("Optional", 2, length(pat)))
@@ -364,7 +362,7 @@ end
 
 # This method is called when an optional argument has not been
 # supplied. We put the default value in the capture dictionary
-# and return true signaling success.
+# and return true, signaling success.
 function _do_optional(pat::Mxpr{:Optional}, captures)
     if length(pat) != 2
         sjthrow(ExactNumArgsErr("Optional", 2, length(pat)))
@@ -553,17 +551,6 @@ function match_and_replace(ex,r::Rules)
     rhs =r[2]
     (res,capt) = cmppat(ex,lhs)
     res == false && return false # match failed
-    rhs_copy = deepcopy(rhs)
-    rhs_copy_subst = patsubst!(rhs_copy,capt) # do replacement
-    return rhs_copy_subst
-end
-
-function match_and_replace(ex,r::Rules)
-    @mdebug(1, "enter match_and_replace with ", ex)
-    lhs =r[1]
-    rhs =r[2]
-    (res,capt) = cmppat(ex,lhs)
-    res == false && return false # match failed
     local rhs1
     if is_Mxpr(rhs, :Condition)
         rhs1 = rhs[1]
@@ -578,20 +565,21 @@ function match_and_replace(ex,r::Rules)
     return rhs_copy_subst
 end
 
+#### Replace
+
 # apply replacement rule r to expression ex
+# No level spec
 function replace(ex, r::Rules)
     r = patterntoBlank(r)
     res = match_and_replace(ex,r)
     res === false ? (false,ex) : (true,res)
 end
 
-#### Replace
-
 type ReplaceData
     rule
 end
 
-#function replace(levelspec::LevelSpec, ex::ExSym, r::Rules)
+# With level spec
 function replace(levelspec::LevelSpec, ex, r::Rules)
     r = patterntoBlank(r)
     data = ReplaceData(r)
