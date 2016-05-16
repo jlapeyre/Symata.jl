@@ -70,4 +70,12 @@ T ReleaseHold(f(a,b)) == f(a,b)
 
 ClearAll(a,b,f)
 
+a = Range(10)
+
+T Push!(a,11) == Range(11)
+T Pop!(a) == 11
+T a == Range(10)
+
+ClearAll(a)
+
 T testUserSyms

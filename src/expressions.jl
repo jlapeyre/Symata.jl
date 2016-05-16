@@ -385,9 +385,6 @@ end
 
 @sjdoc Push! "
 Push!(a,val) pushes val onto the expression that symbol a evaluates to.
-Push! is outside the Mma programming model, which requires immutable
-expressions. Re-evaluation, and updating metadata is not implemented.
-Re-evaluation can be forced with Unfix(a).
 "
 
 @sjexamp( Push!,
@@ -400,19 +397,19 @@ apprules(mx::Mxpr{:Push!}) = do_Push(mx,margs(mx)...)
 do_Push(mx,args...) = mx
 do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
 do_Push1(mx,x,val) = mx
-do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); val)
+do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); x)
 
 #### Pop!
 
 @sjdoc Pop! "
 Pop!(expr) pops a value from the arguments of expr. This mutates expr.
-Re-evaluation, and updating metadata is not implemented.
-Re-evaluation can be forced with Unfix(a).
 "
 
-set_pattributes(["Pop!"],[:HoldFirst])
-apprules(mx::Mxpr{:Pop!}) = do_Pop(mx,margs(mx)...)
-do_Pop(mx,args...) = mx
-do_Pop(mx,x::SJSym,val) = do_Pop1(mx,symval(x),val)
-do_Pop1(mx,x,val) = mx
-do_Pop1(mx,x::Mxpr,val) = pop!(x.args)
+@mkapprule Pop!
+
+@doap function Pop!(mx1::Mxpr)
+    length(mx1) < 1 && return mx1 # and warn or error
+    pop!(mx1.args)
+end
+
+@doap Pop!(x) = x
