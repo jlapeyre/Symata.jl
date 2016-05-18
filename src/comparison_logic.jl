@@ -89,9 +89,18 @@ end
 # Mma does this a == a != b  --->  a == a && a != b,  and  a == a  -->  True
 # Note: Mma 10, at least does this: a == a != b  ---> a != b, in disagreement with the above
 
+
+# We convert expressions that are not already numbers to floating point numbers, if possible.
+# But, not for == or ===.
+# We then use these approximations for comparison.
+# This gives correct results for Pi>0, Sqrt(2) > 0, etc.
+function maybe_N(x,cmp)
+    (cmp != :(==)) && (cmp != :(===)) && (! isa(x,Number)) && is_Numeric(x) ? doeval(do_N(x)) : x
+end
+
 # FIXME: Don't convert all chained comparisons to conjunctions
-# But, Mma  does this a < b < c,  ie. does not alwasy return conjunctions.
-# This always returns conjunctions if more than on comparison remains
+# But, Mma  does this a < b < c,  ie. does not always return conjunctions.
+# This always returns conjunctions if more than one comparison remains
 # after removing true comparisons.
 function do_Comparison(mx::Mxpr{:Comparison},args...)
     len = length(args)
@@ -100,7 +109,9 @@ function do_Comparison(mx::Mxpr{:Comparison},args...)
         a = args[i-1]
         cmp = args[i]
         b = args[i+1]
-        res = _do_Comparison(a,cmp,b)
+        an = maybe_N(a,cmp)
+        bn = maybe_N(b,cmp)
+        res = _do_Comparison(an,cmp,bn)
         if isa(res, Bool)
             res == false && return res
             push!(nargs,res)
@@ -257,8 +268,14 @@ end
 
 _do_Comparison{T<:SJReal}(a::SJSym, comp::SJSym, b::T) = nothing
 _do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
-_do_Comparison{T<:SJReal}(a::T, comp::SJSym, b::Mxpr) = nothing
-_do_Comparison{T<:SJReal}(a::Mxpr, comp::SJSym, b::T) = nothing
+
+function _do_Comparison{T<:SJReal}(a::T, comp::SJSym, b::Mxpr)
+    nothing
+end
+
+function _do_Comparison{T<:SJReal}(a::Mxpr, comp::SJSym, b::T)
+    nothing
+end
 
 function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
     comp == :(==) && return false

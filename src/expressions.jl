@@ -49,6 +49,11 @@ function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     return mx
 end
 
+#### Hash
+
+@mkapprule Hash :nargs => 1
+@doap Hash(x) = hash(x)
+
 #### Head
 
 @sjdoc Head "
@@ -206,10 +211,10 @@ end
 function do_Count(mx,expr,pat)
     args = margs(expr)
     c = 0
-    jp = just_pattern(pat)
+    jp = patterntoBlank(pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
-        (gotmatch,capt) = cmppat(args[i],jp,capt)
+        (gotmatch,capt) = match_and_capt(args[i],jp,capt)
         gotmatch ? c += 1 : nothing
     end
     return c
@@ -254,11 +259,11 @@ end
 # @doap function Casesold(expr,pat)
 #     args = margs(expr)
 #     nargs = newargs()
-#     jp = just_pattern(pat)
+#     jp = patterntoBlank(pat)
 #     capt = capturealloc()
 #     @inbounds for i in 1:length(args)
 #         ex = args[i]
-#         (gotmatch,capt) = cmppat(ex,jp,capt)
+#         (gotmatch,capt) = match_and_capt(ex,jp,capt)
 #         gotmatch ? push!(nargs,sjcopy(ex)) : nothing
 #     end
 #     mxpr(:List,nargs)
@@ -275,7 +280,7 @@ end
 # We have no level spec
 @doap function Cases(expr,pat)
     new_args = newargs()
-    jp = just_pattern(pat)
+    jp = patterntoBlank(pat)
     capt = capturealloc()
     data = CasesData(new_args,jp,capt)
     local action
@@ -286,7 +291,7 @@ end
                              end)
     else
         action = LevelAction(data, function (data, expr)
-                             (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                             (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
                              gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
                              end)
     end
@@ -296,11 +301,11 @@ end
 
 function _doCases(levelspec::LevelSpec, expr ,pat)
     new_args = newargs()
-    jp = just_pattern(pat)
+    jp = patterntoBlank(pat)
     capt = capturealloc()
     data = CasesData(new_args,jp,capt)
     # action = LevelAction(data, function (data, expr)
-    #                         (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+    #                         (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
     #                         gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
     #                      end)
     if is_Mxpr(pat,:Rule)
@@ -310,7 +315,7 @@ function _doCases(levelspec::LevelSpec, expr ,pat)
                              end)
     else
         action = LevelAction(data, function (data, expr)
-                             (gotmatch,capt) = cmppat(expr,data.jp,data.capt)
+                             (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
                              gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
                              end)
     end
@@ -352,10 +357,10 @@ eg: noints = DeleteCases(_Integer). The head of the returned object is the same 
 @doap function DeleteCases(expr,pat)
     args = margs(expr)
     new_args = newargs()
-    jp = just_pattern(pat)
+    jp = patterntoBlank(pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
-        (gotmatch,capt) = cmppat(args[i],jp,capt)
+        (gotmatch,capt) = match_and_capt(args[i],jp,capt)
         gotmatch ? nothing : push!(new_args,sjcopy(args[i])) # The difference from Cases
     end
     rmx = mxpr(mhead(expr),new_args)

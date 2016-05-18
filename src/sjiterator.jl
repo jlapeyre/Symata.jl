@@ -61,12 +61,14 @@ function make_sjiter{T}(mx,args::Array{T,1})
         return itererror(mx)
     else
         if  len ==  2
-            if is_Mxpr(args[2],:List)
-                return SJIterList(args[1],margs(args[2]))
+            arg2 = doeval(args[2])
+            if is_Mxpr(arg2,:List)
+                return SJIterList(args[1],margs(arg2))
             else
-                imax = doeval(args[2])
+                imax = arg2
                 if is_type_less(imax,Real)
-                    return SJIter2(args[1],doeval(args[2]))
+#                    return SJIter2(args[1],doeval(args[2]))
+                    return SJIter2(args[1],arg2)
                 else
                     itererror(mx)
                 end

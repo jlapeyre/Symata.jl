@@ -56,6 +56,8 @@ end
 
 # Test once with BigInt as default integer type
 
+println()
+
 setkerneloptions(:bigint_input, true)
 
 try

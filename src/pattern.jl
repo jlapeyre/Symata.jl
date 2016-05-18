@@ -29,9 +29,6 @@ const blank_head_dict = Dict(    :String => :AbstractString,
                                  :Float => :AbstractFloat,
                                  :Real => :AbstractFloat)
 
-function makeBlankT(head)
-    BlankT(head)
-end
 
 # Not yet implemented
 type BlankSequenceT{T}  <: Blanks
@@ -44,8 +41,6 @@ type BlankNullSequenceT{T}  <: Blanks
 end
 
 getBlankhead(pvar::Blanks) = pvar.head
-
-just_pattern(s) = patterntoBlank(s)
 
 function patterntoBlank(mx::Mxpr)
     nargs = newargs()
@@ -69,11 +64,11 @@ end
 function patterntoBlank(mx::Mxpr{:Blank})
     blank = mx
     if length(blank) == 0 # match any head
-       res = makeBlankT(:All)
+       res = BlankT(:All)
     else
         head = blank[1]
         head = process_blank_head(head)
-        res = makeBlankT(head)
+        res = BlankT(head)
     end
     res
 end
@@ -155,7 +150,6 @@ end
 
 applyupvalues(x) = x
 
-
 #######  Matching
 
 # Perform match and capture.
@@ -167,16 +161,16 @@ applyupvalues(x) = x
 # the matching text. Any subsequent matches via Pattern with the same name
 # must match identical text. This information is stored in the Dict 'capt'.
 # We had a few optimizations, but they are removed for flexibility.
-function cmppat(expr,pattern)
+function match_and_capt(expr,pattern)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
-    success_flag = _cmppat(expr,pattern,capt) # do the matching
+    success_flag = ematch(expr,pattern,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
 
 # pre-allocate the capture Dict. This can be much faster in a loop.
-function cmppat(ex,pat, capt)
+function match_and_capt(ex,pat, capt)
     empty!(capt)
-    success_flag = _cmppat(ex,pat,capt) # do the matching
+    success_flag = ematch(ex,pat,capt) # do the matching
     return (success_flag,capt)  # report whether matched, and return captures
 end
 
@@ -199,17 +193,17 @@ havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 
 # HoldPattern has held its argument during the evaluation sequence.
 # We now strip HoldPattern during pattern matching
-_cmppat(ex, pat::Mxpr{:HoldPattern}, captures) = _cmppat(ex,pat[1],captures)
+ematch(ex, pat::Mxpr{:HoldPattern}, captures) = ematch(ex,pat[1],captures)
 
 #### Pattern
 
 # First arg is a name.
 # Second arg is a pattern. If it matches, store the matching expression in
 # a dict under the name.
-function _cmppat(ex, pat::Mxpr{:Pattern}, captures)
+function ematch(ex, pat::Mxpr{:Pattern}, captures)
     if length(pat) == 2
         (name,pattern) = (margs(pat)...)
-        success_flag::Bool = _cmppat(ex,pattern,captures)
+        success_flag::Bool = ematch(ex,pattern,captures)
         if success_flag
             capture_success_flag::Bool = capturepatternname(captures,name,ex)
             return capture_success_flag
@@ -236,10 +230,10 @@ function apply_test(ex,test)
     end
 end
 
-function _cmppat(ex, pat::Mxpr{:PatternTest}, captures)
+function ematch(ex, pat::Mxpr{:PatternTest}, captures)
     if length(pat) == 2
         (pattern,test) = (pat[1],pat[2])
-        success_flag::Bool = _cmppat(ex, pattern, captures)
+        success_flag::Bool = ematch(ex, pattern, captures)
         success_flag == false && return false
         test = isa(test,Symbol) ? mxpr(symval(test),0) : isa(test,Function) ?
             mxpr(test,0) : error("PatternTest: unrecognized test $test")
@@ -269,15 +263,15 @@ function matchBlank(blank::BlankT,ex)
     match_head(head,ex) || return false
 end
 
-_cmppat(mx, pat::BlankT, captures)  = matchBlank(pat,mx)
+ematch(mx, pat::BlankT, captures)  = matchBlank(pat,mx)
 
 #### Alternatives
 
 # Lots of room for optimization here. But, we want to avoid premature optimization.
-function _cmppat(mx, pat::Mxpr{:Alternatives}, captures)
+function ematch(mx, pat::Mxpr{:Alternatives}, captures)
     for i in 1:length(pat)
         alt = pat[i]
-        res = _cmppat(mx, alt, captures)
+        res = ematch(mx, alt, captures)
         if res != false       # Accept the first match
             names = Symbol[]  # We bind all the symbols that don't match to Sequence[], so they disappear
             for j in 1:length(pat)
@@ -295,19 +289,19 @@ end
 
 #### Except
 
-function _cmppat(mx, pat::Mxpr{:Except}, captures)
+function ematch(mx, pat::Mxpr{:Except}, captures)
     if length(margs(pat)) == 1   # Not matching is matching
-        res = _cmppat(mx, pat[1], captures)
+        res = ematch(mx, pat[1], captures)
         if res == false    # no match
-            res = _cmppat(mx, patterntoBlank(mxpr(:Blank)), captures) # match anything
+            res = ematch(mx, patterntoBlank(mxpr(:Blank)), captures) # match anything
             res == false && error("Programming error matching 'Except'") # use assert
             return res
         end
         return false   # hmmm, but the capture is still there. We probably should delete it.
     elseif length(margs(pat)) == 2  # Must not match first and must match second
-        res = _cmppat(mx, pat[1], captures)
+        res = ematch(mx, pat[1], captures)
         if res == false   # need no match with pat[1] ....
-            res = _cmppat(mx, pat[2], captures)  # and a match with pat[2]
+            res = ematch(mx, pat[2], captures)  # and a match with pat[2]
             return res
         end
         return false
@@ -325,13 +319,13 @@ end
 
 # Get both of these messages. Usage with number of args != 2 is not documented.
 # NB. Condition[1,2,3] --> 1 /; Sequence[2, 3]
-function _cmppat(mx, pat::Mxpr{:Condition}, captures)
+function ematch(mx, pat::Mxpr{:Condition}, captures)
     if length(pat) != 2  # For now, we require 2 args
         sjthrow(ExactNumArgsErr("Condition", 2, length(pat)))
         return false
     end
     lhs = doeval(pat[1]) # Condition has Attribute HoldAll
-    res = _cmppat(mx, lhs, captures)
+    res = ematch(mx, lhs, captures)
     res == false && return false
     # We must copy, otherwise, on repeated calls to this function, rhs has the previous substituted value on entry.
     # Must be deep because replacements can be deep.
@@ -347,7 +341,7 @@ end
 # When this method is called, the optional argument has
 # been supplied, so we just check if it matches. Of course, failure
 # does not revert to the default value.
-function _cmppat(mx, pat::Mxpr{:Optional}, captures)
+function ematch(mx, pat::Mxpr{:Optional}, captures)
     if length(pat) != 2
         sjthrow(ExactNumArgsErr("Optional", 2, length(pat)))
         return false
@@ -355,7 +349,7 @@ function _cmppat(mx, pat::Mxpr{:Optional}, captures)
     pattern = pat[1]
     default = pat[2]
     patname = pattern[1]
-    res = _cmppat(mx, pattern, captures)
+    res = ematch(mx, pattern, captures)
     res == true && return true
     return false
 end
@@ -378,36 +372,15 @@ end
 
 #### General Mxpr
 
-function mxpr_head_q(mx1::Mxpr, head)
-    mhead(mx1) == head ? true : false
-end
-
-mxpr_head_q(x,head) = false
-
-function mxpr_count_heads(mx::Mxpr, head)
-    cnt = 0
-    for i in 1:length(mx)
-        if mxpr_head_q(mx[i],head) cnt += 1  end
-    end
-    cnt
-end
-
-function mxpr_head_freeq(mx::Mxpr, head)
-    for i in 1:length(mx)
-        mxpr_head_q(mx[i],head)  && return false
-    end
-    return true
-end
-
-function cmppat_no_optional_no_repeated(mx,pat,captures)
+function match_and_capt_no_optional_no_repeated(mx,pat,captures)
     length(mx) != length(pat) && return false
     for i in 1:length(mx)
-        _cmppat(mx[i],pat[i],captures) == false && return false
+        ematch(mx[i],pat[i],captures) == false && return false
     end
     return true
 end
 
-function cmppat_yes_optional_no_repeated(mx,pat,captures,lm,lp)
+function match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
     for i in 1:lp
         if i > lm
             if is_Mxpr(pat[i],:Optional)
@@ -416,7 +389,7 @@ function cmppat_yes_optional_no_repeated(mx,pat,captures,lm,lp)
                 return false
             end
         else
-            _cmppat(mx[i],pat[i],captures) == false && return false
+            ematch(mx[i],pat[i],captures) == false && return false
         end
     end
     return true
@@ -455,7 +428,7 @@ function doRepeated(mx, p, imx, captures, default_min)
         end
     end
     repeat_count = 0
-    while imx <= length(mx) && _cmppat(mx[imx],repeat_pattern,captures)
+    while imx <= length(mx) && ematch(mx[imx],repeat_pattern,captures)
         repeat_count += 1
         imx += 1
         repeat_count >= rmax && break
@@ -465,7 +438,7 @@ function doRepeated(mx, p, imx, captures, default_min)
     (false, imx)
 end
 
-function cmppat_no_optional_yes_repeated(mx,pat,captures)
+function match_and_capt_no_optional_yes_repeated(mx,pat,captures)
     imx = 0
     for i in 1:length(pat)
         p = pat[i]
@@ -478,7 +451,7 @@ function cmppat_no_optional_yes_repeated(mx,pat,captures)
             success == false && return false
         else
             imx > length(mx) && return false
-            _cmppat(mx[imx],p,captures) == false && return false
+            ematch(mx[imx],p,captures) == false && return false
         end
     end
     imx < length(mx) && return false
@@ -487,10 +460,9 @@ end
 
 # Matching a non-atomic expression. The head and length must match and each subexpression must match.
 # We get ambiguity warnings if first arg is annotated: mx::Mxpr. But, it should always be Mxpr
-#function _cmppat(mx::Mxpr, pat::Mxpr, captures)
+#function ematch(mx::Mxpr, pat::Mxpr, captures)
 # Accounting for Optional here is ugly. I don't like it. Must be a better way
-function _cmppat(mx, pat::Mxpr, captures)
-#    println("cmmpat Mxpr")
+function ematch(mx, pat::Mxpr, captures)
     (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
     have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull))
@@ -498,28 +470,28 @@ function _cmppat(mx, pat::Mxpr, captures)
     lm = length(mx)
     # TODO: Optimize the line below
     if have_repeated  # FIXME: handle repeated and optional
-        return cmppat_no_optional_yes_repeated(mx,pat,captures)
+        return match_and_capt_no_optional_yes_repeated(mx,pat,captures)
     end
     ((lm >= lp - nopt) && (lm <= lp)) || return false
     if nopt == 0
-        return cmppat_no_optional_no_repeated(mx,pat,captures)
+        return match_and_capt_no_optional_no_repeated(mx,pat,captures)
     end
-    return cmppat_yes_optional_no_repeated(mx,pat,captures,lm,lp)
+    return match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
 end
 
 ##### Atoms
 
 # This is a leaf on the tree, because mx is not an Mxpr and
 # pat is not a BlankT.
-_cmppat(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
+ematch(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
 
 # Allow different kinds of integers and floats to match
-_cmppat(mx::Integer,pat::Integer,captures) = mx == pat
+ematch(mx::Integer,pat::Integer,captures) = mx == pat
 
-_cmppat{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
+ematch{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
 
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
-_cmppat{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
+ematch{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
 
 ##### Get Pattern names
 
@@ -549,7 +521,7 @@ function match_and_replace(ex,r::Rules)
     @mdebug(1, "enter match_and_replace with ", ex)
     lhs =r[1]
     rhs =r[2]
-    (res,capt) = cmppat(ex,lhs)
+    (res,capt) = match_and_capt(ex,lhs)
     res == false && return false # match failed
     local rhs1
     if is_Mxpr(rhs, :Condition)
@@ -707,14 +679,14 @@ function freeq(levelspec::LevelSpec, expr, pat)
     data = FreeQData(pat,false)
     action = LevelAction(data,
                          function (data, expr)
-                             (gotmatch,cap) = cmppat(expr,just_pattern(data.pattern))                         
+                             (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))                         
                              if gotmatch
                                data.gotmatch = true
                                action.levelbreak = true
                              end 
                          end)
     if has_level_zero(levelspec)  # Do level zero separately
-        (gotmatch,cap) = cmppat(expr,just_pattern(data.pattern))
+        (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
         gotmatch && return false
     end
     traverse_levels!(action,levelspec,expr)

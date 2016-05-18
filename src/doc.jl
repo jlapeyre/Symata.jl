@@ -340,14 +340,12 @@ end
 #### Help
 
 @sjdoc Help "
-Help(sym) or Help(\"sym\") prints documentation for the symbol sym. Eg: Help(Expand).
-Help() lists most of the documented symbols. Due to parsing restrictions at the repl, for some
-topics, the input must be a string.
+Help(sym), Help(\"sym\"), or \"? topic\" prints documentation for the symbol sym. Eg: Help(Expand).
+Due to parsing restrictions at the repl, for some topics, the input must be a string.
 
 h\"topic\" gives a case-insensitive regular expression search.
 
 In the REPL, hit TAB to see all the available completions.
-\"? topic\" is equivalent to Help(topic).
 
 Help(All => True) prints all of the documentation.
 
@@ -356,7 +354,7 @@ regular expression regex. For example Help(r\"Set\"i) lists all topics that
 match \"Set\" case-independently.
 "
 
-@mkapprule Help  :nodefault =>
+@mkapprule Help  :nodefault => true
 
 @doap Help() = print_doc("Help")
 

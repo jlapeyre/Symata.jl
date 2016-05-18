@@ -102,6 +102,19 @@ function Base.show(io::IO, x::Rational)
     show(io, den(x))
 end
 
+# I don't want to create a table of latex to unicode conversions.
+# Doesn't Julia have this already ?
+# function Base.show(io::IO, x::Mxpr{:Subscript})
+#     if getkerneloptions(:unicode_output)
+#         show(io,x[1])
+#         for i in 2:length(x)
+#             str = "\_" # How to use latex form programatically >
+#         end
+#     else
+#         show(io,mxpr(:SubscriptFix,margs(x)...))
+#     end
+# end
+
 # NB: This comment is only relevant if we change the SJulia symbol implementation.
 # This may break. It will only work if the value of s
 # is the symbol name in the symbol table that is associated

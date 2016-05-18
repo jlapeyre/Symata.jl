@@ -1,5 +1,14 @@
-
 T testUserSyms
+
+T  Abs(-1) == 1
+T  Abs(-2.0) == 2.0
+T  Abs(z^3) == Abs(z)^3
+T  Abs(z^4.1) == Abs(z)^4.1
+T  Abs(-z) == Abs(z)
+T  Abs(-z^(1/2))^2 == Abs(z)
+T  Abs(Pi) == Pi
+T  Abs(E) == E
+T  Abs(Sqrt(2)) ==  Sqrt(2)
 
 #### ArcSin
 
@@ -141,16 +150,20 @@ T IntegerDigits(100,2) == [1,1,0,0,1,0,0]
 T Series(Log(1 + x), [x, 0, 5]) == x + (-1/2)*(x^2) + (1/3)*(x^3) + (-1/4)*(x^4) + Order((x^5),[x,0])
 T Log(E) == 1
 T Log(2,1024) == 10
-T Simplify(Log(3,3^(-12))) == -1/12
+T Log(3,3^(-12)) == -12
 # FIXME Can't do these
 # T Log(Pi,Pi^(1/2))
-T Log(0) == -Infinity
-# This should be -Infinity
+#
+# FIXME: This should be -Infinity
+T Log(0) == ComplexInfinity
+# This should be Indeterminate
 T Log(0.0) == -Inf
 # This is what Mma does:
 # Log(ComplexInfinity) == Infinity
 T NumericQ(Log(1+E))
-# Check this: T Log(x,y) == Log(x)/Log(y)
+T Log(x,y) == Log(y)/Log(x)
+T Log(2,8) == 3
+T Log(2,9) == Log(9)/Log(2)
 
 #### NDigits
 
@@ -158,7 +171,24 @@ T NDigits(10) == 2
 T NDigits(99) == 2
 T NDigits(2^10-1,2) == 10
 
-ClearAll(x)
+ClearAll(x,y)
+
+#### Sign
+
+T Sign(1) == 1
+T Sign(-1) == -1
+T Sign(0) == 0
+T Sign(1.0) == 1 && IntegerQ(Sign(1.0))
+T Sign(I+1) == (1 + I)*(2^(-1/2))
+T Abs(Sign(I+1)) == 1
+T Sign((I+1)*x) == (1 + I)*(2^(-1/2))*Sign(x)
+T Sign(-3*x*y) == -Sign(x*y)
+T Sign(3.0*x*y) == Sign(x*y)
+T Sign(E) == Sign(Pi) == Sign(EulerGamma) == 1
+T Sign(I) == I
+T Sign(x*I) == I * Sign(x)
+
+ClearAll(x,y)
 
 T testUserSyms
 

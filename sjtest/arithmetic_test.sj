@@ -10,6 +10,8 @@ T Re(I*a)[2] == Im(a)
 T Im(I*a) == Re(a)
 T Im(I*a*b) == Re(a*b)
 T Re(I*a*b) == -Im(a*b)
+T Re(2*a) == 2*Re(a)
+T Im(2*a) == 2*Im(a)
 
 T 1/0 == DirectedInfinity()
 T 1//0 == DirectedInfinity()

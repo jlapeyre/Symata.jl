@@ -313,7 +313,7 @@ Nothing is only removed from the arguments of expressions with head List.
 # It runs TableNew(a(i),[i,10^5]) twice as fast as the usual
 # Table, but it is still slow. Probably creating new mxprs
 # is expensive. But, older code had free sym lists and was
-# faster. Still don't understand.
+# faster. Still don't understand why.
 
 @sjdoc Table "
 Table(expr,[imax]) returns a list of imax copies of expr.
@@ -346,7 +346,7 @@ end
 
 # Making this a kernel is not only useful, but faster.
 # Set part in expr given by spec to val
-function set_part_spec2(expr,spec,val)
+function set_part_spec(expr,spec,val)
     p = expr
     @inbounds for k in 2:(length(spec)-1)
         p = p[spec[k]]
@@ -354,9 +354,9 @@ function set_part_spec2(expr,spec,val)
     @inbounds p[spec[end]] = val
 end
 
-function set_all_part_specs2(expr,specs,val)
+function set_all_part_specs(expr,specs,val)
     @inbounds for j in 1:length(specs)
-        set_part_spec2(expr,specs[j],val)
+        set_part_spec(expr,specs[j],val)
     end
 end
 
@@ -364,6 +364,27 @@ function do_Table(expr,iter::SJIter2)
     exprpos = expression_positions(expr,iter.i)
     imax = iter.imax # meval(plainiter[2])
     do_Table(imax,iter.i,expr,exprpos)
+end
+
+function do_Table(expr,iter::SJIterList)
+    len = length(iter.list)
+    args = newargs(len)    
+    if iter.i == expr
+        for i in 1:len
+            args[i] =  iter.list[i]
+        end
+        return args
+    end    
+    exprpos = expression_positions(expr,iter.i)
+    for i in 1:len
+        item = iter.list[i]
+#        println("Doing item $item")
+        set_all_part_specs(expr,exprpos,item)
+#        println("Done artpd  $i")
+        unsetfixed(expr)
+        args[i] = doeval(expr)
+    end
+    return args
 end
 
 function do_Table(expr,iter::SJIter1)
@@ -380,13 +401,13 @@ function do_Table{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
     args = newargs(imax-imin+1)
-    @inbounds if iter.i == expr
-        for i in imin:imax
+    if iter.i == expr
+        @inbounds for i in imin:imax
             args[i-imin+1] = i
         end
     else
         @inbounds for i in imin:imax
-            set_all_part_specs2(expr,exprpos,i)
+            set_all_part_specs(expr,exprpos,i)
             unsetfixed(expr)
             args[i-imin+1] = doeval(expr)
         end
@@ -409,7 +430,7 @@ function do_Table{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     else
       @inbounds for i in imin:di:imax
             j += 1
-            set_all_part_specs2(expr,exprpos,i)
+            set_all_part_specs(expr,exprpos,i)
             unsetfixed(expr)
             args[j] = doeval(expr)
         end
@@ -422,7 +443,7 @@ function do_Table{T<:Integer}(imax::T,isym,exin::Mxpr,exprpos)
     clearsyms(exin) # Clear the iterator variable
     ex = exin
     @inbounds for i in 1:imax
-        set_all_part_specs2(ex,exprpos,i)
+        set_all_part_specs(ex,exprpos,i)
         unsetfixed(ex)   # force re-evaluation
         args[i] = doeval(ex)
         setfixed(args[i])

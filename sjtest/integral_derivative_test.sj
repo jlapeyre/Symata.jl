@@ -32,7 +32,7 @@ T Integrate(Log(x), [x, 1, a])  == 1 + -a + a * Log(a)
 T Integrate(x) == 1//2 * (x ^ 2)    # Should we disallow this ?
 T Integrate(Sqrt(1+x), [x,0,x]) == -2/3 + 2/3 * ((1 + x) ^ (3/2))
 T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
-T Integrate(x^a * Exp(-x), [x,0,Infinity]) == [Γ(1 + a),-Re(a) < 1]
+T Integrate(x^a * Exp(-x), [x,0,Infinity]) == ConditionalExpression(Γ(1 + a),-Re(a) < 1)
 T Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
 
 # Following works if 1/cos does not go to sec

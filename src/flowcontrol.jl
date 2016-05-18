@@ -1,5 +1,9 @@
 # For, While, Do, If, CompoundExpression
 
+# FIXME.  We should use dynamically scoped local variables for Do.
+# Block is automatically used to localize values of iterators in iteration constructs such as Do, Sum, and Table
+# Hmmm. looks like I noted this a long time ago in the doc for Do.
+
 # FIXME. We need to delete local variables before breaking or returning.
 macro checkbreak()
     return esc(:(
@@ -41,15 +45,16 @@ macro checkcontinue0(mx)
     esc( :( if is_Mxpr($mx,:Continue) continue end ))
 end
 
+# NOTE. See comment at top. We should use dynamcic scoping here.
 # Localize variables.
 # For lexically scoped variables. Replace symbol os with ns in ex
 # We should follow what we did in table and set the value in the function,
 # rather than localizing the variable and letting meval do the setting.
-function replsym(ex,os,ns)
+function substitute_symbol(ex,os,ns)
     if is_Mxpr(ex)
         args = margs(ex)
         @inbounds for i in 1:length(args)
-            args[i] = replsym(args[i],os,ns)
+            args[i] = substitute_symbol(args[i],os,ns)
         end
     end
     if ex == os
@@ -58,6 +63,8 @@ function replsym(ex,os,ns)
         return ex
     end
 end
+
+
 
 
 #### For
@@ -192,7 +199,7 @@ Do(expr,[i,imin,imax,di]) evaluates expr with i taking values from imin to imax 
 Do(expr,[i,[i1,i2,...]) evaluates expr with i taking values from a list.
 
 Mma says that Do effectively uses Block to localize variables. This probably means i has dynamic
-scope. In SJulia, we give i lexical scopy, as in Module.
+scope. In SJulia, we give it lexical scope, as in Module.
 "
 
 function apprules(mx::Mxpr{:Do})
@@ -220,7 +227,7 @@ end
 
 function do_doloop(expr,iter::SJIter2)
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
@@ -235,7 +242,7 @@ end
 
 function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
@@ -251,7 +258,7 @@ end
 # fields of iter may be symbolic
 function do_doloop(expr,iter::SJIter3)
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)
     @unsetbreak
     for i in 1:(iter.num_iters)
@@ -267,7 +274,7 @@ end
 
 function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
@@ -283,7 +290,7 @@ end
 # fields of iter may be symbolic
 function do_doloop(expr,iter::SJIter4)
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     setsymval(isym,iter.imin)
     @unsetbreak
     for i in 1:(iter.num_iters)
@@ -299,7 +306,7 @@ end
 
 function do_doloop(expr,iter::SJIterList)
     isym = get_localized_symbol(iter.i)
-    ex = replsym(deepcopy(expr),iter.i,isym)
+    ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])
@@ -335,5 +342,3 @@ end
 @mkapprule Warn :nargs => 1
 
 do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = warn(msg)
-
-

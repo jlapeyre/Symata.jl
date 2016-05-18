@@ -187,12 +187,16 @@ sjulia > g(f(z))
 
 #### Results on evaluation and efficiency
 
-*Note* Some of the times below are currently worse, since the matching code has
-been rewritten to include more features, but not optimized. (The pattern test is no longer "compiled", but
-is reevaluated every time the pattern is used.)
+*Note* Some of the times given below are slower with more recent
+versions of SJulia. This is because the pattern matching code has been
+rewritten to include more features, but has not been optimized. In
+particular, `PatternTest` is 5 or 6 times slower because it is no
+longer "compiled", but is reevaluated every time the pattern is
+used. It probably won't be compiled again until the pattern matching
+code is nearly completed.
 
 *Note* As with everything in Julia, the following are not the times you get the first time you run
-these commands, as Julia must first compile the code.
+these commands, as Julia uses JIT compiling.
 
 Here is counting with patterns. The execution time is about the same as Mma 3.
 

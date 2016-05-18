@@ -382,7 +382,7 @@ function analyze_operands{T<:Orderless}(mx::T)
     return Times_analysis(gotFloat,gotZero,gotIndeterminate,gotInfinity,gotComplexInfinity)
 end
 
-# TODO: What to do about overflwo ?
+# TODO: What to do about overflow ?
 # maybe do the julia way. caveat emptor
 function whichinfinity(mx)
     ma = margs(mx)
@@ -445,7 +445,6 @@ function _canonexpr_orderless!(mx)
             @mdebug(2,"_canonexpr_orderless!, returned from collectordered!: ", mx)
             # following is rarely if ever used.
             if is_Mxpr(mx,:Power)
-#                println("mulpowers")
                 mx = mulpowers(mx)
             end  # add numeric exponents when base is same
         end
@@ -578,7 +577,7 @@ numeric_expt(x) = 1
 function _rest!(mx::Mxpr)
     res=copy(mx)  # could be slow
     shift!(margs(res))
-    return length(res) == 1 ? @ma(res,1) : res
+    return length(res) == 1 ? res[1] : res    
 end
 
 # split product n*expr into (n,expr) with numeric n. n may be 1

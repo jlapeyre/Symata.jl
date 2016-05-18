@@ -17,6 +17,26 @@ is_Mxpr(x) = false
 is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
 is_Mxpr(x,s::Symbol) = false
 
+# Return true if any element at level 1 of mx is an Mxpr with head `head`
+function mxpr_head_freeq(mx::Mxpr, head)
+    for i in 1:length(mx)
+        is_Mxpr(mx[i],head)  && return false        
+    end
+    return true
+end
+
+# We may need this at some time
+# return true if h occurs anywhere in tree as a head
+# Decided not to use this after it was written
+# function has_head(mx::Mxpr, h::SJSym)
+#     mhead(mx) == h && return true
+#     for i in 1:length(mx)
+#         has_head(mx[i],h) && return true
+#     end
+#     return false
+# end
+# has_head(x,h::SJSym) = false
+
 # isa(x,Number) would work
 is_Number{T<:Number}(mx::T) = true
 is_Number(x) = false
@@ -102,6 +122,7 @@ do_syms(s) = mxpr(:List,)
 NumericQ(expr) returns true if N(expr) would return a number.
 "
 do_NumericQ(mx::Mxpr{:NumericQ}, x) = is_Numeric(x)
+
 is_Numeric(x) = false
 is_Numeric{T<:Number}(x::T) = true
 is_Numeric(x::Symbol) = is_Constant(x)

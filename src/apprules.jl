@@ -343,7 +343,7 @@ function apprules(mx::Mxpr{:MatchQ})
 end
 
 function do_MatchQ(mx,expr,pat)
-    (gotmatch,cap) = cmppat(expr,just_pattern(pat))
+    (gotmatch,cap) = match_and_capt(expr,patterntoBlank(pat))
     gotmatch
 end
 
@@ -386,13 +386,12 @@ makerat(mx,n,d) = mx
 
 #### Power
 
-# Probably faster to handle this in
-# canonicalization code. Some is done there. Some incorrectly.
-function apprules(mx::Mxpr{:Power})
-    do_Power(mx,mx[1],mx[2])
-end
+@mkapprule Power :nargs => 2
 
-# @doap Power{T<:AbstractFloat}(b::SJSym, expt::T) = b == :E ? exp(expt) : mx
+# function apprules(mx::Mxpr{:Power})
+#     do_Power(mx,mx[1],mx[2])
+# end
+
 do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 
 @doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
@@ -416,9 +415,6 @@ do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{
 
 do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
 
-#do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : unsetfixed(mx) # does not help
-
-
 # For some reason, we need this integer rule. For instance for (a^2)^2 --> a^4
 do_Power{T<:Integer}(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
 do_Power{T<:Real}(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
@@ -435,87 +431,28 @@ function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,expt::V)
     mpow(b,expt)
 end
 
-function disabledo_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,exp::V)
-    gotneg::Bool = false
-    b == -1 && return mx
-    if b < 0
-        gotneg = true
-        b *= -1
-    end
-    res = b^exp
-    ires = round(T,res)
-    nrat = Rational(den(exp),num(exp))
-    if ires^nrat == b
-        if gotneg
-            return ires == 1 ? mxprcf(:Power, -1, exp) : mxprcf(:Times, ires, mxprcf(:Power, -1, exp))
-        else
-            return ires
-        end
-    else
-        return mx
-    end
-end
+# function disabledo_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,exp::V)
+#     gotneg::Bool = false
+#     b == -1 && return mx
+#     if b < 0
+#         gotneg = true
+#         b *= -1
+#     end
+#     res = b^exp
+#     ires = round(T,res)
+#     nrat = Rational(den(exp),num(exp))
+#     if ires^nrat == b
+#         if gotneg
+#             return ires == 1 ? mxprcf(:Power, -1, exp) : mxprcf(:Times, ires, mxprcf(:Power, -1, exp))
+#         else
+#             return ires
+#         end
+#     else
+#         return mx
+#     end
+# end
 
 do_Power(mx,b,e) = mx
-
-#### Abs
-
-@sjdoc Abs "
-Abs(z) represents the absolute value of z.
-"
-
-function apprules(mx::Mxpr{:Abs})
-    doabs(mx,mx[1])
-end
-
-doabs{T<:Number}(mx,n::T) = mabs(n)
-
-# Abs(x^n) --> Abs(x)^n  for Real n
-function doabs(mx,pow::Mxpr{:Power})
-    doabs_pow(mx,base(pow),expt(pow))
-end
-doabs_pow(mx,b,e) = mx
-doabs_pow{T<:Real}(mx,b,e::T) = mxpr(:Power,mxpr(:Abs,b),e)
-
-
-doabs(mx,prod::Mxpr{:Times}) = doabs(mx,prod,prod[1])
-
-#doabs(mx,prod,s::Symbol)
-
-function doabs{T<:Number}(mx,prod,f::T)
-    f >=0 && return mx
-    if f == -1
-        return doabsmone(mx,prod,f)
-    end
-    args = copy(margs(prod))
-    args[1] = -args[1]
-    return mxpr(:Abs,mxpr(:Times,args))
-end
-
-function doabsmone{T<:Integer}(mx,prod,f::T)
-    args = copy(margs(prod))
-    shift!(args)
-    if length(args) == 1
-        return mxpr(:Abs,args)
-    else
-        return mxpr(:Abs,mxpr(:Times,args))
-    end
-end
-
-# TODO Fix canonical routines so that 1.0 * a is not simplifed to a
-function doabsmone{T<:Real}(mx,prod,f::T)
-    args = copy(margs(prod))
-    shift!(args)
-    if length(args) == 1
-        res = mxpr(:Times,one(f),mxpr(:Abs,args))
-    else
-        res = mxpr(:Times,one(f),mxpr(:Abs,mxpr(:Times,args)))
-    end
-    return res
-end
-
-doabs(mx,x) = mx
-
 
 #### convert to BigInt or BigFloat. We cannot yet do this automatically
 

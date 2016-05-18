@@ -67,6 +67,9 @@ end
 const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
+# Dict containing symbols created via sympy.Symbol("...")
+const SYMPY_USER_SYMBOLS = Dict{Symbol,Any}()
+
 function set_pytosj(py,sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
@@ -179,7 +182,7 @@ function make_sympy_to_sjulia()
                       (:FourierTransform, :fourier_transform),
                       (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
-                      (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma),
+                      (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
                       (:PeriodicArgument, :periodic_argument)
                       ]
 
@@ -639,14 +642,39 @@ function _sjtopy(mx::Mxpr)
 end
 
 # mx is a julia Symbol
+# We create a sympy symbol, unless it has already been created
 function _sjtopy(mx::Symbol)
     @sjdebug(3,"Symbol ", mx)
     if haskey(mx_to_py_dict,mx)
         @sjdebug(1,"In mx_to_py_dixt ", mx)
         return mx_to_py_dict[mx]
     end
-    return sympy.Symbol(mx)
+    if haskey(SYMPY_USER_SYMBOLS,mx)
+        sym = SYMPY_USER_SYMBOLS[mx]
+        return sym
+    else
+        sym = sympy.Symbol(mx)
+        SYMPY_USER_SYMBOLS[mx] = sym
+        return sym
+    end
 end
+
+@mkapprule Assume
+
+# TODO. We implemented this to use, e.g. the inequality solvers
+# Can't find a better way to create the symbol
+# prop is not evaluated, rather the symbol 'prop' is set to true
+@doap function Assume(s::Symbol, prop)
+    ss = string(s)
+    sym = eval(parse("sympy.Symbol(\"$ss\", $prop=true)"))
+    SYMPY_USER_SYMBOLS[s] = sym
+    s
+end
+
+# @doap function Assume(s::Symbol, prop, val)
+#     sympy.Symbol(s, prop=val)
+# end
+
 
 _sjtopy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
 

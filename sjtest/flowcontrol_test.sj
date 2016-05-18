@@ -47,10 +47,11 @@ T i == 4
 T i == 4
 
 # Giving the wrong number of arguments
+# TODO. Implement Quiet to silence the warning messages.
 T Head(For(1)) == For
 T Head(For(1,2,3,4,5)) == For
 
- ClearAll(m,i,res)
+ClearAll(m,i,res)
 
 
 #### While

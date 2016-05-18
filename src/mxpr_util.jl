@@ -1,3 +1,45 @@
+capitalize_first_character(s::AbstractString) = uppercase(string(s[1])) * s[2:end]
+
+# we use this for copying expression trees.
+recursive_copy(x) = deepcopy(x)
+
+# Count the number of first-level elements of mx that are of type Mxpr{head}
+function mxpr_count_heads(mx::Mxpr, head)
+    cnt = 0
+    for i in 1:length(mx)
+        if is_Mxpr(mx[i],head) cnt += 1  end        
+    end
+    cnt
+end
+
+
+# This is applied at toplevel after expression has been constructed.
+# It is applied now to binomial expansion. Needs to be applied more
+# generally.
+function apply_upvalues_to_args!(mx::Mxpr)
+    syms = listsyms(mx)
+    goodsyms = Array(SJSym,0)
+    for sym in syms
+        if has_upvalues(sym)
+            push!(goodsyms,sym)
+        end
+    end
+    args = margs(mx)
+    for sym in goodsyms
+        mx = deep_apply_upvalues!(mx,sym)
+    end
+    return mx
+end
+
+function deep_apply_upvalues!(mx::Mxpr,sym)
+    args = margs(mx)
+    for i in 1:length(mx)
+        args[i] = deep_apply_upvalues!(args[i],sym)
+    end
+    return applyupvalues(mx,sym)
+end
+deep_apply_upvalues!(x,sym) = x
+
 macro mdebug(level, a...)
     if level <= MXDEBUGLEVEL
         :((println($(a...));println()))
@@ -23,14 +65,5 @@ macro testex(expr)
     Expr(:macrocall,Symbol("@test"),retresult)
 end
 
-## For compatibility with older code.
-## Usage: @ma(mx,k) = val  --> margs(mx)[k] = val
-# Use this to set an element of an Mxpr without canonicalizing.  Eg,
-# setindex!, i.e.  mx[k] = va; will reorder every time it is called on
-# type Orderless.
-macro ma(mx,k)
-    :((($(esc(mx))).args[$(esc(k))]))
-end
 
-capitalize_first_character(s::AbstractString) = uppercase(string(s[1])) * s[2:end]
 

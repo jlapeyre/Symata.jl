@@ -116,10 +116,14 @@ function apprules(mx::Mxpr{:Integrate})
         kws[:conds] = "separate"
     end
     if length(kws) == 0
-        do_Integrate(mx,margs(mx)...)
+        res = do_Integrate(mx,margs(mx)...)
     else
-        do_Integrate_kws(mx,kws,nargs...)
+        res = do_Integrate_kws(mx,kws,nargs...)
     end
+    if is_Mxpr(res,:List)
+        return mxpr(:ConditionalExpression, margs(res)...)
+    end
+    res
 end
 
 register_sjfunc_pyfunc("Integrate", "integrate")
@@ -135,7 +139,11 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
     nargs = sjtopy_kw(mx,kws)
     pyres = @try_sympyfunc laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
-    pyres |> pytosj
+    res = pyres |> pytosj
+    if is_Mxpr(res,:List)
+        return mxpr(:ConditionalExpression, margs(res)...)
+    end
+    res    
 end
 
 #### InverseLaplaceTransform
@@ -152,6 +160,9 @@ function apprules(mx::Mxpr{:InverseLaplaceTransform})
         if mhead(margs(sjresult)[end]) == :Dummy
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
+    end
+    if is_Mxpr(sjresult,:List)
+        return mxpr(:ConditionalExpression, margs(sjresult)...)
     end
     sjresult
 end
@@ -178,7 +189,10 @@ function apprules(mx::Mxpr{:InverseFourierTransform})
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
     end
-    sjresult
+    if is_Mxpr(sjresult,:List)
+        return mxpr(:ConditionalExpression, margs(sjresult)...)
+    end
+    sjresult    
 end
 
 #### Sum
@@ -459,6 +473,16 @@ function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     if setdps restore_mpmath_dps() end
     pyres |> sympy.sympify |> pytosj
 end
+
+##### ConditionalExpression
+
+# There are several other properties to implement here.
+
+@mkapprule ConditionalExpression :nargs => 2
+@doap ConditionalExpression(expr, cond::Bool) = cond ? expr : Undefined
+@doap ConditionalExpression(expr, cond) = mx
+
+
 
 ## utility
 

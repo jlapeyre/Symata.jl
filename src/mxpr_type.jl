@@ -408,7 +408,8 @@ checkhash(x) = x
 ##### Create Mxpr
 
 # Create a new Mxpr from list of args
-@inline function mxpr(s::SJSym,iargs...)
+
+function mxpr(s::SJSym,iargs...)
     n = length(iargs)
     args = newargs(n)
     for i in 1:n

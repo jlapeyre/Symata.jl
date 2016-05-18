@@ -53,6 +53,12 @@ T (a <= a) == True
 T (a >= a) == True
 T (a < 1) == (a < 1)
 
+T Sqrt(2) > 0
+T -Sqrt(2) < 0
+T  3 < Pi < 4
+T  2 < E < 3
+T  0 < EulerGamma < 1
+
 #### Infinity
 
 T  1 != Infinity

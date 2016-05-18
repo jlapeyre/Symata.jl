@@ -6,15 +6,6 @@
 
 T testUserSyms
 
-# This tests apprules and canonializer
-
-T  Abs(-1) == 1
-T  Abs(-2.0) == 2.0
-T  Abs(z^3) == Abs(z)^3
-T  Abs(z^4.1) == Abs(z)^4.1
-T  Abs(-z) == Abs(z)
-T  Abs(-z^(1/2))^2 == Abs(z)
-
 T Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
 T Arg(Complex(1,1)) == π/4
 
@@ -55,9 +46,6 @@ T 1/I == -I
 T (I + 1)^(-2) ==  -1/2 * I
 T (I + 1)^(-3) ==  -1/4 - 1/4 * I
 T (I + 2)^(-3) == 2/125 - 11/125 * I
-
-T Log(2,8) == 3
-T Apply(List,Log(2,9)) == [2,9]
 
 # fixes a bug.
 T Head((a*b)^(1/2)) == Power

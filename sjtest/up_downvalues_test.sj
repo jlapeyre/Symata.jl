@@ -66,8 +66,8 @@ T         h(2.0) == 1
 
 #### UpValues
 
-     rate(m1) ^= 1/2
-     rate(m2) ^= 3/4
+ rate(m1) ^= 1/2
+ rate(m2) ^= 3/4
 T rate(m1)/rate(m2) == 2/3
 
 # All subtypes of Integer match. All subtypes of FloatingPoint match.
@@ -115,8 +115,10 @@ T f(h(10)) == 1024 * h0
       UpSetDelayed( area(sq(s_)), s^2)
 T  area(sq(3)) == 9
 
-   ClearAll(g,h)
-      UpSetDelayed( meth(g(x_), h(y_)) ,  fgh(x, y) )
+ClearAll(g,h)
+
+# The rule is associated with all symbols occuring on level one in lhs
+UpSetDelayed( meth(g(x_), h(y_)) ,  fgh(x, y) )
 T  UpValues(h) == UpValues(g)  == [HoldPattern(meth(g(x_),h(y_))) :> (fgh(x,y))]
 
        ClearAll(f,h)

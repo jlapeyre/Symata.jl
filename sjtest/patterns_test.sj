@@ -419,8 +419,18 @@ T MatchQ([1,2], [RepeatedNull(_Integer)])
 T ! MatchQ([1,2], [RepeatedNull(_Integer,0)])
 T MatchQ([], [RepeatedNull(_Integer,0)])
 T MatchQ([], [RepeatedNull(_Integer, [0,4])])
+T ! MatchQ([], [RepeatedNull(_Integer, [1,4])])
 
-ClearAll(f,a,b,c,d,x)
+# FIXME.
+# f(x_Integer, y::Repeated(_Symbol)) := [x,y]
+# f(3,a,b) --> [3,a,b], i.e. y should be spliced in.
+# We get no match
+# Following does work
+g(x_Integer, y::[7,Repeated(_Symbol)]) := [x,y]
+T g(1,[7,a,b]) == [1,[7,a,b]]
+T Head(g(1,[6,a,b])) == g
+
+ClearAll(f,g,a,b,c,d,x,y)
 
 #### FreeQ
 

@@ -420,12 +420,13 @@ function write_sympy_apprule(sjf, sympyf, nargs::Int)
     cstr = join(callargs, ", ")
     sstr = join(sympyargs, ", ")
     aprpy = "function do_$sjf(mx::Mxpr{:$sjf},$cstr)
-        try
-            (sympy.$sympyf($sstr) |> pytosj)
-        catch
-            mx
-        end
-    end"
+               try
+                 (sympy.$sympyf($sstr) |> pytosj)
+               catch e
+                 showerror(e)
+                 mx
+               end
+            end"
     evalmath(parse(aprpy))
 end
 
@@ -521,23 +522,21 @@ apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
 do_Primes(mx,args...) = mx
 do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
-# TODO, use to sympy
-do_common("Log")
-do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
-do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
-do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
-do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = z > 0 ? log(b,z) : log(b,complex(z))
+@mkapprule Log :nargs => 1:2
 
-# This is probably quite slow.
-function do_Log(mx::Mxpr{:Log},b::Integer,x::Integer)
-    res = round(Int,log(b,x))
-    return b^res == x ? res : mx
-end
-@doap Log(x::Integer) = x == 0 ? MinusInfinity : mx
-do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
-do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b,e) = mx
-do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx
-do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
+# sjlog defined in wrappers.jl
+@doap Log(x,y) = sjlog(x,y)
+@doap Log(x) = sjlog(x)
+
+#do_common("Log")
+# do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
+# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
+# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
+# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = z > 0 ? log(b,z) : log(b,complex(z))
+# @doap Log(x::Integer) = x == 0 ? MinusInfinity : mx
+# do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
+# do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx
+# do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
 
 @sjdoc N "
 N(expr) tries to give a the numerical value of expr.
@@ -673,46 +672,61 @@ Re(x) returns the real part of z.
 @sjdoc Im "
 Im(x) returns the imaginary part of z.
 "
+# Using Julia would be faster in some cases for ReIm and AbsArg
+@sjdoc ReIm "
+ReIm(z) returns the list [Re(z),Im(z)].
+"
+@mkapprule ReIm
+@doap ReIm(z) = mxpr(:List,mxpr(:Re,z), mxpr(:Im,z))
 
+
+# FIXME Abs(I-3) returns 10^(1/2) instead of (2^(1/2))*(5^(1/2)). i.e. does not evaluate to a fixed point
+@sjdoc AbsArg "
+AbsArg(z) returns the list [Abs(z),Arg(z)].
+"
+@mkapprule AbsArg
+@doap AbsArg(z) = mxpr(:List,mxpr(:Abs,z), mxpr(:Arg,z))
+
+# Re and Im code below is disabled so it does not interfere with SymPy.
 # Mma allows complex numbers of mixed Real type. Julia does not.
 # Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
 
-do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
-do_Re(mx::Mxpr{:Re}, x::Real) = x
+# do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)
+# do_Re(mx::Mxpr{:Re}, x::Real) = x
 
-function do_Re(mx::Mxpr{:Re}, m::Mxpr{:Times})
-    f = m[1]
-    return is_imaginary_integer(f) ? do_Re_imag_int(m,f) : mx
-end
+# function do_Re(mx::Mxpr{:Re}, m::Mxpr{:Times})
+#     f = m[1]
+#     return is_imaginary_integer(f) ? do_Re_imag_int(m,f) : mx
+# end
 
-# dispatch on type of f. Maybe this is worth something.
-function do_Re_imag_int(m,f)
-    nargs = copy(margs(m))
-    shift!(nargs)
-    if length(nargs) == 1
-        return mxpr(:Times,-imag(f),mxpr(:Im,nargs))
-    else
-        return mxpr(:Times,-imag(f),mxpr(:Im,mxpr(:Times,nargs)))
-    end
-end
+# # dispatch on type of f. Maybe this is worth something.
+# function do_Re_imag_int(m,f)
+#     nargs = copy(margs(m))
+#     shift!(nargs)
+#     if length(nargs) == 1
+#         return mxpr(:Times,-imag(f),mxpr(:Im,nargs))
+#     else
+#         return mxpr(:Times,-imag(f),mxpr(:Im,mxpr(:Times,nargs)))
+#     end
+# end
 
-do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
-do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
+# do_Im{T<:Real}(mx::Mxpr{:Im}, x::Complex{T}) = imag(x)
+# do_Im(mx::Mxpr{:Im}, x::Real) = zero(x)
 
-function do_Im(mx::Mxpr{:Im}, m::Mxpr{:Times})
-    f = m[1]
-    return is_imaginary_integer(f) ? do_Im_imag_int(m,f) : mx
-end
+# function do_Im(mx::Mxpr{:Im}, m::Mxpr{:Times})
+#     f = m[1]
+#     return is_imaginary_integer(f) ? do_Im_imag_int(m,f) : mx
+# end
 
-function do_Im_imag_int(m,f)
-    nargs = copy(margs(m))
-    shift!(nargs)
-    if length(nargs) == 1
-        return mxpr(:Times,imag(f),mxpr(:Re,nargs))
-    else
-        return mxpr(:Times,imag(f),mxpr(:Re,mxpr(:Times,nargs)))
-    end
-end
+# function do_Im_imag_int(m,f)
+#     nargs = copy(margs(m))
+#     shift!(nargs)
+#     if length(nargs) == 1
+#         return mxpr(:Times,imag(f),mxpr(:Re,nargs))
+#     else
+#         return mxpr(:Times,imag(f),mxpr(:Re,mxpr(:Times,nargs)))
+#     end
+# end
 
 #### Complex
 
@@ -730,7 +744,7 @@ do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T,b::T) = complex(a,b)
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T) = complex(a)
 
 @sjdoc Rational "
-Rational(a,b), or a//b, returns a Rational for Integers a and b.  This is done when the
+Rational(a,b), or a/b, returns a Rational for Integers a and b.  This is done when the
 expression is parsed, so it is much faster than 'a/b'.
 "
 
@@ -856,27 +870,108 @@ do_Mod{T<:Integer, V<:Integer}(mx::Mxpr{:Mod}, x::T, y::V) = mod1(x,y)
 do_DivRem{T<:Integer, V<:Integer}(mx::Mxpr{:DivRem}, x::T, y::V) = mxprcf(:List,divrem(x,y)...)
 
 
+#### Abs
+
+@sjdoc Abs "
+Abs(z) represents the absolute value of z.
+"
+
+@mkapprule Abs :nargs => 1
+
+@doap Abs{T<:Number}(n::T) = mabs(n)
+
+@doap function Abs(x)
+    x |> sjtopy |> sympy.Abs |> pytosj
+end
+
+# The following code may be useful, but it is not complete
+# # Abs(x^n) --> Abs(x)^n  for Real n
+function do_Abs(mx::Mxpr{:Abs}, pow::Mxpr{:Power})
+     doabs_pow(mx,base(pow),expt(pow))
+end
+
+# SymPy does not do this one
+doabs_pow{T<:Real}(mx,b,e::T) = mxpr(:Power,mxpr(:Abs,b),e)
+
+function doabs_pow(mx,b,e)
+    mx[1] |> sjtopy |> sympy.Abs |> pytosj
+end
+
+# do_Abs(mx::Mxpr{:Abs},prod::Mxpr{:Times}) = do_Abs(mx,prod,prod[1])
+
+# #doabs(mx,prod,s::Symbol)
+
+# function do_Abs{T<:Number}(mx::Mxpr{:Abs},prod,f::T)
+#     f >=0 && return mx
+#     if f == -1
+#         return doabsmone(mx,prod,f)
+#     end
+#     args = copy(margs(prod))
+#     args[1] = -args[1]
+#     return mxpr(:Abs,mxpr(:Times,args))
+# end
+
+# function doabsmone{T<:Integer}(mx,prod,f::T)
+#     args = copy(margs(prod))
+#     shift!(args)
+#     if length(args) == 1
+#         return mxpr(:Abs,args)
+#     else
+#         return mxpr(:Abs,mxpr(:Times,args))
+#     end
+# end
+
+# TODO Fix canonical routines so that 1.0 * a is not simplifed to a
+function doabsmone{T<:Real}(mx,prod,f::T)
+    args = copy(margs(prod))
+    shift!(args)
+    if length(args) == 1
+        res = mxpr(:Times,one(f),mxpr(:Abs,args))
+    else
+        res = mxpr(:Times,one(f),mxpr(:Abs,mxpr(:Times,args)))
+    end
+    return res
+end
+
 #### Sign
 
 @mkapprule Sign :nargs => 1
 
-do_Sign{T<:Number}(mx::Mxpr{:Sign}, x::T) = sign(x)
-do_Sign(mx::Mxpr{:Sign}, x) = mx
+do_Sign(mx::Mxpr{:Sign}, x::Number) = sign_number(x)
 
-# Maybe each symbol should be a type. Like irrational or Mxpr
-function do_Sign(mx::Mxpr{:Sign}, x::SJSym)
-    x == :Pi && return 1
-    x == :E && return 1
-    x == :EulerGamma && return 1
-    return mx
-end
-
-function do_Sign{T<:Real}(mx::Mxpr{:Sign}, z::Complex{T})
+function sign_number{T<:Real}(z::Complex{T})
     av = mpow(real(z*conj(z)),-1//2)
     av == 1 ? z : mxprcf(:Times, z,  av)
 end
 
-#### Sign
+sign_number(x::Real) = convert(Int,sign(x))
+
+function do_Sign(mx::Mxpr{:Sign}, x)
+    x |> sjtopy |> sympy.sign |> pytosj
+end
+
+# SymPy does not do Sign((I+1)*a), so we catch this case here.
+function do_Sign(mx::Mxpr{:Sign}, x::Mxpr{:Times})
+    length(x) == 0 && return 1
+    x1 = x[1]
+    if isa(x1,Number)
+        mxpr(:Times, sign_number(x1), mxpr(:Sign , mxpr(:Times,x[2:end]...)))
+    else
+        x |> sjtopy |> sympy.sign |> pytosj
+    end
+end
+
+# do_Sign(mx::Mxpr{:Sign}, x) = mx
+
+# # Maybe each symbol should be a type. Like irrational or Mxpr
+# function do_Sign(mx::Mxpr{:Sign}, x::SJSym)
+#     x == :Pi && return 1
+#     x == :E && return 1
+#     x == :EulerGamma && return 1
+#     return mx
+# end
+
+#### LowerGamma
 
 @mkapprule LowerGamma
 
@@ -886,7 +981,6 @@ do_LowerGamma(mx::Mxpr{:LowerGamma}, a, z) =  mxpr(:Gamma,a) - mxpr(:Gamma,a,z)
 @sjdoc ExpandFunc "
 ExpandFunc(expr) rewrites some multi-parameter special functions using simpler functions.
 "
-
 
 @sjdoc I "
 I is the imaginary unit

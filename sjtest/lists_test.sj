@@ -14,6 +14,21 @@ T  Table(a(i^2),[i,4])  == [2,5,"zebra",17]
 T  Table(x^n+2*x,[n,3]) == [3*x,2*x + x^2,2*x + x^3]
 T  Table(x^i + x*i + 1,[i,5]) == [1 + 2*x,1 + 2*x + x^2,1 + 3*x + x^3,1 + 4*x + x^4,1 + 5*x + x^5]
 
+ClearAll(p,z,i)
+p = 1
+z := Increment(p)
+T  Table(i, [i, [z,z,z]]) == [1,2,3]
+T  Table( i, [i, Range(10)]) == Range(10)
+T  Table(i^2, [i, [a+b,c,d]]) == [(a + b)^2,c^2,d^2]
+T  Table(f(i), [i, 10, -5, -2]) == [f(10),f(8),f(6),f(4),f(2),f(0),f(-2),f(-4)]
+T  Table(Table( i * j , [i,3]), [j,3]) == [[1,2,3],[2,4,6],[3,6,9]]
+
+# FIXME  Does not work
+#  Table(2^x + x, [x, a, a + 5 *n, n])
+# Neither is this implemented for Range
+# FIXME Does not work
+#  Table( zz(x), [zz(x), 5])
+
 T  Range(0) == []
 T  Range(1) == [1]
 T  Range(3) == [1,2,3]
@@ -31,7 +46,7 @@ T  Range(x, x + 4,1) == [x,1 + x,2 + x,3 + x,4 + x]
 
 # Not putting paren around argument to T causes gensym to appear
 # in UserSyms(). No idea why
-T(  m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
+T ( m = Range(x, x + 5) == [x,1 + x,2 + x,3 + x,4 + x,5 + x])
 
 # T  Syms(m) == [x]  FIXME
 T  Range(x+y, x + y  + 4) == [x + y,1 + x + y,2 + x + y,3 + x + y,4 + x + y]
@@ -40,7 +55,7 @@ T  Range(x+y, x + y  + 4) == [x + y,1 + x + y,2 + x + y,3 + x + y,4 + x + y]
 
 T  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
-      ClearAll(x,y,a,d,m)
+ClearAll(x,y,a,b,c,d,m,p,z,f,j)
 
 #### ConstantArray
 
