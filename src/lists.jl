@@ -381,7 +381,6 @@ i set successively to 1 through imax.
 Table(expr,iter) iter can be any standard iterator
 Table(expr,iter1,iter2,...)  is equivalent to Table(Table(expr,iter2),iter1)...
 
-Unusual examples:
 This calls an anonymous Julia function. It is currently very slow
 Table( (:((x)->(x^2))(i) ),[i,10])
 This is much faster
