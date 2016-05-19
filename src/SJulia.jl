@@ -8,6 +8,7 @@ export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 # For development
 export sympy, pytypeof, mxpr, canonexpr!
 
+
 include("sjcompat.jl")
 include("early_kernelstate.jl")
 include("mxpr_util.jl")
@@ -57,6 +58,7 @@ include("sympy_application.jl")
 include("protected_symbols.jl")
 include("REPL_sjulia.jl")
 include("client_sjulia.jl")
+
 
 function __init__()
     init_sympy()

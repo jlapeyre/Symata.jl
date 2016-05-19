@@ -305,6 +305,7 @@ Nothing is only removed from the arguments of expressions with head List.
 #### Table
 
 ## Newer Table.
+# NOTE: we need to change to dynamic scoping
 # Instead of localizing the iterating var iter in expr, we
 # find and record the positions in expr where iter occurs
 # and set all occurence in a loop each time before evaluating.
@@ -319,6 +320,7 @@ Nothing is only removed from the arguments of expressions with head List.
 Table(expr,[imax]) returns a list of imax copies of expr.
 Table(expr,[i,imax]) returns a list of expr evaluated imax times with
 i set successively to 1 through imax.
+Table(expr,iter) uses any standar iterator
 
 Unusual examples:
 This calls an anonymous Julia function. It is currently very slow
@@ -335,14 +337,21 @@ function apprules(mx::Mxpr{:Table})
     end
     iter = make_sjiter(mx[2])
     ex = deepcopy(expr)
-    args = do_Table(ex,iter)
-    mx1 = mxpr(:List,args) # takes no time
+    mx1 = inner_table(ex,iter)
+#    args = do_Table(ex,iter)
+#    mx1 = mxpr(:List,args) # takes no time
     # The following prevent Nothing from being removed from List.
     # At some point, we can try to optimize this.
     # setcanon(mx1)
     # setfixed(mx1)
     return mx1
 end
+
+function inner_table(expr,iter)
+    args = do_Table(expr,iter)
+    mx1 = mxpr(:List,args)    
+end 
+
 
 # Making this a kernel is not only useful, but faster.
 # Set part in expr given by spec to val
