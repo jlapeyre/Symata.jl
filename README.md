@@ -48,7 +48,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 
 *Note* `SymPy` here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
 (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
-[SymPy](https://github.com/jverzani/SymPy.jl), which has a different goal.
+[SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
 You'll also need to install the `mpmath` package for python.
 On OS X, If you use `pip`, you should just be able to run `pip install mpmath`.

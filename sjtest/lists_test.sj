@@ -14,8 +14,14 @@ T Rest(f(a,b,c)) == f(b,c)
 #### Fold
 
 T Fold(f,x,[a,b,c]) == f((f((f(x,a)),b)),c)
+T Fold(f,[a,b,c]) == f((f(a,b)),c)
 T Fold(Plus,0,Range(10^3)) == 500500
 T Apply(Plus,Range(10^3))  == 500500
+
+#### FoldList
+
+T FoldList(f,x,[a,b,c]) == [x,f(x,a),f((f(x,a)),b),f((f((f(x,a)),b)),c)]
+T FoldList(f,[a,b,c]) == [a,f(a,b),f((f(a,b)),c)]
 
 #### Table
 

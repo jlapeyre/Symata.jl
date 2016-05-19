@@ -43,28 +43,42 @@ Fold(f,lst) returns  f(First(lst),Rest(lst))
 f may be a Symbol, or a function, or Julia function. Pure functions are not yet implemented
 "
 
-@doap function Fold(f,lst::Mxpr{:List})
-    length(lst) == 0 && return mx
-    mxpr(:Fold, f, lst[1], mxpr(:List,lst[2:end]))
-end
+@mkapprule FoldList :nargs => 2:3
 
-@doap function Fold(f, x, lst::Mxpr{:List})
-    local res
-    length(lst) == 0 && return x
-    if isa(f,Function)
-        res = doeval(f(x,lst[1]))
-        for i in 2:length(lst)
-            res = f(res,lst[i])
-        end
-    else
-        res = doeval(mxpr(f,x,lst[1]))
-        for i in 2:length(lst)
-            res = doeval(mxpr(f,res,lst[i]))
-        end
-    end
-    res
-end
+for head in (:Fold, :FoldList)
+    fl = (head == :FoldList)
+@eval begin
+    @doap function ($head)(f, x, lst::Mxpr{:List})
+                local res
+                n = length(lst)
+                n == 0 && return x
+                $(fl ? :(nargs = newargs(n+1)) : nothing)    
+                $(fl ? :(nargs[1] = x) : nothing)
+                if isa(f,Function)
+                    res = doeval(f(x,lst[1]))
+                    $(fl ? :(nargs[2] = res) : nothing)
+                    for i in 2:n
+                        res = f(res,lst[i])
+                        $(fl ? :(nargs[i+1] = res) : nothing)
+                    end
+                else
+                    res = doeval(mxpr(f,x,lst[1]))
+                    $(fl ? :(nargs[2] = res) : nothing)        
+                    for i in 2:n
+                        res = doeval(mxpr(f,res,lst[i]))
+                        $(fl ? :(nargs[i+1] = res) : nothing)            
+                    end
+                end
+                $(fl ? :(mxpr(:List, nargs)) : :( res ))
+         end
 
+   @doap function ($head)(f,lst::Mxpr{:List})
+           length(lst) == 0 && return mx
+           mxpr($(QuoteNode(head)), f, lst[1], mxpr(:List,lst[2:end]))
+         end
+end
+end
+    
 #### Range
 
 @sjdoc Range "
