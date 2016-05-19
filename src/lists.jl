@@ -401,36 +401,16 @@ function apprules(mx::Mxpr{:Table})
         mx1 = mxpr(:List,args)
         return mx1
     else
-        mxpr(:Fold,:Table,excopy,mxpr(:List,iters))
+        error("Multiple iterators not implemented")
+        # mx1 = mxpr(:Fold,:Table,excopy,mxpr(:List,reverse!(iters)))
+        # println(mx1)
+        # return mx1
     end
     # The following prevent Nothing from being removed from List.
     # At some point, we can try to optimize this.
     # setcanon(mx1)
     # setfixed(mx1)
 end
-
-# function apprules(mx::Mxpr{:Table})
-#     expr = mx[1]
-#     if is_Mxpr(expr,:Jxpr)
-#         expr = eval(expr)
-#     end
-#     iter = make_sjiter(mx[2])
-#     ex = deepcopy(expr)
-#     mx1 = inner_table(ex,iter)
-# #    args = do_Table(ex,iter)
-# #    mx1 = mxpr(:List,args) # takes no time
-#     # The following prevent Nothing from being removed from List.
-#     # At some point, we can try to optimize this.
-#     # setcanon(mx1)
-#     # setfixed(mx1)
-#     return mx1
-# end
-
-# function inner_table(expr,iter)
-#     args = do_Table(expr,iter)
-#     mx1 = mxpr(:List,args)    
-# end 
-
 
 # Making this a kernel is not only useful, but faster.
 # Set part in expr given by spec to val

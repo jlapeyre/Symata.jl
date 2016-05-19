@@ -1,5 +1,23 @@
-
 T testUserSyms
+
+#### First
+
+T First([1,2,3]) == 1
+T First(f(a,b,c)) == a
+
+#### Rest
+
+T Rest([1]) == []
+T Rest([1,2,3]) == [2,3]
+T Rest(f(a,b,c)) == f(b,c)
+
+#### Fold
+
+T Fold(f,x,[a,b,c]) == f((f((f(x,a)),b)),c)
+T Fold(Plus,0,Range(10^3)) == 500500
+T Apply(Plus,Range(10^3))  == 500500
+
+#### Table
 
 # A gensym is added to user symbols somewhere here.
 # It is not removed and is not displayed properly.
