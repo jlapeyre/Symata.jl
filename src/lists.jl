@@ -7,6 +7,64 @@ Args(ex) replaces the Head of expression ex with List. Args(ex) is equivalent to
 
 do_Args(mx::Mxpr{:Args}, ex::Mxpr) = mxpr(:List, copy(margs(ex)))
 
+#### First
+
+@mkapprule First :nargs => 1
+
+@doap function First(x::Mxpr)
+    length(x) == 0 && return mx
+    return x[1]
+end
+
+@doap First(x) = mx
+
+#### Rest
+
+@mkapprule Rest :nargs => 1
+
+@doap function Rest(x::Mxpr)
+    length(x) == 0 && return mx
+    nargs = newargs(length(x)-1)
+    for i in 1:length(nargs)
+        nargs[i] = deepcopy(x[i+1])
+    end
+    mxpr(mhead(x),nargs)
+end
+
+@doap Rest(x) = mx
+
+#### Fold
+
+@mkapprule Fold :nargs => 2:3
+
+@sjdoc Fold "
+Fold(f,x,[a,b,c,...]) returns  f(f(f(x,a),b),c)...
+Fold(f,lst) returns  f(First(lst),Rest(lst))
+f may be a Symbol, or a function, or Julia function. Pure functions are not yet implemented
+"
+
+@doap function Fold(f,lst::Mxpr{:List})
+    length(lst) == 0 && return mx
+    mxpr(:Fold, f, lst[1], mxpr(:List,lst[2:end]))
+end
+
+@doap function Fold(f, x, lst::Mxpr{:List})
+    local res
+    length(lst) == 0 && return x
+    if isa(f,Function)
+        res = doeval(f(x,lst[1]))
+        for i in 2:length(lst)
+            res = f(res,lst[i])
+        end
+    else
+        res = doeval(mxpr(f,x,lst[1]))
+        for i in 2:length(lst)
+            res = doeval(mxpr(f,res,lst[i]))
+        end
+    end
+    res
+end
+
 #### Range
 
 @sjdoc Range "

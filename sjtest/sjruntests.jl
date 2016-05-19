@@ -12,6 +12,7 @@ test = SJulia_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "lists_test.sj",
               "patterns_test.sj",
               "up_downvalues_test.sj",
               "predicate_test.sj",
@@ -24,7 +25,6 @@ function runalltests()
               "integral_derivative_test.sj",
               "algebraic_transformations_test.sj",
               "sympy_test.sj",
-              "lists_test.sj",
               "comparison_test.sj",  # No idea why emacs indents like this.
         "attributes_test.sj",
         "module_test.sj",
