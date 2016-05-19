@@ -393,22 +393,43 @@ function apprules(mx::Mxpr{:Table})
     if is_Mxpr(expr,:Jxpr)
         expr = eval(expr)
     end
-    iter = make_sjiter(mx[2])
-    ex = deepcopy(expr)
-    mx1 = inner_table(ex,iter)
-#    args = do_Table(ex,iter)
-#    mx1 = mxpr(:List,args) # takes no time
+    excopy = deepcopy(expr)
+    iters = mx[2:end]
+    if length(iters) == 1
+        iter = make_sjiter(iters[1])
+        args = do_Table(excopy,iter)
+        mx1 = mxpr(:List,args)
+        return mx1
+    else
+        mxpr(:Fold,:Table,excopy,mxpr(:List,iters))
+    end
     # The following prevent Nothing from being removed from List.
     # At some point, we can try to optimize this.
     # setcanon(mx1)
     # setfixed(mx1)
-    return mx1
 end
 
-function inner_table(expr,iter)
-    args = do_Table(expr,iter)
-    mx1 = mxpr(:List,args)    
-end 
+# function apprules(mx::Mxpr{:Table})
+#     expr = mx[1]
+#     if is_Mxpr(expr,:Jxpr)
+#         expr = eval(expr)
+#     end
+#     iter = make_sjiter(mx[2])
+#     ex = deepcopy(expr)
+#     mx1 = inner_table(ex,iter)
+# #    args = do_Table(ex,iter)
+# #    mx1 = mxpr(:List,args) # takes no time
+#     # The following prevent Nothing from being removed from List.
+#     # At some point, we can try to optimize this.
+#     # setcanon(mx1)
+#     # setfixed(mx1)
+#     return mx1
+# end
+
+# function inner_table(expr,iter)
+#     args = do_Table(expr,iter)
+#     mx1 = mxpr(:List,args)    
+# end 
 
 
 # Making this a kernel is not only useful, but faster.
