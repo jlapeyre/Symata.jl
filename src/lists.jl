@@ -378,7 +378,8 @@ Nothing is only removed from the arguments of expressions with head List.
 Table(expr,[imax]) returns a list of imax copies of expr.
 Table(expr,[i,imax]) returns a list of expr evaluated imax times with
 i set successively to 1 through imax.
-Table(expr,iter) uses any standar iterator
+Table(expr,iter) iter can be any standard iterator
+Table(expr,iter1,iter2,...)  is equivalent to Table(Table(expr,iter2),iter1)...
 
 Unusual examples:
 This calls an anonymous Julia function. It is currently very slow
@@ -401,15 +402,17 @@ function apprules(mx::Mxpr{:Table})
         mx1 = mxpr(:List,args)
         return mx1
     else
-        error("Multiple iterators not implemented")
-        # mx1 = mxpr(:Fold,:Table,excopy,mxpr(:List,reverse!(iters)))
-        # println(mx1)
-        # return mx1
+        riters = reverse(iters)
+        mxout = mxpr(:Table,expr,riters[1])
+        for i in 2:length(riters)
+            mxout = mxpr(:Table,mxout,riters[i])
+        end
+        return mxout
     end
-    # The following prevent Nothing from being removed from List.
+    # The following prevent 'Nothing' from being removed from 'List'.
     # At some point, we can try to optimize this.
-    # setcanon(mx1)
-    # setfixed(mx1)
+    # setcanon(mxout)
+    # setfixed(mxout)
 end
 
 # Making this a kernel is not only useful, but faster.

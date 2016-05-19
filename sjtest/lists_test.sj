@@ -41,6 +41,8 @@ T  Table(i^2, [i, [a+b,c,d]]) == [(a + b)^2,c^2,d^2]
 T  Table(f(i), [i, 10, -5, -2]) == [f(10),f(8),f(6),f(4),f(2),f(0),f(-2),f(-4)]
 T  Table(Table( i * j , [i,3]), [j,3]) == [[1,2,3],[2,4,6],[3,6,9]]
 
+T  Table( f(i,j) , [i,3], [j,4]) == Table(Table( f(i,j) , [j,4]), [i,3])
+
 # FIXME  Does not work
 #  Table(2^x + x, [x, a, a + 5 *n, n])
 # Neither is this implemented for Range
@@ -107,6 +109,6 @@ T ReplaceAll( Range(20) ,  _:?(PrimeQ) => Nothing) == [1,4,6,8,9,10,12,14,15,16,
 
 T Table(Nothing,[10]) == []
 
-ClearAll(a,b,c,d,ex)
+ClearAll(a,b,c,d,f,ex)
 
 T testUserSyms
