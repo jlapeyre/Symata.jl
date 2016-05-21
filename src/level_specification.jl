@@ -1,5 +1,3 @@
-# Cases::level: Level specification {2, {3}} is not of the form n, {n}, or {m, n}.
-
 #### LeveSpec types for various types of level specification
 
 abstract LevelSpec

@@ -183,3 +183,35 @@ function do_PermutationQ(mx::Mxpr{:PermutationQ}, lst::Mxpr{:List})
     end
     isperm(args)
 end
+
+#### VectorQ
+
+function vectorq(x::Mxpr{:List})
+    for i in 1:length(x)
+        is_Mxpr(x[i],:List) && return false
+    end
+    return true
+end
+
+function vectorq(x::Mxpr{:List}, test)
+    if isa(test,Function)
+        for i in 1:length(x)
+            (test(x[i]) != true) && return false
+        end
+    else
+        for i in 1:length(x)
+            (doeval(mxpr(test, x[i])) != true) && return false
+        end
+    end
+    return true
+end
+
+@mkapprule VectorQ :nargs => 1:2
+
+@doap VectorQ(x) = false
+
+@doap VectorQ(x::Mxpr{:List}) = vectorq(x)
+
+@doap VectorQ(x::Mxpr{:List}, test) = vectorq(x,test)
+
+

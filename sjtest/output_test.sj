@@ -17,6 +17,12 @@ T If(BigIntInput(), True, ToString( - 1.0 * I ) == "-0.0 + -1.0I")
 #T ToString( - 1.0 * I ) == "-0.0 + -1.0I"
 T ToString(-I * a) == "-I*a"
 
- CompactOutput(savestate)
- ClearAll(a,b,x,savestate)
+#### HoldForm
+
+f(x_) := HoldForm(x^2)
+T ToString(Sum(f(i), [i,1,10])) == "1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 + 7^2 + 8^2 + 9^2 + 10^2"
+T Map(ReleaseHold, Sum(f(i), [i,1,10])) == 385
+
+CompactOutput(savestate)
+ClearAll(a,b,x,savestate,f,x,ex)
 T testUserSyms

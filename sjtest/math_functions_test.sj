@@ -190,6 +190,33 @@ T Sign(x*I) == I * Sign(x)
 
 ClearAll(x,y)
 
+#### Max
+
+T Max(1,2,3) == 3
+T Max(Pi,E,Sqrt(2)) == Pi
+T Max(x,x,x) == x
+T Max(x,Max(x,y),z) == Max(x,y,z)
+
+T Max( 1-x, x, 1 + x) == Max( 1 + x, 1 - x)
+
+T Max() == -Infinity
+T Max([1,2,3],[[8,9],4,5,6],7) == 9
+
+T Table(i*j*k, [i, 3], [j, 3], [k, Max(i,j), 3]) == [[[1,2,3],[4,6],[9]],[[4,6],[8,12],[18]],[[9],[18],[27]]]
+T Rest(FoldList(Max, 0, [4, 2, 8, 3, 9, 12, 11, 18, 10])) == [4,4,8,8,9,12,12,18,18]
+
+
+#### Min
+
+T Min(1,2,3) == 1
+T Min(Pi,E,Sqrt(2)) == Sqrt(2)
+
+T Min() == Infinity
+
+T Min([1,2,3],[[8,0],4,5,6],7) == 0
+
+ClearAll(x,y,z)
+
 T testUserSyms
 
 # FIXME. this returns false. should return true

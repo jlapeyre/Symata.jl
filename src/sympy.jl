@@ -183,7 +183,7 @@ function make_sympy_to_sjulia()
                       (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
-                      (:PeriodicArgument, :periodic_argument)
+                      (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min)
                       ]
 
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
@@ -670,6 +670,25 @@ end
     SYMPY_USER_SYMBOLS[s] = sym
     s
 end
+
+# TODO Max(x,y) == Max(y,x)
+# TODO Do numerical arguments in Julia
+# TODO Flatten lists
+@mkapprule Max :nodefault => true
+@doap function Max(args...)
+    args = margs(flatten_recursive!(mxpr(:List,args...)))
+    return pytosj(sympy.Max(map(sjtopy, args)...))
+end
+
+@doap Max() = MinusInfinity
+
+@mkapprule Min :nodefault => true
+@doap function Min(args...)
+    args = margs(flatten_recursive!(mxpr(:List,args...)))    
+    return pytosj(sympy.Min(map(sjtopy, args)...))
+end
+
+@doap Min() = Infinity
 
 # @doap function Assume(s::Symbol, prop, val)
 #     sympy.Symbol(s, prop=val)

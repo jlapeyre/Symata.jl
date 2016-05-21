@@ -1,6 +1,6 @@
 # Set the Attributes of some "builtin" Protected symbols
 
-set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo"], :HoldFirst)
+set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
 
 set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "For", "If", "While", "Do",
@@ -9,7 +9,7 @@ set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPatt
 
 set_pattributes("HoldComplete", [:HoldAllComplete])
 
-set_pattributes("Save", [:HoldRest])
+set_pattributes(["Save", "Last"], [:HoldRest] )
 
 set_pattributes("Attributes",[:HoldAll,:Listable])
 
@@ -52,6 +52,9 @@ set_pattributes(["HeavisideTheta"],
 
 set_pattributes(["Plus", "Times"],
                 [:Flat,:Listable,:NumericFunction,:OneIdentity,:Orderless])
+
+set_pattributes(["Max", "Min"],
+                [:Flat,:NumericFunction,:OneIdentity,:Orderless])
 
 set_pattributes(["LCM", "GCD"],
             [:Flat,:Listable,:OneIdentity,:Orderless])
@@ -118,7 +121,7 @@ set_pattributes([
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
                   "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
-                  "StringLength","StringQ","Symbol","Syms","Temporary","Time",
+                  "StringLength","StringQ","Symbol","Syms","Temporary","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing"], :Protected)

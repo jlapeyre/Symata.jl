@@ -978,6 +978,23 @@ end
 do_LowerGamma(mx::Mxpr{:LowerGamma}, a, z) =  mxpr(:Gamma,a) - mxpr(:Gamma,a,z)
 
 
+#### Norm
+
+# TODO: Implement p norm
+# TODO: improve efficiency
+@mkapprule Norm :nargs => 1
+
+@doap Norm(x::Complex) = mxpr(:Abs,x)
+
+@doap function Norm(x::Mxpr{:List})
+    vectorq(x) || return mx # TODO error message
+    local sum0 = 0
+    for i in 1:length(x)
+        sum0 += mxpr(:Power, mxpr(:Abs, x[i]),2)
+    end
+    mxpr(:Sqrt,sum0)
+end
+
 @sjdoc ExpandFunc "
 ExpandFunc(expr) rewrites some multi-parameter special functions using simpler functions.
 "

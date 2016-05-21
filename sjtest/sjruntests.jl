@@ -12,6 +12,8 @@ test = SJulia_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "flowcontrol_test.sj",
+              "evaluation_test.sj",
               "lists_test.sj",
               "patterns_test.sj",
               "up_downvalues_test.sj",
@@ -20,7 +22,6 @@ function runalltests()
               "context_test.sj",   #    breaks
               "output_test.sj",
               "math_functions_test.sj",
-              "flowcontrol_test.sj",
               "mxpr_test.sj",
               "integral_derivative_test.sj",
               "algebraic_transformations_test.sj",
@@ -34,7 +35,6 @@ function runalltests()
         "expressions_test.sj",
         "arithmetic_test.sj",
         "spec_fun_test.sj",
-        "evaluation_test.sj",
         "simple_expression_test.sj"
         )
         runtest(test,f)

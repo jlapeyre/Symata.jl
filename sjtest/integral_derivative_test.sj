@@ -32,15 +32,23 @@ T Integrate(Log(x), [x, 1, a])  == 1 + -a + a * Log(a)
 T Integrate(x) == 1//2 * (x ^ 2)    # Should we disallow this ?
 T Integrate(Sqrt(1+x), [x,0,x]) == -2/3 + 2/3 * ((1 + x) ^ (3/2))
 T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
-T Integrate(x^a * Exp(-x), [x,0,Infinity]) == ConditionalExpression(Γ(1 + a),-Re(a) < 1)
+res = Integrate(x^a * Exp(-x), [x,0,Infinity])
+T res == ConditionalExpression(Γ(1 + a),-Re(a) < 1)
+
 T Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
+a = 1/2
+T res == (1/2)*(Pi^(1/2))
+a = -3/2
+T res == Undefined
+ClearAll(a)
+T res == ConditionalExpression(Gamma(1 + a),-Re(a) < 1)
 
 # Following works if 1/cos does not go to sec
 # T r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
 
 # Following works if 1/cos does not go to sec
 #T Simplify(D(r,x)) == 1/Cos(x+a)
- ClearAll(r,y,x)
+ ClearAll(r,y,x,res,a)
 
 ####  MellinTransform
 

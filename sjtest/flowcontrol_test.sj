@@ -119,7 +119,28 @@ T Do( ( If(i>3, Continue()); n += i ) , [i,100]) == Null
 T n == 6
 T Head(i) == Symbol
 
- ClearAll(n,i,m)
- ClearTemporary()
+ClearAll(n,i,m)
+ClearTemporary()
+
+#### Throw, Catch
+
+T Catch(a) == a
+T Catch(Throw(a)) == a
+T Catch(Do( Throw(z), [i,10])) == z
+T Catch(For(i=1, i<20, i += 1, If(i>3, Throw(i)))) == 4
+T For(i=1, i<20, i += 1, If(i>3, Throw(i))) == Throw(4)
+T Catch((a;b;Throw(c);d)) == c
+T (a;b;Throw(c);d) == Throw(c)
+
+ClearAll(a,b,c,z,f,i)
+
+f(x_):=(If((x > 3),Throw(z),x, "thirdbranch"))
+
+T Catch(Nest(f,4,5)) == z
+T Catch(Nest(f,3,5)) == 3
+T Catch(NestList(f,3,5)) == [3,3,3,3,3,3]
+T Catch(NestList(f,4,5)) == z
+
+ClearAll(f,x,z)
 
 T testUserSyms

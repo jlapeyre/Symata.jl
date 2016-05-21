@@ -21,7 +21,8 @@
 # cannot be done, in general.  Maxima generates the two sums much more
 # slowly but adds them much more quickly.
 
-function flatten!{T<:FlatT}(mx::T)
+# Flatten one level only
+function flatten!{T}(mx::T)
     needsflat::Bool = false
     for x in margs(mx)
         if is_type(x,T)
@@ -43,5 +44,100 @@ function flatten!{T<:FlatT}(mx::T)
     return mxpr(mhead(mx),na)
 end
 
-# Here we do not copy
-flatten!(x) = x
+# Flatten one level only if the argument has the Flat attribute
+maybeflatten!(mx::FlatT) = flatten!(mx)
+maybeflatten!(x) = x
+
+
+# Flatten to all levels
+function flatten_recursive!{T}(mx::T)
+    needsflat::Bool = false
+    for x in margs(mx)
+        if is_type(x,T)
+            needsflat = true
+            break
+        end
+    end
+    needsflat == false && return mx
+    na = newargs()
+    for x in margs(mx)
+        if is_type(x,T)
+            for y in margs(flatten_recursive!(x))
+                push!(na,y)
+            end
+        else
+            push!(na,x)
+        end
+    end
+    return mxpr(mhead(mx),na)
+end
+
+type FlattenData
+    level::Int
+    maxlevel::Int
+    head::Symbol  # We may want type Any, for heads that are not Symbols
+end
+
+# Flatten from level 1 to level n
+function flatten_recursive!{T}(mx::Mxpr{T}, n::Integer)
+    d = FlattenData(1,n,T)
+    _flatten_recursive!(mx,d)
+end
+
+# Flatten expressions with head headtype from level 1 to level n
+function flatten_recursive!(mx::Mxpr, n::Integer, headtype::Symbol)
+    d = FlattenData(1,n,headtype)
+    _flatten_recursive!(mx,d)
+end
+
+function _flatten_recursive!(mx::Mxpr, d::FlattenData)
+    needsflat::Bool = false
+    for x in margs(mx)
+        if is_Mxpr(x,d.head)
+            needsflat = true
+            break
+        end
+    end
+    needsflat == false && return mx
+    na = newargs()
+    for x in margs(mx)
+        if is_Mxpr(x,d.head)
+            if d.level >= d.maxlevel
+                for y in margs(x)
+                    push!(na,y)
+                end
+            else
+                d.level += 1
+                for y in margs(_flatten_recursive!(x,d))
+                    push!(na,y)
+                end
+                d.level -=1
+            end
+        else
+            push!(na,x)
+        end
+    end
+    return mxpr(mhead(mx),na)
+end
+
+# TODO: implement the "transpose" case
+@mkapprule Flatten :nodefault => true
+
+@doap Flatten(x::Mxpr) = flatten_recursive!(x)
+@doap Flatten(x) = x
+
+@doap function Flatten(x::Mxpr, n::Integer)
+    n == 0 && return x
+    flatten_recursive!(x,n)
+end
+
+@doap function Flatten(x::Mxpr, n, headtype::Symbol)
+    n == 0 && return x
+    n = (n == Infinity ? typemax(Int) : n)
+    flatten_recursive!(x,n, headtype)
+end
+
+@doap function Flatten(x::Mxpr, i::Mxpr{:DirectedInfinity})
+    i[1] != 1 && return x
+    flatten_recursive!(x)
+end

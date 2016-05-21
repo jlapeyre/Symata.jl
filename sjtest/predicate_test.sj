@@ -21,3 +21,13 @@ T AtomQ(a)
 T AtomQ(Pi)
 
 ClearAll(a,b)
+
+T VectorQ(a) == False
+T VectorQ([a,b,c])
+T VectorQ([a,b,[c]]) == False
+T VectorQ([a,b,c], IntegerQ) == False
+T VectorQ([1,2,3], IntegerQ)
+
+T VectorQ([[a,2],[a,b,c],[c]], ListQ)
+
+ClearAll(a,b,c)

@@ -4,17 +4,21 @@
 # Block is automatically used to localize values of iterators in iteration constructs such as Do, Sum, and Table
 # Hmmm. looks like I noted this a long time ago in the doc for Do.
 
+
 # FIXME. We need to delete local variables before breaking or returning.
-macro checkbreak()
-    return esc(:(
-    if FLOWFLAGS[:Break]
-        FLOWFLAGS[:Break] = false
+macro checkbreak(arg)
+    return esc(:( begin
+      if is_throw()
+        return($arg)
+    end
+    if is_break()
+        clear_break()
         break
-    end))
+    end end))
 end
 
 macro unsetbreak()
-   esc(:(FLOWFLAGS[:Break] = false))
+   esc(:(clear_break()))
 end
 
 # Get Return(x), we return Return(x), rather than x.
@@ -86,10 +90,10 @@ function do_For(mx::Mxpr{:For}, start, test, incr)
     @unsetbreak
     doeval(start)
     while
-        doeval(test)
-        @checkbreak
-        doeval(incr)
-        @checkbreak
+        (res = doeval(test))
+        @checkbreak res
+        res = doeval(incr)
+        @checkbreak res
     end
     Null
 end
@@ -97,10 +101,10 @@ end
 function do_For(mx::Mxpr{:For}, start, test, incr, body)
     @unsetbreak
     doeval(start)
-    while doeval(test)
-        @checkbreak
+    while (res = doeval(test))
+        @checkbreak res
         res = doeval(body)
-        @checkbreak
+        @checkbreak res
         @checkthrowreturn(res)
         @checkcontinue(res,incr)
         doeval(incr)
@@ -140,8 +144,8 @@ While(test,body) evaluates test then body in a loop until test does not return t
 # TODO: Check for return and continue here too
 function do_While(mx::Mxpr{:While}, test)
     @unsetbreak
-    while doeval(test) == true
-        @checkbreak
+    while (res = doeval(test)) == true
+        @checkbreak res
     end
     Null
 end
@@ -150,7 +154,7 @@ function do_While(mx::Mxpr{:While}, test, body)
     @unsetbreak
     while doeval(test) == true
         res = doeval(body)
-        @checkbreak
+        @checkbreak res
         @checkthrowreturn(res)
         @checkcontinue0(res)
     end
@@ -166,7 +170,7 @@ Break() exits the nearest enclosing For, While, or Do loop.
 @mkapprule Break
 
 function do_Break(mx::Mxpr{:Break})
-    FLOWFLAGS[:Break] = true
+    set_break()
     Null
 end
 
@@ -218,7 +222,7 @@ function do_doloop_kern(expr,imax)
     @unsetbreak
     for i in start:imax
         res = doeval(expr)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
     end
@@ -232,7 +236,7 @@ function do_doloop(expr,iter::SJIter2)
     for i in 1:iter.imax  # mma makes i an Int no matter the type of iter.imax
         setsymval(isym,i)
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
     end
@@ -247,7 +251,7 @@ function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
     for i in iter.imin:iter.imax  # mma makes i type of one of these
         setsymval(isym,i)
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
     end
@@ -263,7 +267,7 @@ function do_doloop(expr,iter::SJIter3)
     @unsetbreak
     for i in 1:(iter.num_iters)
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)  # This will not increment isym
         setsymval(isym,doeval(mxpr(:Plus,isym,1)))
@@ -279,7 +283,7 @@ function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
     for i in (iter.imin):(iter.di):(iter.imax)
         setsymval(isym,i)
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
     end
@@ -295,7 +299,7 @@ function do_doloop(expr,iter::SJIter4)
     @unsetbreak
     for i in 1:(iter.num_iters)
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
         setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
@@ -311,7 +315,7 @@ function do_doloop(expr,iter::SJIterList)
     for i in 1:(length(iter.list))
         setsymval(isym,iter.list[i])
         res = doeval(ex)
-        @checkbreak
+        @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
     end
@@ -329,7 +333,8 @@ function apprules(mx::Mxpr{:CompoundExpression})
     local res
         @inbounds for i in 1:length(mx)
             res = doeval(mx[i])
-            FLOWFLAGS[:Break] && break
+            is_throw() && return res
+            is_break() && break
             @checkthrowreturn(res)
             @checkthrowcontinue(res)
         end
@@ -342,3 +347,37 @@ end
 @mkapprule Warn :nargs => 1
 
 do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = warn(msg)
+
+#### Throw
+
+@mkapprule Throw :nargs => 1:2
+
+@doap function Throw(x)
+    set_throw()
+    return mx
+end
+
+#### Catch
+
+# TODO: implement tagged throw, catch
+@mkapprule Catch :nargs => 1:2
+
+@doap function Catch(x::Mxpr{:Throw})
+    clear_throw()
+    length(x) > 0 ? x[1] : mx
+end
+
+@doap function Catch(x)
+    res = doeval(x)
+    if is_throw()
+        if is_Mxpr(res,:Throw)
+            clear_throw()
+            return length(res) == 0 ? Null : res[1]
+        end
+        warn("Catch: throw set but expr is $res")
+        return res
+    end
+    clear_throw()    
+    return res
+end
+

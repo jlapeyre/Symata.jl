@@ -20,6 +20,10 @@ end
 # This is not working atm
 Base.showerror(io::IO, e::NoTranslationError) = print(io, "extomx translation: no translation defined for Expr head: ", e.head, " in ", e.expr )
 
+# type SJThrow <: Exception
+#     expr
+# end
+
 #### Arg checking exceptions
 
 # checkargscode is the interface called from rules for the various Heads

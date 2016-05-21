@@ -33,6 +33,39 @@ end
 
 @doap Rest(x) = mx
 
+#### Most
+
+@mkapprule Most :nargs => 1
+
+@doap function Most(x::Mxpr)
+    length(x) == 0 && return mx
+    nargs = newargs(length(x)-1)
+    for i in 1:length(nargs)
+        nargs[i] = deepcopy(x[i])
+    end
+    mxpr(mhead(x),nargs)
+end
+
+@doap Most(x) = mx
+
+#### Last
+
+@mkapprule Last :nargs => 1:2
+
+# FIXME. add warning message
+@doap Last(x) = mx
+
+@doap function Last(x::Mxpr)
+    length(x) == 0 && return mx  # FIXME add warning
+    x[end]
+end
+
+@doap function Last(x::Mxpr,default)
+    length(x) == 0 && return doeval(default)  # Last has Attribute HoldRest
+    x[end]
+end
+
+
 #### Fold
 
 @mkapprule Fold :nargs => 2:3
@@ -48,7 +81,7 @@ f may be a Symbol, or a function, or Julia function. Pure functions are not yet 
 for head in (:Fold, :FoldList)
     fl = (head == :FoldList)
 @eval begin
-    @doap function ($head)(f, x, lst::Mxpr{:List})
+    @doap function ($head)(f, x, lst::Mxpr)
                 local res
                 n = length(lst)
                 n == 0 && return x
@@ -69,16 +102,53 @@ for head in (:Fold, :FoldList)
                         $(fl ? :(nargs[i+1] = res) : nothing)            
                     end
                 end
-                $(fl ? :(mxpr(:List, nargs)) : :( res ))
+                $(fl ? :(mxpr(mhead(lst), nargs)) : :( res ))
          end
 
-   @doap function ($head)(f,lst::Mxpr{:List})
+   @doap function ($head)(f,lst::Mxpr)
            length(lst) == 0 && return mx
-           mxpr($(QuoteNode(head)), f, lst[1], mxpr(:List,lst[2:end]))
+           mxpr($(QuoteNode(head)), f, lst[1], mxpr(mhead(lst),lst[2:end]))
          end
 end
 end
-    
+
+@mkapprule Nest :nargs => 3
+@mkapprule NestList :nargs => 3
+
+for head in (:Nest, :NestList)
+    nl = (head == :NestList)
+@eval begin
+    @doap function ($head)(f, x, n::Integer)
+                local res
+                n == 0 && return $(nl ? :(mxpr(:List,x)) : :(x))
+                $(nl ? :(nargs = newargs(n+1)) : nothing)    
+                $(nl ? :(nargs[1] = x) : nothing)
+                if isa(f,Function)
+                    res = doeval(f(x))
+                    if is_throw() return res end                    
+                    $(nl ? :(nargs[2] = res) : nothing)
+                    for i in 2:n
+                        res = f(res)
+                        if is_throw() return res end
+                        $(nl ? :(nargs[i+1] = res) : nothing)
+                    end
+                else
+                    res = doeval(mxpr(f,x))
+                    if is_throw() return res end                    
+                    $(nl ? :(nargs[2] = res) : nothing)        
+                    for i in 2:n
+                        res = doeval(mxpr(f,res))
+                        if is_throw()
+                            return res
+                        end                        
+                        $(nl ? :(nargs[i+1] = res) : nothing)            
+                    end
+                end
+                $(nl ? :(mxpr(:List, nargs)) : :( res ))
+         end
+end
+end
+
 #### Range
 
 @sjdoc Range "
@@ -644,3 +714,12 @@ do_values(mx,x) = (warn("Can't return values of $mx"); mx)
 @mkapprule Sort
 
 do_Sort(mx::Mxpr{:Sort},expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
+
+#### Transpose
+
+# TODO implement the rest of the methods; nargs > 1
+#@mkapprule Transpose :nargs => 1
+
+
+#@doap Transpose(lst
+#Transpose[{{a, b, c}, {x, y, z}}]

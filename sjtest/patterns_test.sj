@@ -391,6 +391,18 @@ T MatchQ([a,a,b,c,c,c], [Repeated(a),b, Repeated(c)])
 
 T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ Repeated(f(_)) ] => x ) == [[],x,[f(a),f(a,b)],x]
 T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(Repeated(a)) => x ) == [x,f(a,b),x]
+T Cases([f(a), f(a, b, a), f(a, a, a)], f(Repeated(a))) == [f(a),f(a,a,a)]
+T Cases([f(a), f(a, a, b), f(a, b, a), f(a, b, b)], f(Repeated(a), Repeated(b))) == [f(a,a,b),f(a,b,b)]
+T Cases([f(a), f(a, b, a), f(a, c, a)], f(Repeated(a | b))) == [f(a),f(a,b,a)]
+
+# Need to implement Transpose to test this
+# v(x::[Repeated([_, _])] := Transpose(x)
+
+# This too
+# v(x::[Repeated([_,n_])] := Transpose(x)
+
+# We do not have enough of Norm implemented. But the pattern does work.
+# T  f(x::[Repeated([_, _])]) := Norm(N(x))
 
 T MatchQ([a,a,b], [Repeated(_Symbol)])
 T ! MatchQ([a,a,b,3], [Repeated(_Symbol)])

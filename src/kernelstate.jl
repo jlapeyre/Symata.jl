@@ -194,8 +194,34 @@ global do_we_print_outstring = true
 
 ##### Break
 
-const FLOWFLAGS = Dict{Symbol,Bool}()
-FLOWFLAGS[:Break] = false
+type FlowFlags
+    breakflag::Bool
+    throwflag::Bool
+end
+
+const FLOWFLAGS = FlowFlags(false,false)
+
+# const FLOWFLAGS = Dict{Symbol,Bool}()
+# FLOWFLAGS[:Break] = false
+
+function is_break()
+    return FLOWFLAGS.breakflag
+#    return FLOWFLAGS[:Break]
+end
+
+function clear_break()
+    FLOWFLAGS.breakflag = false
+#    FLOWFLAGS[:Break] = false
+end
+
+function set_break()
+    FLOWFLAGS.breakflag = true
+#    FLOWFLAGS[:Break] = true
+end
+
+is_throw()  = FLOWFLAGS.throwflag
+clear_throw() = FLOWFLAGS.throwflag = false
+set_throw() = FLOWFLAGS.throwflag = true
 
 ##### User options and info
 

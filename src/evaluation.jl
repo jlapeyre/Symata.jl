@@ -2,7 +2,16 @@
 
 # Choose infinite or single evaluation.
 # The test suite assumes infseval is used.
-@inline doeval(x) = infseval(x)  # infinite evaluation
+#doeval(x) = infseval(x)  # infinite evaluation
+
+function doeval(x)
+    if is_throw()
+#        println("Caught throw at toplevel doeval()")
+        return x
+    end
+    return infseval(x)
+end
+
 #@inline doeval(x) = meval(x)   # single evaluation
 
 # Enable or disable hashing expressions here.
@@ -114,6 +123,16 @@ function exfunc(ex)
     if isinteractive() && is_sjinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
     end
+    if is_throw()
+        if is_Mxpr(mx,:Throw)
+            warn("Uncaught Throw")
+            clear_throw()
+        else
+            warn("Throw flag set, but expression is not throw. $mx")
+            clear_throw()
+            return mx
+        end
+    end
     mx
 end
 
@@ -156,6 +175,10 @@ recursion_limit() =  1024
 global const exitcounts = Int[0,0,0,0]
 
 function infseval(mxin::Mxpr)
+    if is_throw()
+        println("Caught throw at toplevel infseval() for Mxpr")
+        return mxin  # TODO check where this test is actually used. We have it in three places
+    end 
     @mdebug(2, "infseval ", mxin)
     neval = 0
     if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than timestamp on mxin ?

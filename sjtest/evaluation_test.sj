@@ -1,6 +1,5 @@
 #### Fixed point evaluation
 
-
 # Test that timestamp of symbols that an expression depends on are
 # tracked and used correctly. This means, in particular that getting
 # one part of a large expression that is 'fixed' say the part m[1] of
@@ -43,7 +42,7 @@ T m == 1/2
 
  ClearAll(a,b,c,d,m)
 
-#### Check Listable
+#### Listable
 
  ClearAll(a,b,c,d,e,f,g,y,z)
  SetAttributes(f,Listable)
@@ -58,13 +57,22 @@ T f(y,[a,b,c],z,[d,e,f]) == [f(y,a,z,d),f(y,b,z,e),f(y,c,z,f)]
 
 #### NHoldFirst
 
- SetAttributes(f,NHoldFirst)
- SetAttributes(g,NHoldRest)
- SetAttributes(h,NHoldAll)
+SetAttributes(f,NHoldFirst)
+SetAttributes(g,NHoldRest)
+SetAttributes(h,NHoldAll)
 
 T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(f(1,2,3)))) == [True,False,False]
 T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(g(1,2,3)))) == [False,True,True]
 T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(h(1,2,3)))) == [True,True,True]
 
  ClearAll(f,g,h,x)
+
+#### Flat
+
+SetAttributes(g,Flat)
+T g(g(x)) == g(x)
+T [f(f(x)), f(g(g(1,2),3))] == [f(f(x)),f(g(1,2,3))]
+
+ClearAll(f,g,x)
+
 T testUserSyms

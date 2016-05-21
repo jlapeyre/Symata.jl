@@ -507,7 +507,7 @@ do_canon_power!(mx,base,expt) = mx
 ## For expressions/objects that are not canonicalized
 canonexpr!(x) = x
 
-flatcanon!(x) = canonexpr!(flatten!(x))
+flatcanon!(x) = canonexpr!(maybeflatten!(x))
 #flatcanon!(x) = canonexpr!(x)  # These are for testing speed
 #flatcanon!(x) = flatten!(x)
 #flatcanon!(x) = x
