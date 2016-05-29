@@ -43,6 +43,8 @@ T res == Undefined
 ClearAll(a)
 T res == ConditionalExpression(Gamma(1 + a),-Re(a) < 1)
 
+T Integrate(Exp(-x^2),  [x,0,Infinity]) == (1/2)*(Pi^(1/2))
+
 # Following works if 1/cos does not go to sec
 # T r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
 

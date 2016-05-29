@@ -155,7 +155,9 @@ NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Juli
 #### InexactNumberQ
 
 @mkapprule InexactNumberQ :nargs => 1
-@doap InexactNumberQ(x) = isa(x,AbstractFloat)
+@doap InexactNumberQ(x::AbstractFloat) = true
+@doap InexactNumberQ{T<:AbstractFloat}(x::Complex{T}) = true
+@doap InexactNumberQ(x) = false
 
 #### IntegerQ
 @mkapprule IntegerQ :nargs => 1

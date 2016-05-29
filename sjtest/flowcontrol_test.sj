@@ -141,6 +141,10 @@ T Catch(Nest(f,3,5)) == 3
 T Catch(NestList(f,3,5)) == [3,3,3,3,3,3]
 T Catch(NestList(f,4,5)) == z
 
-ClearAll(f,x,z)
+T Catch(Throw(x,u),u) == x
+T Catch(Catch(Throw(x,u)),u) == x
+
+
+ClearAll(f,x,z,u)
 
 T testUserSyms

@@ -1,3 +1,12 @@
+T InexactNumberQ(1) == False
+T InexactNumberQ(1.0)
+T InexactNumberQ(1.0 + I)
+T InexactNumberQ(BI(1)) == False
+T InexactNumberQ(a) == False
+T InexactNumberQ(a+1.0) == False
+
+ClearAll(a)
+
 T IntegerQ(1)
 T IntegerQ(a) == False
 T NumberQ(2.0)

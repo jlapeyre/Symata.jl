@@ -94,3 +94,43 @@ Depth(expr) gives the maximum number of indices required to specify
 any part of expr, plus 1.
 "
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
+
+#### Dimensions
+
+# @mkapprule Dimensions :nargs => 1:2
+
+# @doap Dimensions(x) = 0
+
+# type DimensionsData
+#     dims::Array{Int,1}
+#     level::Int
+# end
+
+# dimensions(x,data) = 0
+
+# function dimensions(x::Mxpr,data)
+#     length(x) ==  0 && return 0
+#     thehead = mhead(x[1])
+#     thelength = length(x[1])
+#     data.level += 1
+#     failflag = false
+#     for i in 2:length(x)
+#         if length(x[i]) != thelength || mhead(x[i]) != thehead
+#             failflag = true
+#             break
+#             dimensions
+#         end
+#     end
+#     if failflag
+#         push!(data.dims, 0)
+#     else
+#         push!(data.dims, length(x))
+#     end
+#     data.level -=1
+# end
+
+# @doap function Dimensions(x::Mxpr)
+#     data = DimensionsData(Array(Int,0), 0)
+#     dimensions(x,data)
+#     mxpr(:List, data.dims...)
+# end

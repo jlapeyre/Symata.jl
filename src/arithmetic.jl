@@ -110,7 +110,8 @@ end
 
 # Find if this is not called and remove it. Otherwise, get rid of it.
 function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
-    error("arithmetic.jl: Calling useless mpow")
+    # This is actually called by Norm([1,I/2])
+    warn("arithmetic.jl: Calling useless mpow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 end
 

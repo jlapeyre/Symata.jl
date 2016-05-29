@@ -343,6 +343,12 @@ function apprules(mx::Mxpr{:MatchQ})
 end
 
 function do_MatchQ(mx,expr,pat)
+    matchq(expr,pat)
+#    (gotmatch,cap) = match_and_capt(expr,patterntoBlank(pat))
+#    gotmatch
+end
+
+function matchq(expr,pat)
     (gotmatch,cap) = match_and_capt(expr,patterntoBlank(pat))
     gotmatch
 end

@@ -357,27 +357,40 @@ do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = warn(msg)
     return mx
 end
 
+@doap function Throw(x,u)
+    set_throw()
+    return mx
+end
+
+
 #### Catch
 
 # TODO: implement tagged throw, catch
 @mkapprule Catch :nargs => 1:2
 
-@doap function Catch(x::Mxpr{:Throw})
-    clear_throw()
-    length(x) > 0 ? x[1] : mx
-end
-
 @doap function Catch(x)
     res = doeval(x)
     if is_throw()
-        if is_Mxpr(res,:Throw)
+        if is_Mxpr(res,:Throw) && length(res) == 1
             clear_throw()
             return length(res) == 0 ? Null : res[1]
         end
         warn("Catch: throw set but expr is $res")
         return res
     end
-    clear_throw()    
+    return res
+end
+
+@doap function Catch(x,tag)
+    res = doeval(x)
+    if is_throw()
+        if is_Mxpr(res,:Throw) && length(res) == 2 && matchq(res[2],tag)
+            clear_throw()
+            return length(res) == 0 ? Null : res[1]
+        else
+            return res
+        end
+    end
     return res
 end
 

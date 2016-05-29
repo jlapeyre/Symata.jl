@@ -361,8 +361,8 @@ end
 
 pytosj_BooleanTrue(pyexpr) = true
 
-# Disable this and see what happens
-# py_to_mx_rewrite_function_dict["BooleanTrue"] = pytosj_BooleanTrue
+# Needed for: Integrate(Exp(-x^2),  [x,0,Infinity]) == (1/2)*(Pi^(1/2))
+py_to_mx_rewrite_function_dict["BooleanTrue"] = pytosj_BooleanTrue
 
 ####
 ####   Main _pytosj method
