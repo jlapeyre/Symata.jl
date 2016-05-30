@@ -79,6 +79,14 @@ T LaplaceTransform(Exp(3*t),t,s) == (-3 + s) ^ -1
 T InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
 T InverseLaplaceTransform(Exp(-a*s)/s, s, t) == HeavisideTheta(t + -a)
 
+# This uses the 'old' SymPy assumptions system
+Assume(ta,real)
+T InverseLaplaceTransform( 1/(s*ta + 1)^n,s,t) == (E^(-t*(ta^(-1))))*(t^(-1 + n))*(ta^(-n))*(Gamma(n)^(-1))*HeavisideTheta(t)
+
+# FIXME: This does not remove the SymPy assumption
+ClearAll(ta)
+
+
 #### FourierTransform
 
 T FourierTransform( E^(-x^2), x, k) == E ^ (-(k ^ 2) * (π ^ 2)) * (π ^ (1/2))

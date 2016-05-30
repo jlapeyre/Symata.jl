@@ -482,7 +482,18 @@ end
 @doap ConditionalExpression(expr, cond::Bool) = cond ? expr : Undefined
 @doap ConditionalExpression(expr, cond) = mx
 
+#### Refine
 
+@mkapprule Refine
+
+@sjdoc Refine "
+Refine(expr) simplifies expr using assumptions. For instance, `Assume(x,positive)`.
+"
+
+@doap function Refine(args...)
+    result = sympy.refine(map(sjtopy, args)...)
+    result |> pytosj
+end
 
 ## utility
 

@@ -396,6 +396,7 @@ symbols are removed from the symbol table and will not appear in the list return
 by UserSyms().
 "
 
+# FIXME. remove SymPy properties from symbol
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)

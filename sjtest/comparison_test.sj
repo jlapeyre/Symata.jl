@@ -103,4 +103,11 @@ T Args(a && b && c && d ) == [a,b,c,d]
 
  ClearAll(a,b,c,d,f,x)
 
+#### Refine
+
+# This belongs elsewhere
+
+Assume(aaa,positive)
+T Refine(Abs(aaa)) == aaa
+
 T testUserSyms

@@ -661,12 +661,24 @@ end
 
 @mkapprule Assume
 
+@sjdoc Assume "
+Assume(sym,prop1,prop2,...) sets properties prop1, prop2,... for symbols sym.
+These properties are used in simplifying relations, `Refine`, integral transforms, etc.
+
+Properties are: commutative, complex, imaginary, real, integer, odd, even,
+prime, composite, zero, nonzero, rational, algebraic, transcendental, irrational, finite, infinite, negative, nonnegative, positive, nonpositive, hermitian, antihermitian.
+"
+
 # TODO. We implemented this to use, e.g. the inequality solvers
 # Can't find a better way to create the symbol
 # prop is not evaluated, rather the symbol 'prop' is set to true
-@doap function Assume(s::Symbol, prop)
+# This uses the 'old' SymPy assumptions system
+@doap function Assume(s::Symbol, props...)
     ss = string(s)
-    sym = eval(parse("sympy.Symbol(\"$ss\", $prop=true)"))
+    propstrs = map( (x) -> " $x=true ", props)
+    propstr = join(propstrs, ", ")
+    evalstr = "sympy.Symbol(\"$ss\", $propstr)"
+    sym = eval(parse(evalstr))
     SYMPY_USER_SYMBOLS[s] = sym
     s
 end
