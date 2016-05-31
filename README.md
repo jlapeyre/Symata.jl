@@ -30,7 +30,7 @@ prompt, the online help, `? Topic`, with TAB completion, and regex
 search `h"word"`.
 
 The core of SJulia is not complete. But, a large number of features are implemented;
-enough to be useful.
+enough to be useful. Here are examples of [pattern matching](sjtest/patterns_test.sj).
 
 ### Installing
 
