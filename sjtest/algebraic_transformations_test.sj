@@ -121,7 +121,10 @@ T FullSimplify( -Sqrt(-2*Sqrt(2)+3)+Sqrt(2*Sqrt(2)+3) ) == 2
 
 #### Rewrite
 
+ClearAll(nu,z,p,a)
+
 T Rewrite(Tan(x), Sin)  ==  2(Sin(2x)^(-1))*(Sin(x)^2)
+# T Rewrite(ExpIntegralE(nu,z), gamma) == (z^(-1/2 + -a*(p^(-1))))*(Gamma((1/2 + a*(p^(-1))),z))
 
 
  ClearAll(x,y,z,f,deep,gaussian,modulus)
