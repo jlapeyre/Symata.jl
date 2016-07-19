@@ -524,6 +524,9 @@ end
 #     println("Trying $mx")
 # end
 
+#                        :Gamma => :uppergamma,
+
+
 const RewriteDict = Dict( :Gamma => :gamma,
                           :HypergeometricPFQ => :hyper,
                           :Binomial => :binomial,
@@ -549,6 +552,7 @@ Rewrite(CatalanNumber(n), HypergeometricPFQ)
     pyres = arg1[:rewrite](transform)
     pytosj(pyres)
 end
+
 
 
 ###### HypergeometricPFQ
