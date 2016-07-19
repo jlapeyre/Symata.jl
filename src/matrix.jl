@@ -1,6 +1,6 @@
 @mkapprule Inverse :nargs => 1
 
-@sjdoc Invserse "
+@sjdoc Inverse "
 Rewrites(m) computes the matrix inverse of m
 "
 
