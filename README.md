@@ -76,8 +76,9 @@ You can do tab completion to see a list of functions and symbols.
 
 #### Finding Help and Examples
 
-The documentation can be printed from within SJulia by entering `?
-SymName` at the `sjulia` prompt.  `Help(Symname)` prints the same
+The best source of examples is [the test directory](sjtest/).
+The documentation can be printed from within SJulia by entering `? SymName`
+at the `sjulia` prompt.  `Help(Symname)` prints the same
 documentation. For many SJulia functions, the SymPy docstring is
 printed along with the SJulia documentation.
 
@@ -87,7 +88,7 @@ builtin symbols. (i.e. variables and functions) Symbols that are
 associated with some functionality can be listed with
 `BuiltIns()`. Type `Example()` to see a list of topics with examples.
 Type `Example(topic)` to run the examples. (But, far more examples are
-in the test directory). The input strings from the examples are pushed
+in [the test directory](sjtest/) ). The input strings from the examples are pushed
 to the history so that they can be recalled and edited and
 re-evaluated.
 
