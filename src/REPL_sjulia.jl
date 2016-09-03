@@ -27,13 +27,13 @@ function SJulia_parse_REPL_line(line)
 end
 
 function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
-    partial = Base.REPL.bytestring_beforecursor(s.input_buffer)
+    partial = sjulia_beforecursor(s.input_buffer)
     full = LineEdit.input_string(s)
     ret, range, should_complete = sjulia_completions(full, endof(partial))
     return ret, partial[range], should_complete
 end
 
-const sorted_builtins = Array(String,0)
+const sorted_builtins = Array(Compat.String,0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b
@@ -42,7 +42,7 @@ function populate_builtins()
     nothing
 end
 
-function complete_sjulia_builtins(s::String)
+function complete_sjulia_builtins(s::AbstractString)
     r = searchsorted(sorted_builtins, s)
     i = first(r)
     n = length(sorted_builtins)
@@ -78,7 +78,7 @@ function sjulia_completions(string, pos)
     ok && return ret
 
     # Make sure that only bslash_completions is working on strings
-    inc_tag==:string && return UTF8String[], 0:-1, false
+    inc_tag==:string && return Compat.UTF8String[], 0:-1, false
 
      if inc_tag == :other && should_method_complete(partial)
         frange, method_name_end = find_start_brace(partial)
@@ -89,14 +89,14 @@ function sjulia_completions(string, pos)
             return complete_methods(ex), start(frange):method_name_end, false
         end
     elseif inc_tag == :comment
-        return UTF8String[], 0:-1, false
+        return Compat.UTF8String[], 0:-1, false
     end
 
     dotpos = rsearch(string, '.', pos)
     startpos = nextind(string, rsearch(string, non_identifier_chars, pos))
 
     ffunc = (mod,x)->true
-    suggestions = UTF8String[]
+    suggestions = Compat.UTF8String[]
     startpos == 0 && (pos = -1)
     dotpos <= startpos && (dotpos = startpos - 1)
     s = string[startpos:pos]

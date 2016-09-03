@@ -2,12 +2,13 @@ VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
 module SJulia
 
+using Compat
+
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
 # For development
 export sympy, pytypeof, mxpr, canonexpr!
-
 
 include("sjcompat.jl")
 include("early_kernelstate.jl")

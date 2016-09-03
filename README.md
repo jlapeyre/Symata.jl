@@ -53,7 +53,7 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 You'll also need to install the `mpmath` package for python.
 On OS X, If you use `pip`, you should just be able to run `pip install mpmath`.
 
-`SJulia` works with the v0.4 and v0.5 branches of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4, v0.5, and v0.6 versions of Julia. It will probably not work with v0.3.
 
 ### SJulia REPL mode
 

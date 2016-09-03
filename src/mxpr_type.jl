@@ -617,7 +617,7 @@ end
 end
 
 function protectedsymbols_strings()
-    symstrings = Array(String,0)
+    symstrings = Array(Compat.String,0)
     for s in keys(CurrentContext.symtab)
         if get_attribute(s,:Protected) && s != :ans
             push!(symstrings,string(getsym(s))) end

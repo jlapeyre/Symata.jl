@@ -269,7 +269,7 @@ function meval(mx::Mxpr)
         res = mxprcf(:Hold,mx)
         throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
-    local ind::String = ""  # some places get complaint that its not defined. other places no !?
+    local ind::Compat.String = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ (get_meval_count() - 1)
         println(ind,">>", get_meval_count(), " " , mx)
