@@ -501,7 +501,13 @@ end
 
 function _sjtopy(mx::Mxpr{:List})
     @sjdebug(3,"List ", mx)
-    return [map(_sjtopy, mx.args)...]
+    a = Array(Any,0)
+    rs = map(_sjtopy, mx.args)
+    for el in rs
+        push!(a,el)
+    end
+    return a
+#    return [map(_sjtopy, mx.args)...]  This fails for some versions of Julia
 end
 
 # For now all infinities are mapped to one of two infinities
