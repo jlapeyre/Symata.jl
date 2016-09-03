@@ -80,7 +80,6 @@ T a^BI(3) == p
 
  ClearAll(a,p)
  a^4.0 ^= p
-# Fix this, (Fix what ?)
 T (a^4 == p) != True
 T a^BF(4) == p
 T a^4.0 == p

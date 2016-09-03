@@ -679,12 +679,12 @@ function _expr_positions(ex,subx,lev,posns,clev)
         if mhead(ex) == subx  # this is only found in toplevel case
             lev[clev] = 0     # so, move it out of here.
             nlev = copy(lev)
-            push!(posns,slice(nlev,1:clev))
+            push!(posns,view(nlev,1:clev))
         end
     end
     if ex == subx
         nlev = copy(lev)
-        push!(posns,slice(nlev,1:clev))
+        push!(posns,view(nlev,1:clev))
     else
         nothing
     end

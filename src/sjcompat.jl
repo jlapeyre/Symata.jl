@@ -27,3 +27,8 @@ if ! isdefined(:readstring)
        str
    end
 end
+
+if ! isdefined(:view)
+    view(args...) = slice(args...)
+end
+

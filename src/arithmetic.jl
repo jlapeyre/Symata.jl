@@ -1,3 +1,5 @@
+using Primes
+
 # Divide and multiply integers and rationals
 # like a CAS does. Always return exact result (no floats).
 # Return Int if possible. We want to avoid infection Rationals

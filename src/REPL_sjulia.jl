@@ -33,7 +33,7 @@ function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
     return ret, partial[range], should_complete
 end
 
-const sorted_builtins = Array(ByteString,0)
+const sorted_builtins = Array(String,0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b
@@ -42,7 +42,7 @@ function populate_builtins()
     nothing
 end
 
-function complete_sjulia_builtins(s::ByteString)
+function complete_sjulia_builtins(s::String)
     r = searchsorted(sorted_builtins, s)
     i = first(r)
     n = length(sorted_builtins)

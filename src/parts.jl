@@ -35,17 +35,17 @@ function _find_positions(ex::Mxpr,subx,lev,posns,clev)
     if mhead(ex) == subx
         lev[clev] = 0
         nlev = copy(lev)
-        push!(posns,slice(nlev,1:clev))
+        push!(posns,view(nlev,1:clev))
     end
     if ex == subx
         nlev = copy(lev)
-        push!(posns,slice(nlev,1:clev-1))
+        push!(posns,view(nlev,1:clev-1))
     end
 end
 
 function _find_positions(ex,subx,lev,posns,clev)
     if ex == subx
         nlev = copy(lev)
-        push!(posns,slice(nlev,1:clev-1))
+        push!(posns,view(nlev,1:clev-1))
     end
 end

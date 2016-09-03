@@ -174,9 +174,9 @@ function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
     spanargs = margs(tind)
     lsp = length(spanargs)
     if lsp == 2
-        nargs = slice(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
+        nargs = view(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
     elseif lsp == 3
-        nargs = slice(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
+        nargs = view(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
     end
     texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
     return texpr

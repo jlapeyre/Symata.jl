@@ -320,13 +320,22 @@ end
 # used this to search for bug
 # _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::SJSym, n::T) = false
 
+# Fix bug in (a == b) != False in mxp_test.sj, and similar expressions
+function  _do_Comparison{T<:Bool, V<:Mxpr}(mx::V, comp, n::T)
+    comp == :(!=) && return true
+    return false
+end
+
 function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
     if typeof(comp) != SJSym
         error("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
     else
-        error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol")
+        error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol. mx : $mx, n : $n")
     end
 end
+
+
+
 
 # function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
 #     comp == :(==) && return a == b
