@@ -249,9 +249,12 @@ function populate_py_to_mx_dict()
                     (sympy.integrals["Integral"], :Integrate),
                     (sympy.containers[:Tuple], :List),  # Problem, a List may be huge, Tuple not... but this is a sympy Tuple
                     (sympy.oo, :Infinity),
-                    (sympy.zoo,:ComplexInfinity),
-        (sympy.functions[:special][:hyper][:TupleArg], :List))
+                    (sympy.zoo,:ComplexInfinity))
+#        (sympy.functions[:special][:hyper][:TupleArg], :List))
         py_to_mx_dict[onepair[1]] = onepair[2]
+        if haskey(sympy.functions[:special][:hyper], :TupleArg)  # This cannot be found by Travis
+            py_to_mx_dict[sympy.functions[:special][:hyper][:TupleArg]] = :List
+        end
     end
 end
 
