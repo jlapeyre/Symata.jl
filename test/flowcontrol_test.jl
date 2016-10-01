@@ -49,7 +49,7 @@ using Base.Test
 # Mma returns the head. we do not. we throw an exception. Mma.
 # warns and continues evaluation.
 # The message should be argtu as well.
-# 
+#
 # For::argtu: For called with 1 argument; 3 or 4 arguments are expected.
 # @testex Head(For(1)) == For
 # @testex Head(For(1,2,3,4,5)) == For

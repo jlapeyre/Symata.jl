@@ -5,7 +5,7 @@ function apprules(mx::Mxpr{:And})
     length(args) == 0 && return true
     nargs = newargs()
     for arg in args
-        arg = doeval(arg) # And has attribute HoldAll        
+        arg = doeval(arg) # And has attribute HoldAll
         if isa(arg,Bool)
             arg == true && continue
             arg == false && return false

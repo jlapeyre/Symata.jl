@@ -49,7 +49,7 @@ mulpow_rule = :(x_^n1_ * x_^n2_) => :(x_^(n1_+n2_))
 @test replace(:(a^1.2 * a^2.3 ), :(x_^n1_::($Int) * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
     :(a ^ 1.2 * a ^ 2.3)
 @test replace(:(a^5 * a^6 ), :(x_^n1_::Int * x_^n2_::Int) => :(x_^(n1_+n2_)) ) ==
-    :(a ^ (5 + 6))        
+    :(a ^ (5 + 6))
 
 # This is much faster because the Int is evaluated when the pattern is constructed
 @test replace(:(a^3 * a^5 ), :(x_^n1_::$(Int) * x_^n2_::$(Int)) => :(x_^(n1_+n2_))) ==
@@ -87,13 +87,13 @@ let r1, r2, ex, ex1
     r1a =  :(_ + _) => :(2 * _)
     @test r1 == r1a
     ex = @replaceall (a+a) + (a+a)  _ + _ => 2 * _
-    @test ex == :(2 * (2a))    
+    @test ex == :(2 * (2a))
 #    ex1 = @replaceall (a+a) + (a+a) r1  # broken somehow
 #    @test ex1 == :(2 * (2a))
     ex = @replaceall  z * z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
     @test ex == :(z^2)
     ex = @replaceall  z + z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
-    @test ex == :(2 * z)    
+    @test ex == :(2 * z)
 end
 
 replaceall( :((a + a)/(z+z)  ),  @rule  _ + _ => 2 * _) == :((2a) / (2z))
@@ -123,7 +123,7 @@ let r, res,r1,r2
     replacerepeated( :( log( a*(b*c^d)^e ) ) , [r1,r2]) ==
         :(log(a) * (e * (log(b) * (d * log(c)))))
 #    These do not work in this let block, but do work on cli
-#    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]    
+#    res = @replacerepeated  log( (a*x^2)*z^(1/k+1) )  [r1,r2]
 #    @test res == :((log(a) * (2 * log(x))) * ((1 / k + 1) * log(z)))
 end
 

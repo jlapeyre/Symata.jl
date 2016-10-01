@@ -25,8 +25,8 @@ if HAVE_SJULIA
     end
     macro if_sjulia(e)
         :($(esc(e)))
-    end    
-else        
+    end
+else
     macro if_no_sjulia(e)
         :($(esc(e)))
     end
@@ -68,7 +68,7 @@ mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:call,false)
 ## Following is OK in principle, but we stopped using the only instance.
 ## convert Mxpr.head to Expr.head
 # const MOPTOJHEAD = Dict{Symbol,Symbol}()
-# let mop,jhead 
+# let mop,jhead
 #     for (mop,jhead) in ((:<, :comparision),)
 # #        MOPTOJHEAD[mop] = jhead
 #     end
@@ -78,7 +78,7 @@ mxpr(s::Symbol) = Mxpr{s}(s,mxmkargs(),:call,false)
 # end
 
 # Assumed head field of Expr corresponding to Mxpr if we don't know.
-moptojhead(x) = :call   
+moptojhead(x) = :call
 
 ## Construct Mxpr, similar to construction Expr(head,args...)
 #  Set dirty bit. Guess corresponding Julia Expr field 'head'
@@ -137,13 +137,13 @@ function setindex!(mx::Orderless,val,k::Int)
     else
         margs(mx)[k] = val
         orderexpr!(mx)
-        @mdebug(10,"setindex! done ordering mx= $mx, val=$val, k=$k")        
+        @mdebug(10,"setindex! done ordering mx= $mx, val=$val, k=$k")
         mx = compactsumlike!(mx)
-        @mdebug(10,"setindex! done compact mx= $mx, val=$val, k=$k")        
+        @mdebug(10,"setindex! done compact mx= $mx, val=$val, k=$k")
         return val
     end
 end
-        
+
 setindex!(mx::Mxpr, val, k::Int) = k == 0 ? sethead(mx,val) : (margs(mx)[k] = val)
 Base.length(mx::Mxpr) = length(margs(mx))
 Base.length(s::Symbol) = 0  # Very useful in codes. Symbol is really a simple Mxpr
@@ -197,7 +197,7 @@ is_number(x) = typeof(x) <: Number
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
 # number of args != 3 will pass through. But probably can't be used
-is_division(ex::Expr) = is_call(ex, :mdiv,3)  
+is_division(ex::Expr) = is_call(ex, :mdiv,3)
 is_power(ex::Expr) = is_call(ex, :mpow)
 
 #################################################
@@ -324,10 +324,10 @@ function mx_to_ex!(mx::Mxpr)
     end
     @mdebug(5,"mx_to_ex!: returning recursivley converted args: ", a)
     if jhead(mx) == :call
-        unshift!(a,mtojop(head(mx)))  # identity now        
+        unshift!(a,mtojop(head(mx)))  # identity now
     else   # :hcat, etc
         nothing
-    end    
+    end
     ex.args = a
     return ex
 end
@@ -337,7 +337,7 @@ end
 # Conver Mxpr to Expr for printing.
 function mx_to_ex(inmx::Mxpr)
     mx = deepcopy(inmx)
-    @mdebug(50,"mx_to_ex: entering with won't print")    
+    @mdebug(50,"mx_to_ex: entering with won't print")
     ex = Expr(jhead(mx))
     a = jargs(mx)
     for i in 1:length(a)
@@ -349,7 +349,7 @@ function mx_to_ex(inmx::Mxpr)
         unshift!(a,mtojop(head(mx)))  # We want Julia to *print* + instead of mplus
     else   # :hcat, etc
         nothing
-    end    
+    end
     ex.args = a
     return ex
 end
@@ -369,7 +369,7 @@ function fast_mxpr_to_expr(inmx::Mxpr)
         unshift!(a,head(mx))  #  We want Julia to call our subsitute functions
     else   # :hcat, etc
         nothing
-    end        
+    end
     ex.args = a
     return ex
 end
@@ -454,7 +454,7 @@ end
 function mtojop(mhead::Symbol)
     jhead = get(MTOJOP,mhead,0)
     return jhead == 0 ? mhead : jhead
-end    
+end
 
 # Divide and multiply integers and rationals
 # like a CAS does. Always return exact result (no floats).
@@ -522,12 +522,12 @@ let sym,str
     end
     for (str,f) in (("/", :mxmkevaldivision), ("-", :mxmkevalminus), ("^", :mxmkeval))
         sym = symbol(str)
-        mstr = string(jtomop(sym))        
+        mstr = string(jtomop(sym))
         @eval begin
             ($sym)(a::Symbolic, b::Symbolic) = ($f)(symbol($mstr),a,b)
-            ($sym)(a::Symbolic, b::Integer) = ($f)(symbol($mstr),a,b)            
+            ($sym)(a::Symbolic, b::Integer) = ($f)(symbol($mstr),a,b)
             ($sym)(a::Symbolic, b) = ($f)(symbol($mstr),a,b)
-            ($sym)(a, b::Symbolic) = ($f)(symbol($mstr),a,b)  
+            ($sym)(a, b::Symbolic) = ($f)(symbol($mstr),a,b)
         end
     end
 end
@@ -544,7 +544,7 @@ macro sj(ex)
     mx = ex_to_mx!(ex)
     mx = meval(mx)    # order first or eval first ?
     mx = deepcanonexpr!(mx)
-    # need this always for expressions in files    
+    # need this always for expressions in files
     is_type(mx,Symbol) && return Base.QuoteNode(mx)
     mx = tryjeval(mx)  # We need this!
     mx
@@ -555,7 +555,7 @@ macro ex(ex)
     mx = ex_to_mx!(ex)
     mx = meval(mx)    # order first or eval first ?
     mx = deepcanonexpr!(mx)
-    # need this always for expressions in files    
+    # need this always for expressions in files
     is_type(mx,Symbol) && return Base.QuoteNode(mx)
     mx = tryjeval(mx)  # We need this!
     mx
@@ -621,11 +621,11 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
                 end
             end
             if all_numerical_terms
-                @mdebug(3, $namestr, ": all numerical terms mx = ", mx)                
+                @mdebug(3, $namestr, ": all numerical terms mx = ", mx)
                 return fast_jeval(mx)  # convert to a julia :+ or :* expression and eval
             end
             found_mxpr_term == false && return mx
-            nargs = mxmkargs()  # new args for the output            
+            nargs = mxmkargs()  # new args for the output
             for i in 1:length(mx) # walk through all args again
                 mxel = mx[i]
                 if is_type(mxel,Mxpr{symbol($op)})
@@ -640,7 +640,7 @@ for (name,op) in ((:meval_plus,"mplus"),(:meval_mul,"mmul"))
             return newmx
         end
     end
-end 
+end
 
 ## meval for powers
 #meval_pow(mx::Mxpr) = meval_pow(mx[1],mx[2],mx)
@@ -699,11 +699,11 @@ end
 
 
 ## Not called very much
-## meval top level 
+## meval top level
 function meval(mx::Mxpr)
 #    println("in meval $mx")
     length(mx) == 0 && return mx
-    if mx[0] == :(=)        
+    if mx[0] == :(=)
         return meval_assign(mx)
     end
     for i in 1:endof(mx)
@@ -726,7 +726,7 @@ function meval(sym::Symbol)
 end
 
 ## generic meval does nothing
-meval(x) = x 
+meval(x) = x
 
 ############################################
 ## Display Mxpr                            #
@@ -737,17 +737,17 @@ meval(x) = x
 function Base.show(io::IO, mxin::Mxpr)
     mx = deepcopy(mxin)  # deep copy not expensive because this is cli output
     ex = mx_to_ex(mx)
-    Base.show_unquoted(io,ex)    
+    Base.show_unquoted(io,ex)
 end
 
-@if_no_sjulia begin 
+@if_no_sjulia begin
     const SHOW_QUOTED_SYMBOLS = [false]
     function show_quotes_on_symbols(val::Bool)
         SHOW_QUOTED_SYMBOLS[1] = val
     end
     # Don't show quote on symbol. This changes basic Julia behavior.
     Base.show(io::IO, s::Symbol) = Base.show_unquoted(io, SHOW_QUOTED_SYMBOLS[1] ?  QuoteNode(s) : s)
-end    
+end
 
 ############################################
 ## Alternate math (trig, etc.) functions   #
@@ -769,7 +769,7 @@ function mkmathfuncs() # Man, I hate looking for missing commas.
         func = symbol(s)
         Funcstr = string(uppercase(s[1])) * s[2:end]
         Func = symbol(string(uppercase(s[1])) * s[2:end])
-        set_attribute(Func,:numeric,true)        
+        set_attribute(Func,:numeric,true)
         @eval begin
             ($Func){T<:FloatingPoint}(x::T) = return ($func)(x)
             ($Func){T<:FloatingPoint}(x::Complex{T}) = return ($func)(x)
@@ -801,7 +801,7 @@ end
 
 meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ACos}) = length(x) == 1 ? x[1] : mx
 meval_one_arg(mx::Mxpr{:Cos},x::Mxpr{:ASin}) = length(x) == 1 ? mpow((1-x[1]^2),1//2) : mx
-meval_one_arg(mx::Mxpr{:Cos},x) = mx    
+meval_one_arg(mx::Mxpr{:Cos},x) = mx
 meval(mx::Mxpr{:Cos}) = length(mx) == 1 ? meval_one_arg(mx,@ma(mx,1)) : mx
 
 # This is slow. Nothing smart implemented

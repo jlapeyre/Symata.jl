@@ -7,7 +7,7 @@ typealias UExpr  Union(Mxpr,Expr)  # annotation for expressions in Unions
 
 function mkexpr(head,args...)
 #    CExpr(head,args...)
-    mxpr(head,args...)    
+    mxpr(head,args...)
 end
 
 # pieces of expressions that we operate on are Symbols and expressions
@@ -124,7 +124,7 @@ macro dr(ex::Expr)
     downrule(r.lhs.ast.head, r)
     r
 end
-   
+
 ispvar(x) = typeof(x) == Pvar
 pvarsym(pvar::Pvar) = pvar.name
 pvarcond(pvar::Pvar) = pvar.cond
@@ -233,7 +233,7 @@ function matchpat(cvar,ex)
             println("Type of f is now ", typeof(f))
             # Replacing expression with compiled anonymous function does not work.
             # clean this up, anyway. it is usually compiled long before we get here.
-            setpvarcond(cvar,f)  
+            setpvarcond(cvar,f)
             return f(ex)
         end
     end
@@ -258,20 +258,20 @@ function _cmppat(mx,pat,captures)
     @mdebug(1, "_cmppat enter '", mx, "'  '", pat, "'  '", captures, "'")
     if ispvar(pat) && matchpat(pat,mx)
         capturepvar(captures,pat,mx)
-        @mdebug(1, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")                
+        @mdebug(1, "_cmppat matched '", mx, "'  '", pat, "'  '", captures, "'")
         return true
     end
     if !isexpr(mx)
         @mdebug(1, "_cmppat checking leaf mx: '", mx, "', pat '", pat, "'")
         @mdebug(1, "  type of mx = ", typeof(mx))
-        @mdebug(1, "  type of pat = ", typeof(pat))        
+        @mdebug(1, "  type of pat = ", typeof(pat))
         res = mx == pat # 'leaf' on the tree. Must match exactly.
         @mdebug(1, "_cmppat leaf match is *", res, "*,  mx: '", mx, "', pat '", pat, "'")
         return res
     end
     @mdebug(1, "_cmppat check head or length mismatch mx: '", mx, "', pat '", pat, "'")
     @mdebug(1, "  type of mx = ", typeof(mx))
-    @mdebug(1, "  type of pat = ", typeof(pat))        
+    @mdebug(1, "  type of pat = ", typeof(pat))
     if !isexpr(pat) || head(pat) != head(mx) ||
         length(pat) != length(mx)
         @mdebug(1, "_cmppat found head or length mismatch mx: '", mx, "', pat '", pat, "'")
@@ -291,8 +291,8 @@ function patrule(ex,pat1::Pattern,pat2::Pattern)
     @mdebug(1, "enter patrule with ", ex)
     (res,capt) = cmppat(ex,pat1)
     res == false && return false # match failed
-    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
-    cd = Dict{Any,Any}()   
+    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)
+    cd = Dict{Any,Any}()
     for (p,c) in capt
         storecapt(p,c,cd) # throw away condition information
     end

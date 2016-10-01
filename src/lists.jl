@@ -85,7 +85,7 @@ for head in (:Fold, :FoldList)
                 local res
                 n = length(lst)
                 n == 0 && return x
-                $(fl ? :(nargs = newargs(n+1)) : nothing)    
+                $(fl ? :(nargs = newargs(n+1)) : nothing)
                 $(fl ? :(nargs[1] = x) : nothing)
                 if isa(f,Function)
                     res = doeval(f(x,lst[1]))
@@ -96,10 +96,10 @@ for head in (:Fold, :FoldList)
                     end
                 else
                     res = doeval(mxpr(f,x,lst[1]))
-                    $(fl ? :(nargs[2] = res) : nothing)        
+                    $(fl ? :(nargs[2] = res) : nothing)
                     for i in 2:n
                         res = doeval(mxpr(f,res,lst[i]))
-                        $(fl ? :(nargs[i+1] = res) : nothing)            
+                        $(fl ? :(nargs[i+1] = res) : nothing)
                     end
                 end
                 $(fl ? :(mxpr(mhead(lst), nargs)) : :( res ))
@@ -121,11 +121,11 @@ for head in (:Nest, :NestList)
     @doap function ($head)(f, x, n::Integer)
                 local res
                 n == 0 && return $(nl ? :(mxpr(:List,x)) : :(x))
-                $(nl ? :(nargs = newargs(n+1)) : nothing)    
+                $(nl ? :(nargs = newargs(n+1)) : nothing)
                 $(nl ? :(nargs[1] = x) : nothing)
                 if isa(f,Function)
                     res = doeval(f(x))
-                    if is_throw() return res end                    
+                    if is_throw() return res end
                     $(nl ? :(nargs[2] = res) : nothing)
                     for i in 2:n
                         res = f(res)
@@ -134,14 +134,14 @@ for head in (:Nest, :NestList)
                     end
                 else
                     res = doeval(mxpr(f,x))
-                    if is_throw() return res end                    
-                    $(nl ? :(nargs[2] = res) : nothing)        
+                    if is_throw() return res end
+                    $(nl ? :(nargs[2] = res) : nothing)
                     for i in 2:n
                         res = doeval(mxpr(f,res))
                         if is_throw()
                             return res
-                        end                        
-                        $(nl ? :(nargs[i+1] = res) : nothing)            
+                        end
+                        $(nl ? :(nargs[i+1] = res) : nothing)
                     end
                 end
                 $(nl ? :(mxpr(:List, nargs)) : :( res ))
@@ -522,13 +522,13 @@ end
 
 function do_Table(expr,iter::SJIterList)
     len = length(iter.list)
-    args = newargs(len)    
+    args = newargs(len)
     if iter.i == expr
         for i in 1:len
             args[i] =  iter.list[i]
         end
         return args
-    end    
+    end
     exprpos = expression_positions(expr,iter.i)
     for i in 1:len
         item = iter.list[i]

@@ -11,7 +11,7 @@ let s,a
     @test @sj( -1 ) == -1
     @test @sj( 1 - 1 ) == 0
     @test @sj( 1 + 1 ) == 2
-    
+
     a = :a
     @test @sj( a ) == a
     @test @sj( 0 + a ) == a
@@ -36,7 +36,7 @@ let s,a
     margs(s)[1] = q
     @test margs(s) == @sj([q,b,c,z])  # terms are not sorted
     @ma(s,1) = q1               # use macro
-    @test margs(s) == @sj([q1,b,c,z])  # terms are not sorted    
+    @test margs(s) == @sj([q1,b,c,z])  # terms are not sorted
 
     @test margs(@sj(a + a)) == [2,a]
     @test margs(@sj(a + a + a)) == [3,a]

@@ -87,15 +87,15 @@ mulpow1_rule = :x_ * :x_   =>  :x_^2
 # Macro situation should be rethought. These are from the old Expr, pre Mxpr code
 ## test some macros
 # let r1, r2, ex, ex1
-#     r1 =    _ + _ => 2 * _ 
+#     r1 =    _ + _ => 2 * _
 #     r1a =  :_ + :_ => 2 * :_
 #     @test r1 == r1a
 #     ex = @replaceall (a+a) + (a+a)  _ + _ => 2 * _
-#     @test ex == :(2 * (2a))    
+#     @test ex == :(2 * (2a))
 #     ex = @replaceall  z * z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
 #     @test ex == :(z^2)
 #     ex = @replaceall  z + z  [ @rule( _ * _ => _^2 ),  @rule(_ + _ => 2 * _ ) ]
-#     @test ex == :(2 * z)    
+#     @test ex == :(2 * z)
 # end
 
 #replaceall( :((a + a)/(z+z)  ),  @rule  _ + _ => 2 * _) == :((2a) / (2z))
@@ -105,7 +105,7 @@ mulpow1_rule = :x_ * :x_   =>  :x_^2
 # Redo all of this.
 # let r,r1
 #     r =  @sn( _ / _::((x)-> x != 0))  => 1
-#     r1 =  @sn( _^-1 * _::((x)-> x != 0))  => 1    
+#     r1 =  @sn( _^-1 * _::((x)-> x != 0))  => 1
 #     @test replaceall( @sn( 0 / 0) , r) == @sn( 0 / 0 )
 #     @test replaceall( @sn( (a+b) / (a+b) ) , r) == 1
 # end
@@ -143,7 +143,7 @@ end
 @test 0 + :a == :a + 0 == :a
 
 #end
-    
+
 
 # Fix these when we fix the macros
 # replaceall vs. replacerepeated

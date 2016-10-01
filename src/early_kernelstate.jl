@@ -112,7 +112,7 @@ function get_context_symtab(s::Qsym)
 end
 
 type CurrentContextT
-    name::Symbol    
+    name::Symbol
     symtab::SymTab
 end
 

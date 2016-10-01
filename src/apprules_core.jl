@@ -3,7 +3,7 @@
 #
 # You can supply information about the number of args etc. by passing a dict to @mkapprules like this:
 #   @mkapprules Headname  :key1 => val1  :key2 => val2 ....
-# 
+#
 # @mkapprules writes a default rule that returns the input expression.
 # Eg. if you don't write a function (described below) to handle an expression with head Headname(a,b,c)
 # Headname(a,b,c) is returned
@@ -13,7 +13,7 @@
 # :options = Dict( :opt1 => default1, ... )  The expression takes keyword arguments, "Options". These are translated
 #                                            to rules, which is how we implement keyword argumentss.
 # TODO :nargs =>  one or more, etc.
-# TODO use this syntax :options = (:opt1 => default1, ...) 
+# TODO use this syntax :options = (:opt1 => default1, ...)
 
 # get_arg_dict constructs a Dict from the macro aguments.
 function get_arg_dict(args)
@@ -32,7 +32,7 @@ macro mkapprule(args...)
     fns = Symbol("do_" * headstr)
     mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
     local apprulecall
-    apprulecall = :(apprules($mxarg) = $fns(mx, margs(mx)...))    
+    apprulecall = :(apprules($mxarg) = $fns(mx, margs(mx)...))
     defmx = :( mx )
     specs = Dict()
     if n > 1
@@ -108,12 +108,12 @@ macro doap(func)
         if ( sj_func_name0.head == :curly )
             sj_func_name = sj_func_name0.args[1]       #   get Headname
             new_func_name = Symbol("do_",sj_func_name) #  Headname --> do_Headname
-            sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}      
+            sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}
         else
             error("Can't interpret ", sj_func_name)
         end
     else                                                       # got Headname(x,y)
-        sj_func_name = sj_func_name0                 
+        sj_func_name = sj_func_name0
         new_func_name = Symbol("do_",sj_func_name)             # do_Headname
         prototype[1] = new_func_name                           # replace Headname --> do_Headname
     end

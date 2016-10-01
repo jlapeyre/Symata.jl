@@ -12,7 +12,7 @@ test = SJulia_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
-              "matrix_test.sj",              
+              "matrix_test.sj",
               "math_functions_test.sj",
               "flowcontrol_test.sj",
               "evaluation_test.sj",

@@ -20,7 +20,7 @@ function _mklexorder()
     for op in (:mplus,:mmul,:mpow)
         _jsoporder[op] = i
         i += 1
-    end    
+    end
 end
 
 _mklexorder()
@@ -86,21 +86,21 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
         jslexless(ax[i],ay[i]) && return true
     end
     lx < ly && return true
-    return false    
+    return false
 end
 jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
 jslexless(x::Symbol, y::Mxpr) = true
 # Following methods will only be called on non-Symbolic types.
 _jslexless(x::DataType,y::DataType) = x <: y
 _jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
-jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y) 
+jslexless{T}(x::T,y::T) = !(x === y) &&_jslexless(x,y)
 jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
 
 # Order the args in orderless Mxpr.
 function orderexpr!(mx::Orderless)
     ar = jargs(mx)
     sort!(ar,lt=jslexless) # TODO: optimize this after design is more fixed
-    set_order_clean!(mx)    
+    set_order_clean!(mx)
     mx
 end
 
@@ -111,8 +111,8 @@ function canonexpr!(mx::Orderless)
     if needs_ordering(mx)
         pprintln("A $mx")
         orderexpr!(mx)
-        pprintln("B $mx")        
-        if is_type_less(mx,Mxpr)        
+        pprintln("B $mx")
+        if is_type_less(mx,Mxpr)
             mx = compactsumlike!(mx)
             pprintln("C $mx")
             if is_type_less(mx,Mxpr)
@@ -126,14 +126,14 @@ function canonexpr!(mx::Orderless)
                     #         @ma(mx,i) = mulpowers(mx[i])
                     #     end
                     # end
-                    pprintln("D $mx")                
+                    pprintln("D $mx")
                     set_order_clean!(mx)
                 end
             end
         end
     end
     mx
-end    
+end
 canonexpr!(x) = x
 
 function deepcanonexpr!(mx::Mxpr)
@@ -144,7 +144,7 @@ function deepcanonexpr!(mx::Mxpr)
     mx = canonexpr!(mx)
     ## FIXME following should be an assertion
     is_rat_and_int(mx) && error("canonexpr!: returning integer rational $mx")
-    return mx    
+    return mx
 end
 deepcanonexpr!(x) = x
 
@@ -233,9 +233,9 @@ end
 #getfac(mx::Mxpr{:mpow}) = base(mx)
 
 function numeric_coefficient_and_factor(a)
-    pprintln("getting nc  of $a")    
+    pprintln("getting nc  of $a")
     n = numeric_coefficient(a)
-    res = n == 1 ? (n,a) : (n,_rest(a))    
+    res = n == 1 ? (n,a) : (n,_rest(a))
     pprintln("nc $res")
     return res
 end

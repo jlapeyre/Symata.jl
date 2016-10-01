@@ -180,10 +180,10 @@ function matchpat(cvar,ex)
     typeof(c) == DataType && return typeof(ex) <: c  # NOTE: We use <: !
     if isexpr(c)
         if c.head == :->  # anon function
-            println("Got a function expressoin")            
+            println("Got a function expressoin")
             f = eval(c)
 # Replacing expression with compiled anonymous function does not work.            .
-            setpvarcond(cvar,f)  
+            setpvarcond(cvar,f)
             return f(ex)
         end
     end
@@ -229,8 +229,8 @@ function patrule(ex,pat1::Pattern,pat2::Pattern)
     (res,capt) = cmppat(ex,pat1)
 #    println("patrule $res $capt")
     res == false && return false # match failed
-    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)    
-    cd = Dict{Any,Any}()   
+    npat = deepcopy(pat2) # deep copy and x_ -> pat(x)
+    cd = Dict{Any,Any}()
     for (p,c) in capt
         storecapt(p,c,cd) # throw away condition information
     end

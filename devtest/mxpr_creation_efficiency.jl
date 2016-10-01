@@ -26,7 +26,7 @@
 # doing flatcanon! as well -- 0.06s.
 # Using full meval, once  -- 0.08s
 # using full doeval:
-# Table(s*b,[i,10^4]); time: 0.179446132 
+# Table(s*b,[i,10^4]); time: 0.179446132
 # Timing[a=Table[s(b),{i,10^4}];]  --> {0.011 Second, Null}
 
 # Tests done after commit:
@@ -98,7 +98,7 @@ tnewsymsdict() = TFreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms
     args = newargs()
     for x in iargs push!(args,x) end
 #    mx = TMxpr{symname(s)}(s,args,false,false,tnewsymsdict(),0,0,Any)
-    mx = TMxpr{symname(s)}(s,args,false,false,0,0,Any)    
+    mx = TMxpr{symname(s)}(s,args,false,false,0,0,Any)
     setage(mx)
     mx
 end

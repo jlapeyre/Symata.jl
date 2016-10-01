@@ -114,7 +114,7 @@ function exfunc(ex)
     if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
     if isinteractive() && is_sjinteractive()
         increment_line_number()
-        set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma        
+        set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
         set_sjulia_prompt(get_line_number() + 1)
         push_output(mx)
         @bind_Os
@@ -178,7 +178,7 @@ function infseval(mxin::Mxpr)
     if is_throw()
         println("Caught throw at toplevel infseval() for Mxpr")
         return mxin  # TODO check where this test is actually used. We have it in three places
-    end 
+    end
     @mdebug(2, "infseval ", mxin)
     neval = 0
     if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than timestamp on mxin ?
@@ -355,7 +355,7 @@ function meval_arguments(mx::Mxpr{:List})
         @inbounds for i in 1:len
             nargs[i] = doeval(mxargs[i])
             if nargs[i] == :Nothing
-                got_nothing = true  
+                got_nothing = true
             end
         end
     end

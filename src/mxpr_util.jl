@@ -7,7 +7,7 @@ recursive_copy(x) = deepcopy(x)
 function mxpr_count_heads(mx::Mxpr, head)
     cnt = 0
     for i in 1:length(mx)
-        if is_Mxpr(mx[i],head) cnt += 1  end        
+        if is_Mxpr(mx[i],head) cnt += 1  end
     end
     cnt
 end

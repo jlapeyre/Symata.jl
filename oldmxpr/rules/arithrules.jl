@@ -5,7 +5,7 @@ arithrules =
    @rule( _ * 0 => 0 ),
    @rule( 0 * _ => 0 ),
    @rule( x_ / 1 => x_ ),
-   @rule( (x_ * y_) / y_ => x_ ),   
+   @rule( (x_ * y_) / y_ => x_ ),
    @rule(  x_^0 => 1),
    @rule(  _  + _ => 2 * _),
    @rule(  x_  + n_ * x_ => (n_+1) * x_),
@@ -57,7 +57,7 @@ end
 # from evaluating it.
 macro js(ex)
     ex = jseval(ex)
-    
+
     ex = replacerepeated(ex, arithrules)
     ex = jseval(ex)  # probably need a loop
     Expr(:quote, ex)
@@ -136,7 +136,7 @@ for (fop,name) in  ((:+,:compactplus!),(:*,:compactmul!))
             end
             length(a) == 0 && return sum0
             unshift!(a,sum0)
-            unshift!(a,op)            
+            unshift!(a,op)
             return x
         end
     end

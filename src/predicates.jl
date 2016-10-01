@@ -20,7 +20,7 @@ is_Mxpr(x,s::Symbol) = false
 # Return true if any element at level 1 of mx is an Mxpr with head `head`
 function mxpr_head_freeq(mx::Mxpr, head)
     for i in 1:length(mx)
-        is_Mxpr(mx[i],head)  && return false        
+        is_Mxpr(mx[i],head)  && return false
     end
     return true
 end

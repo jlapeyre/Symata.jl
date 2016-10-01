@@ -93,7 +93,7 @@ function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
     rhs = rd[2]
     ptp = patterntoBlank(lhs)
     rrd = mxpr(:RuleDelayed, ptp, rhs)
-    res = match_and_replace(mx,rrd)    
+    res = match_and_replace(mx,rrd)
 end
 
 #### DownValues
@@ -679,11 +679,11 @@ function freeq(levelspec::LevelSpec, expr, pat)
     data = FreeQData(pat,false)
     action = LevelAction(data,
                          function (data, expr)
-                             (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))                         
+                             (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
                              if gotmatch
                                data.gotmatch = true
                                action.levelbreak = true
-                             end 
+                             end
                          end)
     if has_level_zero(levelspec)  # Do level zero separately
         (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))

@@ -143,7 +143,7 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     if is_Mxpr(res,:List)
         return mxpr(:ConditionalExpression, margs(res)...)
     end
-    res    
+    res
 end
 
 #### InverseLaplaceTransform
@@ -192,7 +192,7 @@ function apprules(mx::Mxpr{:InverseFourierTransform})
     if is_Mxpr(sjresult,:List)
         return mxpr(:ConditionalExpression, margs(sjresult)...)
     end
-    sjresult    
+    sjresult
 end
 
 #### Sum

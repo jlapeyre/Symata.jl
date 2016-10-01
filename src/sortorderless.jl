@@ -577,7 +577,7 @@ numeric_expt(x) = 1
 function _rest!(mx::Mxpr)
     res=copy(mx)  # could be slow
     shift!(margs(res))
-    return length(res) == 1 ? res[1] : res    
+    return length(res) == 1 ? res[1] : res
 end
 
 # split product n*expr into (n,expr) with numeric n. n may be 1

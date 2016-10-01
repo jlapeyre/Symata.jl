@@ -76,7 +76,7 @@
 # @testex
 # @testex
 # @testex
-# @testex 
+# @testex
 
 # FIXME.
 # Cutting and pasting the output of the Series

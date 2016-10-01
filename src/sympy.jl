@@ -706,7 +706,7 @@ end
 
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
-    args = margs(flatten_recursive!(mxpr(:List,args...)))    
+    args = margs(flatten_recursive!(mxpr(:List,args...)))
     return pytosj(sympy.Min(map(sjtopy, args)...))
 end
 

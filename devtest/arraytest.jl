@@ -11,7 +11,7 @@ end
 
 
 function partloop(n,m)
-    s = 0    
+    s = 0
     t = @elapsed  for i in 1:n
      a = art(m)
         x = pop!(a)

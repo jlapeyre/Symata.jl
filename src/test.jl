@@ -18,7 +18,7 @@
 # type, which signifies that we are not testing. I expect this will
 # evolve, but for the moment I don't want to duplicate the relatively
 # untested read-eval code.
-# 
+#
 # At the moment We have one type of test. It just records the number
 # of passes and fails and prints the result.
 

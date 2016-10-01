@@ -116,10 +116,10 @@ import Base:  ==
 downvalue_lhs_equal(x,y) = x == y
 downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
 
-# Sets a downvalue associated with symbol 
+# Sets a downvalue associated with symbol
 
 function set_downvalue(mx::Mxpr, s::SJSymbol, val)
-    set_downvalue(mx, getssym(s), val) 
+    set_downvalue(mx, getssym(s), val)
 end
 
 function set_downvalue(mx::Mxpr, s::SSJSym, val)

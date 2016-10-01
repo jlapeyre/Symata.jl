@@ -96,7 +96,7 @@ jtomsym(x) = extomx(x)
 function mtojsym(x::Symbol)
     # For output, reverse the rewrites done by preprocessing the input string befor parsing
     if haskey(REVERSE_PREPROCESS_SYMBOL_TRANSLATION,x)  # .>  --> :>   for output
-         x = REVERSE_PREPROCESS_SYMBOL_TRANSLATION[x]   # =>  --> ->   
+         x = REVERSE_PREPROCESS_SYMBOL_TRANSLATION[x]   # =>  --> ->
      end
     if haskey(MTOJSYM,x)
         return MTOJSYM[x]

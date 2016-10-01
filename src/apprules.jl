@@ -290,7 +290,7 @@ function doreplaceall(mx,expr,rs::Mxpr{:List})
         if isa(rs[i],Rules)
             push!(rsa, rs[i])
         else
-            warn("ReplaceRepeated expected Rule  got ", rs[i])            
+            warn("ReplaceRepeated expected Rule  got ", rs[i])
             nothing  # do something better here, like return mx
         end
     end
@@ -313,7 +313,7 @@ do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = rep
 
 function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
     rsa = Array(Any,0)
-    for i in 1:length(rs) 
+    for i in 1:length(rs)
         if isa(rs[i],Rules)
             push!(rsa, rs[i])
         else
