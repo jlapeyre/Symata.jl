@@ -34,6 +34,26 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### Installing
 
+SJulia depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
+the python `SymPy` module. The best way to install this is via `Conda.jl`. If you do
+not have `PyCall` installed, do this
+
+```julia
+julia> ENV["PYTHON"]=""
+julia> Pkg.add("PyCall")
+```
+
+If you *do* have `PyCall` installed, but it is configured to use your system `python`, reconfigure
+it like this.
+
+```julia
+julia> ENV["PYTHON"]=""
+julia> Pkg.build("PyCall")
+```
+
+If you use linux, you may have your distribution's `sympy` package installed and it may be
+out of date. In this case, try the procedure above.
+
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 Instead, it can be installed and used as follows
 
@@ -43,17 +63,19 @@ julia> using SJulia
 sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-*Note*: `SJulia` depends on the Julia
-[`PyCall`](https://github.com/stevengj/PyCall.jl) module, and [SymPy](http://www.sympy.org/en/index.html).
 
-*Note* `SymPy` here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
-(sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
-[SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
+!!! note
+    `SymPy` here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
+    (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
+    [SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
-You'll also need to install the `mpmath` package for python.
-On OS X, If you use `pip`, you should just be able to run `pip install mpmath`.
+    You'll also need to install the `mpmath` package for python. This
+    should be automatically installed when installing `sympy` via
+    `PyCall`, which uses `Conda`.  The above should also work on OS
+    X. However, if you use `pip`, you should just be able to run `pip
+    install mpmath`.
 
-`SJulia` works with the v0.4, v0.5, and v0.6 versions of Julia. It will probably not work with v0.3.
+`SJulia` works with the v0.4, v0.5, and v0.6 versions of Julia.
 
 ### SJulia REPL mode
 
