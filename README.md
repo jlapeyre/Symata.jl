@@ -66,7 +66,8 @@ julia> using SJulia
 sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-!!! note
+#### note
+
     `SymPy`, or `sympy`, here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
     (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
     [SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
