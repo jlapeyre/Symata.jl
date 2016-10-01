@@ -35,8 +35,11 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 ### Installing
 
 SJulia depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
-the python `SymPy` module. The best way to install this is via `Conda.jl`. If you do
-not have `PyCall` installed, do this
+the python [`sympy`](http://www.sympy.org/en/index.html) module.
+The best way to install `sympy` is via `PyCall`, which will use [`Conda`](https://github.com/JuliaPy/Conda.jl),
+which will install `python` and needed modules in your `Julia` directory.
+However, `PyCall` must be configured to not use you system version of `python`.
+If you do not have `PyCall` installed, do this
 
 ```julia
 julia> ENV["PYTHON"]=""
@@ -52,7 +55,7 @@ julia> Pkg.build("PyCall")
 ```
 
 If you use linux, you may have your distribution's `sympy` package installed and it may be
-out of date. In this case, try the procedure above.
+out of date. In this case, try the procedure above, and/or try removing your distribution's `sympy` package.
 
 SJulia is not a registered module, so it cannot be installed via `Pkg.add`.
 Instead, it can be installed and used as follows
@@ -63,9 +66,8 @@ julia> using SJulia
 sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 ```
 
-
 !!! note
-    `SymPy` here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
+    `SymPy`, or `sympy`, here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
     (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
     [SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
