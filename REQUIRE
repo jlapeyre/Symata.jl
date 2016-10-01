@@ -1,5 +1,5 @@
 julia 0.4
 Compat 0.7.15
-PyCall
-Combinatorics
-Primes
+PyCall 1.7.0
+Combinatorics 0.2.1
+Primes 0.1.1

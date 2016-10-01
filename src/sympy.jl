@@ -483,7 +483,7 @@ function mk_mx_to_py_funcs()
         else
             try
 #                obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
-                obj = eval(parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly                
+                obj = eval(parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly
             catch
 #                println("*** $pystr symbol not found")
                 continue
@@ -764,9 +764,9 @@ end
 function init_sympy()
     import_sympy()
 #    eval(parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
-    eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))    
+    eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
 #    eval(parse("const SymPyMinusInfinity = sympy.Mul(-1 , sympy.oo)"))
-    eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))    
+    eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
     make_sympy_to_sjulia()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
