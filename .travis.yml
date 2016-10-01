@@ -1,6 +1,4 @@
 language: julia
-sudo: required
-dist: trusty
 os:
   - linux
 julia:
@@ -9,9 +7,8 @@ julia:
   - nightly
 before_install:  
   - sudo apt-get -qq update
+  - sudo apt-get install -y python-mpmath  
   - sudo apt-get install -y python-sympy
-  - sudo apt-get install -y python-numpy
-  - sudo apt-get install -y python-gmpy
-  - sudo apt-get install -y python-mpmath
+
 notifications:
   email: false

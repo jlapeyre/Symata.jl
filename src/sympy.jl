@@ -473,12 +473,14 @@ function mk_mx_to_py_funcs()
             try
                 obj = eval(pysym)
             catch
+                println("*** $pystr symbol not found")
                 continue
             end
         else
             try
                 obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
             catch
+                println("*** $pystr symbol not found")                
                 continue
             end
         end
