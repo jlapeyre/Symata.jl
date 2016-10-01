@@ -1,9 +1,9 @@
 T testUserSyms
 
+# Currently disabled
 
-
-# This is an example of writing a function for SJulia in Julia, rather than
-#  This is less general and convenient but runs faster.
+# This is an example of writing a function for SJulia in Julia, rather than SJulia
+# This is less general and convenient but runs faster.
 #
 # sjulia> x = Range(1000);  # x = [1,2,...]
 # julia> addtom(11,:x)     # x = [12,13,...]
