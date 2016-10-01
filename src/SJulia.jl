@@ -2,7 +2,7 @@ VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
 module SJulia
 
-using Compat
+using Compat  # only used in code copied from REPL_sjulia.jl
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
