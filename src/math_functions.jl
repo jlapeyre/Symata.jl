@@ -421,7 +421,7 @@ function write_sympy_apprule(sjf, sympyf, nargs::Int)
     sstr = join(sympyargs, ", ")
     aprpy = "function do_$sjf(mx::Mxpr{:$sjf},$cstr)
                try
-                 (sympy.$sympyf($sstr) |> pytosj)
+                 (sympy[:$sympyf]($sstr) |> pytosj)
                catch e
                  showerror(e)
                  mx
@@ -435,7 +435,7 @@ function set_up_sympy_default(sjf, sympyf)
     aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "function do_$sjf(mx::Mxpr{:$sjf},x...)
                try
-                 (sympy.$sympyf(map(sjtopy,x)...) |> pytosj)
+                 (sympy[:$sympyf](map(sjtopy,x)...) |> pytosj)
                catch
                    mx
                end
@@ -495,8 +495,8 @@ set_sjtopy(:Erf, :sympy_erf)
 @mkapprule InverseErf :nargs => 1:2
 
 @doap InverseErf{T<:AbstractFloat}(x::T) = x < 1 && x > -1 ? erfinv(x) : mx
-@doap InverseErf(x) = pytosj(sympy.erfinv(sjtopy(x)))
-@doap InverseErf(x,y) = pytosj(sympy.erf2inv(sjtopy(x),sjtopy(y)))
+@doap InverseErf(x) = pytosj(sympy[:erfinv](sjtopy(x)))
+@doap InverseErf(x,y) = pytosj(sympy[:erf2inv](sjtopy(x),sjtopy(y)))
 
 register_sjfunc_pyfunc(:InverseErf,:erfinv)
 register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
@@ -881,7 +881,7 @@ Abs(z) represents the absolute value of z.
 @doap Abs{T<:Number}(n::T) = mabs(n)
 
 @doap function Abs(x)
-    x |> sjtopy |> sympy.Abs |> pytosj
+    x |> sjtopy |> sympy[:Abs] |> pytosj
 end
 
 # The following code may be useful, but it is not complete
@@ -894,7 +894,7 @@ end
 doabs_pow{T<:Real}(mx,b,e::T) = mxpr(:Power,mxpr(:Abs,b),e)
 
 function doabs_pow(mx,b,e)
-    mx[1] |> sjtopy |> sympy.Abs |> pytosj
+    mx[1] |> sjtopy |> sympy[:Abs] |> pytosj
 end
 
 # do_Abs(mx::Mxpr{:Abs},prod::Mxpr{:Times}) = do_Abs(mx,prod,prod[1])
@@ -947,7 +947,7 @@ end
 sign_number(x::Real) = convert(Int,sign(x))
 
 function do_Sign(mx::Mxpr{:Sign}, x)
-    x |> sjtopy |> sympy.sign |> pytosj
+    x |> sjtopy |> sympy[:sign] |> pytosj
 end
 
 # SymPy does not do Sign((I+1)*a), so we catch this case here.
@@ -957,7 +957,7 @@ function do_Sign(mx::Mxpr{:Sign}, x::Mxpr{:Times})
     if isa(x1,Number)
         mxpr(:Times, sign_number(x1), mxpr(:Sign , mxpr(:Times,x[2:end]...)))
     else
-        x |> sjtopy |> sympy.sign |> pytosj
+        x |> sjtopy |> sympy[:sign] |> pytosj
     end
 end
 

@@ -406,7 +406,7 @@ dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
 
 function dopowerE(mx, expt)
     syexpt = sjtopy(expt)
-    syres = sympy.exp(syexpt)
+    syres = sympy[:exp](syexpt)
     res = pytosj(syres)
     if is_Mxpr(res, :Exp)
         res[1] == expt && return mx

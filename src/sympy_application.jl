@@ -11,14 +11,15 @@ using PyCall
 macro make_simplify_func(mxprsym, sympyfunc)
     smxprsym = string(mxprsym)[2:end]     # SJulia symbol
     ssympyfunc = string(sympyfunc)        # SymPy function
+    qsympyfunc = QuoteNode(sympyfunc)
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
               kws = Dict()                         # To hold keywords
               nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
-              if (length(kws) > 0 )
-                 sres = sympy.$sympyfunc(nargs...; kws...) |> pytosj
+             if (length(kws) > 0 )
+                 sres = sympy[$qsympyfunc](nargs...; kws...) |> pytosj
               else
-                 sres = sympy.$sympyfunc(nargs...) |> pytosj
+                 sres = sympy[$qsympyfunc](nargs...) |> pytosj
               end
               deepsetfixed(sres)                   # sometimes this seems like a good idea.
               sres
@@ -55,7 +56,7 @@ Limit(expr, var => lim) gives the limit of expr as var approaches to lim.
 
 function apprules(mx::Mxpr{:Limit})
     (pymx,var,lim) = map(sjtopy, (mx[1],mx[2][1],mx[2][2]))
-    pylimit = sympy.limit(pymx,var,lim)
+    pylimit = sympy[:limit](pymx,var,lim)
     return pytosj(pylimit)
 end
 
@@ -72,14 +73,14 @@ Integrate(expr, [x,a,b]) gives the definite integral.
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
 function do_Integrate(mx::Mxpr{:Integrate},expr)
     pymx = sjtopy(expr)
-    pyintegral = sympy.integrate(pymx)
+    pyintegral = sympy[:integrate](pymx)
     return pytosj(pyintegral)
 end
 
 function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pyintegral = sympy.integrate(pymx,pyvarspecs...)
+    pyintegral = sympy[:integrate](pymx,pyvarspecs...)
     sjres = pytosj(pyintegral)
     if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
         deepsetfixed(sjres)  # we need this to avoid infinite eval
@@ -89,7 +90,7 @@ end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
     pymx = sjtopy(expr)
-    pyintegral = sympy.integrate(pymx; kws)
+    pyintegral = sympy[:integrate](pymx; kws)
     return pytosj(pyintegral)
 end
 
@@ -97,7 +98,7 @@ end
 function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
+    pyintegral = sympy[:integrate](pymx,pyvarspecs...; kws...)
     sjres = pytosj(pyintegral)
     if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
         deepsetfixed(sjres)  # we need this to avoid infinite eval
@@ -138,7 +139,7 @@ This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>
 function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
     nargs = sjtopy_kw(mx,kws)
-    pyres = @try_sympyfunc laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
+    pyres = @try_sympyfunc sympy[:laplace_transform](nargs...; kws...)  "LaplaceTransform: unknown error."  mx
     res = pyres |> pytosj
     if is_Mxpr(res,:List)
         return mxpr(:ConditionalExpression, margs(res)...)
@@ -153,7 +154,7 @@ InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
 "
 
 function apprules(mx::Mxpr{:InverseLaplaceTransform})
-    result = sympy.inverse_laplace_transform(map(sjtopy, margs(mx))...)
+    result = sympy[:inverse_laplace_transform](map(sjtopy, margs(mx))...)
     sjresult = pytosj(result)
     if is_Mxpr(sjresult) && mhead(sjresult) == :InverseLaplaceTransform
         setfixed(sjresult)
@@ -175,13 +176,13 @@ FourierTransform(expr, x, k) gives the Fourier transform of expr.
 This function returns (F, cond) where F is the Fourier transform of f, and cond are auxiliary convergence conditions.
 "
 
-apprules(mx::Mxpr{:FourierTransform}) = sympy.fourier_transform(sjtopy(margs(mx))...) |> pytosj
+apprules(mx::Mxpr{:FourierTransform}) = sympy[:fourier_transform](sjtopy(margs(mx))...) |> pytosj
 
 
 #### InverseFourierTransform
 
 function apprules(mx::Mxpr{:InverseFourierTransform})
-    result = sympy.inverse_fourier_transform(map(sjtopy, margs(mx))...)
+    result = sympy[:inverse_fourier_transform](map(sjtopy, margs(mx))...)
     sjresult = pytosj(result)
     if mhead(sjresult) == :InverseFourierTransform
         setfixed(sjresult)
@@ -206,7 +207,7 @@ apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
 function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pysum = sympy.summation(pymx,pyvarspecs...)
+    pysum = sympy[:summation](pymx,pyvarspecs...)
     return pytosj(pysum)
 end
 
@@ -222,7 +223,7 @@ apprules(mx::Mxpr{:Product}) = do_Product(mx,margs(mx)...)
 function do_Product(mx::Mxpr{:Product}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pysum = sympy.product(pymx,pyvarspecs...)
+    pysum = sympy[:product](pymx,pyvarspecs...)
     return pytosj(pysum)
 end
 
@@ -248,7 +249,7 @@ function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
             push!(pyspec,sjtopy(dspec))
         end
     end
-    pyseries = sympy.series(pymx,pyspec...)
+    pyseries = sympy[:series](pymx,pyspec...)
     return pytosj(pyseries)
 end
 
@@ -275,7 +276,7 @@ function apprules(mx::Mxpr{:D})
             push!(pyspec,sjtopy(dspec))
         end
     end
-    pyderivative = sympy.diff(pymx,pyspec...)
+    pyderivative = sympy[:diff](pymx,pyspec...)
     return pytosj(pyderivative)
 end
 
@@ -294,7 +295,7 @@ Together(sum) rewrites a sum of terms as a product.
 @sjdoc Apart "
 Apart(product) computes a partial fraction decomposition of product
 "
-apprules(mx::Mxpr{:Apart}) = mx[1] |> sjtopy |> sympy.apart |> pytosj
+apprules(mx::Mxpr{:Apart}) = mx[1] |> sjtopy |> sympy[:apart] |> pytosj
 
 register_sjfunc_pyfunc("Apart", "apart")
 
@@ -350,9 +351,9 @@ but likely to be slower.
 apprules(mx::Mxpr{:FullSimplify}) = do_FullSimplify(mx)
 
 function do_FullSimplify(mx::Mxpr{:FullSimplify})
-    funcs = [sympy.simplify, sympy.expand, sympy.fu, sympy.powsimp, sympy.sqrtdenest]
+    funcs = [sympy[:simplify], sympy[:expand], sympy[:fu], sympy[:powsimp], sympy[:sqrtdenest]]
     objective = pyeval("lambda x: len(str(x))")
-    megasimp = sympy.strategies[:tree][:greedy]((funcs, funcs), objective)
+    megasimp = sympy[:strategies][:tree][:greedy]((funcs, funcs), objective)
     mx[1] |> sjtopy |> megasimp |> pytosj
 end
 
@@ -360,7 +361,7 @@ end
 Cancel(expr) cancels common factors in the numerator and denominator.
 "
 
-apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy.cancel |> pytosj
+apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy[:cancel] |> pytosj
 
 register_sjfunc_pyfunc("Cancel", "cancel")
 
@@ -371,8 +372,8 @@ Collect(expr,[x,y]) collects terms involving first x, then y.
 
 @mkapprule Collect
 
-@doap Collect(expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
-@doap Collect(expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
+@doap Collect(expr,x) = sympy[:collect](expr |> sjtopy, x |> sjtopy ) |> pytosj
+@doap Collect(expr,x,lst::Mxpr{:List}) = sympy[:collect](expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
 
 register_sjfunc_pyfunc("Collect", "collect")
 
@@ -384,26 +385,26 @@ Solves(expr,var) solves expr == 0 for var.
 "
 apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
 
-do_Solve(mx, expr) = expr |> sjtopy |> sympy.solve |> pytosj
+do_Solve(mx, expr) = expr |> sjtopy |> sympy[:solve] |> pytosj
 
 function do_Solve(mx, expr, var::Symbol)
     pyexpr = expr |> sjtopy
     pyvar = var |> sjtopy
-    res =     sympy.solve(pyexpr,pyvar)
+    res =     sympy[:solve](pyexpr,pyvar)
     res |>  pytosj
 end
 
 function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
     peqs = eqs |> sjtopy
     pyvars = vars |> sjtopy
-    sympy.solve(peqs,pyvars) |>  pytosj
+    sympy[:solve](peqs,pyvars) |>  pytosj
 end
 
 register_sjfunc_pyfunc("Solve", "solve")
 
 # This is broken
 apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
-do_DSolve(mx, expr) = expr |> sjtopy |> sympy.dsolve |> pytosj
+do_DSolve(mx, expr) = expr |> sjtopy |> sympy[:dsolve] |> pytosj
 
 
 #### Roots
@@ -412,7 +413,7 @@ Roots(expr) solves for the roots of expr. Roots returns a list
 of lists. The two elements of each sublist give the root and its multiplicity.
 "
 
-apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy.roots |> pytosj  |> SJulia.unpack_to_List
+apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> SJulia.unpack_to_List
 
 register_sjfunc_pyfunc("Roots", "roots")
 
@@ -420,7 +421,7 @@ register_sjfunc_pyfunc("Roots", "roots")
 @sjdoc RealRoots "
 RealRoots(expr) solves for the real roots of expr.
 "
-apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy.real_roots |> pytosj
+apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy[:real_roots] |> pytosj
 
 register_sjfunc_pyfunc("RealRoots", "real_roots")
 
@@ -456,7 +457,7 @@ PossibleClosedForm(x) attempts to find an exact formula for the floating point n
 "
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat)
-   x |>  mpmath.identify |> sympy.sympify |> pytosj
+   x |>  mpmath.identify |> sympy[:sympify] |> pytosj
 end
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
@@ -471,7 +472,7 @@ function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     end
     pyres = mpmath.identify(pyargs...; kws...)
     if setdps restore_mpmath_dps() end
-    pyres |> sympy.sympify |> pytosj
+    pyres |> sympy[:sympify] |> pytosj
 end
 
 ##### ConditionalExpression
@@ -491,7 +492,7 @@ Refine(expr) simplifies expr using assumptions. For instance, `Assume(x,positive
 "
 
 @doap function Refine(args...)
-    result = sympy.refine(map(sjtopy, args)...)
+    result = sympy[:refine](map(sjtopy, args)...)
     result |> pytosj
 end
 

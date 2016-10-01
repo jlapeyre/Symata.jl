@@ -6,7 +6,7 @@ Rewrites(m) computes the matrix inverse of m
 
 @doap function Inverse(expr)
     arg1 = _sjtopy(mx[1])
-    mat = sympy.Matrix(arg1)
+    mat = sympy[:Matrix](arg1)
     pyres = mat[:inv]()
     sympy_matrix_to_sj(pyres)
 end

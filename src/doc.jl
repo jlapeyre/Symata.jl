@@ -78,7 +78,7 @@ function print_sympy_doc{T<:Union{AbstractString,Symbol}}(sjsymin::T)
         println("\nSymPy documentation")
         pysym = lookup_pyfunc_symbol(sjsym)
         spysym = string(pysym)
-        printcom = "println(sympy.$spysym[:__doc__])"
+        printcom = "println(sympy[:$spysym][:__doc__])"
         try eval(parse(printcom))
         catch
             Null

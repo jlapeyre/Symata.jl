@@ -1,5 +1,8 @@
 using PyCall
 
+const sympy  = PyCall.PyNULL()
+const mpmath = PyCall.PyNULL()
+
 import Base: isless
 
 # We no longer have a module here.
@@ -18,9 +21,10 @@ import Base: isless
 # Francesco Bonazzi contributed code for an early version of this file.
 
 function import_sympy()
-    @eval @pyimport sympy
-    @eval @pyimport sympy.core as sympy_core
-    @eval @pyimport mpmath
+    copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
+    # @eval @pyimport sympy
+    # @eval @pyimport sympy.core as sympy_core
+    # @eval @pyimport mpmath
 end
 
 const PYDEBUGLEVEL = -1
@@ -242,18 +246,18 @@ function populate_py_to_mx_dict()
     # catchall branch at the end of sympyt2mxpr. Why ?
     eval(parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
     for onepair in (
-                    (sympy.Add, :Plus),
-                    (sympy.Mul, :Times),
-                    (sympy.Pow ,:Power),
-                    (sympy.Derivative, :D),
-                    (sympy.integrals["Integral"], :Integrate),
-                    (sympy.containers[:Tuple], :List),  # Problem, a List may be huge, Tuple not... but this is a sympy Tuple
-                    (sympy.oo, :Infinity),
-                    (sympy.zoo,:ComplexInfinity))
+                    (sympy[:Add], :Plus),
+                    (sympy[:Mul], :Times),
+                    (sympy[:Pow] ,:Power),
+                    (sympy[:Derivative], :D),
+                    (sympy[:integrals]["Integral"], :Integrate),
+                    (sympy[:containers][:Tuple], :List),  # Problem, a List may be huge, Tuple not... but this is a sympy Tuple
+                    (sympy[:oo], :Infinity),
+                    (sympy[:zoo],:ComplexInfinity))
 #        (sympy.functions[:special][:hyper][:TupleArg], :List))
         py_to_mx_dict[onepair[1]] = onepair[2]
-        if haskey(sympy.functions[:special][:hyper], :TupleArg)  # This cannot be found by Travis
-            py_to_mx_dict[sympy.functions[:special][:hyper][:TupleArg]] = :List
+        if haskey(sympy[:functions][:special][:hyper], :TupleArg)  # This cannot be found by Travis
+            py_to_mx_dict[sympy[:functions][:special][:hyper][:TupleArg]] = :List
         end
     end
 end
@@ -263,8 +267,8 @@ function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
-        if haskey(sympy.functions, pystr)
-            py_to_mx_dict[sympy.functions[pystr]] =  Symbol(sjstr)
+        if haskey(sympy[:functions], pystr)
+            py_to_mx_dict[sympy[:functions][pystr]] =  Symbol(sjstr)
         end
     end
 end
@@ -284,12 +288,12 @@ have_rewrite_function_sympy_to_julia{T <: PyCall.PyObject}(expr::T) = haskey(py_
 # for converting, and this resulted in an Mxpr for the head.
 function populate_special_symbol_dict()
     for onepair in (
-                    (sympy.numbers["ComplexInfinity"], :ComplexInfinity),
-                    (sympy_core.numbers["Pi"], :Pi),
-                    (sympy_core.numbers["EulerGamma"], :EulerGamma),
-                    (sympy.numbers["Exp1"],  :E),
-                    (sympy_core.numbers["ImaginaryUnit"], complex(0,1)),
-                    (sympy_core.numbers["NegativeInfinity"], MinusInfinity))
+                    (sympy[:numbers]["ComplexInfinity"], :ComplexInfinity),
+                    (sympy[:numbers]["Pi"], :Pi),
+                    (sympy[:numbers]["EulerGamma"], :EulerGamma),
+                    (sympy[:numbers]["Exp1"],  :E),
+                    (sympy[:numbers]["ImaginaryUnit"], complex(0,1)),
+                    (sympy[:numbers]["NegativeInfinity"], MinusInfinity))
         pymx_special_symbol_dict[onepair[1]] = onepair[2]
     end
 end
@@ -390,11 +394,11 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
             return pymx_special_symbol_dict[k]
         end
     end
-    if pytypeof(expr) == sympy.Symbol
+    if pytypeof(expr) == sympy[:Symbol]
         @pydebug(3, "pytype Symbol trans. ", expr)
         return sympy_to_mxpr_symbol(expr[:name])
     end
-    if pyisinstance(expr, sympy.Number)
+    if pyisinstance(expr, sympy[:Number])
         @pydebug(3, "number trans. ", expr)
         # Big ints are wrapped up in a bunch of stuff
         # There is a function n._to_mpmath(m) (dont know what m means) that returns GMP number useable by Julia
@@ -450,16 +454,16 @@ end
 # This is because the name cannot be obtained from an instance.
 function populate_mx_to_py_dict()
     for onepair in (
-         (:Plus,sympy.Add),
-         (:Times, sympy.Mul),
-         (:Power, sympy.Pow),
-         (:E, sympy.E),
-         (:EulerGamma, sympy.EulerGamma),
-         (:I, sympy.I),
-         (:Pi,  sympy.pi),
-         (:Log, sympy.log),
-         (:Infinity, sympy.oo),
-         (:ComplexInfinity, sympy.zoo))
+         (:Plus,sympy[:Add]),
+         (:Times, sympy[:Mul]),
+         (:Power, sympy[:Pow]),
+         (:E, sympy[:E]),
+         (:EulerGamma, sympy[:EulerGamma]),
+         (:I, sympy[:I]),
+         (:Pi,  sympy[:pi]),
+         (:Log, sympy[:log]),
+         (:Infinity, sympy[:oo]),
+         (:ComplexInfinity, sympy[:zoo]))
         mx_to_py_dict[onepair[1]] = onepair[2]
     end
 end
@@ -473,18 +477,19 @@ function mk_mx_to_py_funcs()
             try
                 obj = eval(pysym)
             catch
-                println("*** $pystr symbol not found")
+#                println("*** $pystr symbol not found")
                 continue
             end
         else
             try
-                obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
+#                obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
+                obj = eval(parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly                
             catch
-                println("*** $pystr symbol not found")
+#                println("*** $pystr symbol not found")
                 continue
             end
         end
-        println("    $pystr symbol found")
+#        println("    $pystr symbol found")
         mx_to_py_dict[Symbol(sjstr)] = obj
     end
 end
@@ -528,13 +533,13 @@ end
 function _sjtopy(mx::Mxpr{:DirectedInfinity})
     @sjdebug(3,"Infinity ", mx)
     if mx == ComplexInfinity
-        sympy.zoo
+        sympy[:zoo]
     elseif mx == MinusInfinity
         SymPyMinusInfinity
     elseif mx[1] == I
-        sympy.Mul(sympy.I,sympy.oo)
+        sympy[:Mul](sympy[:I],sympy[:oo])
     else
-        sympy.oo
+        sympy[:oo]
     end
 end
 
@@ -604,7 +609,7 @@ function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
         zpy = sjtopy(z)
         ppy = (_sjtopy(p[1]), _sjtopy(p[2]))
         qpy = (_sjtopy(q[1]), _sjtopy(q[2]))
-        pyres = sympy.meijerg(ppy,qpy,zpy)
+        pyres = sympy[:meijerg](ppy,qpy,zpy)
         sjres = pytosj(pyres)
     catch
         mx
@@ -656,7 +661,7 @@ function _sjtopy(mx::Mxpr)
         return mx_to_py_dict[mhead(mx)](map(_sjtopy, mx.args)...) # calling a function in our dictionary
     end
     @sjdebug(1,"Make function ", mx)
-    pyfunc = sympy.Function(string(mhead(mx)))  # Don't recognize the head, so make it a user function
+    pyfunc = sympy[:Function](string(mhead(mx)))  # Don't recognize the head, so make it a user function
     mxargs = margs(mx)
     if length(mxargs) == 0
         return pyfunc(dummy_arg)  # sympy functions must have at least one argument
@@ -677,7 +682,7 @@ function _sjtopy(mx::Symbol)
         sym = SYMPY_USER_SYMBOLS[mx]
         return sym
     else
-        sym = sympy.Symbol(mx)
+        sym = sympy[:Symbol](mx)
         SYMPY_USER_SYMBOLS[mx] = sym
         return sym
     end
@@ -701,7 +706,7 @@ prime, composite, zero, nonzero, rational, algebraic, transcendental, irrational
     ss = string(s)
     propstrs = map( (x) -> " $x=true ", props)
     propstr = join(propstrs, ", ")
-    evalstr = "sympy.Symbol(\"$ss\", $propstr)"
+    evalstr = "sympy[:Symbol](\"$ss\", $propstr)"
     sym = eval(parse(evalstr))
     SYMPY_USER_SYMBOLS[s] = sym
     s
@@ -713,7 +718,7 @@ end
 @mkapprule Max :nodefault => true
 @doap function Max(args...)
     args = margs(flatten_recursive!(mxpr(:List,args...)))
-    return pytosj(sympy.Max(map(sjtopy, args)...))
+    return pytosj(sympy[:Max](map(sjtopy, args)...))
 end
 
 @doap Max() = MinusInfinity
@@ -721,7 +726,7 @@ end
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
     args = margs(flatten_recursive!(mxpr(:List,args...)))
-    return pytosj(sympy.Min(map(sjtopy, args)...))
+    return pytosj(sympy[:Min](map(sjtopy, args)...))
 end
 
 @doap Min() = Infinity
@@ -731,12 +736,12 @@ end
 # end
 
 
-_sjtopy{T<:Integer}(mx::Rational{T}) = sympy.Rational(num(mx),den(mx))
+_sjtopy{T<:Integer}(mx::Rational{T}) = sympy[:Rational](num(mx),den(mx))
 
 _sjtopy{T<:Number}(mx::T) = mx
 
 function _sjtopy{T<:Qsym}(s::T)
-    f = sympy.Function("_context")
+    f = sympy[:Function]("_context")
     f(_sjtopy(s.context),_sjtopy(s.name))
 end
 
@@ -758,8 +763,10 @@ end
 # We call init_sympy() from __init__
 function init_sympy()
     import_sympy()
-    eval(parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
-    eval(parse("const SymPyMinusInfinity = sympy.Mul(-1 , sympy.oo)"))
+#    eval(parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
+    eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))    
+#    eval(parse("const SymPyMinusInfinity = sympy.Mul(-1 , sympy.oo)"))
+    eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))    
     make_sympy_to_sjulia()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
@@ -876,12 +883,14 @@ end
 # Store the error message in the kernel state
 # On success, return the result of the function call.
 macro try_sympyfunc(pycall, errstr, return_val_err)
-    npycall = parse( "sympy." * string(pycall))
+#    npycall = parse( "sympy[:" * string(pycall) * "]")
+    qpycall = QuoteNode(pycall)
     return :(
              begin
              (sflag, _pyres) =
                  try
-                   res = $npycall
+                   res = $pycall
+#                   res = sympy[$qpycall]
                    (true, res)
                  catch pyerr
                   (false,pyerr)
@@ -910,7 +919,7 @@ for development.
 
 # Look up the sympy symbol in the "registry" and get the doc string
 function pydoc(sym)
-    pyC = sympy.C
+    pyC = sympy[:C]
     local str
     if haskey(pyC,sym)
         str = try
@@ -922,7 +931,7 @@ function pydoc(sym)
         warn("Symbol ", sym, " not in registry. Looking elsewhere...")
         str =
             try
-                eval(parse("sympy.$(string(sym))[:__doc__]"))
+                eval(parse("sympy[:$(string(sym))][:__doc__]"))
             catch
                 "No documentation found"
             end
