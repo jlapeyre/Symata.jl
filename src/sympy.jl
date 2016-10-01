@@ -18,9 +18,9 @@ import Base: isless
 # Francesco Bonazzi contributed code for an early version of this file.
 
 function import_sympy()
-    eval(parse("@pyimport sympy"))
-    eval(parse("@pyimport sympy.core as sympy_core"))
-    eval(parse("@pyimport mpmath"))
+    @eval @pyimport sympy
+    @eval @pyimport sympy.core as sympy_core
+    @eval @pyimport mpmath
 end
 
 const PYDEBUGLEVEL = -1

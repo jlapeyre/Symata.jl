@@ -410,6 +410,7 @@ end
 
 # Faster if we don't do interpolation
 function write_sympy_apprule(sjf, sympyf, nargs::Int)
+    println("writing sympy $sympyf")
     callargs = Array(AbstractString,0)
     sympyargs = Array(AbstractString,0)
     for i in 1:nargs
