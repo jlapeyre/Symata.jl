@@ -9,6 +9,6 @@ before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y python-mpmath  
   - sudo apt-get install -y python-sympy
-
 notifications:
   email: false
+  

@@ -480,10 +480,11 @@ function mk_mx_to_py_funcs()
             try
                 obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
             catch
-                println("*** $pystr symbol not found")                
+                println("*** $pystr symbol not found")
                 continue
             end
         end
+        println("    $pystr symbol found")
         mx_to_py_dict[Symbol(sjstr)] = obj
     end
 end
