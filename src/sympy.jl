@@ -470,9 +470,17 @@ function mk_mx_to_py_funcs()
         sjstr = string(sjsym)
         local obj
         if length(pystr) > 6 && pystr[1:6] == "sympy_"  # These are wrapper function around sympy functions
-            obj = eval(pysym)
+            try
+                obj = eval(pysym)
+            catch
+                continue
+            end
         else
-            obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
+            try
+                obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
+            catch
+                continue
+            end
         end
         mx_to_py_dict[Symbol(sjstr)] = obj
     end
