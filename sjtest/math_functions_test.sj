@@ -176,7 +176,10 @@ ClearAll(x,y)
 #### N
 
 T Head(N(1,30)) == BigFloat
+bigintval = BigIntInput(False)
 T Head(N(1,16)) == Float64
+BigIntInput(bigintval)
+ClearAll(bigintval)
 
 #### Sign
 
