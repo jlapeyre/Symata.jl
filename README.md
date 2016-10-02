@@ -68,15 +68,15 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 
 #### note
 
-    `SymPy`, or `sympy`, here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
-    (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
-    [SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
+`SymPy`, or `sympy`, here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution
+(sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
+[SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
-    You'll also need to install the `mpmath` package for python. This
-    should be automatically installed when installing `sympy` via
-    `PyCall`, which uses `Conda`.  The above should also work on OS
-    X. However, if you use `pip`, you should just be able to run `pip
-    install mpmath`.
+You'll also need to install the `mpmath` package for python. This
+should be automatically installed when installing `sympy` via
+`PyCall`, which uses `Conda`.  The above should also work on OS
+X. However, if you use `pip`, you should just be able to run `pip
+install mpmath`.
 
 `SJulia` works with the v0.4, v0.5, and v0.6 versions of Julia.
 
