@@ -22,9 +22,7 @@ import Base: isless
 
 function import_sympy()
     copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
-    # @eval @pyimport sympy
-    # @eval @pyimport sympy.core as sympy_core
-    # @eval @pyimport mpmath
+    copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))    
 end
 
 const PYDEBUGLEVEL = -1
@@ -153,14 +151,14 @@ const py_to_mx_rewrite_function_dict = Dict(
 
 const MPMATH_DPS = Int[0]
 
-get_mpmath_dps() = mpmath.mp[:dps]
+get_mpmath_dps() = mpmath[:mp][:dps]
 
 function set_mpmath_dps(n)
-    push!(MPMATH_DPS,mpmath.mp[:dps])
-    mpmath.mp[:dps] = n
+    push!(MPMATH_DPS,mpmath[:mp][:dps])
+    mpmath[:mp][:dps] = n
 end
 
-restore_mpmath_dps() = (mpmath.mp[:dps] = pop!(MPMATH_DPS))
+restore_mpmath_dps() = (mpmath[:mp][:dps] = pop!(MPMATH_DPS))
 
 # This translates key value pairs that we use to
 # describe the mapping from sj to py.

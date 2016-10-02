@@ -173,6 +173,11 @@ T NDigits(2^10-1,2) == 10
 
 ClearAll(x,y)
 
+#### N
+
+T Head(N(1,30)) == BigFloat
+T Head(N(1,16)) == Float64
+
 #### Sign
 
 T Sign(1) == 1
