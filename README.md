@@ -1,9 +1,11 @@
 # SJulia.jl
 ### Symbolic mathematics language
 
-Linux, OSX: [![Build Status](https://travis-ci.org/JuliaLang/SJulia.jl.svg)](https://travis-ci.org/JuliaLang/SJulia.jl)
-[![codecov.io](http://codecov.io/github/JuliaLang/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaLang/SJulia.jl?branch=master)
+Linux, OSX: [![Build Status](https://travis-ci.org/jlapeyre/SJulia.jl.svg)](https://travis-ci.org/jlapeyre/SJulia.jl)
+
 [![Coverage Status](https://coveralls.io/repos/jlapeyre/SJulia.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
+
+[![codecov.io](http://codecov.io/github/jlapeyre/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/SJulia.jl?branch=master)
 
 ### What SJulia is
 
