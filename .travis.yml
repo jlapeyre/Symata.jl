@@ -18,3 +18,5 @@ notifications:
   email: false
 before_install:
   - if [ $MPMATH = "true" ]; then julia -e 'Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
+after_success:
+  - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("SJulia")); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
