@@ -5,10 +5,6 @@ Linux, OSX: [![Build Status](https://travis-ci.org/JuliaLang/SJulia.jl.svg)](htt
 [![codecov.io](http://codecov.io/github/JuliaLang/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaLang/SJulia.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/jlapeyre/SJulia.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
 
-[![SJulia](http://pkg.julialang.org/badges/SJulia_0.4.svg)](http://pkg.julialang.org/?pkg=SJulia&ver=0.4)
-[![SJulia](http://pkg.julialang.org/badges/SJulia_0.5.svg)](http://pkg.julialang.org/?pkg=SJulia&ver=0.5)
-[![SJulia](http://pkg.julialang.org/badges/SJulia_0.6.svg)](http://pkg.julialang.org/?pkg=SJulia&ver=0.6)
-
 ### What SJulia is
 
 1. SJulia is a language for symbolic computations and mathematics, where, for
