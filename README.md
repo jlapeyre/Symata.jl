@@ -6,16 +6,16 @@ Linux, OSX: [![Build Status](https://travis-ci.org/jlapeyre/SJulia.jl.svg)](http
 &nbsp;
 Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jlapeyre/SJulia.jl?branch=master&svg=true)](https://ci.appveyor.com/project/jlapeyre/sjulia-jl)
 &nbsp; &nbsp; &nbsp;
-[![Coverage Status](https://coveralls.io/repos/jlapeyre/SJulia.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/jlapeyre/SJulia.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/SJulia.jl?branch=master)
 
 ### SJulia is
 
-- SJulia is a language for symbolic computations and mathematics, where, for
+- a language for symbolic computations and mathematics, where, for
 the most part, "mathematics" means what it typically
 does for a scientist or engineer.
 
-- It is a language based mostly on expressions, on "evaluating" and
+- a language based mostly on expressions, on "evaluating" and
 rewriting them, like Wolfram, Maple, or Maxima. It is neither a language,
 nor an extension of a language, that is mostly procedural, or designed
 around data types and functions, or a hierarchy of classes, etc.,
@@ -23,7 +23,7 @@ like C or Python or Java. Nor is it language like Sage;
 that is, one meant to provide a unifying interface to a number of
 mathematics languages with various programming models.
 
-- It is meant to be useful to people who do not like to program computers, as
+- meant to be useful to people who do not like to program computers, as
 well as those who do. The former includes people who prefer not to
 think about classes, methods, objects, dispatch, stack traces, etc.
 
