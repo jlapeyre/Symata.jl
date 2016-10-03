@@ -18,7 +18,7 @@ notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("SJulia"); travis_wait Pkg.test("SJulia"; coverage=true)'
+  - travis_wait julia -e 'Pkg.clone(pwd()); Pkg.build("SJulia"); Pkg.test("SJulia"; coverage=true)'
 before_install:
   - if [ $MPMATH = "true" ]; then julia -e 'Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
 after_success:
