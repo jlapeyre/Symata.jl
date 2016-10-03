@@ -1,20 +1,21 @@
 # SJulia.jl
-### Symbolic mathematics language
+
+*Symbolic mathematics language*
 
 Linux, OSX: [![Build Status](https://travis-ci.org/jlapeyre/SJulia.jl.svg)](https://travis-ci.org/jlapeyre/SJulia.jl)
 &nbsp;
 Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jlapeyre/SJulia.jl?branch=master&svg=true)](https://ci.appveyor.com/project/jlapeyre/sjulia-jl)
-
+&nbsp; &nbsp; &nbsp;
 [![Coverage Status](https://coveralls.io/repos/jlapeyre/SJulia.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/SJulia.jl?branch=master)
 
-### What SJulia is
+### SJulia is
 
-1. SJulia is a language for symbolic computations and mathematics, where, for
+- SJulia is a language for symbolic computations and mathematics, where, for
 the most part, "mathematics" means what it typically
 does for a scientist or engineer.
 
-2. It is a language based mostly on expressions, on "evaluating" and
+- It is a language based mostly on expressions, on "evaluating" and
 rewriting them, like Wolfram, Maple, or Maxima. It is neither a language,
 nor an extension of a language, that is mostly procedural, or designed
 around data types and functions, or a hierarchy of classes, etc.,
@@ -22,7 +23,7 @@ like C or Python or Java. Nor is it language like Sage;
 that is, one meant to provide a unifying interface to a number of
 mathematics languages with various programming models.
 
-3. It is meant to be useful to people who do not like to program computers, as
+- It is meant to be useful to people who do not like to program computers, as
 well as those who do. The former includes people who prefer not to
 think about classes, methods, objects, dispatch, stack traces, etc.
 
@@ -42,12 +43,11 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### Installing
 
-SJulia can be installed on Linux, OSX, and Windows. (One or two [Windows builds on appveyor](https://ci.appveyor.com/project/jlapeyre/sjulia-jl)
-out of 6 fail itermittently.) `SJulia` works on Julia v0.4, v0.5, and v0.6.
+`SJulia` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6.
 It depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
-The best way to install `sympy` is via `PyCall`, which will use [`Conda`](https://github.com/JuliaPy/Conda.jl),
-which will install `python` and needed modules in your `Julia` directory.
+You can install `sympy` automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
+which in turn installs `python` and needed modules in your `Julia` directory.
 However, `PyCall` must be configured to not use you system version of `python`.
 If you do not have `PyCall` installed, do this
 
