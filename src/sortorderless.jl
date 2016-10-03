@@ -182,10 +182,11 @@ function jslexless{T}(x::Qsym, y::T)
     false
 end
 
-# TODO: do we need to define casecmp differently for MSWin ?
+const istrcmp =  @compat @static is_windows() ? :_strnicmp : :strcasecmp
+
 # cmp(a::Symbol, b::Symbol) is in base/string.jl
 # Mma does case insensitive ordering of symbols, we do too
-casecmp(a::Symbol, b::Symbol) = round(Int,sign(ccall(:strcasecmp, Int32, (Ptr{UInt8}, Ptr{UInt8}), a, b)))
+casecmp(a::Symbol, b::Symbol) = round(Int,sign(ccall(istrcmp, Int32, (Ptr{UInt8}, Ptr{UInt8}), a, b)))
 # Same as isless(a,b) for symbols, but we do case insensitive comparison first
 # *and* we invert order of upper to lower case.  we want  a < A.
 jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) > 0 : r < 0)
