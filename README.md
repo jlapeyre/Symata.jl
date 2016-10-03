@@ -42,7 +42,9 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### Installing
 
-SJulia depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
+SJulia can be installed on Linux, OSX, and Windows. (One or two [Windows builds on appveyor](https://ci.appveyor.com/project/jlapeyre/sjulia-jl)
+out of 6 fail itermittently.) `SJulia` works on Julia v0.4, v0.5, and v0.6.
+It depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
 The best way to install `sympy` is via `PyCall`, which will use [`Conda`](https://github.com/JuliaPy/Conda.jl),
 which will install `python` and needed modules in your `Julia` directory.
@@ -80,13 +82,11 @@ sjulia> Help()    # type '=' alone on a line to enter sjulia mode
 (sometimes called sympy), *not* the Julia package `SymPy`. `SJulia` does not require the Julia package
 [SymPy.jl](https://github.com/jverzani/SymPy.jl), which has a different goal.
 
-You'll also need to install the `mpmath` package for python. This
+SJulia requires `mpmath` package for python. This
 should be automatically installed when installing `sympy` via
-`PyCall`, which uses `Conda`.  The above should also work on OS
-X. However, if you use `pip`, you should just be able to run `pip
+`PyCall` as described above. This also works on OSX.
+However, if you use `pip`, you should just be able to run `pip
 install mpmath`.
-
-`SJulia` works with the v0.4, v0.5, and v0.6 versions of Julia.
 
 ### SJulia REPL mode
 

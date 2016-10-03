@@ -12,3 +12,6 @@ src/tmp.jl
 symtest.jl
 why.txt
 workflowquestion
+*.cov
+jlcopy*
+mma_attributes*
