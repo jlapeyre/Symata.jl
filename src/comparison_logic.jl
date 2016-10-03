@@ -334,8 +334,7 @@ function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
     end
 end
 
-
-
+_do_Comparison(a::Mxpr, comp::SJSym, b::String) = false
 
 # function _do_Comparison(a::Bool, comp::SJSym, b::Bool)
 #     comp == :(==) && return a == b

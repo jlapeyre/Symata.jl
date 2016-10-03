@@ -110,4 +110,8 @@ T Args(a && b && c && d ) == [a,b,c,d]
 Assume(aaa,positive)
 T Refine(Abs(aaa)) == aaa
 
+#### String
+
+T Not(f(x) == "cat")
+
 T testUserSyms
