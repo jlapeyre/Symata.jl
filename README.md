@@ -3,7 +3,7 @@
 
 Linux, OSX: [![Build Status](https://travis-ci.org/jlapeyre/SJulia.jl.svg)](https://travis-ci.org/jlapeyre/SJulia.jl)
 &nbsp;
-Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jlapeyre/SJulia.jl?branch=master&svg=true)](https://ci.appveyor.com/project/jlapeyre/sympy-jl)
+Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jlapeyre/SJulia.jl?branch=master&svg=true)](https://ci.appveyor.com/project/jlapeyre/sjulia-jl)
 
 [![Coverage Status](https://coveralls.io/repos/jlapeyre/SJulia.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jlapeyre/SJulia.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/SJulia.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/SJulia.jl?branch=master)
