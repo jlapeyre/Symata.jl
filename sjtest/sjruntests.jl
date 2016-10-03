@@ -39,7 +39,7 @@ function runalltests()
         "simple_expression_test.sj"
         )
         runtest(test,f)
-        println("Done testing $f")
+        println(STDERR, "Done testing $f")
     end
 end
 
