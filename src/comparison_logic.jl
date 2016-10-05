@@ -203,7 +203,7 @@ function _do_Comparison{T<: Number}(n::T, comp::SJSym, mx::Mxpr{:DirectedInfinit
     return nothing
 end
 
-# FIXME. duplicated code. Maybe SJulia needs its own Boolean type, one that is not <: Number
+# FIXME. duplicated code. Maybe Symata needs its own Boolean type, one that is not <: Number
 function _do_Comparison(mx::Mxpr{:DirectedInfinity}, comp::SJSym, n::Bool)
     comp == :(==) && return false
     comp == :(!=) && return true

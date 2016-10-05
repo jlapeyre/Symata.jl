@@ -204,7 +204,7 @@ function expand_binomial{T<:Integer}(a,b,n::T)
 end
 
 # Big increase in efficiency (> 10x) for both these types
-# typealias ExpNoCanon Union{SJSym,Number} move to sjuliaconstants.jl
+# typealias ExpNoCanon Union{SJSym,Number} move to symataconstants.jl
 
 # Expand((a+b*c)^n) is 10x slower than Expand((a+b)^n)
 function _expand_mulpowers(fac,b1,e1,b2,e2)

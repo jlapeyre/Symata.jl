@@ -37,7 +37,7 @@ end
 #### bytestring_beforecursor
 
 if isdefined(Base.REPL, :bytestring_beforecursor)
-    sjulia_beforecursor(args...) = Base.REPL.bytestring_beforecursor(args...)
+    symata_beforecursor(args...) = Base.REPL.bytestring_beforecursor(args...)
 else
-    sjulia_beforecursor(args...) = Base.REPL.beforecursor(args...)
+    symata_beforecursor(args...) = Base.REPL.beforecursor(args...)
 end

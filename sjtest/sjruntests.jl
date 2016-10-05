@@ -1,11 +1,11 @@
-# Files with testcode contain ordinary SJulia code, except that line
+# Files with testcode contain ordinary Symata code, except that line
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
-import Symata: runtest, @ex, setkerneloptions, SJulia_Plain_Test, print_test_results
+import Symata: runtest, @ex, setkerneloptions, Symata_Plain_Test, print_test_results
 
 # Standard test type
-test = SJulia_Plain_Test()
+test = Symata_Plain_Test()
 
 @ex testUserSyms = True
 
@@ -49,7 +49,7 @@ save_biginput_state = setkerneloptions(:bigint_input, false)
 try
     runalltests()
 catch e
-    warn("Failed running SJulia tests")
+    warn("Failed running Symata tests")
     rethrow(e)
 finally
     setkerneloptions(:bigint_input, save_biginput_state)
@@ -64,7 +64,7 @@ setkerneloptions(:bigint_input, true)
 try
     runalltests()
 catch
-    warn("Failed running SJulia tests")
+    warn("Failed running Symata tests")
 finally
     setkerneloptions(:bigint_input, save_biginput_state)
 end

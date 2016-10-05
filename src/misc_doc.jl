@@ -1,4 +1,4 @@
-## Documentation not attached to an SJulia Head with apprules
+## Documentation not attached to an Symata Head with apprules
 
 @sjdoc All "
 All is a symbol used in options.
@@ -9,8 +9,8 @@ r\"expr\" creates a regular expression (PCRE). This is a Julia DataType.
 "
 
 @sjdoc macros "
-If SJulia encounters a macro call in input, it first Julia-evaluates all the
-arguments then Julia-evaluates the macro and inserts it into the SJulia expression
+If Symata encounters a macro call in input, it first Julia-evaluates all the
+arguments then Julia-evaluates the macro and inserts it into the Symata expression
 tree. For instance, big numbers and regular expressions are constructed this way.
 "
 
@@ -43,8 +43,8 @@ Sequence represents a sequence of arguments to be spliced into function argument
 "
 
 @sjdoc Unicode_Input "
-Unicode characters may be input at the SJulia REPL just as they are in Julia. Eg. \\alpha [TAB] will enter the greek letter α.
+Unicode characters may be input at the Symata REPL just as they are in Julia. Eg. \\alpha [TAB] will enter the greek letter α.
 "
 
-@sjseealso_group(ReturnSymPy,ToSymPy,ToSJulia,ShowSymPyDocs)
+@sjseealso_group(ReturnSymPy,ToSymPy,ToSymata,ShowSymPyDocs)
 

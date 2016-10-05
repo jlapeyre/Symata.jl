@@ -76,9 +76,6 @@ julia> using Symata
 symata> Help()    # type '=' alone on a line to enter symata mode
 ```
 
-`Symata` was renamed from `SJulia`. The documentation has not been changed everywhere.
-
-
 #### note
 
 `SymPy`, or `sympy`, here refers to the python [SymPy](http://www.sympy.org/en/index.html) distribution

@@ -6,11 +6,11 @@
 @mkapprule VersionInfo :nargs => 0
 
 @sjdoc VersionInfo "
-VersionInfo() returns the version numbers of SJulia, Julia, and Python.
+VersionInfo() returns the version numbers of Symata, Julia, and Python.
 "
 
 @doap function VersionInfo()
-    println("sjulia version ", SJULIA_VERSION)
+    println("symata version ", SYMATA_VERSION)
     println("julia version  ", Base.VERSION)
     if isdefined(PyCall, :pyversion)
         println("python version ", pyversion)
@@ -271,8 +271,8 @@ ShowSymPyDocs() returns the current state.
 @mkapprule ReturnSymPy  :nargs => 0:1
 
 @sjdoc ReturnSymPy "
-ReturnSymPy(True) disables conversion of expressions computed by SymPy to SJulia.
-ReturnSympy(False) (default) enables conversion to SJulia.
+ReturnSymPy(True) disables conversion of expressions computed by SymPy to Symata.
+ReturnSympy(False) (default) enables conversion to Symata.
 ReturnSympy() returns the current state.
 "
 

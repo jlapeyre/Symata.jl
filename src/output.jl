@@ -1,4 +1,4 @@
-module SJuliaIO
+module SymataIO
 
 import Base: show
 
@@ -115,7 +115,7 @@ end
 #     end
 # end
 
-# NB: This comment is only relevant if we change the SJulia symbol implementation.
+# NB: This comment is only relevant if we change the Symata symbol implementation.
 # This may break. It will only work if the value of s
 # is the symbol name in the symbol table that is associated
 # with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
@@ -386,4 +386,4 @@ function Base.show(io::IO, qs::Qsym)
 end
 
 
-end # module SJuliaIO
+end # module SymataIO

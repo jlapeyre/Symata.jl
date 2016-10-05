@@ -57,7 +57,7 @@ end
 #### Head
 
 @sjdoc Head "
-Head(expr) returns the head of expr, which may be an SJulia expression or object of any
+Head(expr) returns the head of expr, which may be an Symata expression or object of any
 Julia type. The head of a Julia expression is Expr, eg.
 Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one level of
 a quoted Julia expression is evaluated so that we can embed Julia code.
@@ -145,7 +145,7 @@ apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1])
 
 @sjdoc Map "
 Map(f,expr) returns f applied to each element in a copy of expr.
-f can be an SJulia object or a Julia function. Map can be used in
+f can be an Symata object or a Julia function. Map can be used in
 an operator form. For example Map(f)(expr).
 "
 

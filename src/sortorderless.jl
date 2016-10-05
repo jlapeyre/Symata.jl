@@ -21,7 +21,7 @@
 
 # Mathematica and Maxima sort terms and factors before evaluating-- it
 # is difficult or impossible to hold an expression in non-canonical
-# form (well, in SJulia and Maxima, you have the source code.) Maple
+# form (well, in Symata and Maxima, you have the source code.) Maple
 # apparently does not sort expressions to canoncial order. But Maple
 # (so they say) essentially never stores multiple copies of
 # expressions that are the same: a hash key is computed for each

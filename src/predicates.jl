@@ -76,11 +76,11 @@ is_Constant(x) = false
 
 is_protected(sj::SJSym) = get(getssym(sj).attr,:Protected,false)
 
-# BlankXXX defined in sjuliaconstants.jl
+# BlankXXX defined in symataconstants.jl
 is_blankxxx{T<:BlankXXX}(mx::T) = true
 is_blankxxx{T<:Mxpr}(x::T) = false
 
-####  SJulia Predicates
+####  Symata Predicates
 
 @mkapprule ConstantQ :nargs => 1
 

@@ -6,8 +6,8 @@
 ###########################################
 
 ## Types SSJSym and Mxpr
-# SSJSym are SJulia symbols
-# Mxpr are SJulia expressions
+# SSJSym are Symata symbols
+# Mxpr are Symata expressions
 
 typealias MxprArgs Array{Any,1}
 typealias MxprArgType Any
@@ -43,7 +43,7 @@ typealias SJSymuVs Array{Any,1}
 # a value of a different type, an Any array is created and the array of Ints is copied. This can be
 # seen by timing these operations with a large value such as n=10^6
 #
-# The name of the SJulia symbol is a Symbol. The symbol table maps
+# The name of the Symata symbol is a Symbol. The symbol table maps
 # Symbol to SSJSym.  There is only one element in val::Array{T,1}. It
 # is much faster to set this value, than to set a field val::T.
 #
@@ -70,14 +70,14 @@ end
 
 ########################################################################
 # SSJSym                                                               #
-# data associated with SJulia symbols are instances of type SSJSym     #
+# data associated with Symata symbols are instances of type SSJSym     #
 # SJSym is just Symbol. It is an older abstraction. Maybe we need it ! #
 ########################################################################
 typealias SJSym Symbol
 
 #### Symbol Table
 
-## symbol table for SJulia symbols
+## symbol table for Symata symbols
 
 typealias SymTab Dict{Symbol,SSJSym}
 

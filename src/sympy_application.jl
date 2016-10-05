@@ -3,13 +3,13 @@ using PyCall
 
 # TODO: refactor code here and in math_functions.jl.
 
-# Wrap a sympy function with an SJulia "function"
-# Pass keyword arguments. In SJulia, these are expressions with head 'Rule'
+# Wrap a sympy function with an Symata "function"
+# Pass keyword arguments. In Symata, these are expressions with head 'Rule'
 # We use this for more than just simplification functions.
 # TODO: check number of args, etc.
 # TODO: some do not take kwargs. don't waste time looking for them.
 macro make_simplify_func(mxprsym, sympyfunc)
-    smxprsym = string(mxprsym)[2:end]     # SJulia symbol
+    smxprsym = string(mxprsym)[2:end]     # Symata symbol
     ssympyfunc = string(sympyfunc)        # SymPy function
     qsympyfunc = QuoteNode(sympyfunc)
     esc(quote
@@ -435,18 +435,18 @@ function apprules(mx::Mxpr{:ToSymPy})
     res = sjtopy(margs(mx)...)
 end
 
-#### ToSJulia
+#### ToSymata
 
-@sjdoc ToSJulia "
-ToSJulia(expr) converts the python PyObject expr to an SJulia expression. Normally, expressions computed
-by SymPy are automatically converted to SJulia expressions.
+@sjdoc ToSymata "
+ToSymata(expr) converts the python PyObject expr to an Symata expression. Normally, expressions computed
+by SymPy are automatically converted to Symata expressions.
 "
 
-apprules(mx::Mxpr{:ToSJulia}) = do_ToSJulia(mx,margs(mx)...)
+apprules(mx::Mxpr{:ToSymata}) = do_ToSymata(mx,margs(mx)...)
 
-do_ToSJulia(mx::Mxpr{:ToSJulia}, s::Symbol) = setfixed(_pytosj(symval(s)))
-do_ToSJulia(mx::Mxpr{:ToSJulia}, e::PyCall.PyObject) = setfixed(_pytosj(e))
-do_ToSJulia(mx::Mxpr{:ToSJulia}, x) = x
+do_ToSymata(mx::Mxpr{:ToSymata}, s::Symbol) = setfixed(_pytosj(symval(s)))
+do_ToSymata(mx::Mxpr{:ToSymata}, e::PyCall.PyObject) = setfixed(_pytosj(e))
+do_ToSymata(mx::Mxpr{:ToSymata}, x) = x
 
 #### PossibleClosedForm
 
@@ -498,7 +498,7 @@ end
 
 ## utility
 
-# input -- Array of SJulia Lists and/or Symbols
+# input -- Array of Symata Lists and/or Symbols
 # output -- Array of tuples (from Lists) of SymPy objects, or single SymPy objects
 # Eg: For translating Integrate(expr,[x,a,b],y) --> integrate(expr,(x,a,b),y)
 function varspecs_to_tuples_of_sympy(args::Array)

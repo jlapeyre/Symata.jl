@@ -1,4 +1,4 @@
-## These are SJulia Mma-like iterators. They have nothing to
+## These are Symata Mma-like iterators. They have nothing to
 # do with Julia iterators.
 # There are at least two kinds of "standard" iterators that
 # require different Julia types.

@@ -1,8 +1,8 @@
-# All code written in SJulia itself is here.
+# All code written in Symata itself is here.
 # There are more examples in the test directory. eg. io_test.jl
 # These are examples; many are not practical.
 #
-# It is tested in the  file code_in_SJulia_test.jl.
+# It is tested in the  file code_in_Symata_test.jl.
 
 # Examples of using down values
 
@@ -73,7 +73,7 @@ unprotect(:Zeta)
 @ex Zeta(1) := ComplexInfinity
 protect(:Zeta)
 
-### These would work for sjulia system code, but they
+### These would work for symata system code, but they
 ### add a few seconds to startup because fo jit.
 
 ### TODO: find a way to autoload this code

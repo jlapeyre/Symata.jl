@@ -1,6 +1,6 @@
 #### RecursionLimitError
 
-# SJulia evaluates to a fixed point. This signals too many iterations of infseval
+# Symata evaluates to a fixed point. This signals too many iterations of infseval
 # or meval. The recursion limit is normally around 1000. We throw the exception
 # and catch it in exfunc where the evaluation starts.
 
@@ -10,9 +10,9 @@ type RecursionLimitError <: Exception
 end
 
 # We don't have these working yet. We just use error for now
-abstract SJuliaParseErr <: Exception
+abstract SymataParseErr <: Exception
 
-type NoTranslationError <: SJuliaParseErr
+type NoTranslationError <: SymataParseErr
     head
     expr
 end
@@ -127,7 +127,7 @@ end
 
 function TwoNumArgsErr_string(head,argrange::UnitRange,ngot)
     hstr = string(head)
-    if length(hstr) > 7 && hstr[1:7] == "Symata."   # Strip the package qualification, SJulia
+    if length(hstr) > 7 && hstr[1:7] == "Symata."   # Strip the package qualification, Symata
         hstr = hstr[8:end]
     end
     msg = hstr * "::argt: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -147,7 +147,7 @@ end
 
 function MoreNumArgsErr_string(head,argmin,ngot)
     hstr = string(head)
-    if length(hstr) > 7 && hstr[1:7] == "Symata."    # Strip the package qualification, SJulia
+    if length(hstr) > 7 && hstr[1:7] == "Symata."    # Strip the package qualification, Symata
         hstr = hstr[8:end]
     end
     msg = hstr * "::argm: " * hstr * " called with " * num_args_string(ngot) * "; " *

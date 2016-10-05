@@ -52,19 +52,19 @@ function evalmath(x)
     Symata.eval(x)
 end
 
-## We also need to use these to convert SJulia expressions to Julia
+## We also need to use these to convert Symata expressions to Julia
 
 ## This function writes apprules for math functions. Usally dispatches floating point
 ## args to Julia functions. Some have a fall through to SymPy
 
-## These tuples have 1,2, or 3 members. Symbols are for Julia, SJulia, and SymPy
+## These tuples have 1,2, or 3 members. Symbols are for Julia, Symata, and SymPy
 ## If only one member is present, the second is constructed by putting an inital capital on the first.
 ## If only one or two members are present, we do not fall back to SymPy.
 ## The last list has tuples with 2 args for which we do not use any Julia function.
 
 ## This is far from complete
 
-# Typical symbols for Julia, SJulia, SymPy
+# Typical symbols for Julia, Symata, SymPy
 function mtr(sym::Symbol)
     s = string(sym)
     sjf = capitalize_first_character(s)
@@ -176,7 +176,7 @@ const single_arg_float_int_complex =
     const  two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
 
     ## There are no Julia functions for these (or at least we are not using them).
-    ## First symbol is for  SJulia, Second is SymPy
+    ## First symbol is for  Symata, Second is SymPy
 
 # There is LambertW Julia code, but we do not use it.
 # TODO: Migrate functions out this non-specific list

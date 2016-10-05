@@ -1,10 +1,10 @@
-# These SJulia functions (symbols) translate between SJulia and Julia data and expressions
+# These Symata functions (symbols) translate between Symata and Julia data and expressions
 
 #### JVar
 
 @sjdoc JVar "
 JVar(x) returns the Julia value of the Symbol that x evaluates to. For example,
-if a = 1 in Julia and b = a in SJulia, then JVar(b) evaluates to 1.
+if a = 1 in Julia and b = a in Symata, then JVar(b) evaluates to 1.
 "
 
 @sjseealso_group(Jxpr,JVar)
@@ -13,7 +13,7 @@ apprules(mx::Mxpr{:JVar}) = eval(symname(mx[1]))
 #### SetJ
 
 @sjdoc SetJ "
-SetJ(x,val) sets the Julia symbol x to val. Variables and functions in SJulia
+SetJ(x,val) sets the Julia symbol x to val. Variables and functions in Symata
 are separate from those in Julia, ie, their table of bindings to symbols are separate.
 "
 
@@ -35,11 +35,11 @@ Jxpr allows embedding Julia expressions.
 A Jxpr is entered like this :( expr ) . expr is interpreted as a Julia expression and
 it is wrapped expression with head Jxpr, which is then evaluated when
 Jxpr is evaluated. You never see the head Jxpr. For example
- m = :( [1:10] )  creates a Julia array and binds it to the SJulia symbol m
+ m = :( [1:10] )  creates a Julia array and binds it to the Symata symbol m
 "
 
 @sjexamp( Jxpr,
-         "This creates a Julia Array{Int,1} and \"binds\" it to the SJulia symbol m.",
+         "This creates a Julia Array{Int,1} and \"binds\" it to the Symata symbol m.",
          ("m = :( collect(1:3) )",
           "3-element Array{Int64,1}:\n 1\n 2\n 3"))
 
@@ -50,7 +50,7 @@ Jxpr is evaluated. You never see the head Jxpr. For example
 
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
 # Mxpr with head Jxpr. It is evaluated here.
-# Eg.  m = :( [1:10] )  creates a Julia array and assigns to SJulia symbol m
+# Eg.  m = :( [1:10] )  creates a Julia array and assigns to Symata symbol m
 function apprules(mx::Mxpr{:Jxpr})
     do_jxpr(mx,mx[1])
 end
@@ -66,7 +66,7 @@ end
 #### Unpack
 
 @sjdoc Unpack "
-Unpack(a) unpacks a Julia typed array into an SJulia List expression.
+Unpack(a) unpacks a Julia typed array into an Symata List expression.
 Only 1-d is supported. If a is a Julia Dict, then a list of lists of
 key,value pairs is returned.
 "
@@ -111,7 +111,7 @@ end
 #### Pack
 
 @sjdoc Pack "
-Pack(mx) packs the args of the SJulia expression mx into a typed Julia array.
+Pack(mx) packs the args of the Symata expression mx into a typed Julia array.
 The type of the array is the same as the first element in mx.
 "
 

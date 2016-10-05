@@ -44,13 +44,13 @@ end
 
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
-## Sets an already existing SJulia symbol
+## Sets an already existing Symata symbol
 function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
 
-# Sets the SJulia symbol that Julia symbol s is bound to
+# Sets the Symata symbol that Julia symbol s is bound to
 function setsymval(s::SJSymbol,val)
     setsymval(getssym(s),val)
 end
@@ -269,7 +269,7 @@ end
 
 ##################################################################
 # Mxpr                                                           #
-# All SJulia expressions are represented by instances of Mxpr    #
+# All Symata expressions are represented by instances of Mxpr    #
 ##################################################################
 
 # The lines commented out make sense to me.
@@ -312,7 +312,7 @@ margs{T<:Mxpr}(mx::T) = mx.args
 
 # Everything that is not an Mxpr
 mhead(x) = typeof(x)
-# This allows, in some cases, SJulia code to operate directly on a Dict.
+# This allows, in some cases, Symata code to operate directly on a Dict.
 # Eg, it works with Count.
 # If we always access via iterators, then we don't need to 'collect' the values
 # Probably not slower, either.
@@ -323,13 +323,13 @@ margs{T<:Dict}(d::T) = collect(values(d))
 getfreesyms(mx::Mxpr) = mx.syms
 setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
-# These should be fast: In the SJulia language, mx[0] gets the head, but not here.
+# These should be fast: In the Symata language, mx[0] gets the head, but not here.
 # TODO: iterator for mx that iterates over args would be useful
 setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
 @inline getindex{T<:Integer}(mx::Mxpr, k::T) = margs(mx)[k]
 @inline Base.length(mx::Mxpr) = length(margs(mx))
 @inline Base.length(s::SJSym) = 0
-# We are claiming a lot of space here. But in SJulia,
+# We are claiming a lot of space here. But in Symata,
 # Most things should have length zero.
 Base.length(x) = 0
 @inline Base.endof(mx::Mxpr) = length(mx)

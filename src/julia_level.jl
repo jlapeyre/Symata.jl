@@ -1,4 +1,4 @@
-# This is for testing using SJulia code from Julia
+# This is for testing using Symata code from Julia
 Expand(mx::Mxpr) = apprules(mxpr(:Expand,mx))
 Expand(x) = x
 export Expand
@@ -18,14 +18,14 @@ export Pi
 
 # TODO: make an infix assignment operator... hm or  macro
 
-# Do assigment in SJulia and bind to julia symbol of the same name
+# Do assigment in Symata and bind to julia symbol of the same name
 # This is kinda broken !
 # ERROR: UndefVarError: n not defined.
 # But, the variable is defined in Main afterall
 # We may not always want to define a variable in Main. But, it is hardcoded
 # Usage:
 # @aex x = 1
-# Assigns x to 1 in sjulia, and x to :x in main
+# Assigns x to 1 in symata, and x to :x in main
 macro aex(e)
     quote
         @ex $(esc(e))

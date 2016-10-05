@@ -1,6 +1,6 @@
-### This is SJulia level IO. The code for formatting and printing Mxpr, etc. is in output.jl
+### This is Symata level IO. The code for formatting and printing Mxpr, etc. is in output.jl
 
-function SJulia_module_path()
+function Symata_module_path()
     joinpath(Pkg.Dir.path(), "Symata")
 end
 
@@ -19,10 +19,10 @@ Print(expr1,expr2,...) prints the expressions.
 "
 apprules(mx::Mxpr{:Print}) = (print(margs(mx)...); Null)
 
-# We are using read_SJulia_file instead of this.
+# We are using read_Symata_file instead of this.
 # We should probably delete this at some point.
-# Read SJulia expressions from a string and evaluate them, one by one.
-function SJulia_eval_string(s)
+# Read Symata expressions from a string and evaluate them, one by one.
+function Symata_eval_string(s)
     s = sjpreprocess_string(s)
     i = 1
     local sjretval
@@ -41,16 +41,16 @@ function SJulia_eval_string(s)
 end
 
 
-function SJulia_eval_file(fname)
-    fname |> readstring |> SJulia_eval_string
+function Symata_eval_file(fname)
+    fname |> readstring |> Symata_eval_string
 end
 
 
 # TODO. Read more than one expression from a line.
 # TODO. Use a new exception type
-# Read and evaluate SJulia expressions from a file.
+# Read and evaluate Symata expressions from a file.
 # Return the last returned value.
-function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest() )
+function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest() )
     oldval = set_issjinteractive(false)
     eline = ""
     local sjretval
@@ -60,7 +60,7 @@ function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest
     local line_number
     for (line_number,line) = enumerate(eachline(f))
         pline = sjpreprocess_string(line)
-        if typeof(test) != SJulia_NullTest && length(pline) > 1 && pline[1:2] == "T "
+        if typeof(test) != Symata_NullTest && length(pline) > 1 && pline[1:2] == "T "
             reading_test = true
             if length(pline) > 2
                 eline = eline * pline[3:end]
@@ -86,7 +86,7 @@ function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest
             try
                 incomplete_flag = false
                 res = Symata.exfunc(expr)
-                if typeof(test) != SJulia_NullTest && reading_test
+                if typeof(test) != Symata_NullTest && reading_test
                     reading_test = false
                     record_SJTest(test, f, line_number, res)
                 end
@@ -112,11 +112,11 @@ end
 @mkapprule Get
 
 @sjdoc Get "
-Get(\"filename\") reads and evaluates SJulia expressions from file \"filename\".
+Get(\"filename\") reads and evaluates Symata expressions from file \"filename\".
 Try putting empty lines between expressions if you get errors on reading.
 "
 
-do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_SJulia_file(fname)
+do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_Symata_file(fname)
 
 #### ReadString
 
@@ -126,7 +126,7 @@ ReadString(\"filename\") reads \"filename\" and returns the contents as a string
 "
 do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(fname)
 
-# Write SJulia expression as strings that can be used as input to define
+# Write Symata expression as strings that can be used as input to define
 # objects and properties.
 
 # string to set attributes of sym
@@ -223,7 +223,7 @@ Close(str) closes the IO stream str.
 do_Close{T<:IO}(mx::Mxpr{:Close}, str::T) = (close(str); Null)
 
 
-### STDOUT, STDERR.  These two symbols are set it client_sjulia.jl after the REPL is created.
+### STDOUT, STDERR.  These two symbols are set it client_symata.jl after the REPL is created.
 
 @sjdoc STDOUT "
 STDOUT is the standard output stream.

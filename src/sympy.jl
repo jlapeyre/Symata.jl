@@ -9,8 +9,8 @@ import Base: isless
 # export pytosj, sjtopy
 # export sympy
 
-#importall SJulia
-#import SJulia: mxpr, mxprcf  # we need this even with importall
+#importall Symata
+#import Symata: mxpr, mxprcf  # we need this even with importall
 
 # Notes for evenutally extracting mpz and mpf from python mpmath objects
 #  julia> ex[:_mpf_][2]
@@ -49,25 +49,25 @@ end
 ######################################################
 #   Translation Dicts
 
-# SYMPY_TO_SJULIA_FUNCTIONS
-# 1) keys are sympy function names. values are the SJulia Head
+# SYMPY_TO_SYMATA_FUNCTIONS
+# 1) keys are sympy function names. values are the Symata Head
 # The sympy functions are found via sympy.key and are stored
-# in the dict py_to_mx_dict, with values being the SJulia heads.
+# in the dict py_to_mx_dict, with values being the Symata heads.
 # Some other special cases,
 # eg Add Mul are also stored in py_to_mx_dict.
-# The SJulia heads are looked up only at the beginning
+# The Symata heads are looked up only at the beginning
 # of the main _pytosj routine.
 # An Mxpr is created by looking up the head and mapping
 # _pytosj over the args.
 #
-# 2) A reversed dict SJULIA_TO_SYMPY_FUNCTIONS is created from SYMPY_TO_SJULIA_FUNCTIONS.
+# 2) A reversed dict SYMATA_TO_SYMPY_FUNCTIONS is created from SYMPY_TO_SYMATA_FUNCTIONS.
 # This dict is used for two things a) to automatically lookup sympy docstrings associated
-# with SJulia heads in doc.jl. b) to populated mx_to_py_dict. This dict stores callable references
-# to sympy functions with keys being the SJulia heads. A few other sympy functions are put into
+# with Symata heads in doc.jl. b) to populated mx_to_py_dict. This dict stores callable references
+# to sympy functions with keys being the Symata heads. A few other sympy functions are put into
 # mx_to_py_dict "by hand" in populate_mx_to_py_dict().(does it need to be done this way ?)
 
-const SYMPY_TO_SJULIA_FUNCTIONS = Dict{Symbol,Symbol}()
-const SJULIA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
+const SYMPY_TO_SYMATA_FUNCTIONS = Dict{Symbol,Symbol}()
+const SYMATA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
 # Dict containing symbols created via sympy.Symbol("...")
 const SYMPY_USER_SYMBOLS = Dict{Symbol,Any}()
@@ -75,26 +75,26 @@ const SYMPY_USER_SYMBOLS = Dict{Symbol,Any}()
 function set_pytosj(py,sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
-    if haskey(SYMPY_TO_SJULIA_FUNCTIONS,spy)
-        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SJULIA_FUNCTIONS[spy], " can't set it to ", ssj)
+    if haskey(SYMPY_TO_SYMATA_FUNCTIONS,spy)
+        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
-    SYMPY_TO_SJULIA_FUNCTIONS[spy] = ssj
+    SYMPY_TO_SYMATA_FUNCTIONS[spy] = ssj
 end
 
-get_pytosj(py) = SYMPY_TO_SJULIA_FUNCTIONS[py]
+get_pytosj(py) = SYMPY_TO_SYMATA_FUNCTIONS[py]
 
 function set_sjtopy(sj,py)
     spy = Symbol(py)
     ssj = Symbol(sj)
-    if haskey(SJULIA_TO_SYMPY_FUNCTIONS,ssj)
-        warn("!!! set_sjtopy ", sj, " already has value ", SJULIA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
+    if haskey(SYMATA_TO_SYMPY_FUNCTIONS,ssj)
+        warn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
     end
-    SJULIA_TO_SYMPY_FUNCTIONS[ssj] = spy
+    SYMATA_TO_SYMPY_FUNCTIONS[ssj] = spy
 end
 
-get_sjtopy(sj) = SJULIA_TO_SYMPY_FUNCTIONS[sj]
+get_sjtopy(sj) = SYMATA_TO_SYMPY_FUNCTIONS[sj]
 
 #################################################################
 
@@ -140,7 +140,7 @@ const py_to_mx_symbol_dict = Dict()
 
 # This does not refer the sympy 'rewrite' capability.
 # This refers to some kind of rewriting of functions or arguments
-# during sympy to sjulia translation.
+# during sympy to symata translation.
 # This dict is populated below.
 const py_to_mx_rewrite_function_dict = Dict(
                                             )
@@ -177,7 +177,7 @@ end
 
 # These are used for rewriting in both directions and function calling
 # via sympy.symbol
-function make_sympy_to_sjulia()
+function make_sympy_to_symata()
     symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
                       ( :InverseLaplaceTransform, :inverse_laplace_transform ),
                       (:InverseFourierTransform, :inverse_fourier_transform ),
@@ -195,9 +195,9 @@ function make_sympy_to_sjulia()
                      )
         for x in funclist
             if length(x) != 3 continue end
-            (julia_func, sjulia_func, sympy_func) = x
-            set_pytosj(sympy_func, sjulia_func)
-            set_sjtopy(sjulia_func, sympy_func)
+            (julia_func, symata_func, sympy_func) = x
+            set_pytosj(sympy_func, symata_func)
+            set_sjtopy(symata_func, sympy_func)
         end
     end
 
@@ -206,9 +206,9 @@ function make_sympy_to_sjulia()
                      no_julia_function_two_args, no_julia_function_two_or_three_args,
                      no_julia_function_three_args, no_julia_function_four_args)
         for x in funclist
-            sjulia_func, sympy_func = get_sympy_math(x)
-            set_pytosj(sympy_func, sjulia_func)
-            set_sjtopy(sjulia_func, sympy_func)
+            symata_func, sympy_func = get_sympy_math(x)
+            set_pytosj(sympy_func, symata_func)
+            set_sjtopy(symata_func, sympy_func)
         end
     end
     set_pytosj(:InverseLaplaceTransform,:InverseLaplaceTransform)
@@ -225,9 +225,9 @@ function register_only_pyfunc_to_sjfunc{T<:Union{AbstractString,Symbol}, V<:Unio
 end
 
 ## These two functions are only used in doc.jl to look up the
-# docstring corresponding to the symp function called by an SJulia head.
+# docstring corresponding to the symp function called by an Symata head.
 function have_pyfunc_symbol(sjsym)
-    haskey(SJULIA_TO_SYMPY_FUNCTIONS, sjsym)
+    haskey(SYMATA_TO_SYMPY_FUNCTIONS, sjsym)
 end
 function lookup_pyfunc_symbol(sjsym)
     get_sjtopy(sjsym)
@@ -262,7 +262,7 @@ end
 
 # These functions are also contained in sympy.C
 function mk_py_to_mx_funcs()
-    for (pysym,sjsym) in SYMPY_TO_SJULIA_FUNCTIONS
+    for (pysym,sjsym) in SYMPY_TO_SYMATA_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
         if haskey(sympy[:functions], pystr)
@@ -277,8 +277,8 @@ function rewrite_function_sympy_to_julia(expr)
 end
 
 
-have_function_sympy_to_sjulia_translation{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_dict, pytypeof(expr))
-get_function_sympy_to_sjulia_translation{T <: PyCall.PyObject}(expr::T) = py_to_mx_dict[pytypeof(expr)]
+have_function_sympy_to_symata_translation{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_dict, pytypeof(expr))
+get_function_sympy_to_symata_translation{T <: PyCall.PyObject}(expr::T) = py_to_mx_dict[pytypeof(expr)]
 have_rewrite_function_sympy_to_julia{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_rewrite_function_dict, name(expr))
 
 # May 2016. Added ComplexInfinity here. We added an mxpr method for
@@ -374,9 +374,9 @@ py_to_mx_rewrite_function_dict["BooleanTrue"] = pytosj_BooleanTrue
 ####
 function _pytosj{T <: PyCall.PyObject}(expr::T)
     @pydebug(3, "Entering with ", expr)
-    if have_function_sympy_to_sjulia_translation(expr)
+    if have_function_sympy_to_symata_translation(expr)
         @pydebug(3, "function lookup trans. ", expr)
-        return mxpr(get_function_sympy_to_sjulia_translation(expr), map(pytosj, expr[:args])...)
+        return mxpr(get_function_sympy_to_symata_translation(expr), map(pytosj, expr[:args])...)
     end
     if have_rewrite_function_sympy_to_julia(expr)
         @pydebug(3, "rewrite trans. ", expr)
@@ -467,7 +467,7 @@ function populate_mx_to_py_dict()
 end
 
 function mk_mx_to_py_funcs()
-    for (sjsym,pysym) in SJULIA_TO_SYMPY_FUNCTIONS
+    for (sjsym,pysym) in SYMATA_TO_SYMPY_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
         local obj
@@ -754,7 +754,7 @@ _sjtopy(x::AbstractString) =  x
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function _sjtopy(x)
-    warn("sjtopy: Unable to convert $x from SJulia to SymPy")
+    warn("sjtopy: Unable to convert $x from Symata to SymPy")
     return x
 end
 
@@ -765,7 +765,7 @@ function init_sympy()
     eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
 #    eval(parse("const SymPyMinusInfinity = sympy.Mul(-1 , sympy.oo)"))
     eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
-    make_sympy_to_sjulia()
+    make_sympy_to_symata()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
     populate_special_symbol_dict()

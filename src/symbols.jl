@@ -154,7 +154,7 @@ do_protect(mx,a) = false
 @sjdoc Set "
 Set(a,b), a = b
 Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
-obj[i,j,...] = val sets a part of obj to val. obj can be an SJulia expression
+obj[i,j,...] = val sets a part of obj to val. obj can be an Symata expression
 or a Julia object, such as an Array or Dict.
 "
 

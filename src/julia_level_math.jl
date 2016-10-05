@@ -1,6 +1,6 @@
 # methods for Julia math functions that operate
 # on symbols and Mxpr. Some of these are used
-# in SJulia code. They can also be used at the Julia
+# in Symata code. They can also be used at the Julia
 # repl.
 
 *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)

@@ -16,7 +16,7 @@
 # canonexpr!(m3) (ie ordering) --> 0.011s running canonexpr! again
 # (i.e. it is already sorted and combined) takes 0.00925 s, that is
 # only a little bit faster.  So maybe optimizing here is not worth
-# anything at the moment.  At SJulia cli, m3 = m1 + m2 --> 0.04 s.
+# anything at the moment.  At Symata cli, m3 = m1 + m2 --> 0.04 s.
 # calling setfixed() after canonexpr cuts this time to 0.01s But, this
 # cannot be done, in general.  Maxima generates the two sums much more
 # slowly but adds them much more quickly.

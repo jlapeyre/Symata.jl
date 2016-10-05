@@ -22,7 +22,7 @@
 # so the user can play with them.
 
 # Single doc string for a symbol. Retrieved by:
-# sjulia>? SomeHead
+# symata>? SomeHead
 const SJDOCS = Dict{Symbol,AbstractString}()
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
@@ -231,7 +231,7 @@ function format_sjexample(lines)
             if length(expl) > 0
                 println("# ",expl)
             end
-            println("sjulia> ", ins)
+            println("symata> ", ins)
             if length(outs) > 0 println(outs) end
             if i < length(lines)
                 println()
@@ -259,7 +259,7 @@ function do_example(lines)
             if length(expl) > 0
                 println("# ",expl)
             end
-            println("sjulia> ", ins)
+            println("symata> ", ins)
             ex = parse(ins)
             res = (eval(Expr(:macrocall,Symbol("@ex"), ex)))
             if res != nothing println(res) end
@@ -302,7 +302,7 @@ end
 ## Information on hierarchy of fields:
 
 # julia> Base.active_repl.interface.modes[2]
-# "Prompt(\"sjulia> \",...)"
+# "Prompt(\"symata> \",...)"
 
 # julia> typeof(Base.active_repl.interface.modes[2])
 # Base.LineEdit.Prompt
@@ -310,17 +310,17 @@ end
 # julia> typeof(Base.active_repl.interface.modes[2].hist)
 # Base.REPL.REPLHistoryProvider
 
-# Push a string onto history in sjulia (symjulia) mode
+# Push a string onto history in symata (symjulia) mode
 # modified from add_history in REPL.jl
 function sj_add_history(s::AbstractString)
-    sj_add_history(sjulia_repl_history(), s)
+    sj_add_history(symata_repl_history(), s)
 end
 
 function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
 #    str = rstrip(bytestring(s.input_buffer))  # original line
     str = rstrip(bytestring(s))
     isempty(strip(str)) && return
-    mode = :sjulia
+    mode = :symata
     length(hist.history) > 0 &&  # we could be more clever and not push the same example sequence twice
     mode == hist.modes[end] && str == hist.history[end] && return
     push!(hist.modes, mode)

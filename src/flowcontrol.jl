@@ -203,7 +203,7 @@ Do(expr,[i,imin,imax,di]) evaluates expr with i taking values from imin to imax 
 Do(expr,[i,[i1,i2,...]) evaluates expr with i taking values from a list.
 
 Mma says that Do effectively uses Block to localize variables. This probably means i has dynamic
-scope. In SJulia, we give it lexical scope, as in Module.
+scope. In Symata, we give it lexical scope, as in Module.
 "
 
 function apprules(mx::Mxpr{:Do})
