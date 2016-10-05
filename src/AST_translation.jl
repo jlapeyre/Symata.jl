@@ -1,7 +1,7 @@
 ## Translate Expr to Mxpr
 
 # Input lines are lexed and parsed by the Julia parser into an AST stored
-# in the Julia Expr type. The code here reinterprets the Expr into an SJulia AST,
+# in the Julia Expr type. The code here reinterprets the Expr into an Symata AST,
 # which is stored in the Julia type Mxpr.
 
 ## NB: Checking for help characters, ?,  is done in doc.jl
@@ -36,7 +36,7 @@ end
 # 2. We want -> for Rule. But, IIRC, the precedence required parenthesizing more than we want.
 #   So, we use =>. We would then like to preprocess -> to => on input and the reverse on output.
 #   But, we want to be able to write:
-# sjulia > f = :( (x) -> x^2 ), which would be rewritten f = :( (x) => x^2 ).
+# symata > f = :( (x) -> x^2 ), which would be rewritten f = :( (x) => x^2 ).
 # We could, when analyzing the parsed :( (x) => x^2 ), convert => back to ->, but I don't want to risk
 # messing the precedence of ->, which is asymmetric and special. Mostly because I guess this example will
 # be one of the most common uses of :( expr ), to wrap a Julia function.
@@ -56,7 +56,7 @@ const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
                                                                   :UpSetDelayed => Symbol("^:="))
 
 
-# SJulia language expressions are first processed here (at
+# Symata language expressions are first processed here (at
 # least interactvley now. The string is rewritten and then
 # parse to an AST which is the input to exfunc. This is
 # mostly done to rewrite the string into legal Julia syntax.
@@ -231,7 +231,7 @@ function extomx(ex::Expr)
     elseif ex.head == :(.)  # don't need parens, but this is readable
         return parse_qualified_symbol(ex)
     elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
-        head = :Jxpr           # This allows running Julia code from within SJulia.
+        head = :Jxpr           # This allows running Julia code from within Symata.
         push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                                # But, this is the same effect as evaling ex
     elseif ex.head == :macrocall
@@ -266,7 +266,7 @@ is_power(ex::Expr) = is_call(ex, :^)
 
 is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
 
-# save time, don't make SJulia meval convert //(a,b) to rational
+# save time, don't make Symata meval convert //(a,b) to rational
 # we should also detect sums/products of like numbers, etc. and
 # combine them. No* Sometimes we want to Hold expressions involving numbers.
 function is_rational(ex::Expr)

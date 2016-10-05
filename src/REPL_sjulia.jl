@@ -13,14 +13,14 @@ find_start_brace, complete_path
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
-# NOTE: none of the code using symataprompt is used. The code that matters is set_sjulia_prompt
+# NOTE: none of the code using symataprompt is used. The code that matters is set_symata_prompt
 const symataprompt = "symata > "
 
-type SJuliaCompletionProvider <: CompletionProvider
+type SymataCompletionProvider <: CompletionProvider
     r::LineEditREPL
 end
 
-function SJulia_parse_REPL_line(line)
+function Symata_parse_REPL_line(line)
 #    println("Input line '$line'")
     line = sjpreprocess_interactive(line)
     #    println("Preprocessed line '$line'")
@@ -29,10 +29,10 @@ function SJulia_parse_REPL_line(line)
     end
 end
 
-function Base.LineEdit.complete_line(c::SJuliaCompletionProvider, s)
-    partial = sjulia_beforecursor(s.input_buffer)
+function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
+    partial = symata_beforecursor(s.input_buffer)
     full = LineEdit.input_string(s)
-    ret, range, should_complete = sjulia_completions(full, endof(partial))
+    ret, range, should_complete = symata_completions(full, endof(partial))
     return ret, partial[range], should_complete
 end
 
@@ -45,7 +45,7 @@ function populate_builtins()
     nothing
 end
 
-function complete_sjulia_builtins(s::AbstractString)
+function complete_symata_builtins(s::AbstractString)
     r = searchsorted(sorted_builtins, s)
     i = first(r)
     n = length(sorted_builtins)
@@ -56,7 +56,7 @@ function complete_sjulia_builtins(s::AbstractString)
     sorted_builtins[r]
 end
 
-function sjulia_completions(string, pos)
+function symata_completions(string, pos)
     # First parse everything up to the current position
     partial = string[1:pos]
     inc_tag = Base.syntax_deprecation_warnings(false) do
@@ -103,54 +103,54 @@ function sjulia_completions(string, pos)
     startpos == 0 && (pos = -1)
     dotpos <= startpos && (dotpos = startpos - 1)
     s = string[startpos:pos]
-    append!(suggestions, complete_sjulia_builtins(s))
+    append!(suggestions, complete_symata_builtins(s))
     return sort(unique(suggestions)), (dotpos+1):pos, true
 end
 
 # Code modified from Cxx.jl
 
-global RunSJuliaREPL
+global RunSymataREPL
 
 # Handles BasicREPL
-function RunSJuliaREPL(repl)
-    sjulia_run_repl(repl)
+function RunSymataREPL(repl)
+    symata_run_repl(repl)
 end
 
-function RunSJuliaREPL(repl::LineEditREPL)
+function RunSymataREPL(repl::LineEditREPL)
 
-    # Completion list for SJulia
+    # Completion list for Symata
     populate_builtins()
 
-    # Setup sjulia sjulia_prompt
-    sjulia_prompt =
+    # Setup symata symata_prompt
+    symata_prompt =
         LineEdit.Prompt(symataprompt;
           # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
-                        complete = SJuliaCompletionProvider(repl),
+                        complete = SymataCompletionProvider(repl),
                         on_enter = return_callback
                         )
-    sjulia_prompt.on_done =
-        REPL.respond(SJulia_parse_REPL_line,
-               repl, sjulia_prompt) # stay in symjulia
+    symata_prompt.on_done =
+        REPL.respond(Symata_parse_REPL_line,
+               repl, symata_prompt) # stay in symjulia
 
     main_mode = repl.interface.modes[1]
 
-    push!(repl.interface.modes,sjulia_prompt)
+    push!(repl.interface.modes,symata_prompt)
 
     hp = main_mode.hist
-    hp.mode_mapping[:sjulia] = sjulia_prompt
-    sjulia_prompt.hist = hp
+    hp.mode_mapping[:symata] = symata_prompt
+    symata_prompt.hist = hp
 
-    const enter_sjulia_key = '='
-    const sjulia_keymap = Dict{Any,Any}(
-           enter_sjulia_key => function (s,args...)
+    const enter_symata_key = '='
+    const symata_keymap = Dict{Any,Any}(
+           enter_symata_key => function (s,args...)
             if isempty(s)
-                if !haskey(s.mode_state,sjulia_prompt)
-                    s.mode_state[sjulia_prompt] = LineEdit.init_state(repl.t,sjulia_prompt)
+                if !haskey(s.mode_state,symata_prompt)
+                    s.mode_state[symata_prompt] = LineEdit.init_state(repl.t,symata_prompt)
                 end
-                LineEdit.transition(s,sjulia_prompt)
+                LineEdit.transition(s,symata_prompt)
             else
-                LineEdit.edit_insert(s,enter_sjulia_key)
+                LineEdit.edit_insert(s,enter_symata_key)
             end
            end
      )
@@ -159,9 +159,9 @@ function RunSJuliaREPL(repl::LineEditREPL)
     mk = REPL.mode_keymap(main_mode)
 
     b = Dict{Any,Any}[skeymap, mk, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
-    sjulia_prompt.keymap_dict = LineEdit.keymap(b)
+    symata_prompt.keymap_dict = LineEdit.keymap(b)
 
-    main_mode.keymap_dict = LineEdit.keymap_merge(main_mode.keymap_dict, sjulia_keymap);
+    main_mode.keymap_dict = LineEdit.keymap_merge(main_mode.keymap_dict, symata_keymap);
     nothing
 end
 
@@ -169,23 +169,23 @@ end
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
-function sjulia_run_repl(repl::AbstractREPL, consumer = x->nothing)
+function symata_run_repl(repl::AbstractREPL, consumer = x->nothing)
     repl_channel = Channel(1)
     response_channel = Channel(1)
     backend = start_repl_backend(repl_channel, response_channel)
-    sjulia_run_frontend(repl, REPLBackendRef(repl_channel,response_channel))
+    symata_run_frontend(repl, REPLBackendRef(repl_channel,response_channel))
     return backend
 end
 
-sjulia_run_repl(stream::IO) = run_repl(StreamREPL(stream))
+symata_run_repl(stream::IO) = run_repl(StreamREPL(stream))
 
-function sjulia_run_frontend(repl::LineEditREPL, backend)
+function symata_run_frontend(repl::LineEditREPL, backend)
     d = REPLDisplay(repl)
     dopushdisplay = repl.specialdisplay === nothing && !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
     if !isdefined(repl,:interface)
-        interface = repl.interface = sjulia_setup_interface(repl)
-        set_sjulia_prompt(1)  ## !! This could be handled in a hook. Make pull request of my hook code.
+        interface = repl.interface = symata_setup_interface(repl)
+        set_symata_prompt(1)  ## !! This could be handled in a hook. Make pull request of my hook code.
     else
         interface = repl.interface
     end
@@ -195,7 +195,7 @@ function sjulia_run_frontend(repl::LineEditREPL, backend)
     dopushdisplay && popdisplay(d)
 end
 
-function sjulia_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
+function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     d = REPLDisplay(repl)
     dopushdisplay = !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
@@ -225,7 +225,7 @@ function sjulia_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
                     rethrow()
                 end
             end
-            ast = SJulia_parse_REPL_line(line)
+            ast = Symata_parse_REPL_line(line)
             (isa(ast,Expr) && ast.head == :incomplete) || break
         end
         if !isempty(line)
@@ -243,7 +243,7 @@ function sjulia_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     dopushdisplay && popdisplay(d)
 end
 
-function sjulia_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
+function symata_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
     have_color = Base.have_color
     banner(repl.stream, have_color)
     d = REPLDisplay(repl)
@@ -260,7 +260,7 @@ function sjulia_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
         end
         line = readline(repl.stream)
         if !isempty(line)
-            ast = SJulia_parse_REPL_line(line)
+            ast = Symata_parse_REPL_line(line)
             if have_color
                 print(repl.stream, Base.color_normal)
             end
@@ -276,7 +276,7 @@ function sjulia_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
     dopushdisplay && popdisplay(d)
 end
 
-function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, extra_repl_keymap = Dict{Any,Any}[])
+function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, extra_repl_keymap = Dict{Any,Any}[])
     ###
     #
     # This function returns the main interface that describes the REPL
@@ -306,8 +306,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     # This will provide completions for REPL and help mode
     replc = REPLCompletionProvider(repl)
 
-    # Completions for SJulia
-    sjulia_replc = SJuliaCompletionProvider(repl)
+    # Completions for Symata
+    symata_replc = SymataCompletionProvider(repl)
 
     # Set up the main Julia prompt
     julia_prompt = Prompt("julia> ";
@@ -321,22 +321,22 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
 
     julia_prompt.on_done = respond(Base.parse_input_line, repl, julia_prompt)
 
-    # Completion list for SJulia
+    # Completion list for Symata
     populate_builtins()
 
-    # Setup sjulia sjulia_prompt
-    sjulia_prompt =
+    # Setup symata symata_prompt
+    symata_prompt =
         LineEdit.Prompt(symataprompt;
                         prompt_prefix=Base.text_colors[:blue],
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",
-                        complete = sjulia_replc,
+                        complete = symata_replc,
                         on_enter = return_callback  # allows multiline input
                         )
 
-    sjulia_prompt.on_done =
-        REPL.respond(SJulia_parse_REPL_line,
-                      repl, sjulia_prompt) # stay in symjulia
+    symata_prompt.on_done =
+        REPL.respond(Symata_parse_REPL_line,
+                      repl, symata_prompt) # stay in symjulia
 
     if VERSION >= v"0.5"
     # Setup help mode
@@ -387,7 +387,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     # Setup history
     # We will have a unified history for all REPL modes
     hp = REPLHistoryProvider(Dict{Symbol,Any}(:julia => julia_prompt,
-                                              :sjulia => sjulia_prompt,
+                                              :symata => symata_prompt,
                                               :shell => shell_mode,
                                               :help  => help_mode))
     if repl.history_file
@@ -404,7 +404,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     end
     history_reset_state(hp)
     julia_prompt.hist = hp
-    sjulia_prompt.hist = hp
+    symata_prompt.hist = hp
     shell_mode.hist = hp
     help_mode.hist = hp
 
@@ -416,26 +416,26 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         extra_repl_keymap = [extra_repl_keymap]
     end
 
-    const enter_sjulia_key = '='
+    const enter_symata_key = '='
 
     const repl_keymap = Dict{Any,Any}(
-         enter_sjulia_key => function (s,args...)
+         enter_symata_key => function (s,args...)
             if isempty(s) || position(LineEdit.buffer(s)) == 0
-                if !haskey(s.mode_state,sjulia_prompt)
-                    s.mode_state[sjulia_prompt] = LineEdit.init_state(repl.t,sjulia_prompt)
+                if !haskey(s.mode_state,symata_prompt)
+                    s.mode_state[symata_prompt] = LineEdit.init_state(repl.t,symata_prompt)
                 end
                 buf = copy(LineEdit.buffer(s))   # allows us to edit a line of julia input
-                if LineEdit.mode(s) == sjulia_prompt
+                if LineEdit.mode(s) == symata_prompt
                   LineEdit.transition(s, julia_prompt) do
                      LineEdit.state(s, julia_prompt).input_buffer = buf
                   end
                 else
-                    LineEdit.transition(s, sjulia_prompt) do
-                    LineEdit.state(s, sjulia_prompt).input_buffer = buf
+                    LineEdit.transition(s, symata_prompt) do
+                    LineEdit.state(s, symata_prompt).input_buffer = buf
                     end
                end
             else
-                LineEdit.edit_insert(s,enter_sjulia_key)
+                LineEdit.edit_insert(s,enter_symata_key)
             end
            end,
          ';' => function (s,o...)
@@ -448,8 +448,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                 edit_insert(s, ';')
             end
         end,
-        '?' => function (s,o...)  # Disable this for sjulia mode, because we use '?' for sjulia help.
-            if LineEdit.mode(s) != sjulia_prompt && (isempty(s) || position(LineEdit.buffer(s)) == 0)
+        '?' => function (s,o...)  # Disable this for symata mode, because we use '?' for symata help.
+            if LineEdit.mode(s) != symata_prompt && (isempty(s) || position(LineEdit.buffer(s)) == 0)
                 buf = copy(LineEdit.buffer(s))
                 transition(s, help_mode) do
                     LineEdit.state(s, help_mode).input_buffer = buf
@@ -530,8 +530,8 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     b = Dict{Any,Any}[skeymap, mk, prefix_keymap, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
     prepend!(b, extra_repl_keymap)
 
-    sjulia_prompt.keymap_dict = LineEdit.keymap(a)
+    symata_prompt.keymap_dict = LineEdit.keymap(a)
     shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
 
-    ModalInterface([sjulia_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
+    ModalInterface([symata_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
 end

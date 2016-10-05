@@ -2,7 +2,7 @@ VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
 module Symata
 
-using Compat  # only used in code copied from REPL_sjulia.jl
+using Compat  # only used in code copied from REPL_symata.jl
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
@@ -72,9 +72,9 @@ function __init__()
     set_current_context(:Main)
     if isinteractive()
         if isdefined(Base, :active_repl)
-            RunSJuliaREPL(Base.active_repl)
+            RunSymataREPL(Base.active_repl)
         else
-            SJulia_start()
+            Symata_start()
             exit()
         end
     else
@@ -82,6 +82,6 @@ function __init__()
     end
 end
 
-end # module SJulia
+end # module Symata
 
 nothing

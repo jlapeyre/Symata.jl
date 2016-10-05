@@ -23,7 +23,7 @@ atreplinit, _atreplinit
 
 # See base/client.jl
 
-function SJulia_start()
+function Symata_start()
     opts = Base.JLOptions()
     startup               = (opts.startupfile != 2)
     history_file          = (opts.historyfile != 0)
@@ -86,46 +86,46 @@ function SJulia_start()
         end
     else
         _atreplinit(active_repl)
-        sjulia_run_repl(active_repl, backend->(global active_repl_backend = backend))
+        symata_run_repl(active_repl, backend->(global active_repl_backend = backend))
         exit
     end
     exit
 end
 
 # This is another fine mess you've gotten us into.
-function sjulia_have_dumb_terminal()
-    (! isdefined_base_active_repl()) && (! isdefined_sjulia_active_repl()) && return true
+function symata_have_dumb_terminal()
+    (! isdefined_base_active_repl()) && (! isdefined_symata_active_repl()) && return true
     (isdefined_base_active_repl() && typeof(Base.active_repl) == Base.REPL.BasicREPL) ||
-    (isdefined_sjulia_active_repl() && typeof(Symata.active_repl) == Base.REPL.BasicREPL)
+    (isdefined_symata_active_repl() && typeof(Symata.active_repl) == Base.REPL.BasicREPL)
 end
 
 isdefined_base_active_repl() = isdefined(Base, :active_repl)
-isdefined_sjulia_active_repl() = isdefined(Symata, :active_repl)
+isdefined_symata_active_repl() = isdefined(Symata, :active_repl)
 
-# For now, julia and sjulia share history. So, either mode 1 or 2 is ok
-function sjulia_repl_mode()
-    if  isdefined_sjulia_active_repl()
-        sjulia_repl().interface.modes[1]
+# For now, julia and symata share history. So, either mode 1 or 2 is ok
+function symata_repl_mode()
+    if  isdefined_symata_active_repl()
+        symata_repl().interface.modes[1]
     elseif isdefined_base_active_repl()
         Base.active_repl.interface.modes[6]
     else
-        error("Unable to start interactive SJulia session. Can't find active REPL mode.")
+        error("Unable to start interactive Symata session. Can't find active REPL mode.")
     end
 end
 
-sjulia_repl_history() = sjulia_repl_mode().hist
+symata_repl_history() = symata_repl_mode().hist
 
-function  set_sjulia_prompt{T<:AbstractString}(s::T)
-    sjulia_have_dumb_terminal() && return # not implemented yet
-    (Symata.sjulia_repl_mode().prompt = s)
+function  set_symata_prompt{T<:AbstractString}(s::T)
+    symata_have_dumb_terminal() && return # not implemented yet
+    (Symata.symata_repl_mode().prompt = s)
 end
 
-#set_sjulia_prompt(n::Int) = set_sjulia_prompt("sjulia " * string(n) * "> ")
-set_sjulia_prompt(n::Int) = set_sjulia_prompt("symata " * string(n) * "> ")
-get_sjulia_prompt(s::AbstractString) = Symata.sjulia_repl_mode().prompt
+#set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
+set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
+get_symata_prompt(s::AbstractString) = Symata.symata_repl_mode().prompt
 
-function sjulia_repl()
-    isdefined_sjulia_active_repl() && return Symata.active_repl
+function symata_repl()
+    isdefined_symata_active_repl() && return Symata.active_repl
     isdefined_base_active_repl() && return Base.active_repl
     error("Can't find the active REPL.")
 end

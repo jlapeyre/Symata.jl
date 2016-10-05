@@ -1,7 +1,7 @@
 ## Things that can't be loaded twice.g
 # Some instances of data structures
 
-## Symbol correspondence/translation between Julia and SJulia
+## Symbol correspondence/translation between Julia and Symata
 
 # This should be separated better. Some symbols are translated
 # only on analyzing the ast, others, on both input and output.
@@ -19,7 +19,7 @@
 # We could use  a.b for contexts, modules.  In Mma
 # a . b == a.b  == Dot[a,b], matrix and vector multiplication.
 # a`b is symbol b in context a.  a .* b is illegal in Mma, but a .* b is legal syntax in Julia
-# So: in SJulia  a.b for contexts,  and a .* b for matrix multiplication
+# So: in Symata  a.b for contexts,  and a .* b for matrix multiplication
 
 const JTOMSYM  =
  Dict(

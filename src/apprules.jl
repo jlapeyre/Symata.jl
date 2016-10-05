@@ -125,8 +125,8 @@ apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_S
 #### Length
 
 @sjdoc Length "
-Length(expr) prints the length of SJulia expressions and Julia objects. For
-SJulia expressions, the length is the number or arguments. For scalar Julia
+Length(expr) prints the length of Symata expressions and Julia objects. For
+Symata expressions, the length is the number or arguments. For scalar Julia
 types, the length is zero. For Array's and Dict's the length is the same as
 Julia `length'.
 "
@@ -463,7 +463,7 @@ do_Power(mx,b,e) = mx
 #### convert to BigInt or BigFloat. We cannot yet do this automatically
 
 @sjdoc BI "
-BI(n) converts the number n to a BigInt. SJulia currently neither
+BI(n) converts the number n to a BigInt. Symata currently neither
 detects integer overflow, nor automatically promote integers to BigInts.
 But, a literal integer will automatically be given a large enough storage type without using
 BI.
@@ -471,7 +471,7 @@ BI.
 
 @sjseealso_group(BI,BF,Big)
 @sjdoc BF "
-BF(n), or BF\"n\", converts the number, or string n to a BigFloat. SJulia currently neither
+BF(n), or BF\"n\", converts the number, or string n to a BigFloat. Symata currently neither
 detects overflow, nor automatically promotes types from fixed to arbitrary precision. The form
 BF\"n\" is more efficient, being a julia macro that converts the string \"n\" upon parsing.
 "

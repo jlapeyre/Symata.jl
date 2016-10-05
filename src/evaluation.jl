@@ -115,7 +115,7 @@ function exfunc(ex)
     if isinteractive() && is_sjinteractive()
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
-        set_sjulia_prompt(get_line_number() + 1)
+        set_symata_prompt(get_line_number() + 1)
         push_output(mx)
         @bind_Os
     end
@@ -161,7 +161,7 @@ end
 #################################################################################
 
 # We use infinite or fixed point evaluation: the Mxpr is evaled repeatedly until it does
-# not change. Actually Mma, and SJulia try to detect and avoid more evaluations.
+# not change. Actually Mma, and Symata try to detect and avoid more evaluations.
 # Also try to detect if the expression is simplified, (fixed or canonical).
 # This is also complicated by infinite evaluation because whether an expression is
 # simplified depends on the current environment. We try to solve this with lists of 'free' symbols.
@@ -517,7 +517,7 @@ do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
 #### Currying
 
 # This feature was added to Mma sometime after 3.0: (actually, in 2014)
-# Assume operator version of an SJulia "function". Eg, Map
+# Assume operator version of an Symata "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is
 # the second.
