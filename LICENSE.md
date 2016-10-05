@@ -1,6 +1,6 @@
-SJulia.jl is licensed under the MIT License:
+Symata.jl is licensed under the MIT License:
 
-> Copyright (c) 2015 John Lapeyre
+> Copyright (c) 2015 2016 John Lapeyre
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the

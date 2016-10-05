@@ -13,6 +13,9 @@ find_start_brace, complete_path
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
+# NOTE: none of the code using symataprompt is used. The code that matters is set_sjulia_prompt
+const symataprompt = "symata > "
+
 type SJuliaCompletionProvider <: CompletionProvider
     r::LineEditREPL
 end
@@ -22,7 +25,7 @@ function SJulia_parse_REPL_line(line)
     line = sjpreprocess_interactive(line)
     #    println("Preprocessed line '$line'")
     Base.syntax_deprecation_warnings(false) do
-        Base.parse_input_line("@SJulia.ex " * line)
+        Base.parse_input_line("@Symata.ex " * line)
     end
 end
 
@@ -120,7 +123,7 @@ function RunSJuliaREPL(repl::LineEditREPL)
 
     # Setup sjulia sjulia_prompt
     sjulia_prompt =
-        LineEdit.Prompt("sjulia > ";
+        LineEdit.Prompt(symataprompt;
           # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
                         complete = SJuliaCompletionProvider(repl),
@@ -200,7 +203,7 @@ function sjulia_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     hit_eof = false
     while true
         Base.reseteof(repl.terminal)
-        write(repl.terminal, "sjulia> ")
+        write(repl.terminal, symata)
         line = ""
         ast = nothing
         interrupted = false
@@ -251,7 +254,7 @@ function sjulia_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
         if have_color
             print(repl.stream,repl.prompt_color)
         end
-        print(repl.stream, "sjulia> ")
+        print(repl.stream, symataprompt)
         if have_color
             print(repl.stream, input_color(repl))
         end
@@ -323,7 +326,7 @@ function sjulia_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
 
     # Setup sjulia sjulia_prompt
     sjulia_prompt =
-        LineEdit.Prompt("sjulia > ";
+        LineEdit.Prompt(symataprompt;
                         prompt_prefix=Base.text_colors[:blue],
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",

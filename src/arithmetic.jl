@@ -34,9 +34,9 @@ end
 _mpow{T<:Integer,V<:AbstractFloat}(x::Complex{T},y::V) = convert(Complex{V},x)^y
 
 _mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
-_mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
+_mpow{T<:Real}(x::Symata.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
 
-_mpow{T<:Real}(x::SJulia.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
+_mpow{T<:Real}(x::Symata.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
 
 # could be more efficient: cospi(exp) + im * sinpi(exp)
 _mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp

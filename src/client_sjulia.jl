@@ -96,11 +96,11 @@ end
 function sjulia_have_dumb_terminal()
     (! isdefined_base_active_repl()) && (! isdefined_sjulia_active_repl()) && return true
     (isdefined_base_active_repl() && typeof(Base.active_repl) == Base.REPL.BasicREPL) ||
-    (isdefined_sjulia_active_repl() && typeof(SJulia.active_repl) == Base.REPL.BasicREPL)
+    (isdefined_sjulia_active_repl() && typeof(Symata.active_repl) == Base.REPL.BasicREPL)
 end
 
 isdefined_base_active_repl() = isdefined(Base, :active_repl)
-isdefined_sjulia_active_repl() = isdefined(SJulia, :active_repl)
+isdefined_sjulia_active_repl() = isdefined(Symata, :active_repl)
 
 # For now, julia and sjulia share history. So, either mode 1 or 2 is ok
 function sjulia_repl_mode()
@@ -117,14 +117,15 @@ sjulia_repl_history() = sjulia_repl_mode().hist
 
 function  set_sjulia_prompt{T<:AbstractString}(s::T)
     sjulia_have_dumb_terminal() && return # not implemented yet
-    (SJulia.sjulia_repl_mode().prompt = s)
+    (Symata.sjulia_repl_mode().prompt = s)
 end
 
-set_sjulia_prompt(n::Int) = set_sjulia_prompt("sjulia " * string(n) * "> ")
-get_sjulia_prompt(s::AbstractString) = SJulia.sjulia_repl_mode().prompt
+#set_sjulia_prompt(n::Int) = set_sjulia_prompt("sjulia " * string(n) * "> ")
+set_sjulia_prompt(n::Int) = set_sjulia_prompt("symata " * string(n) * "> ")
+get_sjulia_prompt(s::AbstractString) = Symata.sjulia_repl_mode().prompt
 
 function sjulia_repl()
-    isdefined_sjulia_active_repl() && return SJulia.active_repl
+    isdefined_sjulia_active_repl() && return Symata.active_repl
     isdefined_base_active_repl() && return Base.active_repl
     error("Can't find the active REPL.")
 end

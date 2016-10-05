@@ -116,7 +116,7 @@ const pymx_special_symbol_dict = Dict()
 # These are perhaps sympy 'symbols' rather than functions or instance.
 # Use this Dict to rely more on these lines:
 # head = sympy_to_mxpr_symbol(expr[:func][:__name__])
-#    return SJulia.mxpr(head, map(pytosj, expr[:args])...)
+#    return Symata.mxpr(head, map(pytosj, expr[:args])...)
 # Gamma( a < b) returns the function gamma,
 # with one argument Comparison(a, > , b), which is caught
 # by the is_Function check. a, <, and b are caught by the
@@ -166,7 +166,7 @@ function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
         st = string(jf)
-        sjf = SJulia.capitalize_first_character(st)
+        sjf = Symata.capitalize_first_character(st)
     elseif length(x) == 2
         (jf,sjf) = x
     else

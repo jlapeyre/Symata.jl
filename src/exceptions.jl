@@ -68,7 +68,7 @@ end
 
 function ExactNumArgsErr_string(head,ngot, nexpected)
     hstr = string(head)
-    if length(hstr) > 7 && hstr[1:7] == "SJulia."   # Strip the package qualification
+    if length(hstr) > 7 && hstr[1:7] == "Symata."   # Strip the package qualification
         hstr = hstr[8:end]
     end
     msg = hstr * "::argr: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -97,7 +97,7 @@ end
 
 function RangeNumArgsErr_string(head,argrange,ngot)
     hstr = string(head)
-    if length(hstr) > 7  && hstr[1:7] == "SJulia."  # Strip the package qualification
+    if length(hstr) > 7  && hstr[1:7] == "Symata."  # Strip the package qualification
         hstr = hstr[8:end]
     end
     msg = hstr * "::argb: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -127,7 +127,7 @@ end
 
 function TwoNumArgsErr_string(head,argrange::UnitRange,ngot)
     hstr = string(head)
-    if length(hstr) > 7 && hstr[1:7] == "SJulia."   # Strip the package qualification, SJulia
+    if length(hstr) > 7 && hstr[1:7] == "Symata."   # Strip the package qualification, SJulia
         hstr = hstr[8:end]
     end
     msg = hstr * "::argt: " * hstr * " called with " * num_args_string(ngot) * "; " *
@@ -147,7 +147,7 @@ end
 
 function MoreNumArgsErr_string(head,argmin,ngot)
     hstr = string(head)
-    if length(hstr) > 7 && hstr[1:7] == "SJulia."    # Strip the package qualification, SJulia
+    if length(hstr) > 7 && hstr[1:7] == "Symata."    # Strip the package qualification, SJulia
         hstr = hstr[8:end]
     end
     msg = hstr * "::argm: " * hstr * " called with " * num_args_string(ngot) * "; " *

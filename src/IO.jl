@@ -1,7 +1,7 @@
 ### This is SJulia level IO. The code for formatting and printing Mxpr, etc. is in output.jl
 
 function SJulia_module_path()
-    joinpath(Pkg.Dir.path(), "SJulia")
+    joinpath(Pkg.Dir.path(), "Symata")
 end
 
 #### Println
@@ -32,7 +32,7 @@ function SJulia_eval_string(s)
         end
         sjretval =
             try
-                SJulia.exfunc(expr)
+                Symata.exfunc(expr)
             catch e
                 println("Reading file: got error ", e)
             end
@@ -85,7 +85,7 @@ function read_SJulia_file(f::AbstractString, test::SJulia_Test = SJulia_NullTest
         sjretval =
             try
                 incomplete_flag = false
-                res = SJulia.exfunc(expr)
+                res = Symata.exfunc(expr)
                 if typeof(test) != SJulia_NullTest && reading_test
                     reading_test = false
                     record_SJTest(test, f, line_number, res)

@@ -49,7 +49,7 @@ macro mdebug(level, a...)
 end
 
 using Base.Test
-using SJulia
+using Symata
 
 # For use in ../test/
 macro testex(expr)

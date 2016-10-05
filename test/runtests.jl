@@ -1,4 +1,4 @@
-using SJulia
+using Symata
 using Base.Test
 
 import Base.Test: @test

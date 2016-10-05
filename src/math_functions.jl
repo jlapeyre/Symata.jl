@@ -49,7 +49,7 @@ end
 
 # This idea can be removed. It is not going anywhere.
 function evalmath(x)
-    SJulia.eval(x)
+    Symata.eval(x)
 end
 
 ## We also need to use these to convert SJulia expressions to Julia
@@ -432,7 +432,7 @@ end
 
 
 function set_up_sympy_default(sjf, sympyf)
-    aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
+    aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "function do_$sjf(mx::Mxpr{:$sjf},x...)
                try
                  (sympy[:$sympyf](map(sjtopy,x)...) |> pytosj)
@@ -448,7 +448,7 @@ end
 
 # Handle functions that do *not* fall back on SymPy
 function do_common(sjf)
-    aprs = "SJulia.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
+    aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))

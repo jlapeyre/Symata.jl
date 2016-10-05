@@ -2,7 +2,7 @@
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
-import SJulia: runtest, @ex, setkerneloptions, SJulia_Plain_Test, print_test_results
+import Symata: runtest, @ex, setkerneloptions, SJulia_Plain_Test, print_test_results
 
 # Standard test type
 test = SJulia_Plain_Test()

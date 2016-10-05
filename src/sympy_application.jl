@@ -1,4 +1,4 @@
-#using SJulia.JSymPy
+#using Symata.JSymPy
 using PyCall
 
 # TODO: refactor code here and in math_functions.jl.
@@ -413,7 +413,7 @@ Roots(expr) solves for the roots of expr. Roots returns a list
 of lists. The two elements of each sublist give the root and its multiplicity.
 "
 
-apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> SJulia.unpack_to_List
+apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Symata.unpack_to_List
 
 register_sjfunc_pyfunc("Roots", "roots")
 
