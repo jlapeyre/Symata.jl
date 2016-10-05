@@ -18,8 +18,8 @@ notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("SJulia"); Pkg.test("SJulia"; coverage=true)'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("Symata"); Pkg.test("Symata"; coverage=true)'
 before_install:
   - if [ $MPMATH = "true" ]; then julia -e 'Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
 after_success:
-  - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("SJulia")); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
+  - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("Symata")); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
