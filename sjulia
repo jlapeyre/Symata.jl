@@ -1,2 +1,0 @@
-#
-julia -i -e "using SJulia" $*
