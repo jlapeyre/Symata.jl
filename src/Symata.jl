@@ -1,6 +1,6 @@
 VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
-module SJulia
+module Symata
 
 using Compat  # only used in code copied from REPL_sjulia.jl
 
@@ -67,7 +67,7 @@ function __init__()
     if ! isdefined(Base.Test, :testset_forloop)
         eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
     end
-    Main.eval( :( using SJulia ))
+    Main.eval( :( using Symata ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
     if isinteractive()
