@@ -1,7 +1,7 @@
 ### This is Symata level IO. The code for formatting and printing Mxpr, etc. is in output.jl
 
 function Symata_module_path()
-    joinpath(Pkg.Dir.path(), "Symata")
+    joinpath(dirname(@__FILE__), "..")
 end
 
 #### Println
