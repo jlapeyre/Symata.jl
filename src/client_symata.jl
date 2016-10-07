@@ -14,7 +14,7 @@ import Base.REPL
 
 import Base: text_colors, possible_formatting_symbols, available_text_colors, available_text_colors_docstring,
 default_color_warn, default_color_info, default_color_input,  default_color_answer,
-color_normal, repl_color, warn_color, info_color, input_color, repl_cmd,
+color_normal, repl_color, info_color, input_color, repl_cmd,
 display_error, eval_user_input, syntax_deprecation_warnings, parse_input_line, incomplete_tag,
 try_include, process_options, load_machine_file, repl_hooks,
 atreplinit, _atreplinit

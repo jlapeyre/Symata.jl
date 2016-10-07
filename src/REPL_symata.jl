@@ -88,10 +88,10 @@ function symata_display(m::MIME, x)
 end
 
 function symata_print_response(errio::IO, val::ANY, bt, show_value::Bool, have_color::Bool, specialdisplay=nothing)
-    Base.sigatomic_begin()
+    sigatomic_begin_v0_5()
     while true
         try
-            Base.sigatomic_end()
+            sigatomic_end_v0_5()
             if bt !== nothing
                 REPL.display_error(errio, val, bt)
                 println(errio)
@@ -120,7 +120,7 @@ function symata_print_response(errio::IO, val::ANY, bt, show_value::Bool, have_c
             bt = catch_backtrace()
         end
     end
-    Base.sigatomic_end()
+    sigatomic_end_v0_5()
 end
 
 ####

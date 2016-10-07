@@ -3,6 +3,7 @@ VERSION >= v"0.4.0-dev+6521" && __precompile__()
 module Symata
 
 using Compat  # only used in code copied from REPL_symata.jl
+import Compat.String
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval

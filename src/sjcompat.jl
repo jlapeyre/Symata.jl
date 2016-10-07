@@ -41,3 +41,24 @@ if isdefined(Base.REPL, :bytestring_beforecursor)
 else
     symata_beforecursor(args...) = Base.REPL.beforecursor(args...)
 end
+
+#### warn_color
+
+if ! isdefined(Base,:warn_color)
+    warn_color() = :red
+else
+    import Base: warn_color
+end
+
+#### sigatomic
+
+# We may need to distinguish when to acutally use sigatomic in v0.4 in the future
+# But, all occurrences now must be disabled.
+
+if VERSION < v"0.5-"
+    sigatomic_begin_v0_5() = nothing
+    sigatomic_end_v0_5() = nothing
+else
+    sigatomic_begin_v0_5() = Base.sigatomic_begin()
+    sigatomic_end_v0_5() = Base.sigatomic_end()
+end

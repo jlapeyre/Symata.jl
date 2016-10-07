@@ -1,4 +1,4 @@
-import Base: show_backtrace, warn_color
+import Base: show_backtrace
 
 function stprint(io::IO, x)
     lock(io)
