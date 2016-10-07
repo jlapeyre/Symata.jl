@@ -377,6 +377,16 @@ Collect(expr,[x,y]) collects terms involving first x, then y.
 
 register_sjfunc_pyfunc("Collect", "collect")
 
+#### Refine
+
+@mkapprule Refine  :nodefault => true
+
+@sjdoc Refine "
+Refine(expr) simplifies expr using assumptions. For instance, `Assume(x,positive)`.
+"
+
+@doap  Refine(args...) =  sympy[:refine](map(sjtopy, args)...) |> pytosj
+
 #### Solve
 
 @sjdoc Solve "
@@ -483,18 +493,6 @@ end
 @doap ConditionalExpression(expr, cond::Bool) = cond ? expr : Undefined
 @doap ConditionalExpression(expr, cond) = mx
 
-#### Refine
-
-@mkapprule Refine
-
-@sjdoc Refine "
-Refine(expr) simplifies expr using assumptions. For instance, `Assume(x,positive)`.
-"
-
-@doap function Refine(args...)
-    result = sympy[:refine](map(sjtopy, args)...)
-    result |> pytosj
-end
 
 ## utility
 

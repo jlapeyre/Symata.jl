@@ -12,6 +12,7 @@ test = Symata_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "measurements_test.sj", 
               "io_test.sj",
               "comparison_test.sj",  # No idea why emacs indents like this.
               "matrix_test.sj",

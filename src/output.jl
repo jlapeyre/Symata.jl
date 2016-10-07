@@ -5,8 +5,10 @@ import Base: show
 import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs, is_type, getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
-       CurrentContext
+       CurrentContext, stshow
 
+# We have introduce stshow in order to avoid overriding Base methods for showing
+# things like Rationals and Symbols
 
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
@@ -56,7 +58,7 @@ function fullform(io::IO, mx::Mxpr)
     end
     print(")")
 end
-fullform(io::IO,x) = show(io,x)
+fullform(io::IO,x) = stshow(io,x)
 fullform(x) = fullform(STDOUT,x)
 
 needsparen(x::Mxpr) = length(x) > 1
@@ -78,14 +80,10 @@ de_gensym(x) = x
 #     end
 # end
 
-# We need a way to force using this. In the REPL, I guess
-# Hmm. Wrap all output in a type made just for that purpose.... no that won't work
-# sjshow(io::IO,x) = Base.show(io,x)
-
 # We translate <= below in show_Comparison.
 # Probably more efficient to do it here.
 # SJSym is just a symbol, so this translates everything
-function Base.show(io::IO, s::SJSym)
+function stshow(io::IO, s::SJSym)
     if haskey(unicode_output, s) && getkerneloptions(:unicode_output)
         Base.show_unquoted(io,unicode_output[s])
     else
@@ -95,11 +93,11 @@ function Base.show(io::IO, s::SJSym)
     end
 end
 
-# Overwrite Base definition
-function Base.show(io::IO, x::Rational)
-    show(io, num(x))
+# No longer overwrite Base definition
+function stshow(io::IO, x::Rational)
+    stshow(io, num(x))
     print(io, "/")
-    show(io, den(x))
+    stshow(io, den(x))
 end
 
 # I don't want to create a table of latex to unicode conversions.
@@ -120,20 +118,20 @@ end
 # is the symbol name in the symbol table that is associated
 # with s; ie it is a 'free' symbol. SSJSym does not carry symbol name information.
 # This is only stored as the key to the symbol table.
-Base.show(io::IO, s::SSJSym) = Base.show(symname(s))
+stshow(io::IO, s::SSJSym) = stshow(io,symname(s))
 
 # We display real part if it is 0.0
-function Base.show{T<:Real}(io::IO, z::Complex{T})
-    show(io,real(z))
+function stshow{T<:Real}(io::IO, z::Complex{T})
+    stshow(io,real(z))
     print(io," + ")
-    show(io,imag(z))
+    stshow(io,imag(z))
     print(io,Istring())
 end
 
 # Do not display real part if it is 0
-function Base.show{T<:Integer}(io::IO, z::Complex{T})
+function stshow{T<:Integer}(io::IO, z::Complex{T})
     if real(z) != 0
-        show(io,real(z))
+        stshow(io,real(z))
         print(io," + ")
     end
     if imag(z) == 1
@@ -143,32 +141,32 @@ function Base.show{T<:Integer}(io::IO, z::Complex{T})
         if iz == -1
             print(io,"-")
         else
-            show(io,iz)
+            stshow(io,iz)
         end
         print(io,Istring())
     end
 end
 
-function Base.show{T<:Integer}(io::IO, z::Complex{Rational{T}})
+function stshow{T<:Integer}(io::IO, z::Complex{Rational{T}})
     if real(z) != 0
-        show(io,real(z))
+        stshow(io,real(z))
         print(io," + ")
     end
     if imag(z) == 1
         print(io,Istring())
     else
-        show(io,imag(z))
+        stshow(io,imag(z))
         print(io,Istring())
     end
 end
 
-function  Base.show(io::IO, mx::Mxpr{:DirectedInfinity})
+function  stshow(io::IO, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 0
-        Base.show(io, :ComplexInfinity)
+        stshow(io, :ComplexInfinity)
     elseif mx[1] == 1
-        Base.show(io, :Infinity)
+        stshow(io, :Infinity)
     elseif mx[1] == -1
-        Base.show(io, mxprcf(:Times, -1, Infinity))
+        stshow(io, mxprcf(:Times, -1, Infinity))
     else
         print(io, "DirectedInfinity(")
         print(io, mx[1])
@@ -181,19 +179,19 @@ end
 
 # Not sure this is a good idea, confusing symbols with boolean values
 # NB, so far, it seems to be working well.
-function Base.show(io::IO, v::Bool)
+function stshow(io::IO, v::Bool)
     v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)
 end
 
-Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
+stshow(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
 
 # For Holdform, arguments are not evaluated, as in Hold.
 # But, in addition, Holdform is not printed.
-function Base.show(io::IO, s::Mxpr{:HoldForm})
-    Base.show(io,s[1])
+function stshow(io::IO, s::Mxpr{:HoldForm})
+    stshow(io,s[1])
 end
 
-function Base.show(io::IO, s::Mxpr)
+function stshow(io::IO, s::Mxpr)
     if getoptype(mhead(s)) == :binary
         return show_binary(io,s)
     elseif getoptype(mhead(s)) == :infix
@@ -202,13 +200,13 @@ function Base.show(io::IO, s::Mxpr)
     show_prefix_function(io,s)
 end
 
-function Base.show(io::IO, mx::Mxpr{:Comparison})
+function stshow(io::IO, mx::Mxpr{:Comparison})
     args = mx.args
     for i in 1:length(args)-1
-        show(io, outsym(args[i]))
+        stshow(io, outsym(args[i]))
         print(io," ")
     end
-    isempty(args) || show(io,args[end])
+    isempty(args) || stshow(io,args[end])
 end
 
 function show_prefix_function(io::IO, mx::Mxpr)
@@ -221,13 +219,13 @@ function show_prefix_function(io::IO, mx::Mxpr)
         if needsparen(args[i]) && wantparens
             print(io,"(")
         end
-        show(io,args[i])
+        stshow(io,args[i])
         if needsparen(args[i]) && wantparens
             print(io,")")
         end
         print(io,",")
     end
-    isempty(args) || show(io,args[end])
+    isempty(args) || stshow(io,args[end])
     print(io,mx.head == getsym(:List) ? LISTR : FUNCR)
 end
 
@@ -239,61 +237,61 @@ function show_binary(io::IO, mx::Mxpr)
         lop = mx[1]
         if needsparen(lop)
             print(io,"(")
-            show(io,lop)
+            stshow(io,lop)
             print(io,")")
         else
-            show(io,lop)
+            stshow(io,lop)
         end
         print(io, binaryopspc(opstr), opstr , binaryopspc(opstr))
         rop = mx[2]
         if  needsparen(rop)
             print(io,"(")
-            show(io,rop)
+            stshow(io,rop)
             print(io,")")
         else
-            show(io,rop)
+            stshow(io,rop)
         end
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:Part})
+function stshow(io::IO, mx::Mxpr{:Part})
     args = margs(mx)
-    show(io,args[1])
+    stshow(io,args[1])
     print(io,"[")
-    show(io,args[2])
+    stshow(io,args[2])
     for i in 3:length(args)
         print(io,",")
-        show(io,args[i])
+        stshow(io,args[i])
     end
     print(io,"]")
 end
 
 # unary minus
-function Base.show(io::IO, mx::Mxpr{:Minus})
+function stshow(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
     if is_Number(arg) || is_SJSym(arg)
         print(io,"-")
-        show(io,arg)
+        stshow(io,arg)
     else
         print(io,"-(")
-        show(io,arg)
+        stshow(io,arg)
         print(io,")")
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:Plus})
+function stshow(io::IO, mx::Mxpr{:Plus})
     args = mx.args
     if length(args) < 1
         error("show: can't show Plus with no args.")
     end
-    show(io,args[1])
+    stshow(io,args[1])
     for i in 2:length(args)
         if is_type(args[i],Mxpr{:Minus})
             print(io, " - ")
-            show(io,(args[i]).args[1])
+            stshow(io,(args[i]).args[1])
         else
             print(io, " + ")
-            show(io,args[i])
+            stshow(io,args[i])
         end
     end
 end
@@ -324,7 +322,7 @@ function show_infix(io::IO, mx::Mxpr)
         else
             np = false
         end
-        show(io,arg)
+        stshow(io,arg)
         if np
             print(io,")")
         end
@@ -338,51 +336,51 @@ function show_infix(io::IO, mx::Mxpr)
         else
             np = false
         end
-        show(io, args[end])
+        stshow(io, args[end])
         if np
             print(io,")")
         end
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:Blank})
+function stshow(io::IO, mx::Mxpr{:Blank})
     print(io,"_")
     if length(mx) > 0
-        show(io,mx[1])
+        stshow(io,mx[1])
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:BlankSequence})
+function stshow(io::IO, mx::Mxpr{:BlankSequence})
     print(io,"__")
     if length(mx) > 0
-        show(io,mx[1])
+        stshow(io,mx[1])
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:BlankNullSequence})
+function stshow(io::IO, mx::Mxpr{:BlankNullSequence})
     print(io,"__")
     if length(mx) > 0
-        show(io,mx[1])
+        stshow(io,mx[1])
     end
 end
 
-function Base.show(io::IO, mx::Mxpr{:Pattern})
-    show(io,mx[1])
+function stshow(io::IO, mx::Mxpr{:Pattern})
+    stshow(io,mx[1])
     if is_Mxpr(mx[2],:Blank)
-        show(io,mx[2])
+        stshow(io,mx[2])
     else
         print(io,"::(")
-        show(io,mx[2])
+        stshow(io,mx[2])
         print(io,")")
     end
 end
 
-function Base.show(io::IO, qs::Qsym)
+function stshow(io::IO, qs::Qsym)
     if qs.context != CurrentContext.name
-        show(io,qs.context)
+        stshow(io,qs.context)
         print(io,".")
     end
-    show(io,qs.name)
+    stshow(io,qs.name)
 end
 
 

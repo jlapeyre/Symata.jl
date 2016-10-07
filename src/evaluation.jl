@@ -125,10 +125,10 @@ function exfunc(ex)
     end
     if is_throw()
         if is_Mxpr(mx,:Throw)
-            warn("Uncaught Throw")
+            stwarn("Uncaught Throw")
             clear_throw()
         else
-            warn("Throw flag set, but expression is not throw. $mx")
+            stwarn("Throw flag set, but expression is not throw. $mx")
             clear_throw()
             return mx
         end
@@ -141,10 +141,10 @@ function tryexfunc(mxin)
         doeval(mxin)
     catch e
         if isa(e,ArgCheckErr)
-            warn(e.msg)
+            stwarn(e.msg)
             return mxin
         elseif isa(e,RecursionLimitError)
-            warn(e.msg)
+            stwarn(e.msg)
             e.mx
         else
             rethrow(e)

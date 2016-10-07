@@ -76,7 +76,7 @@ function set_pytosj(py,sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMPY_TO_SYMATA_FUNCTIONS,spy)
-        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
+        stwarn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
     SYMPY_TO_SYMATA_FUNCTIONS[spy] = ssj
@@ -88,7 +88,7 @@ function set_sjtopy(sj,py)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMATA_TO_SYMPY_FUNCTIONS,ssj)
-        warn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
+        stwarn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
     end
     SYMATA_TO_SYMPY_FUNCTIONS[ssj] = spy
@@ -754,7 +754,7 @@ _sjtopy(x::AbstractString) =  x
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function _sjtopy(x)
-    warn("sjtopy: Unable to convert $x from Symata to SymPy")
+    stwarn("sjtopy: Unable to convert $x from Symata to SymPy")
     return x
 end
 
@@ -894,7 +894,7 @@ macro try_sympyfunc(pycall, errstr, return_val_err)
                   (false,pyerr)
                  end
                  if sflag == false
-                 warn($errstr)
+                 stwarn($errstr)
                    setkerneloptions(:sympy_error, _pyres)
                    return $return_val_err
                  end
@@ -926,7 +926,7 @@ function pydoc(sym)
             "Symbol in registry, but no doc found."
         end
     else
-        warn("Symbol ", sym, " not in registry. Looking elsewhere...")
+        stwarn("Symbol ", sym, " not in registry. Looking elsewhere...")
         str =
             try
                 eval(parse("sympy[:$(string(sym))][:__doc__]"))

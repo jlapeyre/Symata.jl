@@ -40,7 +40,7 @@ const NumWords = ["zero", "one", "two", "three", "four", "five", "six" ]
 
 # I think it is better to warn, as Mma does
 function sjthrow(err)
-    warn(err.msg)
+    stwarn(err.msg)
 end
 
 

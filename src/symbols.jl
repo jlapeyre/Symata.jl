@@ -7,7 +7,7 @@ macro checkunbound(mx,x,sv)
     esc( quote
            $sv = symval($x)
            if $sv == $x
-             warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
+             stwarn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
              setfixed($mx)
              return $mx
           end
@@ -27,7 +27,7 @@ checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 function warncheckprotect(s::SJSym)
     if get_attribute(symname(s),:Protected)
-        warn(string("Symbol '",symname(s), "' is protected."))
+        stwarn(string("Symbol '",symname(s), "' is protected."))
         return false
     else
         return true
@@ -359,7 +359,7 @@ function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
 dosymbol(mx,s::AbstractString) = getsym(Symbol(s))
-dosymbol(mx,x) = (warn("Symbol: expected a string"); mx)
+dosymbol(mx,x) = (stwarn("Symbol: expected a string"); mx)
 
 #### Clear
 

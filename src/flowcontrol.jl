@@ -346,7 +346,7 @@ end
 
 @mkapprule Warn :nargs => 1
 
-do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = warn(msg)
+do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = stwarn(msg)
 
 #### Throw
 
@@ -375,7 +375,7 @@ end
             clear_throw()
             return length(res) == 0 ? Null : res[1]
         end
-        warn("Catch: throw set but expr is $res")
+        stwarn("Catch: throw set but expr is ", res)
         return res
     end
     return res
