@@ -60,11 +60,11 @@ function print_doc(qs...)
             format_see_alsos(q)
             format_sjexamples(q)
         else
-            println("No documentation for '", string(q),"'.")
+            println("No documentation for '", ststring(q),"'.")
         end
         as = get_attributes(q)
         if length(as) > 0
-            println("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
+            stprintln("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
         end
         if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end
     end
