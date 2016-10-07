@@ -28,10 +28,18 @@ stprintln(xs...) = stprintln(STDOUT::IO, xs...)
 stprint(io::IO, c::Char) = (write(io, c); nothing)
 stprint(io::IO, s::AbstractString) = (write(io, s); nothing)
 
+if ! isdefined(Base, :tostr_sizehint)
+    tostr_sizehint(x) = 0
+    tostr_sizehint(x::AbstractString) = endof(x)
+    tostr_sizehint(x::Float64) = 20
+    tostr_sizehint(x::Float32) = 12
+else
+    import Base: tostr_sizehint
+end
 
 function stprint_to_string(xs...; env=nothing)
     # specialized for performance reasons
-    s = IOBuffer(Array{UInt8}(Base.tostr_sizehint(xs[1])), true, true)
+    s = IOBuffer(Array{UInt8}(tostr_sizehint(xs[1])), true, true)
     # specialized version of truncate(s,0)
     s.size = 0
     s.ptr = 1
