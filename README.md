@@ -47,7 +47,8 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### Installing
 
-`Symata` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6.
+`Symata` can be installed on Linux, OSX, and Windows, and Julia v0.5, and v0.6.
+(Output is currently broken on v0.4)
 It depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
 You can install `sympy` automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
