@@ -9,6 +9,10 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Coverage Status](https://coveralls.io/repos/github/jlapeyre/Symata.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/Symata.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
+[![Symata](http://pkg.julialang.org/badges/Symata_0.4.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.4)
+[![Symata](http://pkg.julialang.org/badges/Symata_0.5.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.5)
+[![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
+
 ### Symata is
 
 - a language for symbolic computations and mathematics, where, for
@@ -67,11 +71,11 @@ julia> Pkg.build("PyCall")
 If you use linux, you may have your distribution's `sympy` package installed and it may be
 out of date. In this case, try the procedure above, and/or try removing your distribution's `sympy` package.
 
-Symata is not a registered module, so it cannot be installed via `Pkg.add`.
-Instead, it can be installed and used as follows
+Symata is a registered module. It can be installed like this
 
 ```julia
-julia> Pkg.clone("https://github.com/jlapeyre/Symata.git")
+julia> Pkg.update()
+julia> Pkg.add("Symata")
 julia> using Symata
 symata> Help()    # type '=' alone on a line to enter symata mode
 ```
