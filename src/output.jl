@@ -224,11 +224,11 @@ end
 
 function  Base.show(io::IO, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 0
-        Base.show(io, :ComplexInfinity)
+        show_symbol(io, :ComplexInfinity)
     elseif mx[1] == 1
-        Base.show(io, :Infinity)
+        show_symbol(io, :Infinity)
     elseif mx[1] == -1
-        Base.show(io, mxprcf(:Times, -1, Infinity))
+        Base.show(io, wrapout(mxprcf(:Times, -1, Infinity)))
     else
         print(io, "DirectedInfinity(")
         print(io, mx[1])
