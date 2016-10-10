@@ -18,6 +18,11 @@ T If(BigIntInput(), True, ToString( - 1.0 * I ) == "-0.0 + -1.0I")
 #T ToString( - 1.0 * I ) == "-0.0 + -1.0I"
 T ToString(-I * a) == "-I*a"
 
+T ToString(Infinity) == "Infinity"
+T ToString(-Infinity) == "-Infinity"
+T ToString(1/0) == "ComplexInfinity"
+T ToString(0/0) == "Indeterminate"
+
 #### HoldForm
 
 f(x_) := HoldForm(x^2)
