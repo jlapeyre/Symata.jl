@@ -9,7 +9,7 @@ end
 @sjdoc Println "
 Println(expr1,expr2,...) prints the expressions and a newline.
 "
-apprules(mx::Mxpr{:Println}) = (stprintln(margs(mx)...) ; Null)
+apprules(mx::Mxpr{:Println}) = (symprintln(margs(mx)...) ; Null)
 
 
 #### Print
@@ -17,7 +17,7 @@ apprules(mx::Mxpr{:Println}) = (stprintln(margs(mx)...) ; Null)
 @sjdoc Print "
 Print(expr1,expr2,...) prints the expressions.
 "
-apprules(mx::Mxpr{:Print}) = (stprint(margs(mx)...); Null)
+apprules(mx::Mxpr{:Print}) = (symprint(margs(mx)...); Null)
 
 # We are using read_Symata_file instead of this.
 # We should probably delete this at some point.
@@ -34,7 +34,7 @@ function Symata_eval_string(s)
             try
                 Symata.exfunc(expr)
             catch e
-                println("Reading file: got error ", e)
+                symprintln("Reading file: got error ", e)
             end
     end
     sjretval
@@ -152,7 +152,7 @@ Definition(sym) prints definitions associated with symbol sym.
 "
 
 function maybeprint(io::IO,s)
-    if length(s)>0 stprintln(io,s) end
+    if length(s)>0 symprintln(io,s) end
 end
 
 function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, sym::T)
@@ -164,17 +164,17 @@ function write_definition(io::IO, sym)
     dvdefs = jlistdownvaluedefs(sym)
     if length(dvdefs) > 0
         for def in dvdefs
-            stprintln(io,def)
+            symprintln(io,def)
         end
     end
     uvdefs = jlistupvaluedefs(sym)
     if length(uvdefs) > 0
         for def in uvdefs
-            stprintln(io,def)
+            symprintln(io,def)
         end
     end
     maybeprint(io,attributes_set_string(sym))
-    stprintln(io)
+    println(io)
 end
 
 #### Save

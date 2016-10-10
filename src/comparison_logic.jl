@@ -328,9 +328,9 @@ end
 
 function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
     if typeof(comp) != SJSym
-        error("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
+        symerror("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
     else
-        error("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol. mx : $mx, n : $n")
+        symerror("_do_Comparison: (assert error) Got symbol $comp, when expecting non-symbol. mx : $mx, n : $n")
     end
 end
 

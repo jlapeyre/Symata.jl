@@ -218,7 +218,7 @@ end
 #### PatternTest
 
 function apply_test(ex,test)
-    is_Mxpr(test) || error("PatternTest: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
+    is_Mxpr(test) || symerror("PatternTest: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
     test.args[1] = ex           # we reuse a stored Mxpr. Not any longer. We create the Mxpr every time
     res = apprules(test)        # we decide that apprules (builtin) overrides and up or down values.
     res == true && return true
@@ -236,7 +236,7 @@ function ematch(ex, pat::Mxpr{:PatternTest}, captures)
         success_flag::Bool = ematch(ex, pattern, captures)
         success_flag == false && return false
         test = isa(test,Symbol) ? mxpr(symval(test),0) : isa(test,Function) ?
-            mxpr(test,0) : error("PatternTest: unrecognized test $test")
+            mxpr(test,0) : symerror("PatternTest: unrecognized test $test")
         success_flag = apply_test(ex,test)
         return success_flag
     else
@@ -256,7 +256,7 @@ function match_head(head::DataType,ex)
     is_type_less(ex,head)
 end
 
-match_head(head,ex) = error("matchBlank: Can't match Head of type ", typeof(head))
+match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))
 
 function matchBlank(blank::BlankT,ex)
     head = getBlankhead(blank)  # head to match

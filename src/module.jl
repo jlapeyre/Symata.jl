@@ -23,7 +23,7 @@ function localize_module!(mx::Mxpr{:Module})
     length(mx) != 2 && error("Module: Module called with ", length(mx), " arguments, 2 arguments are expected")
     (locvars,body) = (mx[1],mx[2])
     (is_Mxpr(locvars) && symname(mhead(locvars)) == :List) ||
-    error("Module: Local variable specification $locvars is not a list")
+    symerror("Module: Local variable specification $locvars is not a list")
     (is_Mxpr(body) && symname(mhead(body)) == :CompoundExpression) ||
      error("Module: Second argument must be a CompoundExpression")
     lvtab = Dict{Symbol,SJSym}()

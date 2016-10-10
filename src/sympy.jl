@@ -39,7 +39,7 @@ const SJDEBUGLEVEL = -1
 
 macro sjdebug(level, a...)
     if level <= SJDEBUGLEVEL
-        :((println("sjdeb: ", $(a...));println()))
+        :((symprintln("sjdeb: ", $(a...));println()))
     else
         nothing
     end
@@ -76,7 +76,7 @@ function set_pytosj(py,sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMPY_TO_SYMATA_FUNCTIONS,spy)
-        stwarn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
+        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
     SYMPY_TO_SYMATA_FUNCTIONS[spy] = ssj
@@ -88,7 +88,7 @@ function set_sjtopy(sj,py)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMATA_TO_SYMPY_FUNCTIONS,ssj)
-        stwarn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
+        symwarn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
     end
     SYMATA_TO_SYMPY_FUNCTIONS[ssj] = spy
@@ -754,7 +754,7 @@ _sjtopy(x::AbstractString) =  x
 # Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function _sjtopy(x)
-    stwarn("sjtopy: Unable to convert $x from Symata to SymPy")
+    symwarn("sjtopy: Unable to convert $x from Symata to SymPy")
     return x
 end
 
@@ -894,7 +894,7 @@ macro try_sympyfunc(pycall, errstr, return_val_err)
                   (false,pyerr)
                  end
                  if sflag == false
-                 stwarn($errstr)
+                 warn($errstr)
                    setkerneloptions(:sympy_error, _pyres)
                    return $return_val_err
                  end
@@ -926,7 +926,7 @@ function pydoc(sym)
             "Symbol in registry, but no doc found."
         end
     else
-        stwarn("Symbol ", sym, " not in registry. Looking elsewhere...")
+        warn("Symbol ", sym, " not in registry. Looking elsewhere...")
         str =
             try
                 eval(parse("sympy[:$(string(sym))][:__doc__]"))

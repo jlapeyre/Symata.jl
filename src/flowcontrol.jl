@@ -344,9 +344,9 @@ end
 
 #### Warn
 
-@mkapprule Warn :nargs => 1
+@mkapprule Warn :nodefault => true
 
-do_Warn(mx::Mxpr{:Warn},msg::AbstractString) = stwarn(msg)
+@doap Warn(args...) = symwarn(args...)
 
 #### Throw
 
@@ -375,7 +375,7 @@ end
             clear_throw()
             return length(res) == 0 ? Null : res[1]
         end
-        stwarn("Catch: throw set but expr is ", res)
+        symwarn("Catch: throw set but expr is ",  res)
         return res
     end
     return res

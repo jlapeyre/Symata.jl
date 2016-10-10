@@ -10,6 +10,7 @@ T ToString( -1 * a) == "-a"
 T ToString( -I ) == "-I"
 T ToString(-1 * I) == "-I"
 T ToString(-2 * I) == "-2I"
+T ToString("1/5 * I") == "1/5 * I"
 T ToString( (-1)^n ) == "(-1)^n"
 T ToString( -1^n ) == "-(1^n)"
 # FIXME

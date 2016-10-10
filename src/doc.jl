@@ -60,11 +60,11 @@ function print_doc(qs...)
             format_see_alsos(q)
             format_sjexamples(q)
         else
-            println("No documentation for '", ststring(q),"'.")
+            println("No documentation for '", string(q),"'.")
         end
         as = get_attributes(q)
         if length(as) > 0
-            stprintln("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
+            symprintln("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
         end
         if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end
     end
@@ -317,8 +317,7 @@ function sj_add_history(s::AbstractString)
 end
 
 function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
-#    str = rstrip(bytestring(s.input_buffer))  # original line
-    str = rstrip(bytestring(s))
+    str = rstrip(Compat.String(s))
     isempty(strip(str)) && return
     mode = :symata
     length(hist.history) > 0 &&  # we could be more clever and not push the same example sequence twice

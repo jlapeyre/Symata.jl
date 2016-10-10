@@ -7,7 +7,7 @@ macro checkunbound(mx,x,sv)
     esc( quote
            $sv = symval($x)
            if $sv == $x
-             stwarn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
+             warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
              setfixed($mx)
              return $mx
           end
@@ -16,18 +16,18 @@ end
 
 function checkprotect(s::Qsym)
     get_attribute(s,:Protected) &&
-    error("Symbol '",s, "' is protected.")
+    symerror("Symbol '",s, "' is protected.")
 end
 
 function checkprotect(s::SJSym)
     get_attribute(symname(s),:Protected) &&
-    error("Symbol '",symname(s), "' is protected.")
+    symerror("Symbol '",symname(s), "' is protected.")
 end
 checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 function warncheckprotect(s::SJSym)
     if get_attribute(symname(s),:Protected)
-        stwarn(string("Symbol '",symname(s), "' is protected."))
+        symwarn(string("Symbol '",symname(s), "' is protected."))
         return false
     else
         return true
@@ -241,7 +241,7 @@ function setdelayed(mx,lhs::Mxpr, rhs)
 end
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs::Mxpr{:Module})
-    error("$mx is not implemented")
+    symerror("$mx is not implemented")
 end
 
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
@@ -359,7 +359,7 @@ function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
 end
 dosymbol(mx,s::AbstractString) = getsym(Symbol(s))
-dosymbol(mx,x) = (stwarn("Symbol: expected a string"); mx)
+dosymbol(mx,x) = (symwarn("Symbol: expected a string"); mx)
 
 #### Clear
 

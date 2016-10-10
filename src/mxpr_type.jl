@@ -579,7 +579,7 @@ is_fixed(s::SJSym) = symval(s) == s  # unbound is a better work, maybe. Where is
 @inline unsetcanon(mx::Mxpr) = (mx.canon = false; mx)
 @inline unsetfixed(mx::Mxpr) = (mx.fixed = false ; mx)
 
-debug_is_fixed(mx) = is_fixed(mx) ? println(mx, " *is* fixed") : println(mx, " is *not* fixed")
+debug_is_fixed(mx) = is_fixed(mx) ? symprintln(mx, " *is* fixed") : symprintln(mx, " is *not* fixed")
 
 deepsetfixed(x) = x
 function deepsetfixed{T<:Mxpr}(mx::T)

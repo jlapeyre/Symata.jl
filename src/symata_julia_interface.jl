@@ -60,7 +60,7 @@ function do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T)
 end
 
 function do_jxpr(mx::Mxpr{:Jxpr}, x)
-    error("Jxpr: Can't execute Julia code of type ", typeof(x))
+    symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
 end
 
 #### Unpack

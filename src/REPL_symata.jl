@@ -1,132 +1,52 @@
-using Base.Terminals
-using Base.LineEdit
-
 import Base: LineEdit, REPL, Terminals
 
 import Base.LineEdit: CompletionProvider, transition
 
-import Base: display
-
 import Base.REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon,
 REPLCompletionProvider, return_callback, Prompt, respond, ShellCompletionProvider,
 REPLHistoryProvider, find_hist_file, print_response, outstream, hist_from_file, hist_getline,
-history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface
+history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface, reset, send_to_backend,
+ backend, prepare_next, reset_state, ends_with_semicolon
 
 import Base.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
 find_start_brace, complete_path
 
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
-   LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL, answer_color
+   LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
+import Base.REPL: display
 
-using Base.Multimedia
-import Base.Multimedia: @try_display, xdisplayable, displays
-
-
-
-# NOTE: none of the code using symataprompt is used. The code that matters is set_symata_prompt
+# This prompt is used for the dumb terminal
 const symataprompt = "symata > "
-
-##### New output code
-
-immutable REPLDisplaySymata{R<:AbstractREPL} <: Display
-    repl::R
-end
-
-==(a::REPLDisplaySymata, b::REPLDisplaySymata) = a.repl === b.repl
-
-function symata_display(d::REPLDisplaySymata, mime::MIME"text/plain", x)
-    io = outstream(d.repl)
-    Base.have_color && write(io, answer_color(d.repl))
-    stshow(IOContext(io, :limit => true), mime, x)
-    println(io)
-end
-symata_display(d::REPLDisplaySymata, x) = symata_display(d, MIME("text/plain"), x)
-
-function symata_print_response(repl::AbstractREPL, val::ANY, bt, show_value::Bool, have_color::Bool)
-    repl.waserror = bt !== nothing
-    symata_print_response(outstream(repl), val, bt, show_value, have_color, REPL.specialdisplay(repl))
-end
-
-stshow(args...) = show(args...)
-
-function stshow(io::IO, mime::MIME"text/plain", x)
-    stshow(io::IO, x)
-end
-
-function symata_display(args...)
-    display(args...)
-end
-symata_display(d::Display, mime::AbstractString, x) = symata_display(d, MIME(mime), x)
-symata_display(mime::AbstractString, x) = symata_display(MIME(mime), x)
-symata_display(d::TextDisplay, M::MIME"text/plain", x) = stshow(d.io, M, x)
-symata_display(d::TextDisplay, x) = symata_display(d, MIME"text/plain"(), x)
-
-function symata_display(d::REPLDisplay, mime::MIME"text/plain", x)
-    io = outstream(d.repl)
-    Base.have_color && write(io, answer_color(d.repl))
-    stshow(IOContext(io, :limit => true), mime, x)    
-    println(io)
-end
-
-symata_display(d::REPLDisplay, x) = symata_display(d, MIME("text/plain"), x)
-
-function symata_display(x)
-    for i = length(displays):-1:1
-        xdisplayable(displays[i], x) &&
-            @try_display return symata_display(Base.Multimedia.displays[i], x)
-    end
-    throw(MethodError(display, (x,)))
-end
-
-function symata_display(m::MIME, x)
-    for i = length(displays):-1:1
-        xdisplayable(displays[i], m, x) &&
-        @try_display return symata_display(Base.Multimedia.displays[i], m, x)
-    end
-    throw(MethodError(display, (m, x)))
-end
-
-function symata_print_response(errio::IO, val::ANY, bt, show_value::Bool, have_color::Bool, specialdisplay=nothing)
-    sigatomic_begin_v0_5()
-    while true
-        try
-            sigatomic_end_v0_5()
-            if bt !== nothing
-                REPL.display_error(errio, val, bt)
-                println(errio)
-                iserr, lasterr = false, ()
-            else
-                if val !== nothing && show_value
-                    try
-                        if specialdisplay === nothing
-                           symata_display(val)
-                        else
-                            symata_display(specialdisplay,val)
-                        end
-                    catch err
-                        println(errio, "Error showing value of type ", typeof(val), ":")
-                        rethrow(err)
-                    end
-                end
-            end
-            break
-        catch err
-            if bt !== nothing
-                println(errio, "SYSTEM: show(lasterr) caused an error")
-                break
-            end
-            val = err
-            bt = catch_backtrace()
-        end
-    end
-    sigatomic_end_v0_5()
-end
-
-####
 
 type SymataCompletionProvider <: CompletionProvider
     r::LineEditREPL
+end
+
+function symata_respond(f, repl, main; pass_empty = false)
+    (s,buf,ok)->begin
+        if !ok
+            return transition(s, :abort)
+        end
+        line = takebuf_string(buf)
+        if !isempty(line) || pass_empty
+            reset(repl)
+            val, bt = send_to_backend(f(line), backend(repl))
+            if !ends_with_semicolon(line) || bt !== nothing
+                wval = wrapout(val)
+                REPL.print_response(repl, wval, bt, true, Base.have_color)                                
+            end
+        end
+        prepare_next(repl)
+        reset_state(s)
+        s.current_mode.sticky || transition(s, main)
+    end
+end      
+
+# This code is untested
+function symata_print_response(repl::AbstractREPL, val::Any, args...)
+    newval = wrapout(val)
+    REPL.print_response(repl, newval, args...)
 end
 
 function Symata_parse_REPL_line(line)
@@ -136,25 +56,6 @@ function Symata_parse_REPL_line(line)
     end
 end
 
-function symatarespond(f, repl, main; pass_empty = false)
-    (s,buf,ok)->begin
-        if !ok
-            return transition(s, :abort)
-        end
-        line = takebuf_string(buf)
-        if !isempty(line) || pass_empty
-            REPL.reset(repl)
-            val, bt = REPL.send_to_backend(f(line), REPL.backend(repl))
-            if ! REPL.ends_with_semicolon(line) || bt !== nothing
-                symata_print_response(repl, val, bt, true, Base.have_color)
-            end
-        end
-        REPL.prepare_next(repl)
-        reset_state(s)
-        s.current_mode.sticky || transition(s, main)
-    end
-end
-         
 function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
     partial = symata_beforecursor(s.input_buffer)
     full = LineEdit.input_string(s)
@@ -256,10 +157,8 @@ function RunSymataREPL(repl::LineEditREPL)
                         on_enter = return_callback
                         )
     symata_prompt.on_done =
-        # REPL.respond(Symata_parse_REPL_line,
-        #               repl, symata_prompt) # stay in symjulia
-       symatarespond(Symata_parse_REPL_line,
-               repl, symata_prompt) # stay in symjulia    
+        symata_respond(Symata_parse_REPL_line,
+               repl, symata_prompt) # stay in symjulia
 
     main_mode = repl.interface.modes[1]
 
@@ -308,8 +207,7 @@ end
 symata_run_repl(stream::IO) = run_repl(StreamREPL(stream))
 
 function symata_run_frontend(repl::LineEditREPL, backend)
-    d = REPLDisplaySymata(repl)
-#    d = REPLDisplay(repl)    
+    d = REPLDisplay(repl)
     dopushdisplay = repl.specialdisplay === nothing && !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
     if !isdefined(repl,:interface)
@@ -324,7 +222,6 @@ function symata_run_frontend(repl::LineEditREPL, backend)
     dopushdisplay && popdisplay(d)
 end
 
-# TODO use our duplicated output routines
 function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     d = REPLDisplay(repl)
     dopushdisplay = !in(d,Base.Multimedia.displays)
@@ -333,7 +230,7 @@ function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     hit_eof = false
     while true
         Base.reseteof(repl.terminal)
-        write(repl.terminal, symata)
+        write(repl.terminal, symataprompt)
         line = ""
         ast = nothing
         interrupted = false
@@ -362,7 +259,7 @@ function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
             put!(repl_channel, (ast, 1))
             val, bt = take!(response_channel)
             if !ends_with_semicolon(line)
-                print_response(repl, val, bt, true, false)
+                symata_print_response(repl, val, bt, true, false)
             end
         end
         write(repl.terminal, '\n')
@@ -397,7 +294,7 @@ function symata_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
             put!(repl_channel, (ast, 1))
             val, bt = take!(response_channel)
             if !ends_with_semicolon(line)
-                print_response(repl, val, bt, true, have_color)
+                symata_print_response(repl, val, bt, true, have_color)
             end
         end
     end
@@ -465,7 +362,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                         )
 
     symata_prompt.on_done =
-        symatarespond(Symata_parse_REPL_line,
+        symata_respond(Symata_parse_REPL_line,
                       repl, symata_prompt) # stay in symjulia
 
     if VERSION >= v"0.5"

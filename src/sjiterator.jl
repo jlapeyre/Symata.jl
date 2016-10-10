@@ -39,7 +39,7 @@ type SJIterList <: AbstractSJIter
 end
 
 # We can make this a bona fide exception
-itererror(mx) = error(mx, " does not have the form of an iterator.")
+itererror(mx) = symerror(mx, " does not have the form of an iterator.")
 
 make_sjiter(x) = itererror(x)
 
@@ -124,8 +124,8 @@ type SJIterA3{T,V,W} <: AbstractSJIterA
     num_iters::Int
 end
 
-itererrora{T<:Array}(a::T,s::AbstractString) = error(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
-itererrora(mx::Mxpr,s::AbstractString) = error(mx, " does not have the form of a (single variable) iterator. ",s)
+itererrora{T<:Array}(a::T,s::AbstractString) = symerror(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
+itererrora(mx::Mxpr,s::AbstractString) = symerror(mx, " does not have the form of a (single variable) iterator. ",s)
 
 make_sjitera(x) = itererrora(x)
 

@@ -49,7 +49,7 @@ function record_SJTest(test::Symata_Plain_Test, fname, linenumber, res)
     if res == true
         test.pass += 1
     else
-        stwarn("Test failed in $fname, line $linenumber")
+        warn("Test failed in $fname, line $linenumber")
     end
 end
 
@@ -69,11 +69,15 @@ function run_testsuite()
 end
 
 ## FIXME. Sometimes errors silently cut the testing short, reporting only successes
-@mkapprule Tests :nargs => 0
+@mkapprule Tests :nargs => 0:1
 
 @sjdoc Tests "
-Tests() runs the Symata test suite. This runs the code in 'sjtest', this should
+Tests() runs the Symata test suite. This runs the code in the directory 'sjtest', this should
 be newer and better maintained than the code in the 'test' directory.
+
+Tests(filename) runs the tests in `filename` in the directory `sjtest`.
 "
 
 @doap Tests() = run_testsuite()
+
+@doap Tests(s::String) = ( eval(Expr(:macrocall,Symbol("@ex"), :(testUserSyms = True))); runtest(Symata_Plain_Test(), s))

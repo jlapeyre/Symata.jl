@@ -36,7 +36,7 @@ function make_level_specification(expr,x)
     if x == Infinity     # could use singlton type
         return LevelSpecAll()
     end
-    error("Level specification $x is not of the form n, {n}, or {m, n}.")
+    symerror("Level specification $x is not of the form n, {n}, or {m, n}.")
 end
 
 #########
@@ -55,7 +55,7 @@ function _make_level_specification(expr, spec::Mxpr{:List}, start::Integer, stop
 end
 
 function _make_level_specification(expr, spec::Mxpr{:List},args...)
-    error("Level specification $spec is not of the form n, {n}, or {m, n}.")
+    symerror("Level specification $spec is not of the form n, {n}, or {m, n}.")
 end
 
 #### Structure for performing action at levels

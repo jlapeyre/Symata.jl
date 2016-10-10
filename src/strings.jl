@@ -4,7 +4,7 @@
 
 set_pattributes(["StringInterpolation"],[:Protected])
 function apprules(mx::Mxpr{:StringInterpolation})
-    string(margs(mx)...)
+    symstring(margs(mx)...)
 end
 
 @sjdoc StringLength "
@@ -15,7 +15,7 @@ apprules(mx::Mxpr{:StringLength}) = length(mx[1])
 @sjdoc ToString "
 ToString(expr) returns the string of the printed form or expr.
 "
-apprules(mx::Mxpr{:ToString}) = ststring(mx[1])
+apprules(mx::Mxpr{:ToString}) = symstring(mx[1])
 
 @sjdoc StringJoin "
 StringJoin(s1,s2,...) returns the concatendated strings.

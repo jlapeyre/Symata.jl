@@ -110,7 +110,7 @@ macro doap(func)
             new_func_name = Symbol("do_",sj_func_name) #  Headname --> do_Headname
             sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}
         else
-            error("Can't interpret ", sj_func_name)
+            symerror("Can't interpret ", sj_func_name)
         end
     else                                                       # got Headname(x,y)
         sj_func_name = sj_func_name0
@@ -123,7 +123,7 @@ macro doap(func)
     elseif isa(sj_func_name,Expr)
         quote_sj_func_name = quotesymbol(sj_func_name.args[1]) # :Headname from prototype like Headname{T,V}(args...)
     else
-        error("doap: Can't interpret ", sj_func_name)
+        symerror("doap: Can't interpret ", sj_func_name)
     end
     mxarg =  :( mx::Mxpr{$quote_sj_func_name}  )             # mx::Mxpr{:Headname}
     insert!(prototype,2, mxarg)                              # insert mx::Mxpr{:Headname} as the first argument in prototype

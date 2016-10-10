@@ -697,7 +697,7 @@ Keys(d) returns a list of the keys in Dict d
 "
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
-do_keys(mx,x) = (stwarn("Can't return keys of $x"); mx)
+do_keys(mx,x) = (symwarn("Can't return keys of $x"); mx)
 
 #### Values
 
@@ -707,7 +707,7 @@ Values(d) returns a list of the values in Dict d
 
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
 do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
-do_values(mx,x) = (stwarn("Can't return values of $mx"); mx)
+do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
 
 #### Sort
 
