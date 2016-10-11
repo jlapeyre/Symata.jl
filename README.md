@@ -140,12 +140,34 @@ In [4]:  Julia()   # return to Julia mode
 ```
 
 In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells.
+You must use `Help(Topic)` in `Jupyter`. Using `?` does not yet work.
+
 
 ### Dumb terminal
 
 If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear automatically.
 
 ### Help, examples, tests
+
+#### Plotting
+
+Symata supports some plotting via `Plot.jl`. For instance, these commands work:
+
+```
+Plot( :(sin) , Table(Pi * RandomReal(), [100]), color => red)
+
+Plot( [:(sin), :(cos)] , Table(Pi * RandomReal(), [100]), color => red, xlabel => "x")
+
+Plot using a `Julia` function.
+
+Other examples.
+
+Plot([1,2,3])
+
+Plot([1,2,3], [3,1,2])
+```
+
+Try `? Plot` or `Help(Plot)`.
 
 #### Finding Help and Examples
 

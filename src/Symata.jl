@@ -64,6 +64,7 @@ include("protected_symbols.jl")
 include("REPL_symata.jl")
 include("client_symata.jl")
 include("isymata.jl")
+include("plot.jl")
 
 function __init__()
     have_ijulia = isdefined(Main, :IJulia)
