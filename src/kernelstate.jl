@@ -347,13 +347,17 @@ HistoryLength(n) enables storing the n most recent output expressions.
 HistoryLength() returns the current value.
 "
 
-@doap function HistoryLength(n::Integer)
+function _set_historylength(n::Integer)
     oldn = getkerneloptions(:history_length)
     setkerneloptions(:history_length, n)
     for i in 1:(length(Output)-n)
         shift!(Output)
     end
     oldn
+end
+
+@doap function HistoryLength(n::Integer)
+    _set_historylength(n)
 end
 
 @doap HistoryLength() = getkerneloptions(:history_length)

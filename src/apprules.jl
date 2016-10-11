@@ -674,3 +674,15 @@ Pause(x) pauses (i.e.sleeps) for x seconds.
 
 @mkapprule Pause  :nargs => 1
 @doap Pause{T<:Real}(x::T) = sleep(x)
+
+#### 
+
+
+@sjdoc Julia "
+Julia() exits Symata mode and returns to Julia mode from within Jupyter.
+Use `isymata()` from Julia to enter Symata mode again.
+"
+
+@mkapprule Julia :nargs => 0
+
+@doap Julia() = eval(Main, :( insymata = false ))

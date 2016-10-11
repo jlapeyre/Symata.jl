@@ -8,6 +8,9 @@ import Compat.String
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
+# For IJulia
+export wrapout, isymata
+
 # For development
 export sympy, pytypeof, mxpr, canonexpr!
 
@@ -51,20 +54,19 @@ include("expanda.jl")
 include("flatten.jl")
 include("sortorderless.jl")
 include("module.jl")
-# include("trig.jl")  # this is done is sympy
 include("strings.jl")
 include("wrappers.jl")
 include("sympy.jl")
 include("math_functions.jl")
 include("sympy_application.jl")
 include("matrix.jl")
-#include("LambertW.jl") # not yet used
 include("protected_symbols.jl")
 include("REPL_symata.jl")
 include("client_symata.jl")
-
+include("isymata.jl")
 
 function __init__()
+    have_ijulia = isdefined(Main, :IJulia)
     init_sympy()
     if ! isdefined(Base.Test, :testset_forloop)
         eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
@@ -72,7 +74,7 @@ function __init__()
     Main.eval( :( using Symata ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
-    if isinteractive()
+    if (! have_ijulia) && isinteractive()        
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
         else

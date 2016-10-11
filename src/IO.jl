@@ -253,8 +253,34 @@ Clear(Out) clears all the saved output.
 
 @sjseealso(Out, Clear)
 
-do_Out(mx::Mxpr{:Out}, n::Integer) = doeval(get_output_by_line(n))
+function do_Out(mx::Mxpr{:Out}, n::Integer)
+    global isymata_inited
+    if isdefined(Main, :IJulia) && isymata_inited
+        doeval(Main.IJulia.Out[n])
+    else
+        doeval(get_output_by_line(n))
+    end
+end
+
 do_Out(mx::Mxpr{:Out}, x) = :Null
+
+#### In
+
+@mkapprule In :nargs => 1
+
+@sjdoc In "
+In(n) returns the nth input cell. This only works in Jupyter/IPython
+"
+
+@doap function In(n::Integer)
+    if isdefined(Main, :IJulia) && isymata_inited
+        doeval(eval(Expr(:macrocall,Symbol("@ex"), parse(Main.IJulia.In[n]))))
+    else
+        :Null
+    end
+end
+
+
 
 # We should probably explicitly return Null
 # from functions. But,this might catch all

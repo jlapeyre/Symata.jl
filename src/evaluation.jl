@@ -116,11 +116,11 @@ function exfunc(ex)
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
         set_symata_prompt(get_line_number() + 1)
-        push_output(mx)
+        if getkerneloptions(:history_length) > 0 push_output(mx) end
         @bind_Os
     end
     symval(mx) == Null  && return nothing
-    if isinteractive() && is_sjinteractive()    #  we don't need this at the moment ->   && do_we_print_outstring
+    if isinteractive() && is_sjinteractive() && do_we_print_outstring  # Now we use this for IJulia  we don't need this at the moment ->   && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
     end
     if is_throw()

@@ -50,9 +50,9 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 `Symata` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6.
 It depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
-You can install `sympy` automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
+When you load `Symata` with `using Symata`, `sympy` is automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
 which in turn installs `python` and needed modules in your `Julia` directory.
-However, `PyCall` must be configured to not use you system version of `python`.
+However, to do this, `PyCall` must be configured to not use you system version of `python`.
 If you do not have `PyCall` installed, do this
 
 ```julia
@@ -92,10 +92,23 @@ should be automatically installed when installing `sympy` via
 However, if you use `pip`, you should just be able to run `pip
 install mpmath`.
 
+
+### Running Symata
+
+Three environments for running `Symata` are supported: the `Julia` REPL, `Jupyter`, and a dumb terminal
+
 ### Symata REPL mode
 
-There is an Symata command line (REPL) mode.  To use the mode, there
-is an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
+A `Symata` mode is added to the `Julia` REPL. Enter the mode by typing `=` as the first character. Exit
+the mode by typing `backspace` as the first character.
+
+```julia
+julia> using Symata
+
+symata 1>     # after entering `=`
+```
+
+There is also an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
 sh) shell script that just starts julia and loads the module.
 
 ```sh
@@ -103,13 +116,36 @@ sh) shell script that just starts julia and loads the module.
 julia -i -e "using Symata" $*
 ```
 
-The REPL is also available simply by loading the module in a julia session via
-`using Symata`.
-
+Upon running this script, `Symata` mode is entered automatically.
 Toggle between Julia and Symata modes by typing `=` as the first character on a line.
 (If loading Symata from the `julia` prompt via `using Symata`, you use `=` and backspace.)
+
 In Symata mode, the input is not interpreted as Julia expressions, but rather Symata expressions.
 You can do tab completion to see a list of functions and symbols.
+
+### Jupyter
+
+Start a `Jupyter` notebook session. Then do the following.
+
+```julia
+In [1]:  using Symata
+
+In [2]:  isymata()  # enter Symata mode
+
+In [3]:  Expand((a+b)^2)
+
+Out[3]:  a^2 + 2a*b + b^2
+
+In [4]:  Julia()   # return to Julia mode
+```
+
+In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells.
+
+### Dumb terminal
+
+If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear automatically.
+
+### Help, examples, tests
 
 #### Finding Help and Examples
 
