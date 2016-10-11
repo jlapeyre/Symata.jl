@@ -191,14 +191,11 @@ re-evaluated.
 
 Run the test suite from the `symata` prompt with `Tests()`.
 This runs tests in [the directory sjtest.](sjtest/)
-
-`Pkg.test("Symata")` runs the older test suite. It is not being updated and is less complete
-than the suite described above. For reasons explained in the code, the
-tests in [sjtest](sjtest/) are preferred over those in [test](test/).
+`Pkg.test("Symata")` runs the same test suite from `Julia`.
 
 #### A few examples
 
-Here are some examples of the Symata mode.
+Here are some examples of Symata.
 
 ```julia
 symata> ClearAll(fib)
