@@ -123,13 +123,15 @@ Toggle between Julia and Symata modes by typing `=` as the first character on a 
 In Symata mode, the input is not interpreted as Julia expressions, but rather Symata expressions.
 You can do tab completion to see a list of functions and symbols.
 
-### Jupyter
+### Jupyter / IJulia
 
-You need to use the development version of `Symata` in order to use `Jupyter`. Switch
-to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
+You need to use the development version of `Symata` in order to use `Jupyter`, which is provided by
+`IJulia.jl`. Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
 branch with `Pkg.free("Symata")`.)
 
-Once the development branch is selected, start a `Jupyter` notebook session. Then do the following.
+Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
+
+Once the development branch of `Symata` is selected, start a `Jupyter` notebook session. Then do the following.
 
 ```julia
 In [1]:  using Symata
