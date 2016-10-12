@@ -50,7 +50,7 @@ Only a part of the functionality of `Plot.jl` is implemented.
             keyword_dict[k] = [ x for x in margs(v)]
         end
     end
-    println("list args ", listargs)
-    println("keyword args ", keyword_dict)
+    # println("list args ", listargs)
+    # println("keyword args ", keyword_dict)
     plot(listargs... ; keyword_dict...)
 end
