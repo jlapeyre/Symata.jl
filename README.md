@@ -146,8 +146,6 @@ In [4]:  Julia()   # return to Julia mode
 ```
 
 In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells.
-You must use `Help(Topic)` in `Jupyter`. Using `?` does not yet work.
-
 
 ### Dumb terminal
 

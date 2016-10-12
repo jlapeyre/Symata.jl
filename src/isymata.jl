@@ -77,6 +77,8 @@ function symata_execute_request(socket, msg)
         In[n] = code
     end
 
+    insymata = (isdefined(Main, :insymata) && Main.insymata)
+
     # "; ..." cells are interpreted as shell commands for run
     code = replace(code, r"^\s*;.*$",
                    m -> string(replace(m, r"^\s*;", "Base.repl_cmd(`"),
@@ -85,10 +87,15 @@ function symata_execute_request(socket, msg)
     # a cell beginning with "? ..." is interpreted as a help request
     hcode = replace(code, r"^\s*\?", "")
     if hcode != code
-        code = helpcode(hcode)
+        if insymata
+            code = "Help(" * strip(code)[2:end] * ")"
+            println(code)
+        else
+            code = helpcode(hcode)
+        end
     end
 
-    insymata = (isdefined(Main, :insymata) && Main.insymata)
+
     if insymata
         code = "@Symata.ex " * code
     end
@@ -202,7 +209,11 @@ function symata_execute_request(socket, msg)
     # a cell beginning with "? ..." is interpreted as a help request
     hcode = replace(code, r"^\s*\?", "")
     if hcode != code
-        code = helpcode(hcode)
+        if insymata
+            code = "Help(" * code * ")"
+        else
+            code = helpcode(hcode)
+        end
     end
 
     insymata = (isdefined(Main, :insymata) && Main.insymata)
