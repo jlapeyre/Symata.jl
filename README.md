@@ -125,7 +125,11 @@ You can do tab completion to see a list of functions and symbols.
 
 ### Jupyter
 
-Start a `Jupyter` notebook session. Then do the following.
+You need to use the development version of `Symata` in order to use `Jupyter`. Switch
+to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
+branch with `Pkg.free("Symata")`.)
+
+Once the development branch is selected, start a `Jupyter` notebook session. Then do the following.
 
 ```julia
 In [1]:  using Symata
@@ -151,7 +155,10 @@ If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear a
 
 #### Plotting
 
-Symata supports some plotting via `Plot.jl`. For instance, these commands work:
+The development branch of Symata supports some plotting via `Plot.jl`.  How to switch branches
+is described above.
+
+For instance, these commands work:
 
 ```
 Plot( :(sin) , Table(Pi * RandomReal(), [100]), color => red)
