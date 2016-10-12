@@ -71,6 +71,30 @@ function print_doc(qs...)
     Null
 end
 
+# FIXME. We need to have all doc printing functions return strings.
+# Then, we either print them or pass them to a front end.
+# Commented out parts remain TODO
+function retrieve_doc(qs...)
+#    length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
+    for iq in qs
+        q = Symbol(iq)
+        if haskey(SJDOCS,q)
+            return(SJDOCS[q])
+#            format_see_alsos(q)
+#            format_sjexamples(q)
+        else
+            return("No documentation for '" * string(q) * "'.")
+        end
+    end
+    #     as = get_attributes(q)
+    #     if length(as) > 0
+    #         symprintln("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
+    #     end
+    #     if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end
+    # end
+    # Null
+end
+
 
 function print_sympy_doc{T<:Union{AbstractString,Symbol}}(sjsymin::T)
     sjsym = Symbol(sjsymin)

@@ -145,7 +145,8 @@ Out[3]:  a^2 + 2a*b + b^2
 In [4]:  Julia()   # return to Julia mode
 ```
 
-In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells.
+In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells. TAB completion
+works in `Jupyter`. To see a list of all possible completions, type `*[TAB]`.
 
 ### Dumb terminal
 

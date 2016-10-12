@@ -51,10 +51,81 @@ function init_isymata()
     nothing
 end
 
+
+
 #### For use with IJulia v1.3.2
 
 function _init_isymata_v1_3_2()
- eval( Main.IJulia, quote
+    eval( Main.IJulia, quote
+
+Main.populate_builtins()
+
+function symata_complete_request(socket, msg)
+    code = msg.content["code"]
+    cursor_chr = msg.content["cursor_pos"]
+    cursorpos = cursor_chr <= 0 ? 0 : chr2ind(code, cursor_chr)
+    if isspace(code[1:cursorpos])
+        send_ipython(requests[], msg_reply(msg, "complete_reply",
+                                 Dict("status" => "ok",
+                                              "matches" => String[],
+                                              "cursor_start" => cursor_chr,
+                                              "cursor_end" => cursor_chr)))
+        return
+    end
+
+    codestart = find_parsestart(code, cursorpos)
+    insymata = (isdefined(Main, :insymata) && Main.insymata)
+    local comps
+    local positions
+    if insymata
+        comps, positions = Main.symata_completions(code[codestart:end], cursorpos-codestart+1)
+    else
+        comps, positions = Base.REPLCompletions.completions(code[codestart:end], cursorpos-codestart+1)
+    end
+    positions += codestart-1
+    if isempty(positions) # true if comps to be inserted without replacement
+        cursor_start = (cursor_end = ind2chr(code, last(positions)))
+    else
+        cursor_start = ind2chr(code, first(positions)) - 1
+        cursor_end = ind2chr(code, last(positions))
+    end
+    send_ipython(requests[], msg_reply(msg, "complete_reply",
+                                     Dict("status" => "ok",
+                                                  "matches" => comps,
+                                                  "cursor_start" => cursor_start,
+                                                  "cursor_end" => cursor_end)))
+end
+
+# This works a little bit. Part of the documentation is returned. But newlines \n, etc.
+# are printed literally.
+function symata_inspect_request(socket, msg)
+    try
+        code = msg.content["code"]
+        s = get_token(code, chr2ind(code, msg.content["cursor_pos"]))
+        if isempty(s)
+            content = Dict("status" => "ok", "found" => false)
+        else
+
+            insymata = (isdefined(Main, :insymata) && Main.insymata)
+            local d
+            if insymata
+                d = display_dict(Main.retrieve_doc(s))
+            else
+                d = docdict(s)
+            end
+            content = Dict("status" => "ok",
+                           "found" => !isempty(d),
+                           "data" => d)
+        end
+        send_ipython(requests[], msg_reply(msg, "inspect_reply", content))
+    catch e
+        content = error_content(e, backtrace_top=:inspect_request);
+        content["status"] = "error"
+        send_ipython(requests[],
+                     msg_reply(msg, "inspect_reply", content))
+    end
+end
+
 function symata_execute_request(socket, msg)
     code = msg.content["code"]
     @vprintln("EXECUTING ", code)
@@ -169,7 +240,11 @@ function symata_execute_request(socket, msg)
         send_ipython(requests[], msg_reply(msg, "execute_reply", content))
     end
 end
-  IJulia.handlers["execute_request"] = IJulia.symata_execute_request
+
+IJulia.handlers["execute_request"] = IJulia.symata_execute_request
+IJulia.handlers["complete_request"] = IJulia.symata_complete_request
+IJulia.handlers["inspect_request"] = IJulia.symata_inspect_request
+
  end)
     nothing
 end

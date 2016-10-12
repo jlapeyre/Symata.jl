@@ -8,8 +8,8 @@ import Compat.String
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
-# For IJulia
-export wrapout, isymata
+# For IJulia. FIXME. We need a better way to access these symbols
+export wrapout, isymata, symata_completions, populate_builtins, retrieve_doc
 
 # For development
 export sympy, pytypeof, mxpr, canonexpr!
@@ -75,7 +75,7 @@ function __init__()
     Main.eval( :( using Symata ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
-    if (! have_ijulia) && isinteractive()        
+    if (! have_ijulia) && isinteractive()
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
         else
