@@ -1,14 +1,4 @@
 """
-    isymata_inited
-
-true if IJulia has been configured to run Symata during this
-session. This configuration is done by `init_isymata` the first time `isymata()`
-is called during a session.
-"""
-global isymata_inited = false
-
-
-"""
     isymata()
 
 enter Symata mode from within Jupyter (IPython).

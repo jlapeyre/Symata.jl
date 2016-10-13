@@ -1,0 +1,4 @@
+#
+# Start a notebook. We would like to start a Julia
+# kernel and load Symata, but don't know how to do this.
+julia  -i  -e "using IJulia; notebook(detached=true)"
