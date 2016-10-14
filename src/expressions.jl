@@ -1,7 +1,9 @@
 ## TODO: Reorganize this. Migrate most of the Heads handled here elsewhere.
 ## Which heads should be here ?
 
-import Combinatorics: permutations
+if VERSION >= v"0.5-"
+    import Combinatorics: permutations
+end
 
 #### Apply
 
