@@ -125,13 +125,15 @@ You can do tab completion to see a list of functions and symbols.
 
 ### Jupyter / IJulia
 
-You need to use the development version of `Symata` in order to use `Jupyter`, which is provided by
+<!-- You need to use the development version of `Symata` in order to use `Jupyter`, which is provided by
 `IJulia.jl`. Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
 branch with `Pkg.free("Symata")`.)
+-->
 
 Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
 
-Once the development branch of `Symata` is selected, start a `Jupyter` notebook session. Then do the following.
+<!-- Once the development branch of `Symata` is selected, start a `Jupyter` notebook session. Then do the following.
+-->
 
 ```julia
 In [1]:  using Symata
@@ -156,10 +158,11 @@ If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear a
 
 #### Plotting
 
-The development branch of Symata supports some plotting via `Plot.jl`.  How to switch branches
+<!-- The development branch of Symata supports some plotting via `Plot.jl`.  How to switch branches
 is described above.
+-->
 
-For instance, these commands work:
+Some plotting is supported.
 
 ```
 Plot( :(sin) , Table(Pi * RandomReal(), [100]), color => red)

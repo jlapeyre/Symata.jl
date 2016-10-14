@@ -30,7 +30,7 @@ function init_isymata()
         try
             _init_isymata_v1_3_2()
             global isymata_inited = true
-            _set_historylength(0)
+            _set_historylength(10)  # IJulia stores history, as well.
             global do_we_print_outstring = false
         catch
             warn("Initializing isymata failed")
