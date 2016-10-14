@@ -25,7 +25,7 @@ end
 
 function binaryopspc(ss)
     s = string(ss)
-    (s == "=>" || s == "->" || s == ":>"  || s == "^:=") && return " "
+    (s == "=>" || s == "->" || s == ":>"  || s == "^:=" || s == "⇒") && return " "
     return ""
 end
 
@@ -42,7 +42,9 @@ Istring() = getkerneloptions(:unicode_output) ? "𝕚" : "I"
 # It depends on which positions unicode symbols may occur.
 function outsym(s)
     haskey(unicode_output, s) && getkerneloptions(:unicode_output) && return unicode_output[s]
-    mtojsym(s)
+    os = mtojsym(s)
+    haskey(unicode_output, os) && getkerneloptions(:unicode_output) && return unicode_output[os]
+    os
 end
 
 function fullform(io::IO, mx::Mxpr)
@@ -165,7 +167,7 @@ Base.show(io::IO, x::WORational) = show_rational(io,x.x)
 function show_rational(io::IO, x::Rational)
     show(io, num(x))
     print(io, "/")
-    show(io, den(x))    
+    show(io, den(x))
 end
 
 # I don't want to create a table of latex to unicode conversions.
@@ -217,7 +219,7 @@ function show_complexrational{T<:Integer}(io::IO, z::Complex{Rational{T}})
     if imag(z) == 1
         print(io,Istring())
     else
-        print(io,Istring(), " * ")        
+        print(io,Istring(), " * ")
         show_rational(io,imag(z))
     end
 end
@@ -296,7 +298,7 @@ function show_binary(io::IO, mx::Mxpr)
     if length(mx) != 2
         show_prefix_function(io,mx)
     else
-        opstr = mtojsym(mhead(mx))
+        opstr = outsym(mhead(mx))
         lop = mx[1]
         if needsparen(lop)
             print(io,"(")

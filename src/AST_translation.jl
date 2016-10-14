@@ -292,6 +292,21 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 # also,  '<:' is the head in v0.5. We don't yet handle this
 rewrite_to_comparison(ex::Expr) = Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
 
+# These symbols are unconditionally translated on input
+# This is almost exactly the Dict unicode_translation. Maybe we can refactor.
+const INSYMTRANS = Dict( :⇒  => :(=>),
+                         :π => :Pi,
+                         :≥ => :(>=),
+                         :≤ => :(<=),
+                         :γ => :EulerGamma,
+                         :Γ => :Gamma,
+                         :𝕖 => :E,
+                         :𝕚 => :I,
+                         :∞ => :Infinity,
+                         :≠  =>  :!=,
+                         :∈  => :Element
+                         )
+
 # There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
@@ -301,6 +316,9 @@ function rewrite_expr(ex::Expr)
         x = ex.args[i]
         if is_type(x,Expr) && x.head == :macrocall
             ex.args[i] = eval(x)
+        end
+        if haskey(INSYMTRANS,x)
+            ex.args[i] = INSYMTRANS[x]
         end
     end
     if is_call(ex) && length(ex.args) > 0 && is_comparison_symbol(ex.args[1])

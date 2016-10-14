@@ -68,7 +68,9 @@ const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :𝕚 =>   :I,
                                                 :≥  =>  :>=,
                                                 :≤  =>  :<=,
-                                                :≠  =>  :!= )
+                                                :≠  =>  :!=,
+                                                :𝕖  =>  :E,
+                                                :⇒  =>  :(=>) )
 
 # Output. Reverse dict for printing if unicode printing is enabled
 const unicode_output = Dict{Symbol,Symbol}()
@@ -121,7 +123,7 @@ const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
            :Set, :SetDelayed, :UpSet, :(*=), :(+=),
-           :TimesBy, :AddTo ) # need :Set here
+           :TimesBy, :AddTo) # need :Set here
     OPTYPE[op] = :binary
 end
 
