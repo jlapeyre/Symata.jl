@@ -47,13 +47,13 @@ end
 
 function fullform(io::IO, mx::Mxpr)
     print(io,mhead(mx))
-    print("(")
+    print(io, "(")
     if length(mx) > 0 fullform(io,mx[1]) end
     for i in 2:length(mx)
         print(io,",")
         fullform(io,mx[i])
     end
-    print(")")
+    print(io, ")")
 end
 fullform(io::IO,x) = show(io,x)
 fullform(x) = fullform(STDOUT,x)
