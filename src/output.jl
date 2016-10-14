@@ -85,36 +85,40 @@ de_gensym(x) = x
 
 #### Wrap output
 
-immutable WOSymbol
-    s::Symbol
+abstract AbstractWO
+
+immutable WOSymbol <: AbstractWO
+    x::Symbol
 end
 
-immutable WOBool
+immutable WOBool <: AbstractWO
     x::Bool
 end
 
-immutable WORational{T}
+immutable WORational{T}  <: AbstractWO
     x::T
 end
 
-immutable WOComplexInteger{T}
+immutable WOComplexInteger{T}  <: AbstractWO
     x::T
 end
 wrapout{T<:Integer}(x::Complex{T})=  WOComplexInteger(x)
 Base.show(io::IO, ws::WOComplexInteger) = show_complexinteger(io, ws.x)
 
-immutable WOComplexReal{T}
+immutable WOComplexReal{T}  <: AbstractWO
     x::T
 end
 wrapout{T<:Real}(x::Complex{T}) = WOComplexReal(x)
 Base.show(io::IO,ws::WOComplexReal) = show_complexreal(io, ws.x)
 
-
-immutable WOComplexRational{T}
+immutable WOComplexRational{T}  <: AbstractWO
     x::T
 end
 wrapout{T<:Integer}(x::Complex{Rational{T}}) = WOComplexRational(x)
 Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
+
+# This breaks printing
+#Base.string{T<:AbstractWO}(y::T) = string(y.x)
 
 #wrapout(x) = x  # defined in wrapout.jl
 
@@ -134,7 +138,7 @@ function wrapout(x::Rational)
     WORational(x)
 end
 
-Base.show(io::IO,ws::WOSymbol) = show_symbol(io, ws.s)
+Base.show(io::IO,ws::WOSymbol) = show_symbol(io, ws.x)
 
 
 #### Symbol and SSJSym
@@ -170,19 +174,23 @@ function show_rational(io::IO, x::Rational)
     show(io, den(x))
 end
 
-# I don't want to create a table of latex to unicode conversions.
-# Doesn't Julia have this already ?
-# function Base.show(io::IO, x::Mxpr{:Subscript})
-#     if getkerneloptions(:unicode_output)
-#         show(io,x[1])
-#         for i in 2:length(x)
-#             str = "\_" # How to use latex form programatically >
-#         end
-#     else
-#         show(io,mxpr(:SubscriptFix,margs(x)...))
-#     end
-# end
-
+# Yes, it is Base.REPLCompletions.latex_symbols
+function Base.show(io::IO, x::Mxpr{:Subscript})
+    if getkerneloptions(:unicode_output)
+        try 
+            s1 = string(x[1].x) # unwrap symbol
+            for i in 2:length(x)
+                y = typeof(x[i]) <: AbstractWO ? string(x[i].x) : string(x[i])
+                s1 *=  Base.REPLCompletions.latex_symbols["\\_" * y]
+            end
+            show(io, wrapout(Symbol(s1)))
+        catch
+            show_prefix_function(io,x)
+        end
+    else
+        show_prefix_function(io,x)
+    end
+end
 
 # We display real part if it is 0.0
 function show_complexreal{T<:Real}(io::IO, z::Complex{T})
@@ -273,6 +281,7 @@ function Base.show(io::IO, mx::Mxpr{:Comparison})
     end
     isempty(args) || show(io,args[end])
 end
+
 
 function show_prefix_function(io::IO, mx::Mxpr)
     is_Mxpr(mx,:List) ? nothing : print(io,outsym(mhead(mx)))
