@@ -47,7 +47,8 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### IJulia Notebooks
 
-Tutorial notebooks are in [the example directory](examples/).
+Tutorial notebooks are in [the example directory](examples/). (The equations will look better
+in the IJulia notebook, which renders them with higher quality than github.)
 
 ### Installing
 
