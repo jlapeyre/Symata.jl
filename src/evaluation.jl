@@ -272,7 +272,7 @@ function meval(mx::Mxpr)
     local ind::Compat.String = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ (get_meval_count() - 1)
-        println(ind,">>", get_meval_count(), " " , mx)
+        println(ind,">>", get_meval_count(), " " , wrapout(mx))
     end
     nmx::Mxpr = meval_arguments(mx)
     @mdebug(2, "meval: done meval_args ", nmx)
@@ -280,7 +280,7 @@ function meval(mx::Mxpr)
     @mdebug(2, "meval: done setfreesyms ")
     res = meval_apply_all_rules(nmx)
     @mdebug(2, "meval: done meval_apply_all_rules ", res)
-    is_meval_trace() && println(ind,get_meval_count(), "<< ", res)
+    is_meval_trace() && println(ind,get_meval_count(), "<< ", wrapout(res))
     decrement_meval_count()
     @mdebug(2, "meval: returning ", res)
     return res
