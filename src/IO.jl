@@ -254,8 +254,7 @@ Clear(Out) clears all the saved output.
 @sjseealso(Out, Clear)
 
 function do_Out(mx::Mxpr{:Out}, n::Integer)
-    global isymata_inited
-    if isdefined(Main, :IJulia) && isymata_inited
+    if isymata_mode()
         doeval(Main.IJulia.Out[n])
     else
         doeval(get_output_by_line(n))
@@ -273,7 +272,7 @@ In(n) returns the nth input cell. This only works in Jupyter/IPython
 "
 
 @doap function In(n::Integer)
-    if isdefined(Main, :IJulia) && isymata_inited
+    if isymata_mode()
         doeval(eval(Expr(:macrocall,Symbol("@ex"), parse(Main.IJulia.In[n]))))
     else
         :Null

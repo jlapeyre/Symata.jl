@@ -28,6 +28,8 @@ T  (1 < 2 < b) == (2 < b)
 
 T ((1 < 2 < b < c == c < 4 < 10)) == ((2 < b) && (b < c) && (c < 4))
 
+T ( (a < c/d) != True )
+
 ClearAll(b,c)
 #  1 < x < 1  --> 1 < x && x < 1).   FIXME. this should return false.
 

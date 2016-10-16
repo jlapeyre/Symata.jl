@@ -8,8 +8,8 @@ import Compat.String
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
 
-# For IJulia. FIXME. We need a better way to access these symbols
-export wrapout, isymata, symata_completions, populate_builtins, retrieve_doc
+# For IJulia. We could probably import insymata in the interface code instead.
+export isymata, insymata
 
 # For development
 export sympy, pytypeof, mxpr, canonexpr!
@@ -46,6 +46,7 @@ include("symata_julia_interface.jl")
 include("measurements.jl")
 include("flowcontrol.jl")
 include("output.jl")
+include("latex.jl")
 include("pattern.jl")
 include("parts.jl")
 include("lists.jl")

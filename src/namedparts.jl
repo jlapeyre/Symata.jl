@@ -14,10 +14,11 @@
 
 Base.base(p::Mxpr{:Power}) = p[1]
 expt(p::Mxpr{:Power}) = p[2]
+exponent(p::Mxpr{:Power}) = p[2]
 
 expr(p::Mxpr{:Part}) = p[1]
 inds(p::Mxpr{:Part}) = (a = margs(p); view(a,2:length(a)))
 
-# These not used yet
+# We used these a bit
 terms(s::Mxpr{:Plus}) = margs(s)
 factors(p::Mxpr{:Times}) = margs(p)

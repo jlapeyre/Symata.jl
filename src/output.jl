@@ -5,7 +5,7 @@ import Base: show
 import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs, is_type, getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
-       CurrentContext, wrapout
+       CurrentContext, wrapout, using_unicode_output
 
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
@@ -36,14 +36,14 @@ const LISTL = '['
 const LISTR = ']'
 
 # This is faster than looking in the dict for I
-Istring() = getkerneloptions(:unicode_output) ? "𝕚" : "I"
+Istring() =  using_unicode_output() ? "𝕚" : "I"
 
 # We could probably replace all instances of mtosjym below with this.
 # It depends on which positions unicode symbols may occur.
 function outsym(s)
-    haskey(unicode_output, s) && getkerneloptions(:unicode_output) && return unicode_output[s]
+    haskey(unicode_output, s) && using_unicode_output() && return unicode_output[s]
     os = mtojsym(s)
-    haskey(unicode_output, os) && getkerneloptions(:unicode_output) && return unicode_output[os]
+    haskey(unicode_output, os) && using_unicode_output() && return unicode_output[os]
     os
 end
 
@@ -156,7 +156,7 @@ Base.show(io::IO, s::SSJSym) = show_symbol(io, symname(s))
 #Base.show(io::IO, s::SJSym) = show_symbol(io,s)
 
 function show_symbol(io::IO, s::SJSym)
-    if haskey(unicode_output, s) && getkerneloptions(:unicode_output)
+    if haskey(unicode_output, s) && using_unicode_output()
         Base.show_unquoted(io,unicode_output[s])
     else
         ss = string(symname(s))
@@ -176,7 +176,7 @@ end
 
 # Yes, it is Base.REPLCompletions.latex_symbols
 function Base.show(io::IO, x::Mxpr{:Subscript})
-    if getkerneloptions(:unicode_output)
+    if using_unicode_output()
         try 
             s1 = string(x[1].x) # unwrap symbol
             for i in 2:length(x)
@@ -375,7 +375,7 @@ function show_infix(io::IO, mx::Mxpr)
     args = margs(mx)
     np = false
     sepsym = mtojsym(mhead(mx))
-    # uncomment following to print space for multiplication. But, I want "InputForm" for now,
+    # uncomment following to print space for multiplication rather than *. But, I want "InputForm" for now,
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     startind = 1

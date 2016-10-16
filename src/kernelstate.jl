@@ -226,15 +226,19 @@ set_throw() = FLOWFLAGS.throwflag = true
 ##### User options and info
 
 const Kerneloptions = Dict{Any,Any}(
-                                    :unicode_output => false,
-                                    :show_sympy_docs => true,
-                                    :return_sympy => false,
-                                    :sympy_error => nothing,
-                                    :compact_output => true,
-                                    :history_length => 100,
-                                    :bigint_input => false,
-                                    :bigfloat_input => false
-                                  )
+    :unicode_output => false,
+    :ijulia_latex_output => false,                                    
+    :show_sympy_docs => true,
+    :return_sympy => false,
+    :sympy_error => nothing,
+    :compact_output => true,
+    :history_length => 100,
+    :bigint_input => false,
+    :bigfloat_input => false,
+    :isymata_inited => false,
+                                    :isymata_mode => false,
+                                    :output_style => :Plain
+)
 
 function getkerneloptions(sym::Symbol)
     Kerneloptions[sym]
@@ -248,13 +252,13 @@ end
 
 #### UnicodeOutput
 
-@mkapprule UnicodeOutput :nargs => 0:1
+@mkapprule UnicodeOutput :nargs => 0:1  :nodefault => true
 
 @sjdoc UnicodeOutput "
-UnicodeOutput(True)  enables printing unicode characters for some symbols, such as Pi.
-UnicodeOutput(False)  (default) disables printing unicode characters.
-UnicodeOutput() returns the current state
+UnicodeOutput()  is obsolete. See OutputStyle().
 "
+
+@doap UnicodeOutput(args...) = println("UnicodeOutput() is obsolete. See OutputStyle()")
 
 #### ShowSymPyDocs
 
@@ -291,7 +295,8 @@ a SymPy error has occurred, you can find the detailed error message.
 
 @sjdoc CompactOutput "
 CompactOutput(True) (default) enables printing fewer spaces between operators.
-Compact() returns the current state.
+Compact() returns the current state. CompactOutput has an effect in Plain and Unicode
+output styles, but not in IJulia output style.
 "
 
 #### BigIntInput
@@ -319,7 +324,7 @@ You can always specify that a float should be a BigFloat by using BF(n).
 "
 @sjseealso_group(BI, BigIntInput, BF, BigFloatInput)
 
-for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:UnicodeOutput, :unicode_output), (:ReturnSymPy, :return_sympy),
+for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_sympy),
                  (:CompactOutput, :compact_output), (:BigIntInput, :bigint_input),(:BigFloatInput, :bigfloat_input))
 
     fnf = Symbol("do_",fn)
@@ -365,10 +370,61 @@ end
 #### isymata_inited
 
 """
-    isymata_inited
+    isymata_inited()
+    isymata_inited(v::Bool)
 
 true if IJulia has been configured to run Symata during this
 session. This configuration is done by `init_isymata` the first time `isymata()`
 is called during a session.
 """
-global isymata_inited = false
+isymata_inited() = getkerneloptions(:isymata_inited)
+isymata_inited(v::Bool) = (ov = getkerneloptions(:isymata_inited); setkerneloptions(:isymata_inited,v); ov)
+
+
+"""
+    isymata_mode()
+    isymata_mode(v::Bool)
+
+get or set the flag signifying that IJulia input should be interpreted as Symata rather than Julia.
+"""
+isymata_mode() = getkerneloptions(:isymata_mode)
+isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(:isymata_mode,v); ov)
+
+
+@mkapprule OutputStyle  :nargs => 0:1
+
+@sjdoc OutputStyle "
+OutputStyle(Plain) print plain 1d text output
+OutputStyle(Unicode) print 1d text output with pretty unicode characters.
+OutputStyle(IJulia) in IJulia, print in typeset mathematics style using latex.
+OutputStyle()  return the current output style
+"
+
+function _set_output_style(st::Symbol)
+    if st != :Plain && st != :Unicode  && st != :IJulia
+        error("OutputStyle: style must be one of Plain, Unicode, IJulia")
+    end
+    oldst = getkerneloptions(:output_style)
+    setkerneloptions(:output_style, st)
+    st
+end
+
+@doap function OutputStyle(st::Symbol)
+    _set_output_style(st)
+end
+
+@doap OutputStyle() = getkerneloptions(:output_style)
+
+@sjseealso_group(OutputStyle, CompactOutput)
+
+"""
+    using_unicode_output()
+
+return true if unicode output style is selected. This is mutually exclusive with Plain output and
+IJulia output styles.
+"""
+using_unicode_output() = getkerneloptions(:output_style) == :Unicode
+
+# This means we are using LaTeX
+using_ijulia_output() = getkerneloptions(:output_style) == :IJulia
+

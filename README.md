@@ -45,6 +45,10 @@ search `h"word"`.
 The core of Symata is not complete. But, a large number of features are implemented;
 enough to be useful. Here are [examples of pattern matching](sjtest/patterns_test.sj).
 
+### IJulia Notebooks
+
+Tutorial notebooks are in [the example directory](examples/).
+
 ### Installing
 
 `Symata` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6.

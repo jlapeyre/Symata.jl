@@ -105,6 +105,8 @@ set_pattributes(["True", "False"], :Protected)
 
 set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 
+set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
+
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",

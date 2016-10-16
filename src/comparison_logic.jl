@@ -220,7 +220,8 @@ end
 
 
 # a == a  --> True, etc.  for unbound a
-function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
+#function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
+function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}, V<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::V)    
     if comp == :(==)
         res = a == b
         res && return res

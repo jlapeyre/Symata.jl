@@ -694,14 +694,17 @@ These properties are used in simplifying relations, `Refine`, integral transform
 
 Properties are: commutative, complex, imaginary, real, integer, odd, even,
 prime, composite, zero, nonzero, rational, algebraic, transcendental, irrational, finite, infinite, negative, nonnegative, positive, nonpositive, hermitian, antihermitian.
+
+These property symbols may contain uppercase characters. For example `Positive` and `positive` are the same.
 "
 
 # TODO. We implemented this to use, e.g. the inequality solvers
 # Can't find a better way to create the symbol
 # prop is not evaluated, rather the symbol 'prop' is set to true
 # This uses the 'old' SymPy assumptions system
-@doap function Assume(s::Symbol, props...)
+@doap function Assume(s::Symbol, inprops...)
     ss = string(s)
+    props = [ Symbol(lowercase(string(x))) for x in inprops]
     propstrs = map( (x) -> " $x=true ", props)
     propstr = join(propstrs, ", ")
     evalstr = "sympy[:Symbol](\"$ss\", $propstr)"
