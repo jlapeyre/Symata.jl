@@ -3,16 +3,35 @@
 # in Symata code. They can also be used at the Julia
 # repl.
 
-*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
-*(a::SJSym,b::Number) = mxpr(:Times,b,a)
+# SJSym is an alias of Symbol
+
+#### Following methods constitute typesquatting
+
+# These are needed by some reasonable tests.
+# We need to remove dependence on these.
 *(a::Number,b::SJSym) = mxpr(:Times,a,b)
+*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
++(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+
+# *(a::SJSym,b::Number) = mxpr(:Times,b,a)
+
+
+# +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
+
+# +(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+
+# ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+# ^(base::SJSym,expt) = mxpr(:Power,base,expt)
+
+######
+
+## These methods are not  typesquatting
+
 *(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
 *(a::Mxpr,b) = mxpr(:Times,a,b)
 *(a,b::Mxpr) = mxpr(:Times,a,b)
 
-+(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
-+(a::SJSym,b::Number) = mxpr(:Plus,b,a)
-+(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+
 +(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
 +(a::Mxpr,b) = mxpr(:Plus,a,b)
 +(a,b::Mxpr) = mxpr(:Plus,a,b)
@@ -20,7 +39,5 @@
 -(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
 ^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
-^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
-^(base::SJSym,expt) = mxpr(:Power,base,expt)
 
 /(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))

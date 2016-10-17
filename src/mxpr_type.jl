@@ -45,12 +45,23 @@ end
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
 ## Sets an already existing Symata symbol
+
+"""
+    setsymval(s::SSJSym,val)
+
+Set the Symata symbol `s` `val`.
+"""
 function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
 
-# Sets the Symata symbol that Julia symbol s is bound to
+"""
+    setsymval(s::SJSymbol,val)
+
+If `s` is `Symbol`, set the Symata symbol that the Julia symbol `s` is bound to to `val`.
+Note `s` can also be a `Qsym`.
+"""
 function setsymval(s::SJSymbol,val)
     setsymval(getssym(s),val)
 end
