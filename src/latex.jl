@@ -217,19 +217,41 @@ function get_nums_dens(other, negpows, rationals)
     (nums,dens)
 end
 
-function latex_string_factors(facs)
-    join([ x == -1 ? :(-) : latex_string(x) for x in facs], " \\ ")
+function latex_string_factor(buf::IOBuffer, x, nfacs)
+    needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(x), lrparen) : print(buf, latex_string(x))
+end
+
+function minus_or_factor(buf, x, nfacs)
+    if x == -1
+        print(buf, "-")
+    else
+        latex_string_factor(buf,x, nfacs)
+    end
+end
+                  
+function latex_string_factors(buf,facs)
+    for i in 1:length(facs)-1
+        minus_or_factor(buf, facs[i], length(facs))
+        print(buf, " \\ ")  # probably do not want this for leading "-"
+    end
+    minus_or_factor(buf, facs[end], length(facs))
 end
 
 # LaTeX does not put spaces between factors. But, Symata has multicharacter symbols, so we need spaces to distinguish them
 function latex_string(mx::Mxpr{:Times})
     (other, negpows, rationals) = separate_negative_powers(factors(mx))
+    buf = IOBuffer()
     if ( isempty(negpows) && isempty(rationals) )
-        latex_string_factors(factors(mx))
+        latex_string_factors(buf, factors(mx))
     else
         (nums,dens) = get_nums_dens(other,negpows, rationals)
-        "\\frac{" * latex_string_factors(nums) * "}{" * latex_string_factors(dens) * "}"
+        print(buf,"\\frac{")
+        latex_string_factors(buf,nums)
+        print(buf,  "}{")
+        latex_string_factors(buf,dens)
+        print(buf,"}")        
     end
+    takebuf_string(buf)
 end
 
 function latex_string(x::WORational)
