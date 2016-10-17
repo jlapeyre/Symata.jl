@@ -295,7 +295,7 @@ Together(sum) rewrites a sum of terms as a product.
 @sjdoc Apart "
 Apart(product) computes a partial fraction decomposition of product
 "
-apprules(mx::Mxpr{:Apart}) = sympy[:apart](map(sjtopy, margs(mx))...) |> pytosj
+apprules(mx::Mxpr{:Apart}) = sympy[:apart](map(sjtopy, margs(mx))...)[:doit]() |> pytosj
 
 register_sjfunc_pyfunc("Apart", "apart")
 
