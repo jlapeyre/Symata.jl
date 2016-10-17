@@ -77,6 +77,8 @@ const LFUNCR = " \\right) "
 const LLISTL = " \\left[ "
 const LLISTR = " \\right] "
 
+latex_needsparen(x) = needsparen(x)
+latex_needsparen(mx::Mxpr{:Power}) = false
 
 Ilatexstring() = "\\mathbb{i}"
 Infinitylatexstring() = "\\infty"
@@ -146,11 +148,11 @@ function latex_string_prefix_function(mx::Mxpr)
     print(buf, latex_string(mhead(mx) == getsym(:List) ? LISTL : LFUNCL))
     wantparens = mhead(mx) == :List ? false : true
     for i in 1:length(args)-1
-        if needsparen(args[i]) && wantparens
+        if latex_needsparen(args[i]) && wantparens
            print(buf, llparen)
         end
         print(buf, latex_string(args[i]))
-        if needsparen(args[i]) && wantparens
+        if latex_needsparen(args[i]) && wantparens
             print(buf, lrparen)
         end
         print(buf, ",")
@@ -218,7 +220,7 @@ function get_nums_dens(other, negpows, rationals)
 end
 
 function latex_string_factor(buf::IOBuffer, x, nfacs)
-    needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(x), lrparen) : print(buf, latex_string(x))
+    latex_needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(x), lrparen) : print(buf, latex_string(x))
 end
 
 function minus_or_factor(buf, x, nfacs)
@@ -353,14 +355,14 @@ function latex_string_binary(mx::Mxpr)
         s = ""
         opstr = outsym(mhead(mx))
         lop = mx[1]
-        if needsparen(lop)
+        if latex_needsparen(lop)
             s *= llparen * latex_string(lop) * lrparen
         else
             s *= latex_string(lop)
         end
         s *= latex_symbol(opstr)
         rop = mx[2]
-        if  needsparen(rop)
+        if  latex_needsparen(rop)
             s *= llparen * latex_string(rop) * lrparen
         else
             s *= latex_string(rop)
@@ -379,7 +381,7 @@ function latex_string_infix(mx::Mxpr)
     s = ""
     for i in 1:length(args)-1
         arg = args[i]
-        if needsparen(arg)
+        if latex_needsparen(arg)
             np = true
             s *= llparen
         else
@@ -392,7 +394,7 @@ function latex_string_infix(mx::Mxpr)
         s *= latex_string(sepsym)
     end
     if ! isempty(args)
-        if needsparen(args[end])
+        if latex_needsparen(args[end])
             np = true
             s *= llparen
         else
