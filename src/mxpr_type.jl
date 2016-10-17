@@ -25,6 +25,12 @@ symname(s::Qsym) = s.name
 @inline sjval(s::SJSym) = getssym(s).val[1]
 
 # Don't make these one-line defintions. They are easier to search for this way.
+
+"""
+    symval(s::SJSym)
+
+return the value that the `Symata` symbol with Julia-Symbol name `s` is bound to.
+"""
 function symval(s::SJSym)
     getssym(s).val[1]
 end
@@ -38,6 +44,11 @@ function symval(s::Qsym)
     val
 end
 
+doc"""
+    symval(s::SSJSym)
+
+Return the value bound to the Symata symbol `s`.
+"""
 function symval(s::SSJSym)
     s.val[1]
 end
@@ -46,17 +57,18 @@ symval(x) = nothing  # maybe we should make this an error instead? We are using 
 
 ## Sets an already existing Symata symbol
 
-"""
+doc"""
     setsymval(s::SSJSym,val)
 
-Set the Symata symbol `s` `val`.
+Set (bind) the Symata symbol `s` to `val`.
 """
 function setsymval(s::SSJSym,val)
     s.val[1] = val
     s.age = increvalage()
 end
 
-"""
+
+doc"""
     setsymval(s::SJSymbol,val)
 
 If `s` is `Symbol`, set the Symata symbol that the Julia symbol `s` is bound to to `val`.
