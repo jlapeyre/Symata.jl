@@ -47,8 +47,10 @@ enough to be useful. Here are [examples of pattern matching](sjtest/patterns_tes
 
 ### IJulia Notebooks
 
-Tutorial notebooks are in [the example directory](examples/). (The typeset math will look better
-in the IJulia notebook, which renders it with higher quality than github does.)
+A few very brief tutorial notebooks are in [the example directory](examples/). The development version of `Symata` is
+required to use these notebooks. Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
+branch with `Pkg.free("Symata")`.) The typeset math will look better
+in the IJulia notebook, which renders it with higher quality than github does.
 
 ### Installing
 
