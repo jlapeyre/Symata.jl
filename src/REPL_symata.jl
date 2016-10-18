@@ -419,9 +419,14 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                                               :help  => help_mode))
     if repl.history_file
         try
-            f = open(find_hist_file(), true, true, true, false, false)
+            hist_path = find_hist_file()
+            f = open(hist_path, true, true, true, false, false)
             finalizer(replc, replc->close(f))
-            hist_from_file(hp, f)
+            if VERSION >= v"0.6.0-dev.999"  # FIXME. which version introduced this ?
+                hist_from_file(hp, f, hist_path)
+            else
+                hist_from_file(hp, f)
+            end
         catch e
             print_response(repl, e, catch_backtrace(), true, Base.have_color)
             println(outstream(repl))
