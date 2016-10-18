@@ -133,6 +133,7 @@ Julia `length'.
 
 apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
 symjlength(mx::Mxpr) = length(margs(mx))
+symjlength(s::String) = 1
 symjlength(x) = length(x)
 
 #### Part
