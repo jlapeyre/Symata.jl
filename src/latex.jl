@@ -78,7 +78,8 @@ const LLISTL = " \\left[ "
 const LLISTR = " \\right] "
 
 latex_needsparen(x) = needsparen(x)
-latex_needsparen(mx::Mxpr{:Power}) = false
+
+latex_needsparen(mx::Mxpr{:Power}) = symjlength(base(mx)) > 1
 
 Ilatexstring() = "\\mathbb{i}"
 Infinitylatexstring() = "\\infty"
@@ -108,6 +109,18 @@ function latex_display(x)
     MyLaTeXString("\$\$ " * latex_string(x) *  " \$\$")
 end
 
+@mkapprule Latex :nargs => 1
+
+@sjdoc Latex "
+Latex(expr)
+
+convert `expr` to a Latex string.
+"
+
+@doap function Latex(x::Mxpr)
+    latex_string(x)
+end
+
 # show will print this correctly
 latex_display(mx::Mxpr{:FullForm}) = mx
 
@@ -125,12 +138,11 @@ function latex_string(s::Mxpr)
     latex_string_prefix_function(s)
 end
 
+latex_string(s::String) = latex_text("\"" * s * "\"")
+
 # This will not be called if FullForm is the toplevel expression.
 # Here, FullForm will be converted to a string, as in Plain style and then wrapped in math mode text macro.
 latex_string(mx::Mxpr{:FullForm}) = latex_text(mx)
-
-#latex_string_binary(s) = s
-#latex_string_infix(s) = s
 
 latex_text(s) =  "\\text{" * string(s)  * "}"
 
@@ -179,7 +191,12 @@ function latex_string(mx::Mxpr{:Plus})
     s
 end
 
-latex_string(mx::Mxpr{:Power}) =  latex_string(base(mx)) * "^{" * latex_string(exponent(mx)) * "}"
+function latex_string(mx::Mxpr{:Power})
+    buf = IOBuffer()
+    latex_needsparen(mx) ? print(buf, llparen, latex_string(base(mx)), lrparen) : print(buf,latex_string(base(mx)))
+    print(buf, "^{" * latex_string(exponent(mx)) * "}")
+    takebuf_string(buf)
+end
 
 function separate_negative_powers(facs)
     other = Array(Any,0)
