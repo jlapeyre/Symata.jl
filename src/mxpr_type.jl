@@ -29,7 +29,7 @@ symname(s::Qsym) = s.name
 """
     symval(s::SJSym)
 
-return the value that the `Symata` symbol with Julia-Symbol name `s` is bound to.
+return the bound value of the `Symata` symbol with Julia-Symbol name `s`.
 """
 function symval(s::SJSym)
     getssym(s).val[1]
@@ -57,7 +57,7 @@ symval(x) = nothing  # maybe we should make this an error instead? We are using 
 
 ## Sets an already existing Symata symbol
 
-doc"""
+"""
     setsymval(s::SSJSym,val)
 
 Set (bind) the Symata symbol `s` to `val`.
@@ -68,7 +68,7 @@ function setsymval(s::SSJSym,val)
 end
 
 
-doc"""
+"""
     setsymval(s::SJSymbol,val)
 
 If `s` is `Symbol`, set the Symata symbol that the Julia symbol `s` is bound to to `val`.
@@ -103,13 +103,10 @@ end
 getdefinition(sym::SJSymbol) = getdefinition(getssym(sym))
 
 #############################################################################
-# Any and all direct access to the val field in SSJSym occurs above this line.
+# All direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
 #############################################################################
 
-
-
-#
 #symname(s::AbstractString) = Symbol(s)
 
 symattr(s::SJSymbol) = getssym(s).attr
@@ -313,9 +310,30 @@ end
 # =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V) = false
 
 typealias Symbolic Union{Mxpr,SJSym}
+
+"""
+    newargs()
+
+return an empty container to hold the arguments in an `Mxpr`. This is
+currently `Array{Any,1}`.
+"""
 @inline newargs() = Array(Any,0)
+
+
+"""
+    newargs(n::Integer)
+
+return a container with n elements to hold arguments for an `Mxpr`.
+"""
 @inline newargs{T<:Integer}(n::T) = Array(Any,n)
+
+"""
+    newargs(m::Mxpr)
+
+return a container with `length(m)` elements to hold arguments for an `Mxpr`.
+"""
 @inline newargs(m::Mxpr) = newargs(length(m))
+
 @inline newargs(a::Array) = newargs(length(a))
 
 
