@@ -15,7 +15,7 @@ import Symata: @ex, @testex, symval, symname, @aex, meval, doeval, infseval,
 """))
 end
 
-export devimport
+export devimport, @ex
 
 # For IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
