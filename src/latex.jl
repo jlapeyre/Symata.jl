@@ -117,7 +117,7 @@ Latex(expr)
 convert `expr` to a Latex string.
 "
 
-@doap function Latex(x::Mxpr)
+@doap function Latex(x)
     latex_string(x)
 end
 
