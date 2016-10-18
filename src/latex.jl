@@ -67,13 +67,13 @@ if VERSION >= v"0.4.0-dev+4603"
     unsafe_convert(::Type{Cstring}, s::MyLaTeXString) = unsafe_convert(Cstring, s.s)
 end
 
-#######################################################################
+################################################################################
 
 const llparen = " \\left( "
 const lrparen = " \\right) "
 
-const LFUNCL = " \\left( "
-const LFUNCR = " \\right) "
+#const LFUNCL = " \\left( "
+#const LFUNCR = " \\right) "
 const LLISTL = " \\left[ "
 const LLISTR = " \\right] "
 
@@ -85,6 +85,7 @@ Ilatexstring() = "\\mathbb{i}"
 Infinitylatexstring() = "\\infty"
 
 # These are translations of the printed symbols to latex.
+# Emacs is fighting me over indentation here. Fix it when we are more or less done with this.
 const symbol_to_latex_table = Dict(
                                    :(=>) => " \\Rightarrow ",
                                    :(->) => " \\rightarrow ",
@@ -129,6 +130,8 @@ latex_display(mx::Mxpr{:FullForm}) = mx
 
 latex_string(x) = string(x)
 
+latex_string(s::String) =  latex_text("\"" * s * "\"")
+
 function latex_string(s::Mxpr)
     if getoptype(mhead(s)) == :binary
         return latex_string_binary(s)
@@ -137,8 +140,6 @@ function latex_string(s::Mxpr)
     end
     latex_string_prefix_function(s)
 end
-
-latex_string(s::String) = latex_text("\"" * s * "\"")
 
 # This will not be called if FullForm is the toplevel expression.
 # Here, FullForm will be converted to a string, as in Plain style and then wrapped in math mode text macro.
@@ -157,7 +158,7 @@ function latex_string_prefix_function(mx::Mxpr)
     buf = IOBuffer()
     print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) * " \\! ")  # ipython inserts a space that we don't want
     args = margs(mx)
-    print(buf, latex_string(mhead(mx) == getsym(:List) ? LISTL : LFUNCL))
+    print(buf, mhead(mx) == getsym(:List) ? LISTL : llparen)
     wantparens = mhead(mx) == :List ? false : true
     for i in 1:length(args)-1
         if latex_needsparen(args[i]) && wantparens
@@ -170,7 +171,7 @@ function latex_string_prefix_function(mx::Mxpr)
         print(buf, ",")
     end
     if  ! isempty(args) print(buf, latex_string(args[end])) end
-    print(buf, latex_string(mx.head == getsym(:List) ? LISTR : LFUNCR))
+    print(buf, mx.head == getsym(:List) ? LISTR : lrparen)
     takebuf_string(buf)
 end
 
@@ -331,7 +332,7 @@ function  latex_string(mx::Mxpr{:DirectedInfinity})
     elseif mx[1] == -1
         "-" * Infinitylatexstring()
     else
-        latex_string_mathop(:DirectedInfinity) * LFUNCL * latex_string(mx[1]) * LFUNCR
+        latex_string_mathop(:DirectedInfinity) * llparen * latex_string(mx[1]) * lrparen
     end
 end
 
