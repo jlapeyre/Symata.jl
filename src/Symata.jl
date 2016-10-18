@@ -6,13 +6,21 @@ using Compat  # only used in code copied from REPL_symata.jl
 import Compat.String
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
-export @ex, @testex, symval, symname, @aex, meval, doeval, infseval
+
+# For development
+function devimport()
+    eval(Main, parse("""
+import Symata: @ex, @testex, symval, symname, @aex, meval, doeval, infseval,
+       sympy, pytypeof, mxpr, canonexpr!
+"""))
+end
+
+export devimport
 
 # For IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
-# For development
-export sympy, pytypeof, mxpr, canonexpr!
+
 
 include("sjcompat.jl")
 include("early_kernelstate.jl")
