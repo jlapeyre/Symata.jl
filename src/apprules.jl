@@ -686,4 +686,4 @@ Use `isymata()` from Julia to enter Symata mode again.
 
 @mkapprule Julia :nargs => 0
 
-@doap Julia() = eval(Main, :( insymata = false ))
+@doap Julia() = isymata_mode(false)

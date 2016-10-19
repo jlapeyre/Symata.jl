@@ -8,7 +8,7 @@ if a = 1 in Julia and b = a in Symata, then JVar(b) evaluates to 1.
 "
 
 @sjseealso_group(Jxpr,JVar)
-apprules(mx::Mxpr{:JVar}) = eval(symname(mx[1]))
+apprules(mx::Mxpr{:JVar}) = eval(Main,symname(mx[1]))
 
 #### SetJ
 
@@ -111,8 +111,8 @@ end
 #### Pack
 
 @sjdoc Pack "
-Pack(mx) packs the args of the Symata expression mx into a typed Julia array.
-The type of the array is the same as the first element in mx.
+Pack(expr) packs the arguments of the Symata expression expr into a Julia array,
+whose element type is the minimum required to holds the arguments of expr.
 "
 
 @sjexamp( Pack,
@@ -122,11 +122,26 @@ The type of the array is the same as the first element in mx.
 
 @sjseealso_group(Pack,Unpack)
 
+"""
+    typejoin_array(a::Array)
+
+return the typejoin of all elements in `a`.
+I saw this in Base somewher. Probably more efficient there.
+"""
+function typejoin_array(a)
+    length(a) == 0 && return Any
+    T = typeof(a[1])
+@inbounds  for i in 2:length(a)
+        T = typejoin(T, typeof(a[i]))
+    end
+    T
+end
+
 # 1-d unpack
 function apprules(mx::Mxpr{:Pack})
-    sjobj = margs(margs(mx)[1])
-    T = typeof(sjobj[1]) # hope one exists
-    args = do_pack(T,sjobj)
+    a = margs(margs(mx)[1])
+    T = typejoin_array(a)
+    args = do_pack(T,a)
     return args
 end
 
