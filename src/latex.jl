@@ -189,6 +189,9 @@ function latex_string(mx::Mxpr{:Plus})
     for i in 2:length(terms)
         if is_type(terms[i],Mxpr{:Minus})
             s *=  " - " * latex_string((terms[i]).terms[1])
+        # following is slightly broken. Fix it later
+        # elseif  is_Mxpr(terms[i], :Times) && typeof(terms[i][1])  <:Union{AbstractFloat,Integer} && terms[i][1] < 0
+        #     s *= latex_string(terms[i], true)
         else
             s *= " + " * latex_string(terms[i])
         end
@@ -245,12 +248,15 @@ function latex_string_factor(buf::IOBuffer, x, nfacs)
     latex_needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(x), lrparen) : print(buf, latex_string(x))
 end
 
+# spaceminus is passed around, but does not yet do anything.
+# Needs to be fixed and implemented.
 minus_or_factor(buf, x, nfacs) = minus_or_factor(buf, x, nfacs, false)
 function minus_or_factor(buf, x, nfacs, spaceminus::Bool)
     if x == -1
+#        print(buf, spaceminus ? " - " : "-")  # maybe don't even need this
         print(buf, "-")
     else
-        latex_string_factor(buf,x, nfacs)
+        latex_string_factor(buf,x, nfacs)  # check for minus space here ?
     end
 end
 
@@ -280,7 +286,7 @@ function latex_string(mx::Mxpr{:Times}, spaceminus::Bool)
         latex_string_factors(buf,nums)
         print(buf,  "}{")
         latex_string_factors(buf,dens)
-        print(buf,"}")        
+        print(buf,"}")
     end
     takebuf_string(buf)
 end
