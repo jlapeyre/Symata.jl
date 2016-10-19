@@ -3,12 +3,15 @@
 
 
 # this breaks pre-compilation only with OSX and Windows on nightliles starting about Oct 18, 2016
-# if VERSION >= v"0.5-"
-#     import Combinatorics: permutations
-# end
+
+# No, this appears to save nightly builds on al least linux. otherwise
+# nightlies fail on every platform
+if VERSION >= v"0.5-"
+    import Combinatorics: permutations
+end
 
 # So we return to loadinb Combinatorics unconditionally and tolerating warnings in v0.4
-using Combinatorics
+#using Combinatorics
 
 
 #### Apply
