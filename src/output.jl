@@ -364,14 +364,20 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
             print(io, " - ")
             show(io,(args[i]).args[1])
         else
-            print(io, " + ")
-            show(io,args[i])
+            if is_Mxpr(args[i], :Times) && typeof(args[i][1])  <:Union{AbstractFloat,Integer} && args[i][1] < 0
+                show_infix(io, args[i], true)
+            else
+                print(io, " + ")
+                show(io, args[i])
+            end
         end
     end
 end
 
 # This includes Times. No spaces surround the infix symbol
-function show_infix(io::IO, mx::Mxpr)
+
+show_infix(io::IO, mx::Mxpr)  = show_infix(io,mx, false)
+function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
     args = margs(mx)
     np = false
     sepsym = mtojsym(mhead(mx))
@@ -380,11 +386,16 @@ function show_infix(io::IO, mx::Mxpr)
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     startind = 1
     if is_Mxpr(mx,:Times) && length(args) > 0
-        if args[1] == -1
-            print(io, "-")
+        a1 = args[1]
+        if a1 == -1
+            print(io, spaceminus ? " - " : "-")
             startind = 2
-        elseif typeof(args[1]) <:Union{AbstractFloat,Integer}
-            print(io,args[1])
+        elseif typeof(a1) <:Union{AbstractFloat,Integer}
+            if a1 < 0 && spaceminus
+                print(io, " - ", - a1)
+            else
+                print(io, a1)
+            end
             startind = 2
         end
     end

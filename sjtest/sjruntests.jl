@@ -13,6 +13,7 @@ test = Symata_Plain_Test()
 function runalltests()
     for f in (
               "latex_test.sj",
+              "output_test.sj",
               "measurements_test.sj",
               "io_test.sj",
               "comparison_test.sj",  # No idea why emacs indents like this.
@@ -26,7 +27,6 @@ function runalltests()
               "predicate_test.sj",
               "trig_test.sj",
               "context_test.sj",   #    breaks
-              "output_test.sj",
               "mxpr_test.sj",
               "integral_derivative_test.sj",
               "algebraic_transformations_test.sj",

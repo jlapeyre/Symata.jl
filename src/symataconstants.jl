@@ -1,4 +1,4 @@
-const SYMATA_VERSION = v"0.0.19-dev.007"
+const SYMATA_VERSION = v"0.0.19-dev.008"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)

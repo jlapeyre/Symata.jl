@@ -110,22 +110,26 @@ function latex_display(x)
     MyLaTeXString("\$\$ " * latex_string(x) *  " \$\$")
 end
 
-@mkapprule Latex :nargs => 1
-
-@sjdoc Latex "
-Latex(expr)
-
-convert `expr` to a Latex string.
-"
-
-@doap function Latex(x)
-    latex_string(x)
-end
-
 # show will print this correctly
 latex_display(mx::Mxpr{:FullForm}) = mx
 
-# TODO: below we should use takebuf_string(buf) for efficiency rather
+#### LaTeXString
+
+@mkapprule LaTeXString :nargs => 1
+
+@sjdoc LaTeXString "
+LaTeXString(expr)
+
+convert `expr` to a LaTeX string. This is the same string used for display
+in the Jupyter notebook. Conversion to LaTeX strings optimized for
+mathematical texts is not implemented.
+"
+
+@doap function LaTeXString(x)
+    latex_string(x)
+end
+
+# TODO: an all cases we should use takebuf_string(buf) for efficiency rather
 # than s *= "new text". Some functions below already use takebuf_string
 
 latex_string(x) = string(x)

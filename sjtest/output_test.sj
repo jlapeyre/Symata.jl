@@ -7,6 +7,11 @@ T ToString( (a+b)*x ) == "(a + b)*x"
 T ToString( -2 * a) == "-2a"
 T ToString( -2a) == "-2a"
 T ToString( -1 * a) == "-a"
+T ToString(a - b) == "a - b"
+T ToString(a + -3 * b) == "a - 3b"
+
+T ToExpression(ToString(Expand((a-b)^5))) == Expand((a-b)^5)
+
 T ToString( -I ) == "-I"
 T ToString(-1 * I) == "-I"
 T ToString(-2 * I) == "-2I"
