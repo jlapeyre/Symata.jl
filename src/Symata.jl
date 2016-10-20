@@ -4,6 +4,7 @@ module Symata
 
 using Compat  # only used in code copied from REPL_symata.jl
 import Compat.String
+import Compat.view
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 

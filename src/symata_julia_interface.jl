@@ -191,7 +191,8 @@ function freesyms(x)
 end
 
 function freesyms(ex::Expr, syms)
-    a = ex.head == :call ?  @view((ex.args)[2:end]) : ex.args
+#    a = ex.head == :call ?  @view((ex.args)[2:end]) : ex.args
+    a = ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args    
     foreach( x -> freesyms(x,syms), a)
 end
 
