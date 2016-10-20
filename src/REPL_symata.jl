@@ -34,16 +34,23 @@ function symata_respond(f, repl, main; pass_empty = false)
             val, bt = send_to_backend(f(line), backend(repl))
             if !ends_with_semicolon(line) || bt !== nothing
                 wval = wrapout(val)
-                REPL.print_response(repl, wval, bt, true, Base.have_color)                                
+                REPL.print_response(repl, wval, bt, true, Base.have_color)
+
+                # The following works more-or-less for ascii-art math. But, the LaTeX needs tweaking for this.
+                # tex2mail interprets a negative thin space as several positive spaces
+                # lstr = latex_string(wval)
+                # str = readstring(pipeline(`echo $lstr`, `/home/lapeyre/.julia/v0.5/Nemo/local/bin/tex2mail --ignorefonts`))
+                # print("\n\n", str)
+
             end
         end
         prepare_next(repl)
         reset_state(s)
         s.current_mode.sticky || transition(s, main)
     end
-end      
+end
 
-# This code is untested
+# This code only works in a dumb terminal. Also maybe when running tests ?
 function symata_print_response(repl::AbstractREPL, val::Any, args...)
     newval = wrapout(val)
     REPL.print_response(repl, newval, args...)

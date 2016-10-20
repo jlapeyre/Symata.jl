@@ -158,9 +158,12 @@ function latex_string_mathop(ins)
     latex_text(s)
 end
 
+# ipython inserts a space that we don't want, so we use  \!
+# tex2mail also inserts spurious spaces, but prints \! as more spaces
 function latex_string_prefix_function(mx::Mxpr)
     buf = IOBuffer()
-    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) * " \\! ")  # ipython inserts a space that we don't want
+    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) * " \\! ")
+#    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) )  # ipython inserts a space that we don't want
     args = margs(mx)
     print(buf, mhead(mx) == getsym(:List) ? LISTL : llparen)
     wantparens = mhead(mx) == :List ? false : true
