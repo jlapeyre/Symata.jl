@@ -102,8 +102,8 @@ const symbol_to_latex_table = Dict(
                                    )
 
 
-function latex_symbol(s::Symbol)
-    haskey(symbol_to_latex_table, s) ? symbol_to_latex_table[s] : latex_string(s)
+function latex_symbol(opt, s::Symbol)
+    haskey(symbol_to_latex_table, s) ? symbol_to_latex_table[s] : latex_string(opt, s)
 end
 
 # opt is meant to pass options. It is unused at the moment.
@@ -401,7 +401,7 @@ function latex_string_binary(opt, mx::Mxpr)
         else
             s *= latex_string(opt, lop)
         end
-        s *= latex_symbol(opstr)
+        s *= latex_symbol(opt, opstr)
         rop = mx[2]
         if  latex_needsparen(rop)
             s *= llparen * latex_string(opt, rop) * lrparen
