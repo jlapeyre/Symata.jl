@@ -149,6 +149,14 @@ T a[3] == 1 + d^2
 
 ClearAll(a,d,i)
 
+#### Map
+
+a = :( [1,2,3] )
+f = :( x -> x^2 )
+T Map(f,a) == [1,4,9]
+
+ClearAll(a,f)
+
 #### Nothing
 
 T Nothing() == Nothing

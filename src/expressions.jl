@@ -80,6 +80,12 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 @doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
 @doap Head(ex) = typeof(ex)
 
+# Unclear what to do here.
+# typeof( (x) -> x) in
+# Julia v0.4 : Function
+# Julia v0.5 and later : a hash key or something
+@doap Head{T<:Function}(f::T) = :Function
+
 #### ReleaseHold
 
 #typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
@@ -170,6 +176,16 @@ function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
     end
     mxpr(mhead(expr),nargs)
 end
+
+# Should we return an Array or a List ? We choose List now.
+function do_Map(mx::Mxpr{:Map},f::Function, a::AbstractArray)
+    nargs = newargs(length(a))
+    @inbounds for i in 1:length(a)
+        nargs[i] = f(a[i])
+    end
+    mxpr(:List,nargs)
+end
+
 
 # We create one Mxpr outside the loop. Old
 # code (commented out) created Mxpr every time.
