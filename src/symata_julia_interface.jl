@@ -152,3 +152,95 @@ function do_pack(T,sjobj)
     end
     return args
 end
+
+#### Translate Symata to Julia
+# This stuff is partly implemented, but some of it works pretty well
+
+# Wrap Expr to prevent Symata from evaluating it.
+
+mxpr_to_expr(x) = x
+
+function mxpr_to_expr(s::Symbol)
+    Symbol(lowercase(string(s)))
+end
+
+function mxpr_to_expr(mx::Mxpr)
+    h = mtojsym(mhead(mx))
+    head = Symbol(lowercase(string(h)))
+    if length(mx) == 0
+        return :(  $(head)() )
+    end
+    a = margs(mx)
+    a1 = mxpr_to_expr(a[1])
+    ex = :( $(head)($(a1)) )
+    if length(mx) == 1
+        return ex
+    end
+    for i in 2:length(a)
+        push!(ex.args, mxpr_to_expr(a[i]))
+    end
+    ex
+end
+
+#### Compile
+
+function freesyms(x)
+    syms = Dict()
+    freesyms(x,syms)
+    sort(collect(keys(syms)))
+end
+
+function freesyms(ex::Expr, syms)
+    a = ex.head == :call ?  @view((ex.args)[2:end]) : ex.args
+    foreach( x -> freesyms(x,syms), a)
+end
+
+freesyms(s::Symbol, syms) = (if ! isdefined(s) syms[s] = 1 end)
+
+freesyms(x,syms) = nothing
+
+@mkapprule Compile
+
+@sjdoc Compile "
+f = Compile(expr)
+
+convert `expr` to a compiled function.
+
+f = Compile( [x,y,...], expr) 
+
+create an anonymous Julia function `(x,y,...) -> expr` from Symata expression `expr` and binds
+the result to f. The translation of `expr` to Julia is crude, but works in many cases.
+
+symata> f = Compile(x^2 + y^2)
+symata> f(3,4)
+        25
+
+Since compile is under development, it simply lowercases symbols. So the Symata function ArcSin, will not work. You have
+to use a Julia symbol `asin` or `ASin`. For instance,
+
+ ReplaceAll(expr,  ArcSin => asin )
+
+Symbols that do *not* need to be translated this was include `Cos`, `E`, `Exp`, `Pi`, `EulerGamma`.
+
+Compile works by creating an anonymous Julia function from the Symata expression `expr`. The function
+signature is the sorted list of free symbols found in `expr`. free symbols are all symbols found excluding
+function names in the translated expression and symbols that are bound in the Symata module scope. This
+excludes `e` for instance.
+"
+
+@doap Compile(a::Mxpr{:List}, body ) = eval(Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
+
+@doap function Compile(body)
+    jbody = mxpr_to_expr(body)
+    eval(Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
+end
+
+####  ToJulia
+
+type Jexpr
+    ex::Expr
+end
+
+@mkapprule ToJulia
+
+@doap ToJulia(x) = Jexpr(mxpr_to_expr(x))

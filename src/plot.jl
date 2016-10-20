@@ -23,11 +23,17 @@ Plot( :( sin ) , Table(Pi * RandomReal(), [100]), color => red)
 
 Plot using a `Julia` function.
 
+Plot( Compile( Exp(-x) * x^(1/2) ) , Range(0.0,5.0,.01) )
+
+Plot a compiled Symata expression. Plotting Symata expressions directly is not yet supported.
+
 Other examples.
 
 Plot([1,2,3])
 
 Plot([1,2,3], [3,1,2])
+
+
 
 Only a part of the functionality of `Plot.jl` is implemented.
 "

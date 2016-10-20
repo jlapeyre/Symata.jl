@@ -17,6 +17,7 @@ T :( eltype(Symata.symval(:a)) == Any )
 T JVar(b) == 1
 
 T Length(Unpack( :( [1, 2, 3] ))) == 3
+T Head(Unpack( :( [1, 2, 3] ))) == List
 
 ClearAll(a)
 
