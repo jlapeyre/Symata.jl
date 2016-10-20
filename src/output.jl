@@ -117,6 +117,9 @@ end
 wrapout{T<:Integer}(x::Complex{Rational{T}}) = WOComplexRational(x)
 Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
 
+needsparen(x::WORational) = true
+needsparen(x::WOComplexRational) = true
+
 # This breaks printing
 #Base.string{T<:AbstractWO}(y::T) = string(y.x)
 

@@ -3,6 +3,8 @@
 T testUserSyms
  savestate = CompactOutput(True)
 
+T ToString((-27/64)^(2/3)) == "(9/16)*((-1)^(2/3))"
+
 T ToString( (a+b)*x ) == "(a + b)*x"
 T ToString( -2 * a) == "-2a"
 T ToString( -2a) == "-2a"

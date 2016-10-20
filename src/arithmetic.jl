@@ -110,10 +110,10 @@ function mpow_test_for_integer_factors(facs)
 end
 
 
-# Find if this is not called and remove it. Otherwise, get rid of it.
+# This expression will call here:  (-27/64)^(2/3) == 9/16*((-1)^(2/3))
 function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
     # This is actually called by Norm([1,I/2])
-    warn("arithmetic.jl: Calling useless mpow")
+    #  warn("arithmetic.jl: Calling useless mpow")
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 end
 
