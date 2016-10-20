@@ -32,7 +32,39 @@ T MatchQ( 1.0, _Integer) == false
 T MatchQ( "zebra", _AbstractString) == true
 T MatchQ( 1.0, _AbstractString) == false
 
+p = _:?(:( x ->  -1 < x < 1 ))
+
+T MatchQ(0,p)
+T MatchQ(.5,p)
+T MatchQ(-1/2,p)
+T Not(MatchQ(-1,p))
+
+ClearAll(p)
+
 Clear(a,b,gg,xx)
+
+
+pi = MatchQ(x_Integer:?(Positive))
+
+T pi(1)
+T pi(10)
+T Not(pi(0))
+T Not(pi(0.1))
+T Not(pi(1/2))
+T Not(pi(I))
+T Not(pi("cat"))
+T Not(pi(a))
+T Not(pi(-1))
+
+ClearAll(pi,a)
+
+m = MatchQ(Condition([x_, y_], x < y))
+
+T m([1,2])
+T Not(m([2,1]))
+T Not(m(a))
+
+ClearAll(m,x,y)
 
 a = 1
 
