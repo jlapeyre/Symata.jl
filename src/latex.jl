@@ -106,6 +106,7 @@ function latex_symbol(s::Symbol)
     haskey(symbol_to_latex_table, s) ? symbol_to_latex_table[s] : latex_string(s)
 end
 
+# opt is meant to pass options. It is unused at the moment.
 function latex_display(x)
     opt = nothing
     MyLaTeXString("\$\$ " * latex_string(opt,x) *  " \$\$")
@@ -388,7 +389,7 @@ function latex_string(opt, mx::Mxpr{:Comparison})
     join([latex_string(opt, outsym(x)) for x in margs(mx)], " \\, " )
 end
 
-function latex_string_binary(mx::Mxpr)
+function latex_string_binary(opt, mx::Mxpr)
     if length(mx) != 2
         return latex_string_prefix_function(opt, mx)
     else

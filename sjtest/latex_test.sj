@@ -3,6 +3,7 @@ T LaTeXString(1/2) == "\\frac{1}{2}"
 T LaTeXString(I) == "\\mathbb{i}"
 T LaTeXString(I+1.0) == "1.0 + 1.0\\mathbb{i}"
 T LaTeXString(Cos(x)) == "\\text{Cos} \\!  \\left( x \\right) "
+T LaTeXString(a => b) == "a \\Rightarrow b"
 
 T LaTeXString(x/y) == "\\frac{x}{y}"
 T LaTeXString((a+b)/(c+d)) == "\\frac{a + b}{c + d}"
