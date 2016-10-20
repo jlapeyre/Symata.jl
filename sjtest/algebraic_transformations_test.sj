@@ -30,6 +30,8 @@ T Collect( a*D(f(x),x) + b*D(f(x),x), D(f(x),x))  == (D(f(x),x))*(a + b)
 
 #### Common subexpression
 
+# FIXME: the replacements should be a list of rules, in reverse order. Then Fold(newexpr, rules) returns the original expression.
+
 T Cse(Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4)) == [[[x0,Sin(x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
 T Cse(Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y))) == [[[x0,Cos(y) + Sin(1 + x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
 T Cse((x-y)*(z-y) + Sqrt((x-y)*(z-y))) == [[[x0,-y],[x1,(x + x0)*(x0 + z)]],[x1 + x1^(1/2)]]

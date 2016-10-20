@@ -47,12 +47,8 @@ T (I + 1)^(-2) ==  -1/2 * I
 T (I + 1)^(-3) ==  -1/4 - 1/4 * I
 T (I + 2)^(-3) == 2/125 - 11/125 * I
 
-
+# fixed 98e02317aee46e7eceaac47d98c4401ef23682f0
 T (-27/64)^(2/3) == 9/16*((-1)^(2/3))
-
-# the result printed incorrectly: 9/16*((-1)^2/3)
-# We fixed this. But, we still got a comparison error:
-# FIXME: we get a comparison error if we use the incorrectly printed value
 
 # fixes a bug.
 T Head((a*b)^(1/2)) == Power
