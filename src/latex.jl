@@ -107,7 +107,8 @@ function latex_symbol(s::Symbol)
 end
 
 function latex_display(x)
-    MyLaTeXString("\$\$ " * latex_string(x) *  " \$\$")
+    opt = nothing
+    MyLaTeXString("\$\$ " * latex_string(opt,x) *  " \$\$")
 end
 
 # show will print this correctly
@@ -126,28 +127,29 @@ mathematical texts is not implemented.
 "
 
 @doap function LaTeXString(x)
-    latex_string(x)
+    opt = nothing
+    latex_string(opt,x)
 end
 
 # TODO: an all cases we should use takebuf_string(buf) for efficiency rather
 # than s *= "new text". Some functions below already use takebuf_string
 
-latex_string(x) = string(x)
+latex_string(opt, x) = string(x)
 
-latex_string(s::String) =  latex_text("\"" * s * "\"")
+latex_string(opt, s::String) =  latex_text("\"" * s * "\"")
 
-function latex_string(s::Mxpr)
+function latex_string(opt, s::Mxpr)
     if getoptype(mhead(s)) == :binary
-        return latex_string_binary(s)
+        return latex_string_binary(opt, s)
     elseif getoptype(mhead(s)) == :infix
-        return latex_string_infix(s)
+        return latex_string_infix(opt, s)
     end
-    latex_string_prefix_function(s)
+    latex_string_prefix_function(opt, s)
 end
 
 # This will not be called if FullForm is the toplevel expression.
 # Here, FullForm will be converted to a string, as in Plain style and then wrapped in math mode text macro.
-latex_string(mx::Mxpr{:FullForm}) = latex_text(mx)
+latex_string(opt, mx::Mxpr{:FullForm}) = latex_text(mx)
 
 latex_text(s) =  "\\text{" * string(s)  * "}"
 
@@ -160,10 +162,10 @@ end
 
 # ipython inserts a space that we don't want, so we use  \!
 # tex2mail also inserts spurious spaces, but prints \! as more spaces
-function latex_string_prefix_function(mx::Mxpr)
+function latex_string_prefix_function(opt, mx::Mxpr)
     buf = IOBuffer()
-    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) * " \\! ")
-#    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(mhead(mx)) )  # ipython inserts a space that we don't want
+    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(opt, mhead(mx)) * " \\! ")
+#    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(opt, mhead(mx)) )  # ipython inserts a space that we don't want
     args = margs(mx)
     print(buf, mhead(mx) == getsym(:List) ? LISTL : llparen)
     wantparens = mhead(mx) == :List ? false : true
@@ -171,41 +173,41 @@ function latex_string_prefix_function(mx::Mxpr)
         if latex_needsparen(args[i]) && wantparens
            print(buf, llparen)
         end
-        print(buf, latex_string(args[i]))
+        print(buf, latex_string(opt, args[i]))
         if latex_needsparen(args[i]) && wantparens
             print(buf, lrparen)
         end
         print(buf, ",")
     end
-    if  ! isempty(args) print(buf, latex_string(args[end])) end
+    if  ! isempty(args) print(buf, latex_string(opt, args[end])) end
     print(buf, mx.head == getsym(:List) ? LISTR : lrparen)
     takebuf_string(buf)
 end
 
 
-function latex_string(mx::Mxpr{:Plus})
+function latex_string(opt, mx::Mxpr{:Plus})
     terms = margs(mx) # why does terms(mx) not work ?
     if length(terms) < 1
         error("show: can't display Plus with no terms.")
     end
-    s = latex_string(terms[1])
+    s = latex_string(opt, terms[1])
     for i in 2:length(terms)
         if is_type(terms[i],Mxpr{:Minus})
-            s *=  " - " * latex_string((terms[i]).terms[1])
+            s *=  " - " * latex_string(opt, (terms[i]).terms[1])
         # following is slightly broken. Fix it later
         # elseif  is_Mxpr(terms[i], :Times) && typeof(terms[i][1])  <:Union{AbstractFloat,Integer} && terms[i][1] < 0
-        #     s *= latex_string(terms[i], true)
+        #     s *= latex_string(opt, terms[i], true)
         else
-            s *= " + " * latex_string(terms[i])
+            s *= " + " * latex_string(opt, terms[i])
         end
     end
     s
 end
 
-function latex_string(mx::Mxpr{:Power})
+function latex_string(opt, mx::Mxpr{:Power})
     buf = IOBuffer()
-    latex_needsparen(mx) ? print(buf, llparen, latex_string(base(mx)), lrparen) : print(buf,latex_string(base(mx)))
-    print(buf, "^{" * latex_string(exponent(mx)) * "}")
+    latex_needsparen(mx) ? print(buf, llparen, latex_string(opt, base(mx)), lrparen) : print(buf,latex_string(opt, base(mx)))
+    print(buf, "^{" * latex_string(opt, exponent(mx)) * "}")
     takebuf_string(buf)
 end
 
@@ -247,88 +249,88 @@ function get_nums_dens(other, negpows, rationals)
     (nums,dens)
 end
 
-function latex_string_factor(buf::IOBuffer, x, nfacs)
-    latex_needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(x), lrparen) : print(buf, latex_string(x))
+function latex_string_factor(opt, buf::IOBuffer, x, nfacs)
+    latex_needsparen(x) && nfacs > 1 ? print(buf, llparen, latex_string(opt, x), lrparen) : print(buf, latex_string(opt, x))
 end
 
 # spaceminus is passed around, but does not yet do anything.
 # Needs to be fixed and implemented.
-minus_or_factor(buf, x, nfacs) = minus_or_factor(buf, x, nfacs, false)
-function minus_or_factor(buf, x, nfacs, spaceminus::Bool)
+minus_or_factor(opt, buf, x, nfacs) = minus_or_factor(opt, buf, x, nfacs, false)
+function minus_or_factor(opt, buf, x, nfacs, spaceminus::Bool)
     if x == -1
 #        print(buf, spaceminus ? " - " : "-")  # maybe don't even need this
         print(buf, "-")
     else
-        latex_string_factor(buf,x, nfacs)  # check for minus space here ?
+        latex_string_factor(opt, buf,x, nfacs)  # check for minus space here ?
     end
 end
 
-latex_string_factors(buf,facs) = latex_string_factors(buf,facs,false)
-function latex_string_factors(buf,facs,  spaceminus)
-    minus_or_factor(buf, facs[1], length(facs), spaceminus)
+latex_string_factors(opt, buf,facs) = latex_string_factors(opt, buf,facs,false)
+function latex_string_factors(opt, buf,facs,  spaceminus)
+    minus_or_factor(opt, buf, facs[1], length(facs), spaceminus)
     if length(facs) > 1  print(buf, " \\ ") end  # always will be
     if length(facs) > 2
         for i in 2:length(facs)-1
-            minus_or_factor(buf, facs[i], length(facs))
+            minus_or_factor(opt, buf, facs[i], length(facs))
             print(buf, " \\ ")
         end
     end
-    if length(facs) > 1  minus_or_factor(buf, facs[end], length(facs)) end
+    if length(facs) > 1  minus_or_factor(opt, buf, facs[end], length(facs)) end
 end
 
 # LaTeX does not put spaces between factors. But, Symata has multicharacter symbols, so we need spaces to distinguish them
-latex_string(mx::Mxpr{:Times})  = latex_string(mx, false)
-function latex_string(mx::Mxpr{:Times}, spaceminus::Bool)
+latex_string(opt, mx::Mxpr{:Times})  = latex_string(opt, mx, false)
+function latex_string(opt, mx::Mxpr{:Times}, spaceminus::Bool)
     (other, negpows, rationals) = separate_negative_powers(factors(mx))
     buf = IOBuffer()
     if ( isempty(negpows) && isempty(rationals) )
-        latex_string_factors(buf, factors(mx), spaceminus)
+        latex_string_factors(opt, buf, factors(mx), spaceminus)
     else
         (nums,dens) = get_nums_dens(other,negpows, rationals)
         print(buf,"\\frac{")
-        latex_string_factors(buf,nums)
+        latex_string_factors(opt, buf,nums)
         print(buf,  "}{")
-        latex_string_factors(buf,dens)
+        latex_string_factors(opt, buf,dens)
         print(buf,"}")
     end
     takebuf_string(buf)
 end
 
-function latex_string(x::WORational)
+function latex_string(opt, x::WORational)
     r = x.x
-    latex_string(r)
+    latex_string(opt, r)
 end
 
-function latex_string{T<:Real}(z::Rational{T})
-    "\\frac{" * latex_string(num(z)) * "}{" * latex_string(den(z)) * "}"
+function latex_string{T<:Real}(opt, z::Rational{T})
+    "\\frac{" * latex_string(opt, num(z)) * "}{" * latex_string(opt, den(z)) * "}"
 end
 
-function latex_string(x::WOComplexRational)
+function latex_string(opt, x::WOComplexRational)
     z = x.x
     s = ""
     if real(z) != 0
-        s *= latex_string(real(z)) * " + "
+        s *= latex_string(opt, real(z)) * " + "
     end
     if imag(z) == 1
         s *= Ilatexstring()
     else
-        s *=   latex_string(imag(z)) *  " \\ " * Ilatexstring()
+        s *=   latex_string(opt, imag(z)) *  " \\ " * Ilatexstring()
     end
     s
 end
 
 # We display real part if it is 0.0
-function latex_string(x::WOComplexReal)
+function latex_string(opt, x::WOComplexReal)
     z = x.x
-    latex_string(real(z)) * " + " * latex_string(imag(z)) * Ilatexstring()
+    latex_string(opt, real(z)) * " + " * latex_string(opt, imag(z)) * Ilatexstring()
 end
 
 # Do not display real part if it is 0
-function latex_string(x::WOComplexInteger)
+function latex_string(opt, x::WOComplexInteger)
     z = x.x
     s = ""
     if real(z) != 0
-        s *= latex_string(real(z)) * " + "
+        s *= latex_string(opt, real(z)) * " + "
     end
     if imag(z) == 1
         s *= Ilatexstring()
@@ -337,14 +339,14 @@ function latex_string(x::WOComplexInteger)
         if iz == -1
             s *= "-"
         else
-            s *= latex_string(iz)
+            s *= latex_string(opt, iz)
         end
         s *= Ilatexstring()
     end
     s
 end
 
-function  latex_string(mx::Mxpr{:DirectedInfinity})
+function  latex_string(opt, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 0
         latex_string_mathop(:ComplexInfinity)
     elseif mx[1] == 1
@@ -352,58 +354,58 @@ function  latex_string(mx::Mxpr{:DirectedInfinity})
     elseif mx[1] == -1
         "-" * Infinitylatexstring()
     else
-        latex_string_mathop(:DirectedInfinity) * llparen * latex_string(mx[1]) * lrparen
+        latex_string_mathop(:DirectedInfinity) * llparen * latex_string(opt, mx[1]) * lrparen
     end
 end
 
-function latex_string(mx::Mxpr{:Subscript})
-    latex_string(mx[1]) * "_{" *
-    join([latex_string(mx[i]) for i in 2:length(mx)], ",") *
+function latex_string(opt, mx::Mxpr{:Subscript})
+    latex_string(opt, mx[1]) * "_{" *
+    join([latex_string(opt, mx[i]) for i in 2:length(mx)], ",") *
     "}"
 end
 
-latex_string(s::SSJSym) = latex_string(symname(s))
+latex_string(opt, s::SSJSym) = latex_string(opt, symname(s))
 
-function latex_string(s::WOSymbol)
-    latex_string(s.x)
+function latex_string(opt, s::WOSymbol)
+    latex_string(opt, s.x)
 end
 
-function latex_string(s::Symbol)
+function latex_string(opt, s::Symbol)
     ms = mtojsym(s)
     haskey(symbol_to_latex_table, ms) ? symbol_to_latex_table[ms] : latex_string_mathop(ms)
 #    latex_string_mathop(mtojsym(s))
 end
 
-function latex_string(v::WOBool)
+function latex_string(opt, v::WOBool)
     v.x ? latex_text(:True) : latex_text(:False)
 end
 
-function latex_string(t::DataType)
+function latex_string(opt, t::DataType)
     latex_text(t)
 end
 
-function latex_string(mx::Mxpr{:Comparison})
-    join([latex_string(outsym(x)) for x in margs(mx)], " \\, " )
+function latex_string(opt, mx::Mxpr{:Comparison})
+    join([latex_string(opt, outsym(x)) for x in margs(mx)], " \\, " )
 end
 
 function latex_string_binary(mx::Mxpr)
     if length(mx) != 2
-        return latex_string_prefix_function(mx)
+        return latex_string_prefix_function(opt, mx)
     else
         s = ""
         opstr = outsym(mhead(mx))
         lop = mx[1]
         if latex_needsparen(lop)
-            s *= llparen * latex_string(lop) * lrparen
+            s *= llparen * latex_string(opt, lop) * lrparen
         else
-            s *= latex_string(lop)
+            s *= latex_string(opt, lop)
         end
         s *= latex_symbol(opstr)
         rop = mx[2]
         if  latex_needsparen(rop)
-            s *= llparen * latex_string(rop) * lrparen
+            s *= llparen * latex_string(opt, rop) * lrparen
         else
-            s *= latex_string(rop)
+            s *= latex_string(opt, rop)
         end
     end
     s
@@ -411,8 +413,8 @@ end
 
 
 # Times is handled above. This needs to be cleaned up.
-latex_string_infix(s) = s
-function latex_string_infix(mx::Mxpr)
+latex_string_infix(opt, s) = s
+function latex_string_infix(opt, mx::Mxpr)
     args = margs(mx)
     np = false
     sepsym = mtojsym(mhead(mx))
@@ -425,11 +427,11 @@ function latex_string_infix(mx::Mxpr)
         else
             np = false
         end
-        s *= latex_string(arg)
+        s *= latex_string(opt, arg)
         if np
             s *= lrparen
         end
-        s *= latex_string(sepsym)
+        s *= latex_string(opt, sepsym)
     end
     if ! isempty(args)
         if latex_needsparen(args[end])
@@ -438,7 +440,7 @@ function latex_string_infix(mx::Mxpr)
         else
             np = false
         end
-        s *= latex_string(args[end])
+        s *= latex_string(opt, args[end])
         if np
             s *= lrparen
         end
@@ -447,109 +449,109 @@ function latex_string_infix(mx::Mxpr)
 end
 
 
-function latex_string(mx::Mxpr{:Blank})
+function latex_string(opt, mx::Mxpr{:Blank})
     s = latex_text("_")
     if length(mx) > 0
-        s *= latex_string(mx[1])
+        s *= latex_string(opt, mx[1])
     end
     s
 end
 
-function latex_string(mx::Mxpr{:BlankSequence})
+function latex_string(opt, mx::Mxpr{:BlankSequence})
     s = latex_text("__")
     if length(mx) > 0
-        s *= latex_string(mx[1])
+        s *= latex_string(opt, mx[1])
     end
     s
 end
 
-function latex_string(mx::Mxpr{:BlankNullSequence})
+function latex_string(opt, mx::Mxpr{:BlankNullSequence})
     s = latex_text("___")
     if length(mx) > 0
-        s *= latex_string(mx[1])
+        s *= latex_string(opt, mx[1])
     end
     s
 end
 
-function latex_string(mx::Mxpr{:Pattern})
-    s = latex_string(mx[1])
+function latex_string(opt, mx::Mxpr{:Pattern})
+    s = latex_string(opt, mx[1])
     if is_Mxpr(mx[2],:Blank)
-        s *= latex_string(mx[2])
+        s *= latex_string(opt, mx[2])
     else
-        s *= " \\text{::}(" * latex_string(mx[2]) * ")"
+        s *= " \\text{::}(" * latex_string(opt, mx[2]) * ")"
     end
     s
 end
 
-function latex_string(qs::Qsym)
+function latex_string(opt, qs::Qsym)
     s = ""
     if qs.context != CurrentContext.name
-        s *= latex_string(qs.context) * "."
+        s *= latex_string(opt, qs.context) * "."
     end
-    s *= latex_string(qs.name)
+    s *= latex_string(opt, qs.name)
 end
 
 # For Holdform, arguments are not evaluated, as in Hold.
 # But, in addition, Holdform is not printed.
-latex_string(mx::Mxpr{:HoldForm}) = latex_string(mx[1])
+latex_string(opt, mx::Mxpr{:HoldForm}) = latex_string(opt, mx[1])
 
 
-function integral_limits_string(varrange)
+function integral_limits_string(opt, varrange)
     if length(varrange) == 3
-        return "\\int_{" * latex_string(varrange[2]) * "}^{" * latex_string(varrange[3]) * "}"
+        return "\\int_{" * latex_string(opt, varrange[2]) * "}^{" * latex_string(opt, varrange[3]) * "}"
     else
         return "\\int "
     end
 end
 
-function infinitessimal_string(varrange)
-    return " \\mathbb{d}" * latex_string(varrange[1])
+function infinitessimal_string(opt, varrange)
+    return " \\mathbb{d}" * latex_string(opt, varrange[1])
 end
 
-function latex_string(mx::Mxpr{:Integrate})
+function latex_string(opt, mx::Mxpr{:Integrate})
     buf = IOBuffer()
-    integrand = latex_string(mx[1])
+    integrand = latex_string(opt, mx[1])
     if length(mx) == 2  # single integration
         varrange = mx[2]
-        print(buf, integral_limits_string(varrange))
-        print(buf, integrand * " \\, " * infinitessimal_string(varrange))
+        print(buf, integral_limits_string(opt, varrange))
+        print(buf, integrand * " \\, " * infinitessimal_string(opt, varrange))
     else
         for i in 2:length(mx)
             varrange = mx[i]
-            print(buf, integral_limits_string(varrange))
-            print(buf, " " * infinitessimal_string(varrange))
+            print(buf, integral_limits_string(opt, varrange))
+            print(buf, " " * infinitessimal_string(opt, varrange))
         end
         print(buf, " \\, " * integrand)
     end
     return takebuf_string(buf)
 end
 
-function sum_limits_string(varrange)
+function sum_limits_string(opt, varrange)
     if length(varrange) == 3
-        return "\\sum_{" * latex_string(varrange[1]) * "=" * latex_string(varrange[2]) * "}^{" * latex_string(varrange[3]) * "}"
+        return "\\sum_{" * latex_string(opt, varrange[1]) * "=" * latex_string(opt, varrange[2]) * "}^{" * latex_string(opt, varrange[3]) * "}"
     else
         return "\\sum " # This probably should not happen
     end
 end
 
-function latex_string(mx::Mxpr{:Sum})
+function latex_string(opt, mx::Mxpr{:Sum})
     buf = IOBuffer()
-    summand = latex_string(mx[1])
+    summand = latex_string(opt, mx[1])
     if length(mx) == 2  # single summation
         varrange = mx[2]
-        print(buf, sum_limits_string(varrange))
+        print(buf, sum_limits_string(opt, varrange))
         print(buf, summand)
         return takebuf_string(buf)
     else
         args = margs(mx)
         sargs = args[2:end]
         print(buf, " \\sum ")
-        print(buf, "_{\\substack{" * join([ latex_string(v[1]) * "=" * latex_string(v[2]) for v in sargs], " \\\\ ") * "}}")
+        print(buf, "_{\\substack{" * join([ latex_string(opt, v[1]) * "=" * latex_string(opt, v[2]) for v in sargs], " \\\\ ") * "}}")
         ul = sargs[1][3]
         if all( x -> x[3] == ul , sargs)
-            print(buf, "^{" * latex_string(sargs[1][3]) * "}")   # only display one upper limit if they are all the same
+            print(buf, "^{" * latex_string(opt, sargs[1][3]) * "}")   # only display one upper limit if they are all the same
         else
-            print(buf, "^{" * join([latex_string(v[3]) for v in sargs], ",") * "}")
+            print(buf, "^{" * join([latex_string(opt, v[3]) for v in sargs], ",") * "}")
         end
         print(buf, summand)
         return takebuf_string(buf)

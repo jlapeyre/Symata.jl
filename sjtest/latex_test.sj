@@ -1,4 +1,5 @@
 T LaTeXString(x) == "x"
+T LaTeXString(1/2) == "\\frac{1}{2}"
 T LaTeXString(x/y) == "\\frac{x}{y}"
 T LaTeXString((a+b)/(c+d)) == "\\frac{a + b}{c + d}"
 T LaTeXString(x*(a+b)/(c+d)) == "\\frac{ \\left( a + b \\right)  \\ x}{c + d}"
