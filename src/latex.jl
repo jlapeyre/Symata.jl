@@ -128,7 +128,7 @@ mathematical texts is not implemented.
 
 @doap function LaTeXString(x)
     opt = nothing
-    latex_string(opt,x)
+    latex_string(opt,wrapout(x))
 end
 
 # TODO: an all cases we should use takebuf_string(buf) for efficiency rather
