@@ -55,6 +55,16 @@ T f([a,b,c],z,[d,e,f]) == [f(a,z,d),f(b,z,e),f(c,z,f)]
 T f(y,[a,b,c],z,[d,e,f]) == [f(y,a,z,d),f(y,b,z,e),f(y,c,z,f)]
  ClearAll(f,a,b,c,d,e,f,g,x,y,z,res)
 
+#### HoldAll
+
+f(x_) := Hold(x)
+T f(2^2) == Hold(4)
+SetAttributes(f, HoldAll)
+T f(2^2) == Hold(2^2)
+
+ClearAll(f,x)
+
+
 #### NHoldFirst
 
 SetAttributes(f,NHoldFirst)
