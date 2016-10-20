@@ -41,17 +41,21 @@ const JTOMSYM  =
       :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
 #      :(:) => :Span, # this is done specially in extomx. colon means various things
       :(&=) => :UpSetDelayed,  # This is available, at least. Not sure we want to take it.
-      :vcat => :List,
-      :vect => :List,
-      :ref => :Part,
-      :cell1d => :List,   # curly brackets, but deprecated by julia
-      :comparison => :Comparison,
       :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
       :! => :Not,
       :&& => :And,
       :|| => :Or,
       :| => :Alternatives   # Not implemented well, if at all
 )
+
+const JTOMSYM_ONEWAY  =
+    Dict(
+      :vcat => :List,
+      :vect => :List,
+      :ref => :Part,
+      :cell1d => :List,   # curly brackets, but deprecated by julia
+      :comparison => :Comparison,
+         )
 
 # FIXME  NB Alternatives: This is nary, but not Flat. So we need to parse
 # a | b | c as Alternatives(a,b,c) rather than nested Alternatives as we do now.
@@ -82,6 +86,7 @@ for (k,v) in JTOMSYM  MTOJSYM[v] = k end
 
 # Finally, add the unicode symbols to the input translation table.
 merge!(JTOMSYM, unicode_translation)
+merge!(JTOMSYM, JTOMSYM_ONEWAY)
 
 # This is only used for output. (Can't we detect it with the others on input ?)
 MTOJSYM[:Span] = :(:)
