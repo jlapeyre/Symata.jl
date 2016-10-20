@@ -170,6 +170,13 @@ NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Juli
 @doap ListQ(x::Mxpr{:List}) = true
 @doap ListQ(x) = false
 
+#### Positive
+@mkapprule Positive :nargs => 1
+@doap Positive(x::Real) = x > 0
+@doap Positive(x::Number) = false
+@doap Positive(x::String) = nothing
+
+
 #### PermuationQ
 
 @mkapprule PermutationQ :nargs => 1

@@ -31,6 +31,13 @@ T AtomQ(Pi)
 
 ClearAll(a,b)
 
+T Positive(1)
+T Positive(1/3)
+T Not(Positive(-1))
+T Not(Positive(I))
+T Positive("cat") == Null
+T Head(Positive(a)) == Positive
+
 T VectorQ(a) == False
 T VectorQ([a,b,c])
 T VectorQ([a,b,[c]]) == False
