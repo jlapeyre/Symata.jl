@@ -50,6 +50,9 @@ T (I + 2)^(-3) == 2/125 - 11/125 * I
 # fixed 98e02317aee46e7eceaac47d98c4401ef23682f0
 T (-27/64)^(2/3) == 9/16*((-1)^(2/3))
 
+# FIXME: raises an error
+# (9/16)*((-1)^(2/3)) == 3/16
+
 # fixes a bug.
 T Head((a*b)^(1/2)) == Power
 
