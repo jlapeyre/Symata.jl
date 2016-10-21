@@ -21,3 +21,12 @@ T Head(Unpack( :( [1, 2, 3] ))) == List
 
 ClearAll(a)
 
+# We are in Test module or something ?
+T :( Symata.Cos )(1) == Cos(1)
+T :( Symata.Cos )(1.0) == Cos(1.0)
+T :( Symata.Cos )(1.0) == :( cos(1.0) )
+T :( Symata.Cos(:a) ) == Cos(a)
+
+ClearAll(a)
+
+

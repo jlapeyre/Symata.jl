@@ -101,6 +101,33 @@ function quotesymbol(sym)
     QuoteNode(sym)
 end
 
+"""
+    @doap  method definition for function Headname
+
+Write a method defining a Symata rule for the symbol `Headname`.
+
+You first write a macro call  `@mkapprule Headname`, which writes the function  `apprules(mx::Mxpr{:Headname}) = do_Headname(mx,margs(mx)...)`
+You then write functions `do_Headname` that handle various argument numbers and types via Julia's multiple dispatch.
+
+The macro @doap writes a method for the function `do_Headname`.
+
+
+Examples of rules that handle Symata expressions of the form `Headname(x,y)` are
+
+```
+@doap function Headname(x,y)
+               ...
+end
+
+@doap  function Headname(x,y) = ...
+
+
+@doap function Headname{T<:SomeType}(x,y::T) = ...
+```
+
+These macros write methods that look like this: `do_Headname(mx::Mxpr{:Headname},x,y) ...` 
+Note that this means you must not make a conflicting definition or use of `mx` in the body of @doap.
+"""
 macro doap(func)
     prototype = func.args[1].args                      # eg.  Headname{T,V}(x::T,y::V) or Headname(x,y::Int), etc.
     sj_func_name0 = prototype[1]                       #      Headname{T,V}, or Headname

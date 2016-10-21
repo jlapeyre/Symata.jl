@@ -12,7 +12,7 @@
 *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
 +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
 
-# Symata depends on some of these too.
+# Symata depends on some of these too. Don't want this.
 # Probably depends on all of them. But there I am not sure
 # there is a test for each one.
 *(a::SJSym,b::Number) = mxpr(:Times,b,a)
@@ -21,7 +21,7 @@
 ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
 ^(base::SJSym,expt) = mxpr(:Power,base,expt)
 
-######
+#### Useful and OK methods
 
 *(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
 *(a::Mxpr,b) = mxpr(:Times,a,b)

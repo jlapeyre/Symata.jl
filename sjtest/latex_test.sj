@@ -1,3 +1,5 @@
+ClearAll(a,b,c,d,x,y,f)
+
 T LaTeXString(x) == "x"
 T LaTeXString(1/2) == "\\frac{1}{2}"
 T LaTeXString(I) == "\\mathbb{i}"

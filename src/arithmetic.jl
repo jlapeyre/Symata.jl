@@ -11,18 +11,35 @@ using Primes
 rat_to_int{T<:Integer}(r::Rational{T}) = r.den == 1 ? r.num : r
 mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? res.num : res )
 mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
-mmul(x,y) = x * y
+
+# Oct 2016. Added generic mxpr(:Times,x,y). Does not break tests.
+# FIXME: We need to do this for mplus, mdiv, etc.
+# Why ? This allows Compiled (ie. Julia) functions to take far more arguments.
+# FIXME. Use mmul in Symata code instead of *. We want to remove undesired methods for *
+mmul{T<:Number, V<:Number}(x::T,y::V) = x * y
+mmul(x,y) = mxpr(:Times, x, y)
+
 mplus{T<:Integer,V<:Integer}(x::Rational{T}, y::Rational{V}) = rat_to_int(x+y)
-mplus(x,y) = x + y
+
+mplus{T<:Number, V<:Number}(x::T,y::V) = x + y
+mplus(x,y) = mxpr(:Plus, x, y)
+#mplus(x,y) = x + y
 
 # mdiv is apparently used in do_Rational, but this should never be used now.
 mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
 mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? res.num : res )
-mdiv(x,y) = x/y
+
+mdiv(x::Number,y::Number) = x/y
+mdiv(x,y) = mxpr(:Times,x, mxpr(:Power,y,-1))
+#mdiv(x,y) = x/y
 
 function mpow(x,y)
     _mpow(x,y)
 end
+
+_mpow(x::Number, y::Number) =  x^y
+
+_mpow(x,y) =  mxpr(:Power, x, y)
 
 function _mpow{T<:Integer,V<:AbstractFloat}(x::T,y::V)
     x >= 0 && return convert(V,x)^y
@@ -117,6 +134,7 @@ function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
     mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 end
 
+
 ### Code below handles z^n for z complex and n real.
 
 # Is there not an automatic way ?
@@ -144,9 +162,12 @@ function _mpow{T<:Real,V<:Union{AbstractFloat, Integer}}(base::Complex{T}, expt:
     end
 end
 
-_mpow(x,y) = x^y
 
-mabs(x) = abs(x)
+mabs(x::Number) = abs(x)
+
+mabs(x) = mxpr(:Abs, x)
+#mabs(x) = mxpr(x)
+
 
 # TODO.  T Rational
 function mabs{T<:Integer}(x::Complex{T})

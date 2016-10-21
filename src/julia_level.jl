@@ -3,6 +3,8 @@ Expand(mx::Mxpr) = apprules(mxpr(:Expand,mx))
 Expand(x) = x
 export Expand
 
+Cos(x::AbstractFloat) = cos(x)
+Cos{T<:AbstractFloat}(x::AbstractArray{T}) = cos(x)
 Cos(x) = apprules(mxpr(:Cos,x))
 export Cos
 
@@ -15,6 +17,10 @@ export Integrate
 
 Pi = :Pi
 export Pi
+
+# could make this the symbol ?
+E = e
+export E
 
 # TODO: make an infix assignment operator... hm or  macro
 

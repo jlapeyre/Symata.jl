@@ -160,13 +160,31 @@ end
 
 mxpr_to_expr(x) = x
 
+# Don't really want to do this with everything !
 function mxpr_to_expr(s::Symbol)
     Symbol(lowercase(string(s)))
 end
 
+# This is (no longer not( necessary for Times. Maybe for other things.
+# Also, if we can remove unwanted methods for *, we will need this.
+const MTOJSYM_COMPILE = Dict(
+                             :Times => :mmul,
+                             :Plus => :mplus,
+                             :Power => :mpow,
+                             :Abs => :mabs
+                             )
+
+function mtojsym_compile(s::Symbol)
+    if haskey(MTOJSYM_COMPILE, s) return MTOJSYM_COMPILE[s] end
+    mtojsym(s)
+end
+
+# Instead of lowercasing everything (which will fail sometimes anyway), we
+# should define Cos, Sin, etc. in Julia, and have them do something with symbols, etc.
+# Examples are in julia_level.jl. But, for compiling, this becomes more important.
 function mxpr_to_expr(mx::Mxpr)
-    h = mtojsym(mhead(mx))
-    head = Symbol(lowercase(string(h)))
+    h = mtojsym_compile(mhead(mx))
+#    head = Symbol(lowercase(string(h)))  don't lowercase
     if length(mx) == 0
         return :(  $(head)() )
     end
@@ -245,3 +263,26 @@ end
 @mkapprule ToJulia
 
 @doap ToJulia(x) = Jexpr(mxpr_to_expr(x))
+
+#### CodeNative
+
+# This does not yet work. Symata evaluates the symbol `f` to
+# the function object, so we lose its name. We probably need
+# a robust way to associate the symbol with the function.
+# ... Julia numbers anonymous functions and names others.
+# we can get this information somehow
+# ok, it is string(func::Function). Then we can keep a
+# hash table of Symata symbols bound to functions.
+# ... a PITA.
+# Better to define a Julia type symfunction or something
+# that stores the function and the name.
+# we can make it callable and it passes the call to its function
+# can also do this at the Symata level.
+
+# FIXME. implement functions according to the description above.
+
+# @mkapprule CodeNative
+# @doap function CodeNative(f::Symbol, arg)
+#     thetypes = (margs(args)...)
+#     code_native(eval(f), thetypes)
+# end
