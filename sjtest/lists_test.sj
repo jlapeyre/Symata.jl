@@ -5,6 +5,12 @@ T testUserSyms
 T First([1,2,3]) == 1
 T First(f(a,b,c)) == a
 
+#### Join
+
+T Join([1,2,3],[4,5,6]) == [1,2,3,4,5,6]
+T Head(Join(f(1,2,3),[4,5,6])) == Join
+T Join(f(1,2,3),f(4,5,6)) == f(1,2,3,4,5,6)
+
 #### Last
 
 T Last([a,b,c]) == c

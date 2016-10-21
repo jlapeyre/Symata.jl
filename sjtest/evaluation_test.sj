@@ -85,4 +85,17 @@ T [f(f(x)), f(g(g(1,2),3))] == [f(f(x)),f(g(1,2,3))]
 
 ClearAll(f,g,x)
 
+
+#### SequenceHold
+
+T g(a,b,Sequence(c,d)) == g(a,b,c,d)
+SetAttributes(g, SequenceHold)
+T Length(g(a,b,Sequence(c,d))) == 3
+
+T ReplaceAll([w,w,w], w => Sequence(x,y)) == [x,y,x,y,x,y]
+
+T ReplaceAll(f([[x,y],[u,[v,w]]]),  List => Sequence) == f(x,y,u,v,w)
+
+ClearAll(g,a,b,c,d,w,x,y)
+
 T testUserSyms

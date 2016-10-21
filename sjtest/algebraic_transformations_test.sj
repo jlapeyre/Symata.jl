@@ -32,9 +32,29 @@ T Collect( a*D(f(x),x) + b*D(f(x),x), D(f(x),x))  == (D(f(x),x))*(a + b)
 
 # FIXME: the replacements should be a list of rules, in reverse order. Then Fold(newexpr, rules) returns the original expression.
 
-T Cse(Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4)) == [[[x0,Sin(x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
-T Cse(Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y))) == [[[x0,Cos(y) + Sin(1 + x)]],[((4 + x0)^(1/2))*((5 + x0)^(1/2))]]
-T Cse((x-y)*(z-y) + Sqrt((x-y)*(z-y))) == [[[x0,-y],[x1,(x + x0)*(x0 + z)]],[x1 + x1^(1/2)]]
+T Cse(Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4)) == [[((4 + x0)^(1/2))*((5 + x0)^(1/2))],[x0 => Sin(x)]]
+T Cse(Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y)))  == [[((4 + x0)^(1/2))*((5 + x0)^(1/2))],[x0 => (Cos(y) + Sin(1 + x))]]
+T Cse((x-y)*(z-y) + Sqrt((x-y)*(z-y))) == [[x1 + x1^(1/2)],[x1 => ((x + x0)*(x0 + z)),x0 => (-y)]]
+
+foldcse1(ex_) := Fold(ReplaceAll, Splat(Cse(ex)))[1]
+
+testcse(ex_) := ( Simplify(ex - foldcse1(ex)) == 0 )
+
+foldcse(ex_) := Module([cse],
+                 (cse = Cse(ex),
+                  Fold(ReplaceAll, cse[1], cse[2])[1]))
+
+testcse1(ex_) := Simplify(foldcse(ex) - ex) == 0
+
+T testcse( Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4) )
+T testcse( Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y)) )
+T testcse( (x-y)*(z-y) + Sqrt((x-y)*(z-y)) )
+
+T testcse1( Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4) )
+T testcse1( Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y)) )
+T testcse1( (x-y)*(z-y) + Sqrt((x-y)*(z-y)) )
+
+ClearAll(testcse,testcse1, foldcse, foldcse1)
 
 #### Factor, Expand
 

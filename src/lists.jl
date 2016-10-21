@@ -18,6 +18,24 @@ end
 
 @doap First(x) = mx
 
+#### Join
+
+@mkapprule Join
+
+@sjdoc Join "
+    Join(expr1, expr2, ...)
+
+concatenate arguments of expressions with the same head, returning an expression with the same head.
+"
+
+@doap function Join{T}(args::Mxpr{T}...)
+    nargs = newargs()
+    for a in args
+        append!(nargs,margs(a))
+    end
+    mxpr(mhead(args[1]),nargs)
+end
+
 #### Rest
 
 @mkapprule Rest :nargs => 1
@@ -709,6 +727,22 @@ Values(d) returns a list of the values in Dict d
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
 do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
 do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
+
+#### Splat
+
+@mkapprule Splat :nargs => 1
+
+@sjdoc Splat "
+    Splat(expr)
+
+Splat(expr) is equivalent to Apply(Sequence, expr). In a list of arguments `Splat(expr)` is replaced by the arguments of `expr`.
+
+symata> f(a,b, Splat([c,d]))
+ f(a,b, c, d)
+"
+
+@doap Splat(x::Mxpr) = mxprcf(:Sequence, margs(x))
+
 
 #### Sort
 

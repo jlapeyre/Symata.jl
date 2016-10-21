@@ -29,6 +29,27 @@ macro make_simplify_func(mxprsym, sympyfunc)
     end)
 end
 
+macro make_simplify_func_postp(mxprsym, sympyfunc, postfunc)
+    smxprsym = string(mxprsym)[2:end]     # Symata symbol
+    ssympyfunc = string(sympyfunc)        # SymPy function
+    qsympyfunc = QuoteNode(sympyfunc)
+    esc(quote
+        function apprules(mx::Mxpr{$mxprsym})
+              kws = Dict()                         # To hold keywords
+              nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
+             if (length(kws) > 0 )
+                 sres = sympy[$qsympyfunc](nargs...; kws...) |> pytosj
+              else
+                 sres = sympy[$qsympyfunc](nargs...) |> pytosj
+              end
+              deepsetfixed(sres)                   # sometimes this seems like a good idea.
+              $postfunc(sres)
+        end
+        set_pattributes( [$smxprsym], :Protected)
+        register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
+    end)
+end
+
 
 #### Factor
 
@@ -321,8 +342,19 @@ Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword opt
 @make_simplify_func :NSimplify nsimplify
 @make_simplify_func :CombSimp combsimp
 @make_simplify_func :SqrtDenest sqrtdenest
-@make_simplify_func :Cse cse
 @make_simplify_func :Div div
+
+@make_simplify_func_postp :Cse cse _cse_post
+
+function _cse_post(lists)
+    (rulelist,expr) = (reverse(margs(lists[1])),lists[2]) # have we defined splat for Mxpr ? we should do it.
+    nargs = newargs()
+    for x in rulelist
+        push!(nargs, mxpr(:Rule, margs(x)))
+    end
+    rules = mxpr(:List,nargs)
+    mxpr(:List, expr, rules)
+end 
 
 # These apparently have been removed from SymPy
 #@make_simplify_func :Separate separate
