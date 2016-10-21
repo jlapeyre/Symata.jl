@@ -57,7 +57,7 @@ in the IJulia notebook, which renders it with higher quality than github does.
 `Symata` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6.
 It depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
-When you load `Symata` with `using Symata`, `sympy` is automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
+When you load `Symata` with `using Symata`, `sympy` is installed automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl),
 which in turn installs `python` and needed modules in your `Julia` directory.
 However, to do this, `PyCall` must be configured to not use you system version of `python`.
 If you do not have `PyCall` installed, do this
