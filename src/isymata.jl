@@ -44,9 +44,9 @@ function init_isymata()
     end
     isymata_inited(true)
     setkerneloptions(:output_style, :IJulia) # this is only set when initing. The user can change it
+    load_symata_code()
     nothing
 end
-
 
 
 #### For use with IJulia v1.3.2
