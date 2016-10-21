@@ -603,6 +603,13 @@ end
 
 make_Mxpr_N()
 
+
+@sjdoc GoldenRatio """
+ GoldenRatio is equal to (1+Sqrt(5))/2
+"""
+
+set_attribute(:GoldenRatio, :Protected)
+
 # We need to use dispatch as well, not conditionals
 function do_N(s::SJSym)
     if s == :Pi || s == :π
@@ -611,7 +618,9 @@ function do_N(s::SJSym)
         return float(e)
     elseif s == :EulerGamma
         return float(eulergamma)
-    end
+    elseif s == :GoldenRatio
+        return float(golden)
+    end    
     return s
 end
 
@@ -622,7 +631,9 @@ function do_N{T<:Integer}(s::SJSym,pr::T)
         return float_with_precision(e,pr)
     elseif s == :EulerGamma
         return float_with_precision(eulergamma,pr)
-    end
+    elseif s == :GoldenRatio
+        return float_with_precision(golden,pr)
+    end    
     return s
 end
 
