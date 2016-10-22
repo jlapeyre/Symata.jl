@@ -752,14 +752,19 @@ _sjtopy{T <: PyCall.PyObject}(expr::T) = expr
 
 _sjtopy(x::AbstractString) =  x
 
-# Don't error, but only warn. Then return x so that we
+# Default conversion. Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function _sjtopy(x)
     symwarn("sjtopy: Unable to convert $x from Symata to SymPy")
     return x
 end
 
-# We call init_sympy() from __init__
+"""
+    init_sympy()
+
+Initialize SymPy. SymPy must be loaded at runtime. `init_sympy()` is called
+in the Symata module ` __init__` function.
+"""
 function init_sympy()
     import_sympy()
     eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
@@ -776,18 +781,17 @@ end
 
 name{T <: PyCall.PyObject}(x::T) = pytypeof(x)[:__name__]
 
-# Try the sympy function 'pycall'. If there is an error,
-# give warning 'errstr' and return (from surrounding function body) 'return_val_err'
-# Store the error message in the kernel state
-# On success, return the result of the function call.
+#  Try the sympy function 'pycall'. If there is an error, give warning
+#  'errstr' and return (from surrounding function body)
+#  'return_val_err' Store the error message in the kernel state.
+#  On success, return the result of the function call.
 macro try_sympyfunc(pycall, errstr, return_val_err)
     qpycall = QuoteNode(pycall)
     return :(
              begin
              (sflag, _pyres) =
                  try
-                   res = $pycall
-                   (true, res)
+                   (true, $pycall)
                  catch pyerr
                   (false,pyerr)
                  end
@@ -806,9 +810,7 @@ end
 @mkapprule PyDoc :nargs => 1
 
 function do_PyDoc(mx::Mxpr{:PyDoc},sym)
-    pysym = string(sym)
-    printcom = "println(sympy[:$pysym][:__doc__])"
-    try eval(parse(printcom))
+    try eval(parse("println(sympy[:$(string(sym))][:__doc__])"))
     catch
         Null
     end
