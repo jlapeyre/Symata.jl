@@ -71,12 +71,16 @@ end
 ## FIXME. Sometimes errors silently cut the testing short, reporting only successes
 @mkapprule Tests :nargs => 0:1
 
-@sjdoc Tests "
-Tests() runs the Symata test suite. This runs the code in the directory 'sjtest', this should
-be newer and better maintained than the code in the 'test' directory.
+@sjdoc Tests """
+    Tests()
 
-Tests(filename) runs the tests in `filename` in the directory `sjtest`.
-"
+run the Symata test suite. This runs the code in the directory `sjtest`, this should
+be newer and better maintained than the code in the `test` directory.
+
+    Tests(filename)
+
+runs the tests in `filename` in the directory `sjtest`.
+"""
 
 @doap Tests() = run_testsuite()
 

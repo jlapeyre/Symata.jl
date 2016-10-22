@@ -67,17 +67,21 @@ modulus => n, gaussian => False, extention => Sqrt(2).
 
 #### Expand
 
-@sjdoc Expand "
-Expand(expr) expands powers and products in expr.
-"
+@sjdoc Expand """
+    Expand(expr)
+
+expand powers and products in `expr`.
+"""
 
 @make_simplify_func :Expand expand
 
 #### Limit
 
-@sjdoc Limit "
-Limit(expr, var => lim) gives the limit of expr as var approaches to lim.
-"
+@sjdoc Limit """
+    Limit(expr, var => lim)
+
+give the `limit` of `expr` as `var` approaches `lim`.
+"""
 
 function apprules(mx::Mxpr{:Limit})
     (pymx,var,lim) = map(sjtopy, (mx[1],mx[2][1],mx[2][2]))
@@ -89,10 +93,15 @@ register_sjfunc_pyfunc("Limit", "limit")
 
 #### Integrate
 
-@sjdoc Integrate "
-Integrate(expr, x) gives the indefinite integral of expr with respect to x.
-Integrate(expr, [x,a,b]) gives the definite integral.
-"
+@sjdoc Integrate """
+    Integrate(expr, x)
+
+gives the indefinite integral of `expr` with respect to `x`.
+
+    Integrate(expr, [x,a,b])
+
+gives the definite integral.
+"""
 
 #apprules(mx::Mxpr{:Integrate}) = do_Integrate(mx,margs(mx)...)
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
@@ -156,10 +165,15 @@ register_sjfunc_pyfunc("Integrate", "integrate")
 
 #### LaplaceTransform
 
-@sjdoc LaplaceTransform "
-LaplaceTransform(expr, t, s) gives the Laplace transform of expr.
-This function returns (F, a, cond) where F is the Laplace transform of f, Re(s)>a is the half-plane of convergence, and cond are auxiliary convergence conditions. (This additional information is currently disabled.)
-"
+@sjdoc LaplaceTransform """
+    LaplaceTransform(expr, t, s)
+
+give the Laplace transform of `expr`.
+
+This function returns `[F, a, cond]` where `F` is the Laplace transform of `f`,
+`Re(s)>a` is the half-plane of convergence, and `cond` are auxiliary convergence conditions.
+(This additional information is currently disabled.)
+"""
 
 function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
@@ -174,9 +188,11 @@ end
 
 #### InverseLaplaceTransform
 
-@sjdoc InverseLaplaceTransform "
-InverseLaplaceTransform(expr, s, t) gives the inverse Laplace transform of expr.
-"
+@sjdoc InverseLaplaceTransform """
+   InverseLaplaceTransform(expr, s, t)
+
+gives the inverse Laplace transform of `expr`.
+"""
 
 function apprules(mx::Mxpr{:InverseLaplaceTransform})
     result = sympy[:inverse_laplace_transform](map(sjtopy, margs(mx))...)
@@ -196,10 +212,14 @@ end
 #### FourierTransform
 # TODO, pass options (rules)
 
-@sjdoc FourierTransform "
-FourierTransform(expr, x, k) gives the Fourier transform of expr.
-This function returns (F, cond) where F is the Fourier transform of f, and cond are auxiliary convergence conditions.
-"
+@sjdoc FourierTransform """
+    FourierTransform(expr, x, k)
+
+gives the Fourier transform of `expr`.
+
+This function returns `[F, cond]` where `F` is the Fourier transform of `f`,
+and `cond` are auxiliary convergence conditions.
+"""
 
 apprules(mx::Mxpr{:FourierTransform}) = sympy[:fourier_transform](sjtopy(margs(mx))...) |> pytosj
 
@@ -223,9 +243,11 @@ end
 
 #### Sum
 
-@sjdoc Sum "
-Sum(expr, [x,a,b]) sums over x from a to b
-"
+@sjdoc Sum """
+    Sum(expr, [x,a,b])
+
+sums over `x` from `a` to `b`.
+"""
 
 apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
 
@@ -239,9 +261,11 @@ end
 
 #### Product
 
-@sjdoc Product "
-Product(expr, [x,a,b]) computes the product of expr over x from a to b
-"
+@sjdoc Product """
+    Product(expr, [x,a,b])
+
+the product of `expr` over `x` from `a` to `b`.
+"""
 
 apprules(mx::Mxpr{:Product}) = do_Product(mx,margs(mx)...)
 
@@ -256,9 +280,11 @@ register_sjfunc_pyfunc("Product", "product")
 
 #### Series
 
-@sjdoc Series "
-Series(expr,[x,x0,n]) gives the Taylor series expansion of expr.
-"
+@sjdoc Series """
+    Series(expr,[x,x0,n])
+
+give the Taylor series expansion of `expr`.
+"""
 
 apprules(mx::Mxpr{:Series}) = do_Series(mx,margs(mx)...)
 
@@ -283,11 +309,19 @@ register_sjfunc_pyfunc("Series", "series")
 #### D  (derivative)
 
 
-@sjdoc D "
-D(expr, x) gives the partial derivative of expr with respect to x.
-D(expr,[x,n]) gives the nth partial derivative.
-D(expr,[x,n1],y,[z,n2]) gives the mixed derivative.
-"
+@sjdoc D """
+    D(expr, x)
+
+give the partial derivative of `expr` with respect to `x`.
+
+    D(expr,[x,n])
+
+give the `n`th partial derivative.
+
+    D(expr,[x,n1],y,[z,n2])
+
+give the mixed derivative.
+"""
 
 function apprules(mx::Mxpr{:D})
     pymx = sjtopy(mx[1])
@@ -309,26 +343,33 @@ register_sjfunc_pyfunc("D", "diff")
 
 #### Together
 
-@sjdoc Together "
-Together(sum) rewrites a sum of terms as a product.
-"
+@sjdoc Together """
+    Together(sum)
+
+rewrite a sum of terms as a product.
+"""
 
 @make_simplify_func :Together together
 
 #### Apart
 
-@sjdoc Apart "
-Apart(product) computes a partial fraction decomposition of product
-"
+@sjdoc Apart """
+    Apart(product)
+
+compute a partial fraction decomposition of `product`.
+"""
+
 apprules(mx::Mxpr{:Apart}) = sympy[:apart](map(sjtopy, margs(mx))...)[:doit]() |> pytosj
 
 register_sjfunc_pyfunc("Apart", "apart")
 
 #### Simplify
 
-@sjdoc Simplify "
-Simplify(expr, kw1 => v1, ...) rewrites expr in a simpler form using keyword options kw1, ...
-"
+@sjdoc Simplify """
+    Simplify(expr, kw1 => v1, ...)
+
+rewrites `expr` in a simpler form using keyword options `kw1, ...`.
+"""
 
 @make_simplify_func :Simplify simplify
 @make_simplify_func :TrigSimp trigsimp
@@ -366,24 +407,33 @@ end
 #@make_simplify_func :CollectSqrt collectsqrt apparently gone
 
 
-@sjdoc TrigSimp "
-TrigSimp(expr) does trigonometric simplification.
-"
+@sjdoc TrigSimp """
+    TrigSimp(expr)
 
-@sjdoc RatSimp "
-Put an expression over a common denominator, cancel and reduce.
-"
+does trigonometric simplification.
+"""
 
-@sjdoc RadSimp "
-Rationalize the denominator.
-"
+@sjdoc RatSimp """
+    RatSimp(expr)    
+
+rewrite `expr` with a common denominator, cancel and reduce.
+"""
+
+@sjdoc RadSimp """
+    RadSimp(expr)
+
+rationalize the denominator.
+"""
 
 #### FullSimplify
 
-@sjdoc FullSimplify "
-FullSimplify(expr) rewrites expr in a simpler form, algorithm is more extensive than Simplify(expr),
+@sjdoc FullSimplify """
+    FullSimplify(expr)
+
+rewrite `expr` in a simpler form, algorithm is more extensive than `Simplify(expr)`,
 but likely to be slower.
-"
+"""
+
 apprules(mx::Mxpr{:FullSimplify}) = do_FullSimplify(mx)
 
 function do_FullSimplify(mx::Mxpr{:FullSimplify})
@@ -393,18 +443,25 @@ function do_FullSimplify(mx::Mxpr{:FullSimplify})
     mx[1] |> sjtopy |> megasimp |> pytosj
 end
 
-@sjdoc Cancel "
-Cancel(expr) cancels common factors in the numerator and denominator.
-"
+@sjdoc Cancel """
+    Cancel(expr)
+
+cancel common factors in the numerator and denominator.
+"""
 
 apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy[:cancel] |> pytosj
 
 register_sjfunc_pyfunc("Cancel", "cancel")
 
-@sjdoc Collect "
-Collect(expr,x) collects terms involving the same power of x.
-Collect(expr,[x,y]) collects terms involving first x, then y.
-"
+@sjdoc Collect """
+    Collect(expr,x)
+
+collect terms involving the same power of `x`.
+
+    Collect(expr,[x,y])
+
+collect terms involving first `x`, then `y`.
+"""
 
 @mkapprule Collect
 
@@ -415,10 +472,16 @@ register_sjfunc_pyfunc("Collect", "collect")
 
 #### Solve
 
-@sjdoc Solve "
-Solves(expr) solves expr == 0 for one variable.
-Solves(expr,var) solves expr == 0 for var.
-"
+@sjdoc Solve """
+    Solves(expr)
+
+solve `expr == 0` for one variable.
+
+    Solves(expr,var)
+
+solve `expr == 0` for `var`.
+"""
+
 apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
 
 do_Solve(mx, expr) = expr |> sjtopy |> sympy[:solve] |> pytosj
@@ -444,28 +507,36 @@ do_DSolve(mx, expr) = expr |> sjtopy |> sympy[:dsolve] |> pytosj
 
 
 #### Roots
-@sjdoc Roots "
-Roots(expr) solves for the roots of expr. Roots returns a list
-of lists. The two elements of each sublist give the root and its multiplicity.
-"
+@sjdoc Roots """
+    Roots(expr)
+
+solves for the roots of `expr`.
+
+returns a `List` of `Lists`. The two elements of each sublist give the root and its multiplicity.
+"""
 
 apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Symata.unpack_to_List
 
 register_sjfunc_pyfunc("Roots", "roots")
 
 #### RealRoots
-@sjdoc RealRoots "
-RealRoots(expr) solves for the real roots of expr.
-"
+@sjdoc RealRoots """
+    RealRoots(expr)
+
+solves for the real roots of `expr`.
+"""
+
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy[:real_roots] |> pytosj
 
 register_sjfunc_pyfunc("RealRoots", "real_roots")
 
 #### ToSymPy
 
-@sjdoc ToSymPy "
-ToSymPy(expr) converts expr to a (python) PyObject.
-"
+@sjdoc ToSymPy """
+    ToSymPy(expr)
+
+convert `expr` to a (python) PyObject.
+"""
 
 function apprules(mx::Mxpr{:ToSymPy})
     res = sjtopy(margs(mx)...)
@@ -473,10 +544,12 @@ end
 
 #### ToSymata
 
-@sjdoc ToSymata "
-ToSymata(expr) converts the python PyObject expr to an Symata expression. Normally, expressions computed
+@sjdoc ToSymata """
+    ToSymata(expr)
+
+convert the python PyObject `expr` to a Symata expression. Normally, expressions computed
 by SymPy are automatically converted to Symata expressions.
-"
+"""
 
 apprules(mx::Mxpr{:ToSymata}) = do_ToSymata(mx,margs(mx)...)
 
@@ -488,9 +561,11 @@ do_ToSymata(mx::Mxpr{:ToSymata}, x) = x
 
 apprules(mx::Mxpr{:PossibleClosedForm}) = do_PossibleClosedForm(mx,margs(mx)...)
 
-@sjdoc PossibleClosedForm "
-PossibleClosedForm(x) attempts to find an exact formula for the floating point number x.
-"
+@sjdoc PossibleClosedForm """
+    PossibleClosedForm(x)
+
+attempts to find an exact formula for the floating point number `x`.
+"""
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat)
    x |>  mpmath.identify |> sympy[:sympify] |> pytosj
@@ -523,9 +598,11 @@ end
 
 @mkapprule Refine  :nodefault => true
 
-@sjdoc Refine "
-Refine(expr) simplifies expr using assumptions. For instance, `Assume(x,positive)`.
-"
+@sjdoc Refine """
+    Refine(expr)
+
+simplifies expr using assumptions. For instance, `Assume(x,positive)`.
+"""
 
 @doap function Refine(args...)
     result = sympy[:refine](map(sjtopy, args)...)

@@ -550,17 +550,21 @@ const RewriteDict = Dict( :Gamma => :gamma,
 
 @mkapprule Rewrite :nargs => 2
 
-@sjdoc Rewrite "
-Rewrites(expr,form) rewrites expr in term of form. This is
+@sjdoc Rewrite """
+    Rewrite(expr,form)
+
+rewrite `expr` in term of `form`. This is
 implemented for some functions that call SymPy. The second argument is
 translated, but you may give the SymPy symbol, as well
 
-Examples
+## Examples
 
+```
 Rewrite(CatalanNumber(n), Gamma)
 Rewrite(CatalanNumber(1/2), Gamma)
 Rewrite(CatalanNumber(n), HypergeometricPFQ)
-"
+```
+"""
 
 @doap function Rewrite(expr, form::Symbol)
     arg1 = _sjtopy(mx[1])
@@ -593,7 +597,9 @@ end
 @mkapprule MeijerG
 
 @sjdoc MeijerG """
-MeijerG function
+    MeijerG
+
+Meijer G function.
 """
 
 function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
@@ -689,16 +695,22 @@ end
 
 @mkapprule Assume
 
-@sjdoc Assume "
-Assume(sym,prop1,prop2,...) sets properties prop1, prop2,... for symbols sym.
+@sjdoc Assume """n
+    Assume(sym,prop1,prop2,...)
+
+sets properties `prop1, prop2,...` for symbols `sym`.
+
 These properties are used in simplifying relations, `Refine`, integral transforms, etc.
 
-Properties are: commutative, complex, imaginary, real, integer, odd, even,
-prime, composite, zero, nonzero, rational, algebraic, transcendental, irrational, finite, infinite, negative, nonnegative, positive, nonpositive, hermitian, antihermitian.
+Properties are: commutative, complex, imaginary, real, integer, odd,
+even, prime, composite, zero, nonzero, rational, algebraic,
+transcendental, irrational, finite, infinite, negative, nonnegative,
+positive, nonpositive, hermitian, antihermitian.
 
-These property symbols may contain uppercase characters. For example `Positive` and `positive` are the same. Use of
-properties with lowercase initial is deprecated.
-"
+These property symbols may contain uppercase characters. For example
+`Positive` and `positive` are the same. Use of properties with
+lowercase initial is deprecated.
+"""
 
 # TODO. We implemented this to use, e.g. the inequality solvers
 # Can't find a better way to create the symbol
@@ -820,6 +832,8 @@ function do_PyDoc(mx::Mxpr{:PyDoc},sym)
     end
 end
 
-@sjdoc PyDoc "
-PyDoc(sym) prints the documentation for the symbol sym, if available.
-"
+@sjdoc PyDoc """
+    PyDoc(sym)
+
+prints the documentation for the symbol `sym`, if available.
+"""
