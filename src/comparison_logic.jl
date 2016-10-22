@@ -36,10 +36,13 @@ end
 
 #### Not
 
-@sjdoc Not "
-Not(expr) returns False if expr is True, and True if it is False. Not reduces some very simple logical expressions and otherwise
-remains unevaluated. Not(expr) may also be entered '! expr'.
-"
+@sjdoc Not """
+    Not(expr)
+
+return `False` if `expr` is `True`, and `True` if it is `False`.
+
+`Not` reduces some very simple logical expressions and otherwise remains unevaluated. `Not(expr)` may also be entered `! expr`.
+"""
 
 @mkapprule Not :nargs => 1
 
@@ -67,11 +70,13 @@ end
 
 #### Comparison
 
-@sjdoc Comparison "
-Comparison(expr1,c1,expr2,c2,expr3,...) performs or represents a
-chain of comparisons. Comparison expressions are usually input and
+@sjdoc Comparison """
+    Comparison(expr1,c1,expr2,c2,expr3,...)
+
+performs or represents a chain of comparisons. `Comparison` expressions are usually input and
 displayed using infix notation.
-"
+"""
+
 @sjexamp(Comparison,
          ("Clear(a,b,c)",""),
          ("a == a","true"),

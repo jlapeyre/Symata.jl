@@ -1,3 +1,5 @@
+# This code is unused
+
 # All code written in Symata itself is here.
 # There are more examples in the test directory. eg. io_test.jl
 # These are examples; many are not practical.
@@ -51,10 +53,12 @@ unprotect(:ExpToTrig)
 
 protect(:ExpToTrig)
 
-@sjdoc ExpToTrig "
-ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
+@sjdoc ExpToTrig """
+    ExpToTrig(expr)
+
+replace exponentials with trigonometric functions in expr.
 But, the transformation from Cosh to Cos is not implemented.
-"
+"""
 
 # These are only for testing downrules.
 const directed_infinitym1 = setfixed(mxpr(:DirectedInfinity,-1))

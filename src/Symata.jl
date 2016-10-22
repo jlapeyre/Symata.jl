@@ -21,8 +21,6 @@ export devimport, @ex
 # For IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
-
-
 include("sjcompat.jl")
 include("early_kernelstate.jl")
 include("mxpr_util.jl")

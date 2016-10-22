@@ -16,11 +16,20 @@ end
 
 #### Apply
 
-@sjdoc Apply "
-Apply(f,expr) replaces the Head of expr with f. This also works for some
-Julia objects. Eg. Apply(Plus, :( [1:10] )) returns 55. Apply can be used
-in operator form. For example m = Apply(Plus),  m(f(a,b,c)).
-"
+@sjdoc Apply """
+    Apply(f,expr)
+
+replace the `Head` of `expr` with `f`.
+
+`Apply` also works with some
+Julia objects. For example `Apply(Plus, :( [1:10] ))` returns `55`. `Apply` can be used
+in operator form. For example
+
+```
+m = Apply(Plus)
+m(f(a,b,c))
+```
+"""
 
 # Why mkapprule does not work ?
 apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
@@ -67,12 +76,18 @@ end
 
 #### Head
 
-@sjdoc Head "
-Head(expr) returns the head of expr, which may be an Symata expression or object of any
-Julia type. The head of a Julia expression is Expr, eg.
-Head( :( :( a = 1) )) returns Expr. Note we have to quote twice, because one level of
-a quoted Julia expression is evaluated so that we can embed Julia code.
-"
+@sjdoc Head """
+    Head(expr)
+
+return the `Head` of `expr`.
+
+`expr` may be a Symata expression or object of any Julia type.
+
+!!! note
+    The `Head` of a Julia expression is `Expr`, for instance,
+    `Head( :( :( a = 1) ))` returns `Expr`. Note we have to quote twice, because one level of
+    a quoted Julia expression is evaluated so that we can embed Julia code.
+"""
 
 @mkapprule Head  :nargs =>  1
 
@@ -92,9 +107,11 @@ a quoted Julia expression is evaluated so that we can embed Julia code.
 
 @mkapprule ReleaseHold :nargs => 1
 
-@sjdoc ReleaseHold "
-ReleaseHold(expr) removes the outer layer of Hold, HoldForm, HoldPattern, and HoldComplete from expr.
-"
+@sjdoc ReleaseHold """
+    ReleaseHold(expr)
+
+removes the outer layer of `Hold`, `HoldForm`, `HoldPattern`, and `HoldComplete` from `expr`.
+"""
 
 @doap function ReleaseHold(mxa::Holds)
     length(margs(mxa)) == 0 && return mxpr(:Sequence)
@@ -113,9 +130,12 @@ function Base.reverse(mx::Mxpr)
     return mx1
 end
 
-@sjdoc Reverse "
-Reverse(expr) reverses the order of the arguments in expr.
-"
+@sjdoc Reverse """
+    Reverse(expr)
+
+reverse the order of the arguments in `expr`.
+"""
+
 function apprules(mx::Mxpr{:Reverse})
     do_reverse(mx[1])
 end
@@ -133,9 +153,11 @@ end
 
 #### Permutations
 
-@sjdoc Permutations "
-Permutations(expr) give a list of all permutations of elements in expr.
-"
+@sjdoc Permutations """
+    Permutations(expr)
+
+give a list of all permutations of elements in `expr`.
+"""
 
 function apprules(mx::Mxpr{:Permutations})
     perms = collect(permutations(margs(mx[1])))
@@ -148,9 +170,12 @@ function apprules(mx::Mxpr{:Permutations})
     setfixed(mxpr(:List,nargs))
 end
 
-@sjdoc FactorInteger "
-FactorInteger(n) gives a list of prime factors of n and their multiplicities.
-"
+@sjdoc FactorInteger """
+    FactorInteger(n)
+
+give a list of prime factors of `n` and their multiplicities.
+"""
+
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
 #### Level
@@ -160,11 +185,15 @@ apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1])
 
 #### Map
 
-@sjdoc Map "
-Map(f,expr) returns f applied to each element in a copy of expr.
-f can be an Symata object or a Julia function. Map can be used in
-an operator form. For example Map(f)(expr).
-"
+@sjdoc Map """
+    Map(f,expr)
+
+return `f` applied to each element in a `expr`.
+
+`expr` is copied first. `f` can be a Symata object or a Julia function.
+
+`Map` can be used in an operator form. For example `Map(f)(expr)`.
+"""
 
 @mkapprule Map
 
@@ -203,9 +232,12 @@ end
 
 #### ToExpression
 
-@sjdoc ToExpression "
-ToExpression(str) converts string str to an expression.
-"
+@sjdoc ToExpression """
+    ToExpression(str)
+
+convert string `str` to an expression.
+"""
+
 set_pattributes("ToExpression")
 apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 do_ToExpression{T<:AbstractString}(mx,s::T) = eval(parse("@ex " * mx[1]))
@@ -214,14 +246,17 @@ do_ToExpression(mx,args...) = mx
 
 #### Count
 
-@sjdoc Count "
-Count(expr,pattern) returns the number of arguments in expr than match pattern.
-Only matching on one level is supported. This is for testing the performance
-of pattern matching. Count(pattern) can be used as the head of an expression,
-as an operator. For instance cop = Count(_^2) defines a function that counts
-the number of arguments that have the form of a square. Count also works when
-expr is a Julia Dict.
-"
+@sjdoc Count """
+    Count(expr,pattern)
+
+return the number of arguments in `expr` than match `pattern`.
+
+Only matching on one level is supported. `Count(pattern)` can be used as the head of an expression,
+as an operator. For instance, `cop = Count(_^2)` defines a function that counts
+the number of arguments that have the form of a square.
+
+`Count` also works when `expr` is a Julia `Dict`.
+"""
 
 @sjexamp( Count,
          ("Count(Range(10), _Integer)", "10"),
@@ -260,14 +295,20 @@ end
 
 #### Cases
 
-@sjdoc Cases "
-Cases(expr,pattern) returns the elements in expr that match the pattern.
+@sjdoc Cases """
+    Cases(expr,pattern)
 
-Cases(expr,pattern,levelspec) returns the elements in expr on levels specified by levelspec that match the pattern.
+return the elements in `expr` that match `pattern`.
 
-Cases(pattern) can be used as the head of an expression, as an operator.
-eg: getints = Cases(_Integer). The head of the returned object is the same as that of expr.
-"
+    Cases(expr,pattern,levelspec)
+
+return the elements in `expr` on levels specified by `levelspec` that match `pattern`.
+
+The head of the returned object is the same as that of `expr`.
+
+`Cases(pattern)` can be used as the `Head` of an expression, as an operator.
+For example, `getints = Cases(_Integer)`.
+"""
 
 @sjexamp( Cases,
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
@@ -368,11 +409,16 @@ end
 
 #### DeleteCases
 
-@sjdoc DeleteCases "
-DeleteCases(expr,pattern) deletes the elements in expr that match the pattern.
-Matching on only one level is supported. DelteCases(pattern) can be used as the head of an expression, as an operator.
-eg: noints = DeleteCases(_Integer). The head of the returned object is the same as that of expr.
-"
+@sjdoc DeleteCases """
+    DeleteCases(expr,pattern)
+
+deletes the elements in `expr` that match `pattern`.
+
+The head of the returned object is the same as that of expr. Only matching on one level is supported.
+
+`DelteCases(pattern)` can be used as the head of an expression, as an operator.
+For example `noints = DeleteCases(_Integer)`.
+"""
 
 @sjexamp( DeleteCases,
          ("DeleteCases([1,2.0,3,\"dog\"], _Integer)", "[2.0,\"dog\"]"))
@@ -415,9 +461,16 @@ end
 
 #### Push!
 
-@sjdoc Push! "
-Push!(a,val) pushes val onto the expression that symbol a evaluates to.
-"
+@sjdoc Push! """
+    Push!(a,val)
+
+pushes `val` onto the expression that `Symbol` `a` evaluates to.
+
+!!!  note
+   Typically, computer algebra systems follow the principle that expressions should be immutable.
+   Rather than modify an expression, a copy is modified. `Push!` violates this principle. It could
+   interact poorly with other parts of Symata.
+"""
 
 @sjexamp( Push!,
          ("ClearAll(a,b)",""),
@@ -433,9 +486,13 @@ do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); x)
 
 #### Pop!
 
-@sjdoc Pop! "
-Pop!(expr) pops a value from the arguments of expr. This mutates expr.
-"
+@sjdoc Pop! """
+    Pop!(expr)
+
+pops a value from the arguments of `expr`.
+
+`Pop!` mutates `expr`.
+"""
 
 @mkapprule Pop!
 
@@ -445,3 +502,5 @@ Pop!(expr) pops a value from the arguments of expr. This mutates expr.
 end
 
 @doap Pop!(x) = x
+
+@sjseealso_group(Pop!, Push!)

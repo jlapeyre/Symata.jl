@@ -8,9 +8,11 @@
 
 #### Increment
 
-@sjdoc Increment "
-Increment(n) increments the value of n by 1 and returns the old value.
-"
+@sjdoc Increment """
+    Increment(n) 
+
+increments the value of `n` by `1` and returns the old value.
+"""
 
 @mkapprule Increment :nargs => 1
 
@@ -31,9 +33,11 @@ end
 
 #### Decrement
 
-@sjdoc Decrement "
-Decrement(n) decrements the value of n by 1 and returns the old value.
-"
+@sjdoc Decrement """
+    Decrement(n) 
+
+decrements the value of `n` by `1` and returns the old value.
+"""
 
 @mkapprule Decrement :nargs => 1
 
@@ -55,10 +59,12 @@ end
 
 #### TimesBy
 
-@sjdoc TimesBy "
-TimesBy(a,b), or a *= b, sets a to a * b and returns the new value. This is currently
-faster than a = a * b for numbers.
-"
+@sjdoc TimesBy """
+    TimesBy(a,b), or a *= b
+
+set `a` to `a * b` and returns the new value. This is currently
+faster than `a = a * b` for numbers.
+"""
 
 @mkapprule TimesBy :nargs => 2
 
@@ -80,10 +86,12 @@ end
 
 #### AddTo
 
-@sjdoc AddTo "
-AddTo(a,b), or a += b, sets a to a + b and returns the new value. This is currently
-faster than a = a + b for numbers.
-"
+@sjdoc AddTo """
+    AddTo(a,b), or a += b,
+
+sets `a` to `a + b` and returns the new value. This is currently
+faster than `a = a + b` for numbers.
+"""
 
 @mkapprule AddTo :nargs => 2
 
@@ -105,17 +113,22 @@ end
 
 #### Dump and DumpHold
 
-@sjdoc Dump "
-Dump(expr) prints an internal representation of expr. This is similar to
-Julia `dump'.
-"
+@sjdoc Dump """
+    Dump(expr) 
 
+print an internal representation of `expr`.
 
-@sjdoc DumpHold "
-DumpHold(expr) prints an internal representation of expr. This is similar to
-Julia `dump'. In contrast to `Dump', expr is not evaluated before it's internal
+`Dump` is similar to Julia `dump`.
+"""
+
+@sjdoc DumpHold """
+    DumpHold(expr) 
+
+print an internal representation of `expr`. 
+
+`DumpHold` is similar to Julia `dump`. In contrast to `Dump`, `expr` is not evaluated before its internal
 representation is printed.
-"
+"""
 
 @sjseealso_group(Dump,DumpHold)
 
@@ -124,12 +137,15 @@ apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_S
 
 #### Length
 
-@sjdoc Length "
-Length(expr) prints the length of Symata expressions and Julia objects. For
-Symata expressions, the length is the number or arguments. For scalar Julia
-types, the length is zero. For Array's and Dict's the length is the same as
-Julia `length'.
-"
+@sjdoc Length """
+   Length(expr) 
+
+print the length of `expr`.
+
+For Symata expressions, the length is the number or arguments. For scalar Julia
+types, the length is zero. For `Array`'s and `Dict`'s the length is the same as
+Julia `length`.
+"""
 
 apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
 symjlength(mx::Mxpr) = length(margs(mx))
@@ -138,15 +154,22 @@ symjlength(x) = length(x)
 
 #### Part
 
-@sjdoc Part "
-Part(expr,n) or expr[n], returns the nth element of expression expr.
-Part(expr,n1,n2,...) or expr[n1,n2,...] returns a nested part.
-The same can be achieved less efficiently with expr[n1][n2]...
-expr[n] = val sets the nth part of expr to val. n and val are evaluated
-normally. expr is evaluated once.
-expr[n] also returns the nth element of instances of several
-Julia types such as Array, or the element with key 'n' for Dict's.
-"
+@sjdoc Part """
+    Part(expr,n) or expr[n]
+
+returns the `n`th element of expression `expr`.
+
+    Part(expr,n1,n2,...) or expr[n1,n2,...]
+
+return the subexpression at index `[n1.n2,...]`.
+
+The same can be achieved less efficiently with `expr[n1][n2]...`.
+
+`expr[n] = val` sets the `n`th part of `expr` to `val`. `n` and `val` are evaluated
+normally. `expr` is evaluated once.
+`expr[n]` also returns the `n`th element of instances of several
+Julia types such as `Array`, or the element with key `n` for `Dict`'s.
+"""
 
 # Get part of expression. Julia :ref is mapped to :Part
 # a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
@@ -185,18 +208,28 @@ end
 
 #### Span
 
-@sjdoc Span "
-Span(a,b) or a:b represents elements a through b.
-Span(a,b,c) or a:b:c represents elements a through b in steps of c.
-expr[a:b] returns elements a through b of expr, with the same head as expr.
-"
+@sjdoc Span """
+    Span(a,b) or a:b
+
+represents elements `a` through `b`.
+
+    Span(a,b,c) or a:b:c 
+
+represents elements `a` through `b` in steps of `c`.
+
+`expr[a:b]` returns elements a through `b` of expr, with the same head as `expr`.
+"""
 
 #### DownValues
 
-@sjdoc DownValues "
-DownValues(s) returns a List of DownValues associated with symbol s. These are values
-that are typically set with the declarative \"function definition\".
-"
+@sjdoc DownValues """
+    DownValues(s) 
+
+return a `List` of `DownValues` associated with symbol `s`. These are values
+that are typically set with the declarative "function definition".
+
+For example `f(x_) := x` sets a `DownValue` for `f`.
+"""
 
 @sjexamp( DownValues,
          ("ClearAll(f)",""),
@@ -207,30 +240,34 @@ apprules(mx::Mxpr{:DownValues}) = sjlistdownvalues(mx[1])
 
 #### UpValues
 
-@sjdoc UpValues "
-UpValues(s) returns a List of UpValues associated with symbol s. These are values
-that are typically set with UpSet.
-"
+@sjdoc UpValues """
+    UpValues(s) 
+
+returns a List of UpValues associated with symbol `s`. These are values
+that are typically set with `UpSet`.
+"""
 
 apprules(mx::Mxpr{:UpValues}) = sjlistupvalues(mx[1])
 
 #### Example
 
-@sjdoc Example "
-Example(s)
-runs (evaluates) all examples for the symbol s, typically a function or variable.
+@sjdoc Example """
+    Example(s)
+
+run (evaluates) all examples for the symbol `s`, typically a function or variable.
 Input, output, and comments are displayed. Input strings
 for the example are pushed onto the terminal history so they can be retrieved and
 edited and re-evaluated.
 
-Example(s,n)
-runs the nth example for symbol s. When viewing
-documentation strings via ? SomeHead, the examples are printed along with the
-documentation string, but are not evaluated.
+    Example(s,n)
 
-Example()
+run the `n`th example for symbol `s`. When viewing documentation strings via `?`
+the examples are printed along with the documentation string, but are not evaluated.
+
+    Example()
+
 Returns a list of all example topics.
-"
+"""
 
 @mkapprule Example  :nargs => 0:2
 
@@ -240,9 +277,12 @@ do_Example(mx::Mxpr{:Example}, topic, n::Int) = do_example_n(mx[1],n)
 
 #### Replace
 
-@sjdoc Replace "
-Replace(expr,rule) replaces parts in expr according to Rule rule.
-"
+@sjdoc Replace """
+    Replace(expr,rule)
+
+replaces parts in expr according to `rule`.
+"""
+
 @sjseealso_group(Replace,ReplaceAll)
 @sjexamp(Replace,
          ("Clear(a,b,c)",""),
@@ -271,13 +311,18 @@ doreplace(mx,args...) = mx
 
 #### ReplaceAll
 
-@sjdoc ReplaceAll "
-ReplaceAll(expr,rule) replaces parts at all levels in expr according to Rule rule. This includes
-the Head of expr, and the entire expr.
-ReplaceAll(expr,List(rule1,rule2,...)) replaces parts at all levels in expr according to the
-list or rules. If given explicitly, the rules should be given as List(...) rather than
-[...] because of a parsing error.
-"
+@sjdoc ReplaceAll """
+    ReplaceAll(expr,rule) 
+
+replace parts at all levels in expr according to `rule`. This includes
+the `Head` of `expr`, and the entire `expr`.
+
+    ReplaceAll(expr,List(rule1,rule2,...))
+
+replace parts at all levels according to the
+list of rules. If given explicitly, the rules should be given as `List(...)` rather than
+`[...]` because of a parsing error.
+"""
 
 apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
 
@@ -306,9 +351,11 @@ doreplaceall(mx,a,b) = mx
 
 @mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
 
-@sjdoc ReplaceRepeated "
-ReplaceRepeated(expr,rules) performs ReplaceAll(expr,rules) repeatedly until expr no longer changes.
-"
+@sjdoc ReplaceRepeated """
+    ReplaceRepeated(expr,rules)
+
+perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
+"""
 
 do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,r; kws...)
 
@@ -329,10 +376,13 @@ do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
 
 #### MatchQ
 
-@sjdoc MatchQ "
-MatchQ(expr,pattern) returns true if expr matches pattern. MatchQ can
-be used in operator form. For example, myintq = MatchQ(_Integer).
-"
+@sjdoc MatchQ """
+    MatchQ(expr,pattern)
+
+return `True` if `expr` matches `pattern`. `MatchQ` can
+be used in operator form. For example, `myintq = MatchQ(_Integer)`.
+"""
+
 @sjexamp( MatchQ,
          ("MatchQ( 1, _Integer)", "true"),
          ("ClearAll(gg,xx,b)",""),
@@ -367,11 +417,14 @@ end
 
 #### FullForm
 
-@sjdoc FullForm "
-FullForm(expr) prints the internal representation of expr and all sub-expressions as
-Head(arg1,arg2,...). Normal output may use infix notation instead. But, expressions
-may always be entered in 'FullForm'.
-"
+@sjdoc FullForm """
+    FullForm(expr)
+
+print the internal representation of `expr` and all sub-expressions as
+`Head(arg1,arg2,...)`. Normal output may use infix notation instead. But, expressions
+may always be entered in `FullForm`.
+"""
+
 @sjexamp( FullForm,
           ("Clear(a,b)",""),
           ("a+b","a+b"),
@@ -463,24 +516,31 @@ do_Power(mx,b,e) = mx
 
 #### convert to BigInt or BigFloat. We cannot yet do this automatically
 
-@sjdoc BI "
-BI(n) converts the number n to a BigInt. Symata currently neither
-detects integer overflow, nor automatically promote integers to BigInts.
+@sjdoc BI """
+    BI(n)
+
+convert the number `n` to type `BigInt`. Symata neither
+detects integer overflow, nor automatically promote integers to `BigInt`.
 But, a literal integer will automatically be given a large enough storage type without using
-BI.
-"
+`BI`.
+"""
 
-@sjseealso_group(BI,BF,Big)
-@sjdoc BF "
-BF(n), or BF\"n\", converts the number, or string n to a BigFloat. Symata currently neither
+@sjseealso_group(BI,BF,Big,BigIntInput)
+
+@sjdoc BF """
+    BF(n), or BF"n"
+
+convert the number, or string `n` to a BigFloat. Symata neither
 detects overflow, nor automatically promotes types from fixed to arbitrary precision. The form
-BF\"n\" is more efficient, being a julia macro that converts the string \"n\" upon parsing.
-"
+`BF"n"` is more efficient, being a julia macro that converts the string "n" upon parsing.
+"""
 
-@sjdoc Big "
-Convert a number to a maximum precision representation (typically
-'BigInt' or 'BigFloat')
-"
+@sjdoc Big """
+    Big(n)
+
+convert `n` a maximum precision representation, typically
+`BigInt` or `BigFloat`.
+"""
 
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
@@ -500,10 +560,12 @@ apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : -1 * mx[1]
 
 #### Timing evaluation
 
-@sjdoc Timing "
-Timing(expr) evaluates expr and returns a list of the elapsed CPU time
+@sjdoc Timing """
+    Timing(expr)
+
+evaluate `expr` and return a `List` of the elapsed CPU time
 and the result.
-"
+"""
 
 @sjseealso_group(Timing,Allocated,Time,Trace)
 function apprules(mxt::Mxpr{:Timing})
@@ -517,10 +579,13 @@ end
 
 #### Allocated
 
-@sjdoc Allocated "
-Allocated(expr) evaluates expr and returns a list of the memory allocated
+@sjdoc Allocated """
+    Allocated(expr)
+
+evaluate `expr` and return a list of the memory allocated
 and the result of the evaluation.
-"
+"""
+
 function apprules(mxt::Mxpr{:Allocated})
     local mx
     a = @allocated begin
@@ -533,11 +598,14 @@ end
 
 #### HAge, FixedQ and UnFix
 
-@sjdoc HAge "
-HAge(s) returns the timestamp for the expression or symbol s.
+@sjdoc HAge """
+    HAge(s)
+
+return the timestamp for the expression or symbol `s`.
 Using this timestamp to avoid unnecessary evaluation is a partially
 implemented feature.
-"
+"""
+
 @sjseealso_group(HAge,Age,FixedQ,Syms,DirtyQ,Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
@@ -550,19 +618,25 @@ do_getage(mx,s::SJSym) = Int(symage(s))
 do_getage(mx,s::Mxpr) = Int(getage(s))
 do_getage(mx,x) = mx
 
-@sjdoc FixedQ "
-FixedQ(expr) returns the status of the fixed point bit, which tells whether expr
+@sjdoc FixedQ """
+    FixedQ(expr)
+
+returns the status of the fixed point bit, which tells whether `expr`
 is expected to evaluate to itself in the current environment. This is partially
 implemented.
-"
+"""
+
 # Get fixed-point bit. Idea is to set it if expr evaluates to itself.
 apprules(mx::Mxpr{:FixedQ}) = is_fixed(mx[1])
 
-@sjdoc Unfix "
-Unfix(expr) unsets the fixed flag on expr, causing it to be evaluated.
+@sjdoc Unfix """
+    Unfix(expr)
+
+unsets the fixed flag on `expr`, causing it to be evaluated.
 This is a workaround for bugs that cause an expression to be marked fixed
 before it is completely evaluated.
-"
+"""
+
 function apprules(mx::Mxpr{:Unfix})
     unsetfixed(mx[1])
     mx[1]
@@ -570,26 +644,33 @@ end
 
 #### Syms
 
-@sjdoc Syms "
-Syms(m) returns a List of the symbols that the expression m 'depends' on. The
-list is wrapped in HoldForm in order to prevent evaluation of the symbols.
-"
+@sjdoc Syms """
+    Syms(m)
+
+return a `List` of the symbols that the expression `m` "depends" on. The
+list is wrapped in `HoldForm` in order to prevent evaluation of the symbols.
+"""
 
 # Syms has HoldAll
 function apprules(mx::Mxpr{:Syms})
     mxpr(:HoldForm,do_syms(mx[1]))
 end
 
-@sjdoc BuiltIns "
-BuiltIns() returns a List of all \"builtin\" symbols. These are in fact all symbols that
-have the Protected attribute.
-"
+@sjdoc BuiltIns """
+    BuiltIns()
+
+return a `List` of all "builtin" symbols. These are in fact all symbols that
+have the `Protected` attribute.
+"""
+
 apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 
-@sjdoc UserSyms "
-UserSyms() returns a symbols that have not been imported from the System namespace.
+@sjdoc UserSyms """
+    UserSyms()
+
+return a `List` of symbols that have not been imported from the `System` namespace.
 This is all user defined symbols (unless you have imported symbols from elsewhere).
-"
+"""
 
 @mkapprule UserSyms  :nargs => 0
 
@@ -600,9 +681,11 @@ This is all user defined symbols (unless you have imported symbols from elsewher
 
 @doap UserSyms2() = usersymbolsListold()
 
-@sjdoc CurrentContext "
-CurrentContext() returns the name of the current context.
-"
+@sjdoc CurrentContext """
+    CurrentContext()
+
+return the name of the current context.
+"""
 
 @mkapprule CurrentContext :nargs => 0
 
@@ -616,11 +699,14 @@ CurrentContext() returns the name of the current context.
 
 #### ExpandA, only a bit is implemented. Sympy Expand is more capable.
 
-@sjdoc ExpandA "
-ExpandA(expr) expands products in expr. This is only partially implemented,
+@sjdoc ExpandA """
+    ExpandA(expr)
+
+expand products in `expr`. This is only partially implemented,
 mostly to test the efficiency of evaluation and evaluation control. The
-sympy version Expand() is more capable, but slower.
-"
+Sympy version `Expand()` is more capable, but slower.
+"""
+
 apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
 
 #### RandomReal
@@ -651,10 +737,12 @@ end
 
 @mkapprule Counts
 
-@sjdoc Counts "
-Counts(list) returns a dictionary of the number of times each distinct element of list
+@sjdoc Counts """
+    Counts(list)
+
+return a dictionary of the number of times each distinct element of list
 occurs.
-"
+"""
 
 # We should use an ordered dict, but the package is broken
 function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
@@ -669,9 +757,11 @@ end
 
 #### Pause
 
-@sjdoc Pause "
-Pause(x) pauses (i.e.sleeps) for x seconds.
-"
+@sjdoc Pause """
+    Pause(x)
+
+pauses (i.e.sleeps) for `x` seconds.
+"""
 
 @mkapprule Pause  :nargs => 1
 @doap Pause{T<:Real}(x::T) = sleep(x)
@@ -679,10 +769,12 @@ Pause(x) pauses (i.e.sleeps) for x seconds.
 #### 
 
 
-@sjdoc Julia "
-Julia() exits Symata mode and returns to Julia mode from within Jupyter.
+@sjdoc Julia """
+    Julia()
+
+exit Symata mode and returns to Julia mode from within Jupyter.
 Use `isymata()` from Julia to enter Symata mode again.
-"
+"""
 
 @mkapprule Julia :nargs => 0
 

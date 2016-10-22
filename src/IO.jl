@@ -6,17 +6,23 @@ end
 
 #### Println
 
-@sjdoc Println "
-Println(expr1,expr2,...) prints the expressions and a newline.
-"
+@sjdoc Println """
+    Println(expr1,expr2,...)
+
+print the expressions and a newline.
+"""
+
 apprules(mx::Mxpr{:Println}) = (symprintln(margs(mx)...) ; Null)
 
 
 #### Print
 
-@sjdoc Print "
-Print(expr1,expr2,...) prints the expressions.
-"
+@sjdoc Print """
+    Print(expr1,expr2,...)
+
+prints the expressions.
+"""
+
 apprules(mx::Mxpr{:Print}) = (symprint(margs(mx)...); Null)
 
 # We are using read_Symata_file instead of this.
@@ -111,19 +117,27 @@ end
 
 @mkapprule Get
 
-@sjdoc Get "
-Get(\"filename\") reads and evaluates Symata expressions from file \"filename\".
-Try putting empty lines between expressions if you get errors on reading.
-"
+@sjdoc Get """
+    Get(filename)
+
+read and evaluate Symata expressions from file `filename`.
+
+!!! note
+    Try putting empty lines between expressions if you get errors on reading.
+"""
 
 do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_Symata_file(fname)
 
 #### ReadString
 
 @mkapprule ReadString  :nargs => 1
-@sjdoc ReadString  "
-ReadString(\"filename\") reads \"filename\" and returns the contents as a string.
-"
+
+@sjdoc ReadString  """
+    ReadString(filename)
+
+reads `filename` and returns the contents as a `String`.
+"""
+
 do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(fname)
 
 # Write Symata expression as strings that can be used as input to define
@@ -147,9 +161,11 @@ end
 
 @mkapprule Definition
 
-@sjdoc Definition "
-Definition(sym) prints definitions associated with symbol sym.
-"
+@sjdoc Definition """
+    Definition(sym)
+
+prints definitions associated with `Symbol` `sym`.
+"""
 
 function maybeprint(io::IO,s)
     if length(s)>0 symprintln(io,s) end
@@ -181,11 +197,17 @@ end
 
 @mkapprule Save
 
-@sjdoc Save "
-Save(\"file\", obj) appends definitions associated with obj to \"file\".
-Save(\"file\", list) appends definitions associated with the objects in list to \"file\".
-Save uses Definition.
-"
+@sjdoc Save """
+    Save(filename, obj)
+
+append definitions associated with `obj` to file `filename`.
+
+    Save(filename, list)
+
+append definitions associated with the objects in `list` to `filename`.
+
+`Save` writes defnitions given by `Definition`.
+"""
 
 do_Save{T<:AbstractString}(mx::Mxpr{:Save}, fname::T, sym::SJSym) = save_definition(fname, [sym])
 do_Save{T<:AbstractString}(mx::Mxpr{:Save}, fname::T, syms::Mxpr{:List}) = save_definition(fname, margs(syms))
@@ -205,10 +227,12 @@ end
 # we should fold this behavior into mkapprule
 @mkapprule Open  :nodefault => true
 
-@sjdoc Open "
-Open(args...) opens a file, runs a command, etc. The arguments are passed to julia `open'.
-The julia methods that take array arguments are not implemented.
-"
+@sjdoc Open """
+    Open(args...)
+
+opens a file, runs a command, etc. The arguments are passed to Julia `open`.
+The Julia methods that take array arguments are not implemented.
+"""
 
 do_Open(mx::Mxpr{:Open}, args...) = open(args...)
 
@@ -216,40 +240,59 @@ do_Open(mx::Mxpr{:Open}, args...) = open(args...)
 
 @mkapprule Close
 
-@sjdoc Close "
-Close(str) closes the IO stream str.
-"
+@sjdoc Close """
+    Close(str)
+
+closes the `IO` stream `str`.
+"""
 
 do_Close{T<:IO}(mx::Mxpr{:Close}, str::T) = (close(str); Null)
 
 
 ### STDOUT, STDERR.  These two symbols are set it client_symata.jl after the REPL is created.
 
-@sjdoc STDOUT "
-STDOUT is the standard output stream.
-"
+@sjdoc STDOUT """
+    STDOUT
 
-@sjdoc STDERR "
-STDERR is the standard output stream.
-"
+the standard output stream.
+"""
 
-@sjdoc DevNull "
-DevNull is bound to Julia output stream DevNull.
-"
+@sjdoc STDERR """
+    STDERR
+
+the standard output stream.
+"""
+
+@sjdoc DevNull """
+    DevNull
+
+is bound to Julia output stream `DevNull`.
+"""
 
 @mkapprule Out
 
-@sjdoc Out "
-Out(n) returns the nth line of output. The value returned is evaluated in the current environment.
+@sjdoc Out """
+    Out(n)
 
-O returns the last output.
+return the `n`th line of output. The value returned is evaluated in the current environment.
 
-OO returns the second to last output.
+`O` 
 
-OO..O k times gives the kth previous output, for k <= 10.
+return the last output.
 
-Clear(Out) clears all the saved output.
-"
+`OO`
+
+returns the second to last output.
+
+`OO..O` 
+
+`k` times gives the `k`th previous output, for `k <= 10`.
+
+`Clear(Out)` clears all the saved output.
+
+!!! note
+    `O`, `OO`, etc. do not work in `Jupyter`.
+"""
 
 @sjseealso(Out, Clear)
 
@@ -267,9 +310,11 @@ do_Out(mx::Mxpr{:Out}, x) = :Null
 
 @mkapprule In :nargs => 1
 
-@sjdoc In "
-In(n) returns the nth input cell. This only works in Jupyter/IPython
-"
+@sjdoc In """
+    In(n)
+
+returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
+"""
 
 @doap function In(n::Integer)
     if isymata_mode()
@@ -291,9 +336,11 @@ apprules(expr::Void) = :Null
 
 @mkapprule TempName :nargs => 0
 
-@sjdoc TempName "
-TempName() generates a unique temporary file path.
-"
+@sjdoc TempName """
+    TempName()
+
+generate a unique temporary file path.
+"""
 
 @doap TempName() = tempname()
 
@@ -302,8 +349,10 @@ TempName() generates a unique temporary file path.
 
 @mkapprule DeleteFile :nargs => 1
 
-@sjdoc DeleteFile "
-DelteFile(file) deletes file
-"
+@sjdoc DeleteFile """
+    DelteFile(filename)
+
+delete `filename`.
+"""
 
 @doap DeleteFile(file::AbstractString) = rm(file)

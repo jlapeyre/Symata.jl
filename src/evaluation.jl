@@ -34,9 +34,11 @@ end
 
 @mkapprule ClearTemporary  :nargs => 0
 
-@sjdoc ClearTemporary "
-Remove temporary symbols, ie all beginnig with \"##\", from the symbol table.
-"
+@sjdoc ClearTemporary """
+    ClearTemporary()
+
+remove temporary symbols, ie all beginnig with "##", from the symbol table.
+"""
 
 # The Temporary attribute is not working. the symbols that escape are just gensysms
 @doap function ClearTemporary()

@@ -75,13 +75,17 @@ end
 
 @mkapprule For :nargs => 3:4
 
-@sjdoc For "
-For(start,test,incr,body) is a for loop. Eg. For(i=1,i<=3, Increment(i) , Println(i))
-Using Increment(i) is currently much faster than i = i + 1. (but what about i += 1 ?)
-There is no special syntax yet for Increment.
+@sjdoc For """
+    For(start,test,incr,body)
 
-The variable i is not local to the For loop.
-"
+performs a "for" loop.
+
+For example, `For(i=1,i<=3, Increment(i) , Println(i))`.
+
+The variable `i` is not local to the `For` loop.
+
+Using `Increment(i)` is currently much faster than `i = i + 1` (but what about `i += 1` ?)
+"""
 
 # This is pretty fast: For(i=1,i<1000, Increment(i))
 # Note using 10^3 is much slower. Mma3.0 also is slower with 10^3
@@ -115,11 +119,20 @@ end
 #### If
 
 @mkapprule If
-@sjdoc If "
-If(test,tbranch,fbranch) evaluates test and if the result is true, evaluates tbranch, otherwise fbranch.
-If(test,tbranch) returns Null if test does not evaluate to True.
-If(test,tbranch,fbranch,ubranch) evaluates ubranch if the truth value of test cannot be determined.
-"
+
+@sjdoc If """
+    If(test,tbranch,fbranch)
+
+evaluate test and if the result is `True`, evaluate `tbranch`, otherwise `fbranch`.
+
+    If(test,tbranch)
+
+return `Null` if `test` does not evaluate to `True`.
+
+    If(test,tbranch,fbranch,ubranch)
+
+evaluate `ubranch` if the truth value of `test` cannot be determined.
+"""
 
 do_If(mxpr::Mxpr{:If}, test, tbranch) =  doeval(test) == true ? doeval(tbranch) : Null
 
@@ -135,9 +148,11 @@ end
 
 #### While
 
-@sjdoc While "
-While(test,body) evaluates test then body in a loop until test does not return true.
-"
+@sjdoc While """
+    While(test,body)
+
+evaluates `test` then `body` in a loop until `test` does not return `True`.
+"""
 
 @mkapprule While :nargs => 1:2
 
@@ -163,9 +178,11 @@ end
 
 #### Break
 
-@sjdoc Break "
-Break() exits the nearest enclosing For, While, or Do loop.
-"
+@sjdoc Break """
+    Break()
+
+exit the nearest enclosing `For`, `While`, or `Do` loop.
+"""
 
 @mkapprule Break
 
@@ -176,35 +193,56 @@ end
 
 #### Return
 
-@sjdoc Return "
-Return(x) returns x from the enclosing block.
-Return() returns Null.
-Calling Return(x) from within For, While, CompoundExpression returns Return(x).
-Calling Return(x) from within Do and Module returns x.
-"
+@sjdoc Return """
+    Return(x)
+
+return `x` from the nearest enclosing block.
+
+    Return()
+
+return `Null`.
+
+Calling `Return(x)` from within `For`, `While`, `CompoundExpression` returns `Return(x)`.
+Calling `Return(x)` from within `Do` and `Module` returns `x`.
+"""
 
 #### Continue
 
-@sjdoc Continue "
-Continue() begins the next iteration of the enclosing loop without evaluating any remaining
+@sjdoc Continue """
+    Continue()
+
+begin the next iteration of the enclosing loop without evaluating any remaining
 expressions in the body.
-"
+"""
 
 #### Do
 
-@sjdoc Do "
-Do(expr,[imax]) evaluates expr imax times.
-Do(expr,[i,imax]) evaluates expr imax times with i localized taking values from 1 through
-  imax in increments of 1.
-Do(expr,[i,imin,imax]) evaluates expr with i taking values from imin to imax with increment 1.
-  imin and imax may be symbolic.
-Do(expr,[i,imin,imax,di]) evaluates expr with i taking values from imin to imax with increment di.
-  imin, imax, and di may be symbolic.
-Do(expr,[i,[i1,i2,...]) evaluates expr with i taking values from a list.
+@sjdoc Do """
+    Do(expr,[imax])
 
-Mma says that Do effectively uses Block to localize variables. This probably means i has dynamic
-scope. In Symata, we give it lexical scope, as in Module.
-"
+evaluate `expr` `imax` times.
+
+    Do(expr,[i,imax])
+
+evaluate `expr` `imax` times with `i` localized and taking values from `1` through
+`imax` in increments of `1`.
+
+    Do(expr,[i,imin,imax])
+
+evaluate `expr` with `i` taking values from `imin` to `imax` with increment `1`.
+`imin` and `imax` may be symbolic.
+
+    Do(expr,[i,imin,imax,di])
+
+evaluate `expr` with `i` taking values from `imin` to `imax` with increment `di`.
+`imin`, `imax`, and `di` may be symbolic.
+
+    Do(expr,[i,[i1,i2,...])
+
+evaluate `expr` with `i` taking values `i1,i2,...`.
+
+The binding of variable `i` has lexical scope, as in `Module`.
+"""
 
 function apprules(mx::Mxpr{:Do})
     expr = mx[1]
@@ -325,10 +363,12 @@ end
 
 #### CompoundExpression
 
-@sjdoc CompoundExpression "
-CompoundExpression(expr1,expr2,...) or (expr1,expr2,...) evaluates each expression in turn and
-returns the result of only the final evaluation.
-"
+@sjdoc CompoundExpression """
+    CompoundExpression(expr1,expr2,...) or (expr1,expr2,...)
+
+evaluate each expression in turn and return the result of only the final evaluation.
+"""
+
 function apprules(mx::Mxpr{:CompoundExpression})
     local res
         @inbounds for i in 1:length(mx)

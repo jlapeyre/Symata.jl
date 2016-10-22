@@ -123,6 +123,12 @@ end
 # TODO: implement the "transpose" case
 @mkapprule Flatten :nodefault => true
 
+@sjdoc Flatten """
+    Flatten(expr)
+
+remove braces from `Lists` in the first level of `expr`.
+"""
+
 @doap Flatten(x::Mxpr) = flatten_recursive!(x)
 @doap Flatten(x) = x
 

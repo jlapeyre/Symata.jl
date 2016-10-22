@@ -134,6 +134,8 @@ T Product(1/(1+i), [i,1,n]) == (Pochhammer(2,n))^(-1)
 #### Sum
 
 T Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
+T Sum(1/n^2, [n,1,Infinity]) == Pi^2/6
+T Sum( x^n/Factorial(n)^2 , [n,0,Infinity])  == BesselI(0,2(x^(1/2)))
 
  ClearAll(x,s,t,conds,f,i,m,k)
 

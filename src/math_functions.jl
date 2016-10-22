@@ -4,10 +4,12 @@
 
 @mkapprule SetPrecision :nargs => 1
 
-@sjdoc SetPrecision "
-SetPrecison(n) sets the precsion of BigFloat numbers to n decimal digits. If 'N' does not give the result you
-want, you can use SetPrecision.
-"
+@sjdoc SetPrecision """
+    SetPrecison(n) 
+
+set the precsion of BigFloat numbers to `n` decimal digits. If `N` does not give the result you
+want, you can use `SetPrecision`.
+"""
 
 @sjseealso_group(N,SetPrecision,BigFloatInput,BigIntInput,BI,BF)
 
@@ -472,11 +474,14 @@ register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
 
 #### IntegerDigits
 
-@sjdoc IntegerDigits "
-IntegerDigits(n,[, base][, pad]) Returns an array of the digits of \"n\" in the given base,
-optionally padded with zeros to a specified size. In contrast to Julia, more significant
-digits are at lower indexes.
-"
+@sjdoc IntegerDigits """
+    IntegerDigits(n,[, base][, pad]) 
+
+return an array of the digits of `n` in the given `base`,
+optionally padded with zeros to `pad` characters.
+
+In contrast to Julia, more significant digits are at lower indexes.
+"""
 
 do_common("IntegerDigits")
 
@@ -484,9 +489,13 @@ do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer) = setfixed(mxpr(:List,reve
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b)))...))
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer,p::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b),convert(Int,p)))...))
 
-@sjdoc Primes "
-Primes(n) returns a collection of the prime numbers <= \"n\"
-"
+@sjdoc Primes """
+    Primes(n)
+
+return a collection of the prime numbers `<= n`.
+"""
+
+
 apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
 do_Primes(mx,args...) = mx
 do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
@@ -507,11 +516,17 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 # do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx
 # do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
 
-@sjdoc N "
-N(expr) tries to give a the numerical value of expr.
-N(expr,p) tries to give p decimal digits of precision.
-Sometime 'N' does not give the number of digits requested. In this case, you can use SetPrecision'
-"
+@sjdoc N """
+    N(expr) 
+
+try to give a the numerical value of `expr`.
+
+    N(expr,p) 
+
+try to give `p` decimal digits of precision.
+
+Sometimes `N` does not give the number of digits requested. In this case, you can use `SetPrecision`.
+"""
 
 # N needs to be rewritten
 function apprules(mx::Mxpr{:N})
@@ -605,7 +620,9 @@ make_Mxpr_N()
 
 
 @sjdoc GoldenRatio """
- GoldenRatio is equal to (1+Sqrt(5))/2
+    GoldenRatio 
+
+is equal to `(1+Sqrt(5))/2`.
 """
 
 set_attribute(:GoldenRatio, :Protected)
@@ -1006,5 +1023,23 @@ Identity(expr) returns expr.
 @mkapprule Identity
 
 @doap Identity(x) = x
+
+
+#### Total
+
+@mkapprule Total
+
+@sjdoc Total """
+    Total(list)
+
+gives the sum of elements in `list`
+"""
+
+@doap Total(x::AbstractArray) = sum(x)
+
+# We could try some things to speed this up... check that all elements are numbers ?
+@doap Total(x::Mxpr{:List}) = mxpr(:Plus,margs(x))
+
+
 
 nothing

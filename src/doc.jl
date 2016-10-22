@@ -23,12 +23,12 @@
 
 # Single doc string for a symbol. Retrieved by:
 # symata>? SomeHead
-const SJDOCS = Dict{Symbol,AbstractString}()
+const SJDOCS = Dict{Symbol,Any}()
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 
 macro sjdoc(sym,str)
-    SJDOCS[sym] = str
+    SJDOCS[sym] = Markdown.parse(str)
     nothing
 end
 
@@ -56,7 +56,9 @@ function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
     for q in qs
         if haskey(SJDOCS,q)
-            print(SJDOCS[q])
+#            display(Markdown.parse(SJDOCS[q]))
+            display(SJDOCS[q])
+            println()
             format_see_alsos(q)
             format_sjexamples(q)
         else
@@ -170,6 +172,7 @@ end
 
 # each sym seealso's all others
 # This does not clobber existing seealsos
+# FIXME: Do not add symbols more than once.
 macro sjseealso_group(syms...)
     local na
     for src in syms
@@ -181,7 +184,7 @@ macro sjseealso_group(syms...)
         end
         for targ in syms
             if src == targ continue end
-            push!(na,targ)
+            if ! in(targ,na) push!(na,targ) end
         end
     end
 end
@@ -376,20 +379,26 @@ end
 
 #### Help
 
-@sjdoc Help "
-Help(sym), Help(\"sym\"), or \"? topic\" prints documentation for the symbol sym. Eg: Help(Expand).
+@sjdoc Help """
+    Help(sym), Help(\"sym\"), or ? topic 
+
+print documentation for the symbol `sym`. For example `Help(Expand)`.
 Due to parsing restrictions at the repl, for some topics, the input must be a string.
 
-h\"topic\" gives a case-insensitive regular expression search.
+    h"topic" gives a case-insensitive regular expression search.
 
 In the REPL, or Jupyter notebook, hit TAB to see all the available completions.
 
-Help(All => True) prints all of the documentation.
+    Help(All => True)
 
-Help(regex) prints a list of topics whose documentation text matches the
-regular expression regex. For example Help(r\"Set\"i) lists all topics that
-match \"Set\" case-independently.
-"
+print all of the documentation.
+
+    Help(regex)
+
+prints a list of topics whose documentation text matches the
+regular expression regex. For example `Help(r\"Set\"i)` lists all topics that
+match "Set" case-independently.
+"""
 
 @mkapprule Help  :nodefault => true
 

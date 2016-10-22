@@ -592,6 +592,10 @@ end
 
 @mkapprule MeijerG
 
+@sjdoc MeijerG """
+MeijerG function
+"""
+
 function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
     mxc = copy(mx)
     mxc[1] = (p[1],p[2])
