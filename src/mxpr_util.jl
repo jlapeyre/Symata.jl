@@ -1,4 +1,5 @@
-capitalize_first_character(s::AbstractString) = uppercase(string(s[1])) * s[2:end]
+# not used yet
+#totuple(mx::Mxpr{:List}) = tuple(margs(mx)...)
 
 # we use this for copying expression trees.
 recursive_copy(x) = deepcopy(x)
@@ -64,6 +65,3 @@ macro testex(expr)
     retresult || symwarn("Test failed: ", mx, " evaluated to ", retresult)
     Expr(:macrocall,Symbol("@test"),retresult)
 end
-
-
-

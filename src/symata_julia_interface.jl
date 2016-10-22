@@ -183,7 +183,7 @@ end
 # should define Cos, Sin, etc. in Julia, and have them do something with symbols, etc.
 # Examples are in julia_level.jl. But, for compiling, this becomes more important.
 function mxpr_to_expr(mx::Mxpr)
-    h = mtojsym_compile(mhead(mx))
+    head = mtojsym_compile(mhead(mx))
 #    head = Symbol(lowercase(string(h)))  don't lowercase
     if length(mx) == 0
         return :(  $(head)() )

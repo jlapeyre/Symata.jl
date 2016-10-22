@@ -368,7 +368,7 @@ Due to parsing restrictions at the repl, for some topics, the input must be a st
 
 h\"topic\" gives a case-insensitive regular expression search.
 
-In the REPL, hit TAB to see all the available completions.
+In the REPL, or Jupyter notebook, hit TAB to see all the available completions.
 
 Help(All => True) prints all of the documentation.
 

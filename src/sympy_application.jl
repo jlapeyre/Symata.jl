@@ -63,8 +63,7 @@ For example modulus => n, gaussian => False, extention => Sqrt(2).
 #### Expand
 
 @sjdoc Expand "
-Expand(expr) expands powers and products in expr. This is the sympy version, which is more capable,
- but slower than ExpandA.
+Expand(expr) expands powers and products in expr.
 "
 
 @make_simplify_func :Expand expand

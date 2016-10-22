@@ -166,7 +166,7 @@ function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
         st = string(jf)
-        sjf = Symata.capitalize_first_character(st)
+        sjf = ucfirst(st)
     elseif length(x) == 2
         (jf,sjf) = x
     else
@@ -856,7 +856,7 @@ end
 # argument. It also uses Rule for many other things. This is awkward.
 # Here, we separate keyword Rules from all other args including Rules
 # that are not meant to be keywords.
-# kws -- Dict of legal keywords wit their default values.
+# kws -- Dict of legal keywords with their default values.
 # Only Rules with keywords in kws will be extracted
 function separate_known_rules{T<:Mxpr}(mx::T, kws)
     args = margs(mx)
@@ -910,7 +910,6 @@ end
 
 @mkapprule PyDoc :nargs => 1
 
-
 function do_PyDoc(mx::Mxpr{:PyDoc},sym)
     pysym = string(sym)
     printcom = "println(sympy[:$pysym][:__doc__])"
@@ -921,6 +920,5 @@ function do_PyDoc(mx::Mxpr{:PyDoc},sym)
 end
 
 @sjdoc PyDoc "
-PyDoc(sym) prints the documentation for the symbol sym, if available. This is
-for development.
+PyDoc(sym) prints the documentation for the symbol sym, if available.
 "

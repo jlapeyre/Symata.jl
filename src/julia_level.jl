@@ -1,26 +1,44 @@
 # This is for testing using Symata code from Julia
-Expand(mx::Mxpr) = apprules(mxpr(:Expand,mx))
-Expand(x) = x
-export Expand
 
-Cos(x::AbstractFloat) = cos(x)
-Cos{T<:AbstractFloat}(x::AbstractArray{T}) = cos(x)
-Cos(x) = apprules(mxpr(:Cos,x))
-export Cos
+for f in (:Expand, :Factor)
+    @eval ($f)(mx::Mxpr) = apprules(mxpr($(QuoteNode(f)),mx))
+    @eval ($f)(x) = x
+    @eval export $f
+end
 
-Factor(mx::Mxpr) = apprules(mxpr(:Factor,mx))
-Factor(x) = x
-export Factor
+# Need to handle two arg functions, etc.
+for f in (:cos, :sin, :abs, :tan, :exp, :log, (:acos, :ArcCos) , (:asin, :ArcSin), (:atan, :ArcTan ),
+          :cot, :cosh, :sinh, :tanh, :sqrt, :erf, :gamma)
+    local uf
+    if length(f) == 2
+        uf = f[2]
+        f = f[1]
+    else        
+        uf = Symbol(ucfirst(string(f)))
+    end
+    @eval ($uf)(x::AbstractFloat) = ($f)(x)
+    @eval ($uf){T<:AbstractFloat}(x::AbstractArray{T}) = ($f)(x)
+    @eval ($uf){T<:AbstractFloat}(x::Complex{T}) = ($f)(x)        
+    @eval ($uf)(x) = apprules(mxpr($(QuoteNode(uf)),x))
+    @eval export $uf
+end
+
+# Factor(mx::Mxpr) = apprules(mxpr(:Factor,mx))
+# Factor(x) = x
+# export Factor
 
 Integrate(mx::Mxpr,symorlist) = apprules(mxpr(:Integrate,mx,symorlist))
 export Integrate
 
-Pi = :Pi
+const Pi = :Pi
 export Pi
 
-# could make this the symbol ?
-E = e
+const E = e     # could make this the symbol ?
 export E
+
+# Already has a value
+# I = im
+# export I
 
 # TODO: make an infix assignment operator... hm or  macro
 

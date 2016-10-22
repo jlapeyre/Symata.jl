@@ -36,7 +36,7 @@ end
 # Typical symbols for Julia, Symata, SymPy
 function mtr(sym::Symbol)
     s = string(sym)
-    sjf = capitalize_first_character(s)
+    sjf = ucfirst(s)
     (sym, Symbol(sjf), sym)
 end
 
@@ -355,7 +355,7 @@ end
 
 function only_get_sjstr(jf)
     st = string(jf)
-    sjf = capitalize_first_character(st)
+    sjf = ucfirst(st)
     return jf, sjf
 end
 
@@ -366,7 +366,7 @@ end
 
 function get_sjstr(jf)
     st = string(jf)
-    sjf = capitalize_first_character(st)
+    sjf = ucfirst(st)
     do_common(sjf)
     return jf, sjf
 end
@@ -996,5 +996,15 @@ BellB(n) gives the `n^{th}` Bell number, `B_n`.
 BellB(n, x) gives the `n^{th}` Bell polynomial, `B_n(x)`.
 BellB(n, k, [x1, x2, ... x_{n-k+1}]).
 "
+
+#### Identity
+
+@sjdoc Identity "
+Identity(expr) returns expr.
+"
+
+@mkapprule Identity
+
+@doap Identity(x) = x
 
 nothing

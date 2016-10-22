@@ -13,7 +13,6 @@ mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? r
 mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
 
 # Oct 2016. Added generic mxpr(:Times,x,y). Does not break tests.
-# FIXME: We need to do this for mplus, mdiv, etc.
 # Why ? This allows Compiled (ie. Julia) functions to take far more arguments.
 # FIXME. Use mmul in Symata code instead of *. We want to remove undesired methods for *
 mmul{T<:Number, V<:Number}(x::T,y::V) = x * y
@@ -23,7 +22,6 @@ mplus{T<:Integer,V<:Integer}(x::Rational{T}, y::Rational{V}) = rat_to_int(x+y)
 
 mplus{T<:Number, V<:Number}(x::T,y::V) = x + y
 mplus(x,y) = mxpr(:Plus, x, y)
-#mplus(x,y) = x + y
 
 # mdiv is apparently used in do_Rational, but this should never be used now.
 mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
@@ -31,7 +29,6 @@ mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? r
 
 mdiv(x::Number,y::Number) = x/y
 mdiv(x,y) = mxpr(:Times,x, mxpr(:Power,y,-1))
-#mdiv(x,y) = x/y
 
 function mpow(x,y)
     _mpow(x,y)
@@ -57,8 +54,6 @@ _mpow{T<:Real}(x::Symata.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x 
 
 # could be more efficient: cospi(exp) + im * sinpi(exp)
 _mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp
-
-#mpow(x::Complex,y::Integer) = x^y handled below
 
 # FIXME: This code and function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
@@ -127,13 +122,9 @@ function mpow_test_for_integer_factors(facs)
 end
 
 
-# This expression will call here:  (-27/64)^(2/3) == 9/16*((-1)^(2/3))
-function _mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V})
-    # This is actually called by Norm([1,I/2])
-    #  warn("arithmetic.jl: Calling useless mpow")
-    mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
-end
-
+# The following expression will call this method:  (-27/64)^(2/3) == 9/16*((-1)^(2/3))
+# Also called by Norm([1,I/2])
+_mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V}) =  mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 
 ### Code below handles z^n for z complex and n real.
 
@@ -162,12 +153,11 @@ function _mpow{T<:Real,V<:Union{AbstractFloat, Integer}}(base::Complex{T}, expt:
     end
 end
 
+#### mabs
 
 mabs(x::Number) = abs(x)
 
 mabs(x) = mxpr(:Abs, x)
-#mabs(x) = mxpr(x)
-
 
 # TODO.  T Rational
 function mabs{T<:Integer}(x::Complex{T})
@@ -198,8 +188,15 @@ for op = (:mplus, :mmul)
         # note: these definitions must not cause a dispatch loop when +(a,b) is
         # not defined, and must only try to call 2-argument definitions, so
         # that defining +(a,b) is sufficient for full functionality.
-        ($op){T<:Number}(a::T, b::T, c::T)        = ($op)(($op)(a,b),c)
-        ($op){T<:Number}(a::T, b::T, c::T, xs::T...) = ($op)(($op)(($op)(a,b),c), xs...)
+
+        # ($op){T<:Number}(a::T, b::T, c::T)        = ($op)(($op)(a,b),c)
+        # ($op){T<:Number}(a::T, b::T, c::T, xs::T...) = ($op)(($op)(($op)(a,b),c), xs...)
+
+        # Oct 2016 Compiled Symata translates mxpr(:Times,x,y,z,...) to mmul(x,y,z,...).
+        # In order for this to work, we allow any combination of numbers.
+        ($op)(a::Number, b::Number, c::Number)        = ($op)(($op)(a,b),c)
+        ($op)(a::Number, b::Number, c::Number, xs::Number...) = ($op)(($op)(($op)(a,b),c), xs...)        
+
         # a further concern is that it's easy for a type like (Int,Int...)
         # to match many definitions, so we need to keep the number of
         # definitions down to avoid losing type information.
