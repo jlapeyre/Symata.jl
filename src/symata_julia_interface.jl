@@ -2,20 +2,26 @@
 
 #### JVar
 
-@sjdoc JVar "
-JVar(x) returns the Julia value of the Symbol that x evaluates to. For example,
-if a = 1 in Julia and b = a in Symata, then JVar(b) evaluates to 1.
-"
+@sjdoc JVar """
+    JVar(x)
+
+return the Julia value of the Symbol that `x` evaluates to.
+
+For example, if `a = 1` in Julia and `b = a` in Symata, then `JVar(b)` evaluates to `1`.
+"""
 
 @sjseealso_group(Jxpr,JVar)
 apprules(mx::Mxpr{:JVar}) = eval(Main,symname(mx[1]))
 
 #### SetJ
 
-@sjdoc SetJ "
-SetJ(x,val) sets the Julia symbol x to val. Variables and functions in Symata
-are separate from those in Julia, ie, their table of bindings to symbols are separate.
-"
+@sjdoc SetJ """
+    SetJ(x,val)
+
+sets the Julia symbol `x` to `val`.
+
+Variables and functions in Symata are separate from those in Julia, ie, their table of bindings to symbols are separate.
+"""
 
 # This can also be done with a Jxpr
 # Bind a Julia symbol to the rhs
@@ -30,13 +36,15 @@ end
 
 #### Jxpr
 
-@sjdoc Jxpr "
-Jxpr allows embedding Julia expressions.
-A Jxpr is entered like this :( expr ) . expr is interpreted as a Julia expression and
-it is wrapped expression with head Jxpr, which is then evaluated when
-Jxpr is evaluated. You never see the head Jxpr. For example
- m = :( [1:10] )  creates a Julia array and binds it to the Symata symbol m
-"
+@sjdoc Jxpr """
+    Jxpr
+
+allows embedding Julia expressions. A Jxpr is entered like this `:( expr )`.
+
+`expr` is interpreted as a Julia expression and it is wrapped expression with head `Jxpr`, which is then evaluated when
+`Jxpr` is evaluated. You never see the head `Jxpr`. For example,
+ `m = :( [1:10] )`  creates a Julia array and binds it to the Symata symbol `m`.
+"""
 
 @sjexamp( Jxpr,
          "This creates a Julia Array{Int,1} and \"binds\" it to the Symata symbol m.",
@@ -65,11 +73,14 @@ end
 
 #### Unpack
 
-@sjdoc Unpack "
-Unpack(a) unpacks a Julia typed array into an Symata List expression.
-Only 1-d is supported. If a is a Julia Dict, then a list of lists of
+@sjdoc Unpack """
+    Unpack(a)
+
+unpack a Julia typed `AbstractArray` into an Symata `List` expression.
+
+Only `1`-d is supported. If `a` is a Julia `Dict`, then a `List` of `Lists` of
 key,value pairs is returned.
-"
+"""
 
 @sjexamp( Unpack,
          "This creates a List of three random Float64's.",
@@ -109,10 +120,12 @@ end
 
 #### Pack
 
-@sjdoc Pack "
-Pack(expr) packs the arguments of the Symata expression expr into a Julia array,
-whose element type is the minimum required to holds the arguments of expr.
-"
+@sjdoc Pack """
+    Pack(expr)
+
+pack the arguments of the Symata expression `expr` into a Julia array,
+whose element type is the minimum required to holds the arguments of `expr`.
+"""
 
 @sjexamp( Pack,
          "This returns a Julia array of element type Int [1,2,3].",
@@ -219,32 +232,27 @@ freesyms(x,syms) = nothing
 
 @mkapprule Compile
 
-@sjdoc Compile "
+@sjdoc Compile """
 f = Compile(expr)
 
 convert `expr` to a compiled function.
 
-f = Compile( [x,y,...], expr) 
+    f = Compile( [x,y,...], expr) 
 
-create an anonymous Julia function `(x,y,...) -> expr` from Symata expression `expr` and binds
-the result to f. The translation of `expr` to Julia is crude, but works in many cases.
+create an anonymous Julia function `(x,y,...) -> expr` from Symata expression `expr` and bind
+the result to `f`. The translation of `expr` to Julia is crude, but works in many cases.
 
+```
 symata> f = Compile(x^2 + y^2)
 symata> f(3,4)
         25
-
-Since compile is under development, it simply lowercases symbols. So the Symata function ArcSin, will not work. You have
-to use a Julia symbol `asin` or `ASin`. For instance,
-
- ReplaceAll(expr,  ArcSin => asin )
-
-Symbols that do *not* need to be translated this was include `Cos`, `E`, `Exp`, `Pi`, `EulerGamma`.
+```
 
 Compile works by creating an anonymous Julia function from the Symata expression `expr`. The function
-signature is the sorted list of free symbols found in `expr`. free symbols are all symbols found excluding
+signature is the sorted list of free symbols found in `expr`. Free symbols are all symbols found excluding
 function names in the translated expression and symbols that are bound in the Symata module scope. This
-excludes `e` for instance.
-"
+excludes `e`, for instance.
+"""
 
 @doap Compile(a::Mxpr{:List}, body ) = eval(Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
 

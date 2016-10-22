@@ -119,13 +119,13 @@ latex_display(mx::Mxpr{:FullForm}) = mx
 
 @mkapprule LaTeXString :nargs => 1
 
-@sjdoc LaTeXString "
-LaTeXString(expr)
+@sjdoc LaTeXString """
+    LaTeXString(expr)
 
 convert `expr` to a LaTeX string. This is the same string used for display
 in the Jupyter notebook. Conversion to LaTeX strings optimized for
 mathematical texts is not implemented.
-"
+"""
 
 @doap function LaTeXString(x)
     opt = nothing

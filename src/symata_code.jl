@@ -6,10 +6,11 @@ unprotect(:ExpToTrig)
 
 protect(:ExpToTrig)
 
-@sjdoc ExpToTrig "
-ExpToTrig(expr) replaces exponentials with trigonometric functions in expr.
-But, the transformation from Cosh to Cos is not implemented.
-"
+@sjdoc ExpToTrig """
+    ExpToTrig(expr)
+
+replace exponentials with trigonometric functions in `expr`.
+"""
 
 # Maybe defined elsewhere
 # unprotect(:StringQ)

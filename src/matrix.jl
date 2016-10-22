@@ -1,8 +1,10 @@
 @mkapprule Inverse :nargs => 1
 
-@sjdoc Inverse "
-Rewrites(m) computes the matrix inverse of m
-"
+@sjdoc Inverse """
+    Inverse(m)
+
+compute the matrix inverse of `m`.
+"""
 
 @doap function Inverse(expr)
     arg1 = _sjtopy(mx[1])

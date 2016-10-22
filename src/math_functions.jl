@@ -622,7 +622,7 @@ make_Mxpr_N()
 @sjdoc GoldenRatio """
     GoldenRatio 
 
-is equal to `(1+Sqrt(5))/2`.
+equal to `(1+Sqrt(5))/2`.
 """
 
 set_attribute(:GoldenRatio, :Protected)
@@ -654,33 +654,48 @@ function do_N{T<:Integer}(s::SJSym,pr::T)
     return s
 end
 
-@sjdoc Precision "
-Precision(x) gets the precision of a floating point number x, as defined by the
+@sjdoc Precision """
+    Precision(x)
+
+get the precision of a floating point number `x`, as defined by the
 effective number of bits in the mantissa.
-"
+"""
+
+
 apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
 do_Precision(mx::Mxpr{:Precision},args...) = mx
 do_Precision(mx::Mxpr{:Precision},x::AbstractFloat) = precision(x)
 
-@sjdoc Re "
-Re(x) returns the real part of z.
-"
+@sjdoc Re """
+    Re(z)
 
-@sjdoc Im "
-Im(x) returns the imaginary part of z.
-"
+return the real part of `z`.
+"""
+
+@sjdoc Im """
+    Im(z)
+
+return the imaginary part of `z`.
+"""
+
 # Using Julia would be faster in some cases for ReIm and AbsArg
-@sjdoc ReIm "
-ReIm(z) returns the list [Re(z),Im(z)].
-"
+@sjdoc ReIm """
+    ReIm(z)
+
+returns `[Re(z),Im(z)]`.
+"""
+
 @mkapprule ReIm
 @doap ReIm(z) = mxpr(:List,mxpr(:Re,z), mxpr(:Im,z))
 
 
 # FIXME Abs(I-3) returns 10^(1/2) instead of (2^(1/2))*(5^(1/2)). i.e. does not evaluate to a fixed point
-@sjdoc AbsArg "
-AbsArg(z) returns the list [Abs(z),Arg(z)].
-"
+@sjdoc AbsArg """
+    AbsArg(z)
+
+return `[Abs(z),Arg(z)]`.
+"""
+
 @mkapprule AbsArg
 @doap AbsArg(z) = mxpr(:List,mxpr(:Abs,z), mxpr(:Arg,z))
 
@@ -727,10 +742,13 @@ AbsArg(z) returns the list [Abs(z),Arg(z)].
 
 #### Complex
 
-@sjdoc Complex "
-Complex(a,b) returns a complex number when a and b are Reals. This is done when the
-expression is parsed, so it is much faster than 'a + I*b'.
-"
+@sjdoc Complex """
+    Complex(a,b)
+
+return a complex number when `a` and `b` are Reals
+
+The conversion is done when the expression is parsed, so it is much faster than `a + I*b`.
+"""
 
 # Complex with two numerical arguments is converted at parse time. But, the
 # arguments may evaluate to numbers only at run time, so this is needed.
@@ -740,10 +758,12 @@ expression is parsed, so it is much faster than 'a + I*b'.
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T,b::T) = complex(a,b)
 do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T) = complex(a)
 
-@sjdoc Rational "
-Rational(a,b), or a/b, returns a Rational for Integers a and b.  This is done when the
-expression is parsed, so it is much faster than 'a/b'.
-"
+@sjdoc Rational """
+    Rational(a,b), or a/b
+
+return a `Rational` for `Integer`s `a` and `b`.  This is done when the
+expression is parsed, so it is much faster than `a/b`.
+"""
 
 # Same here. But we need to use mdiv to reduce rationals to ints if possible.
 @mkapprule Rational
@@ -751,10 +771,15 @@ do_Rational(mx::Mxpr{:Rational},a::Number,b::Number) = mdiv(a,b)
 
 #### Rationalize
 
-@sjdoc Rationalize "
-Rationalize(x) returns a Rational approximation of x.
-Rationalize(x,tol) returns an approximation differing from x by no more than tol.
-"
+@sjdoc Rationalize """
+    Rationalize(x)
+
+return a `Rational` approximation of `x`.
+
+    Rationalize(x,tol)
+
+return an approximation differing from `x` by no more than `tol`.
+"""
 
 @mkapprule Rationalize
 do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat) = rationalize(x)
@@ -772,9 +797,11 @@ do_Rationalize(mx::Mxpr{:Rationalize},x) = x
 
 #### Numerator
 
-@sjdoc Numerator "
-Numerator(expr) returns the numerator of expr.
-"
+@sjdoc Numerator """
+    Numerator(expr)
+
+return the numerator of `expr`.
+"""
 
 apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
 do_Numerator(mx::Mxpr{:Numerator},args...) = mx
@@ -818,10 +845,15 @@ find_numerator(x) = x
 
 ## Chop
 
-@sjdoc Chop "
-Chop(expr) sets small floating point numbers in expr to zero.
-Chop(expr,eps) sets floating point numbers smaller in magnitude than eps in expr to zero.
-"
+@sjdoc Chop """
+    Chop(expr)
+
+set small floating point numbers in `expr` to zero.
+
+    Chop(expr,eps)
+
+set floating point numbers smaller in magnitude than `eps` in `expr` to zero.
+"""
 
 const chop_eps = 1e-14
 
@@ -869,9 +901,11 @@ do_DivRem{T<:Integer, V<:Integer}(mx::Mxpr{:DivRem}, x::T, y::V) = mxprcf(:List,
 
 #### Abs
 
-@sjdoc Abs "
-Abs(z) represents the absolute value of z.
-"
+@sjdoc Abs """
+    Abs(z)
+
+the absolute value of `z`.
+"""
 
 @mkapprule Abs :nargs => 1
 
@@ -992,33 +1026,49 @@ do_LowerGamma(mx::Mxpr{:LowerGamma}, a, z) =  mxpr(:Gamma,a) - mxpr(:Gamma,a,z)
     mxpr(:Sqrt,sum0)
 end
 
-@sjdoc ExpandFunc "
-ExpandFunc(expr) rewrites some multi-parameter special functions using simpler functions.
-"
+@sjdoc ExpandFunc """
+    ExpandFunc(expr)
 
-@sjdoc I "
-I is the imaginary unit
-"
+rewrite some multi-parameter special functions using simpler functions.
+"""
 
-@sjdoc E "
-E is the base of the natural logarithm
-"
+@sjdoc I """
+    I    
 
-@sjdoc Pi "
-Pi is the trigonometric constant π.
-"
+the imaginary unit.
+"""
 
-@sjdoc BellB "
-BellB(n) gives the `n^{th}` Bell number, `B_n`.
-BellB(n, x) gives the `n^{th}` Bell polynomial, `B_n(x)`.
-BellB(n, k, [x1, x2, ... x_{n-k+1}]).
-"
+@sjdoc E """
+    E
+
+the base of the natural logarithm.
+"""
+
+@sjdoc Pi """
+    Pi
+
+the trigonometric constant `π`.
+"""
+
+@sjdoc BellB """
+    BellB(n)
+
+gives the `n^{th}` Bell number, `B_n`.
+
+    BellB(n, x)
+
+gives the `n^{th}` Bell polynomial, `B_n(x)`.
+
+    BellB(n, k, [x1, x2, ... x_{n-k+1}])
+"""
 
 #### Identity
 
-@sjdoc Identity "
-Identity(expr) returns expr.
-"
+@sjdoc Identity """
+    Identity(expr)
+
+return `expr`.
+"""
 
 @mkapprule Identity
 
@@ -1032,7 +1082,7 @@ Identity(expr) returns expr.
 @sjdoc Total """
     Total(list)
 
-gives the sum of elements in `list`
+give the sum of elements in `list`
 """
 
 @doap Total(x::AbstractArray) = sum(x)

@@ -1,8 +1,9 @@
-@sjdoc Position "
-Position(expr,x) returns a list of part specifications of positions in
-expr at which x occurs. Only literal values for x are supported, not
-patterns
-"
+@sjdoc Position """
+    Position(expr,x)
+
+return a list of part specifications of positions in
+`expr` at which `x` occurs. Only literal values for `x` are supported, not patterns.
+"""
 
 @mkapprule Position
 

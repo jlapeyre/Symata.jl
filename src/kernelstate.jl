@@ -5,9 +5,11 @@
 
 @mkapprule VersionInfo :nargs => 0
 
-@sjdoc VersionInfo "
-VersionInfo() returns the version numbers of Symata, Julia, and Python.
-"
+@sjdoc VersionInfo """
+    VersionInfo()
+
+return the version numbers of Symata, Julia, and Python.
+"""
 
 @doap function VersionInfo()
     println("symata version ", SYMATA_VERSION)
@@ -78,12 +80,17 @@ is_sjinteractive() = MEVAL.is_sjinteractive
 # For (possibly) improved efficiency, we don't include Trace() in the KernelOptions Dict below.
 # The value is checked twice on every pass through meval.
 
-@sjdoc Trace "
-Trace(True) enables tracing the evaluation loop
-Trace(False) disables tracing the evaluation loop
-The previous value is returned.
-Trace() returns the current value.
-"
+@sjdoc Trace """
+    Trace(True)
+
+enable tracing the evaluation loop.
+
+    Trace(False)
+
+disable tracing the evaluation loop.
+
+The previous value is returned. `Trace()` returns the current value.
+"""
 
 @mkapprule Trace  :nargs => 0:1
 
@@ -97,11 +104,19 @@ end
 
 #### Time  turn timing on and off
 
-@sjdoc Time "
-Time(True) enables printing CPU time consumed and memory allocated after each evaluation of command line input.
-Time(False) disables printing CPU time consumed and memory allocated.
-Time() returns the current value.
-"
+@sjdoc Time """
+    Time(True)
+
+enable printing CPU time consumed and memory allocated after each evaluation of command line input.
+
+    Time(False)
+
+disable printing CPU time consumed and memory allocated.
+
+    Time()
+
+return the current value.
+"""
 
 @mkapprule Time  :nargs => 0:1
 
@@ -115,10 +130,15 @@ end
 
 #### Tracing Up and Down value evaluation
 
-@sjdoc TraceDownValues "
-TraceDownValues(True) enables tracing attempted applications of DownRules.
-TraceDownValues(False) disables tracing attempted applications of DownRules.
-"
+@sjdoc TraceDownValues """
+    TraceDownValues(True)
+
+enable tracing attempted applications of `DownRules`.
+
+    TraceDownValues(False)
+
+disable tracing attempted applications of `DownRules`.
+"""
 
 @mkapprule TraceDownValues  :nargs => 0:1
 
@@ -130,10 +150,15 @@ TraceDownValues(False) disables tracing attempted applications of DownRules.
     oldval
 end
 
-@sjdoc TraceUpValues "
-TraceUpValues(True) enables tracing attempted applications of UpRules.
-TraceUpValues(False) disables tracing attempted applications of UpRules.
-"
+@sjdoc TraceUpValues """
+    TraceUpValues(True)
+
+enable tracing attempted applications of `UpRules`.
+
+    TraceUpValues(False)
+
+disable tracing attempted applications of `UpRules`.
+"""
 
 @mkapprule TraceUpValues  :nargs => 0:1
 
@@ -254,9 +279,11 @@ end
 
 @mkapprule UnicodeOutput :nargs => 0:1  :nodefault => true
 
-@sjdoc UnicodeOutput "
-UnicodeOutput()  is obsolete. See OutputStyle().
-"
+@sjdoc UnicodeOutput """
+    UnicodeOutput()
+
+is obsolete. See `OutputStyle()`.
+"""
 
 @doap UnicodeOutput(args...) = println("UnicodeOutput() is obsolete. See OutputStyle()")
 
@@ -264,52 +291,85 @@ UnicodeOutput()  is obsolete. See OutputStyle().
 
 @mkapprule ShowSymPyDocs  :nargs => 0:1
 
-@sjdoc ShowSymPyDocs "
-ShowSymPyDocs(True) (default) enables printing SymPy document strings.
-ShowSymPyDocs(False) disables printing these document strings.
-ShowSymPyDocs() returns the current state.
-"
+@sjdoc ShowSymPyDocs """
+    ShowSymPyDocs(True)
+
+(default) enable printing SymPy document strings.
+
+    ShowSymPyDocs(False)
+
+disable printing SymPy document strings.
+
+    ShowSymPyDocs()
+
+return the current state.
+"""
 
 #### ReturnSymPy
 
 @mkapprule ReturnSymPy  :nargs => 0:1
 
-@sjdoc ReturnSymPy "
-ReturnSymPy(True) disables conversion of expressions computed by SymPy to Symata.
-ReturnSympy(False) (default) enables conversion to Symata.
-ReturnSympy() returns the current state.
-"
+@sjdoc ReturnSymPy """
+    ReturnSymPy(True)
+
+disable conversion of expressions computed by SymPy to Symata.
+
+    ReturnSympy(False)
+
+(default) enable conversion to Symata.
+
+    ReturnSympy()
+
+return the current state.
+"""
 
 #### SymPyError
 
 @mkapprule SymPyError :nargs => 0
 
-@sjdoc SymPyError "
-SymPyError() returns the most recent sympy error message. If you see a message warning that
+@sjdoc SymPyError """
+    SymPyError()
+
+returns the most recent SymPy error message. If you see a message warning that
 a SymPy error has occurred, you can find the detailed error message.
-"
+"""
 
 #### CompactOutput
 
 @mkapprule CompactOutput  :nargs => 0:1
 
-@sjdoc CompactOutput "
-CompactOutput(True) (default) enables printing fewer spaces between operators.
-Compact() returns the current state. CompactOutput has an effect in Plain and Unicode
-output styles, but not in IJulia output style.
-"
+@sjdoc CompactOutput """
+    CompactOutput(True)
+
+(default) enable printing fewer spaces between operators.
+
+    Compact()
+
+return the current state.
+
+`CompactOutput` has an effect in `Plain` and `Unicode` output styles, but not in `IJulia` output style.
+"""
 
 #### BigIntInput
 
 @mkapprule BigIntInput  :nargs => 0:1
 
-@sjdoc BigIntInput "
-BigIntInput(True) enables interpreting all integers as arbitrary precision BigInts.
-BigIntInput(False) (default) disables interpreting all integers as arbitrary precision BigInts.
-BigIntInput() returns the current state.
+@sjdoc BigIntInput """
+    BigIntInput(True)
 
-You can always specify that an integer should be a BigInt by using BI(n).
-"
+enable interpreting all integers as arbitrary precision `BigInt`s.
+
+    BigIntInput(False)
+
+(default) disable interpreting all integers as arbitrary precision `BigInts`.
+
+    BigIntInput()
+
+return the current state.
+
+You can always specify that an integer should be a `BigInt` by giving `BI(n)`.
+"""
+
 
 """
     bigintinput()
@@ -322,13 +382,22 @@ bigintinput() = getkerneloptions(:bigint_input)
 
 @mkapprule BigFloatInput  :nargs => 0:1
 
-@sjdoc BigFloatInput "
-BigFloatInput(True) enables interpreting all floating point numbers as arbitrary precision BigFloats.
-BigFloatInput(False) (default) disables interpreting all floating point numbers as arbitrary precision BigFloats.
-BigFloatInput() returns the current state.
+@sjdoc BigFloatInput """
+    BigFloatInput(True)
+
+enable interpreting all floating point numbers as arbitrary precision `BigFloats`.
+
+    BigFloatInput(False)
+
+(default) disable interpreting all floating point numbers as arbitrary precision `BigFloat`s.
+
+    BigFloatInput()
+
+return the current state.
 
 You can always specify that a float should be a BigFloat by using BF(n).
-"
+"""
+
 @sjseealso_group(BI, BigIntInput, BF, BigFloatInput)
 
 for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_sympy),
@@ -354,10 +423,15 @@ end
 
 @mkapprule HistoryLength  :nargs => 0:1
 
-@sjdoc HistoryLength "
-HistoryLength(n) enables storing the n most recent output expressions.
-HistoryLength() returns the current value.
-"
+@sjdoc HistoryLength """
+    HistoryLength(n)
+
+enable storing the `n` most recent output expressions.
+
+    HistoryLength()
+
+return the current value.
+"""
 
 function _set_historylength(n::Integer)
     oldn = getkerneloptions(:history_length)
@@ -400,12 +474,25 @@ isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(
 
 @mkapprule OutputStyle  :nargs => 0:1
 
-@sjdoc OutputStyle "
-OutputStyle(Plain) print plain 1d text output
-OutputStyle(Unicode) print 1d text output with pretty unicode characters.
-OutputStyle(IJulia) in IJulia, print in typeset mathematics style using latex.
-OutputStyle()  return the current output style
-"
+@sjdoc OutputStyle """
+    OutputStyle(Plain)
+
+print plain 1d text output.
+
+    OutputStyle(Unicode)
+
+print 1d text output with pretty unicode characters.
+
+    OutputStyle(IJulia)
+
+in IJulia, print in typeset mathematics style using latex.
+
+    OutputStyle()
+
+return the current output style.
+
+`Plain` and `Unicode` give output that is valid `Symata` input for the same expression.
+"""
 
 function _set_output_style(st::Symbol)
     if st != :Plain && st != :Unicode  && st != :IJulia

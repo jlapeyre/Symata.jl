@@ -37,12 +37,15 @@ warncheckprotect(mx::Mxpr) = warncheckprotect(mhead(mx))
 
 #### Attributes
 
-@sjdoc Attributes "
-Attributes(s) returns attributes associated with symbol s. Builtin symbols have
-the attribute Protected, and may have others, including HoldFirst, SequenceHold,
-HoldRest, HoldAll, ReadProtected, Constant, Locked, Flat, Listable, NumericFunction,
-OneIdentity.
-"
+@sjdoc Attributes """
+    Attributes(s)
+
+returns attributes associated with symbol `s`. Builtin symbols have
+the attribute `Protected`, and may have others, including `HoldFirst`, `SequenceHold`,
+`HoldRest`, `HoldAll`, `ReadProtected`, `Constant`, `Locked`, `Flat`, `Listable`,
+`NumericFunction`, `OneIdentity`.
+"""
+
 apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 
 #get_attributes(sj::SJSym) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
@@ -61,11 +64,19 @@ end
 
 @mkapprule SetAttributes :nargs => 2
 
-@sjdoc SetAttributes "
-SetAttributes(sym,attr) adds attr to the list of attributes for sym.
-SetAttributes(list,attr) adds attr to the list of attributes for each symbol in list.
-SetAttributes(sym,list) adds each attribute in list  to the list of attributes for sym.
-"
+@sjdoc SetAttributes """
+    SetAttributes(sym,attr)
+
+add `attr` to the list of attributes for `sym`.
+
+    SetAttributes(list,attr)
+
+add `attr` to the list of attributes for each symbol in `list`.
+
+    SetAttributes(sym,list)
+
+add each attribute in `list`  to the list of attributes for `sym`.
+"""
 
 function check_set_attributes(sym::SJSymbol, attr::SJSym)
     checkprotect(sym)
@@ -97,9 +108,11 @@ do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attrs::Mxpr{:List}) = 
 ###  protected before, but now are. Non-symbols are silently ignored. Symbols which were already protected are
 ###  silently ignored.
 
-@sjdoc Unprotect "
-Unprotect(z1,z2,...) removes the Protected attribute from the symbols z1, z2, ...
-"
+@sjdoc Unprotect """
+    Unprotect(z1,z2,...)
+
+removes the `Protected` attribute from the symbols `z1, z2, ...`.
+"""
 
 function apprules(mx::Mxpr{:Unprotect})
     nargs = newargs()
@@ -124,9 +137,11 @@ do_unprotect(mx,a) = false
 
 ##### Protect
 
-@sjdoc Protect "
-Protect(z1,z2,...) adds the Protected attribute to the lists of attributes for the symbols z1, z2, ...
-"
+@sjdoc Protect """
+    Protect(z1,z2,...)
+
+add the `Protected` attribute to the lists of attributes for the symbols `z1, z2, ...`.
+"""
 
 function apprules(mx::Mxpr{:Protect})
     nargs = newargs()
@@ -151,12 +166,16 @@ do_protect(mx,a) = false
 
 #### Set and SetDelayed
 
-@sjdoc Set "
-Set(a,b), a = b
-Sets the value of a to b. b is evaluated only once, when `a=b' is evaluated.
-obj[i,j,...] = val sets a part of obj to val. obj can be an Symata expression
-or a Julia object, such as an Array or Dict.
-"
+@sjdoc Set """
+    Set(a,b), a = b
+
+Sets the value of `a` to `b`. `b` is evaluated only once, when `a=b` is evaluated.
+
+    obj[i,j,...] = val
+
+set a part of `obj` to `val`. `obj` can be a Symata expression
+or a Julia object, such as an `Array` or `Dict`.
+"""
 
 @sjseealso_group( Set, SetDelayed, UpSet, DownValues, UpValues )
 
@@ -169,12 +188,14 @@ or a Julia object, such as an Array or Dict.
          ("b", "2"),
          ("c", "1"))
 
-@sjdoc SetDelayed "
-SetDelayed(a,b), a := b
-Whenever a is evaluated, b is evaluated and the result is assigned to a.
-So a is not set to the value of b at the time a := b is evaluated, but
-rather to the current value of b every time a is evaluated.
-"
+@sjdoc SetDelayed """
+    SetDelayed(a,b), a := b
+
+Whenever `a` is evaluated, `b` is evaluated and the result is assigned to `a`.
+
+Note that `a` is not set to the value of `b` at the time `a := b` is evaluated, but
+rather to the current value of `b` every time `a` is evaluated.
+"""
 
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
@@ -279,9 +300,11 @@ setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module
 
 @mkapprule Contexts  :nargs => 0:1
 
-@sjdoc Contexts "
-Contexts() returns a list of all contexts.
-"
+@sjdoc Contexts """
+    Contexts()
+
+return a `List` of all contexts.
+"""
 
 @doap function Contexts()
     mxpr(:List, getcontexts()...)
@@ -290,9 +313,11 @@ end
 
 @mkapprule ContextSymbols  :nargs => 1
 
-@sjdoc ContextsSymbols "
-Contexts(context) returns a list of all symbols in context.
-"
+@sjdoc ContextsSymbols """
+    Contexts(context)
+
+return a `List` of all symbols in `context`.
+"""
 
 @doap function ContextSymbols(s)
     mxpr(:List, getsymbolsincontext(s)...)
@@ -301,9 +326,11 @@ end
 
 #### UpSet
 
-@sjdoc UpSet "
-UpSet(a(g(x_)),b), or a(g(x_)) ^= b  associates the transformation rule with g.
-"
+@sjdoc UpSet """
+    UpSet(a(g(x_)),b),  a(g(x_)) ^= b 
+
+associate the transformation rule with `g`.
+"""
 
 apprules(mx::Mxpr{:UpSet}) = upset(mx,mx[1],mx[2])
 
@@ -350,10 +377,12 @@ end
 
 #### Symbol
 
-@sjdoc Symbol "
-Symbol(str) converts the string str to a symbol. For example if a is 1,
-then Symbol(\"a\") returns 1.
-"
+@sjdoc Symbol """
+    Symbol(str)
+
+converts the string `str` to a symbol. For example if `a` is `1`,
+then Symbol("a") returns `1`.
+"""
 
 function apprules(mx::Mxpr{:Symbol})
     dosymbol(mx,mx[1])
@@ -363,13 +392,17 @@ dosymbol(mx,x) = (symwarn("Symbol: expected a string"); mx)
 
 #### Clear
 
-@sjdoc Clear "
-Clear(x,y,z) removes the values associated with x,y,z. It does not remove
-their DownValues.
+@sjdoc Clear """
+    Clear(x,y,z,...)
 
-Clear(Out) deletes all of the saved Output lines. It actually replaces them with
-the value `Null'.
-"
+remove the values associated with `x,y,z,...`. It does not remove
+their `DownValues`.
+
+    Clear(Out)
+
+delete all of the saved Output lines. It actually replaces them with
+the value `Null`.
+"""
 
 @sjseealso_group(Clear, ClearAll)
 
@@ -390,11 +423,14 @@ end
 
 #### ClearAll
 
-@sjdoc ClearAll "
-ClearAll(x,y,z) removes all values and DownValues associated with x,y,z. The
-symbols are removed from the symbol table and will not appear in the list returned
-by UserSyms().
-"
+@sjdoc ClearAll """
+    ClearAll(x,y,z,...)
+
+remove all values and `DownValues` associated with `x,y,z`.
+
+The symbols are removed from the symbol table and will not appear in the list returned
+by `UserSyms()`.
+"""
 
 # FIXME. remove SymPy properties from symbol
 # Remove all values associate with SJSym. values and DownValues

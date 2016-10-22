@@ -87,30 +87,41 @@ is_blankxxx{T<:Mxpr}(x::T) = false
 do_ConstantQ(mx::Mxpr{:ConstantQ}, s::Symbol) = is_Constant(s)
 do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = false
 
-@sjdoc AtomQ "
-AtomQ(expr), in principle, returns true if expr has no parts accessible with Part.
-However, currently, Julia Arrays can be accessed with Part, and return true under AtomQ.
-"
+@sjdoc AtomQ """
+    AtomQ(expr)
+
+returns true if expr has no parts accessible with `Part`.
+
+However, currently, Julia `Array`s can be accessed with `Part`, and return `True` under `AtomQ`.
+"""
 
 @mkapprule AtomQ  :nargs => 1
 
 @doap AtomQ(x) = atomq(x)
 
-@sjdoc EvenQ "
-EvenQ(expr) returns true if expr is an even integer.
-"
-@sjdoc OddQ "
-OddQ(expr) returns true if expr is an odd integer.
-"
+@sjdoc EvenQ """
+    EvenQ(expr)
+
+return `True` if `expr` is an even integer.
+"""
+
+@sjdoc OddQ """
+    OddQ(expr)
+
+return `True` if `expr` is an odd integer.
+"""
 
 @sjseealso_group(AtomQ,EvenQ,OddQ)
 apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
 apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
 
-@sjdoc DirtyQ "
-DirtyQ(m) returns true if the timestamp of any symbol that m depends on
-is more recent than the timestamp of m. This is for diagnostics.
-"
+@sjdoc DirtyQ """
+    DirtyQ(m)
+
+return `True `if the timestamp of any symbol that `m` depends on
+is more recent than the timestamp of `m`. This is for diagnostics.
+"""
+
 apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
 do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
 do_syms(s) = mxpr(:List,)
@@ -118,9 +129,12 @@ do_syms(s) = mxpr(:List,)
 #### NumericQ
 
 @mkapprule NumericQ  :nargs => 1
-@sjdoc NumericQ "
-NumericQ(expr) returns true if N(expr) would return a number.
-"
+@sjdoc NumericQ """
+    NumericQ(expr)
+
+return true if `N(expr)` would return a number.
+"""
+
 do_NumericQ(mx::Mxpr{:NumericQ}, x) = is_Numeric(x)
 
 is_Numeric(x) = false
@@ -138,9 +152,11 @@ end
 
 @mkapprule NumberQ :nargs => 1
 
-@sjdoc NumberQ "
-NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Julia type Number.
-"
+@sjdoc NumberQ """
+    NumberQ(x)
+
+return true if `x` is an explicit number. i.e. it is a subtype of Julia type `Number`.
+"""
 
 @doap NumberQ(x) = isa(x,Number)
 
@@ -181,9 +197,11 @@ NumberQ(x) returns true if x is an explicit number. i.e. it is a subtype of Juli
 
 @mkapprule PermutationQ :nargs => 1
 
-@sjdoc PermutationQ "
-PermutationQ(list) returns true if and only if list is a permuation of the integers from 1 through Length(list).
-"
+@sjdoc PermutationQ """
+    PermutationQ(list)
+
+return `True` if and only if `list` is a permuation of the integers from `1` through `Length(list)`.
+"""
 
 function do_PermutationQ(mx::Mxpr{:PermutationQ}, lst::Mxpr{:List})
     args = margs(lst)

@@ -53,10 +53,15 @@ end
 
 #### Factor
 
-@sjdoc Factor "
-Factor(expr) factors expr. Options are,  modulus, gaussian, extension, and domain.
-For example modulus => n, gaussian => False, extention => Sqrt(2).
-"
+@sjdoc Factor """
+    Factor(expr)
+
+factor `expr`. Options are,  `modulus`, `gaussian`, `extension`, and `domain`.
+
+```
+modulus => n, gaussian => False, extention => Sqrt(2).
+```
+"""
 
 @make_simplify_func :Factor factor
 

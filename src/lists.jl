@@ -1,8 +1,13 @@
 #### Args
 
-@sjdoc Args "
-Args(ex) replaces the Head of expression ex with List. Args(ex) is equivalent to Apply(List,ex).
-"
+@sjdoc Args """
+    Args(ex)
+
+replace the `Head` of expression `ex` with `List`.
+
+`Args(ex)` is equivalent to `Apply(List,ex)`.
+"""
+
 @mkapprule Args :nargs => 1
 
 do_Args(mx::Mxpr{:Args}, ex::Mxpr) = mxpr(:List, copy(margs(ex)))
@@ -22,11 +27,11 @@ end
 
 @mkapprule Join
 
-@sjdoc Join "
+@sjdoc Join """
     Join(expr1, expr2, ...)
 
-concatenate arguments of expressions with the same head, returning an expression with the same head.
-"
+concatenate arguments of expressions with the same `Head`, returning an expression with the same `Head`.
+"""
 
 @doap function Join{T}(args::Mxpr{T}...)
     nargs = newargs()
@@ -88,11 +93,17 @@ end
 
 @mkapprule Fold :nargs => 2:3
 
-@sjdoc Fold "
-Fold(f,x,[a,b,c,...]) returns  f(f(f(x,a),b),c)...
-Fold(f,lst) returns  f(First(lst),Rest(lst))
-f may be a Symbol, or a function, or Julia function. Pure functions are not yet implemented
-"
+@sjdoc Fold """
+    Fold(f,x,[a,b,c,...])
+
+return  `f(f(f(x,a),b),c)...`
+
+    Fold(f,lst)
+
+return  `f(First(lst),Rest(lst))`.
+
+`f` may be a `Symbol`, or a function, or Julia function. Pure functions are not yet implemented.
+"""
 
 @mkapprule FoldList :nargs => 2:3
 
@@ -169,14 +180,23 @@ end
 
 #### Range
 
-@sjdoc Range "
-Range(n) returns the List of integers from 1 through n.
-Range(n1,n2) returns the List of numbers from n1 through n2.
-Range(n1,n2,di) returns the List of numbers from n1 through n2 in steps of di
-di may be negative. Floats and some symbolic arguments are supported.
-You can get also get Symata lists like using Unpack(:([1.0:10^5])).
-This uses embedded Julia to create a typed Array and then unpacks it to a List.
-"
+@sjdoc Range """
+    Range(n)
+
+return the `List` of integers from `1` through `n`.
+
+    Range(n1,n2)
+
+return the `List` of numbers from `n1` through `n2`.
+
+    Range(n1,n2,di)
+
+return the `List` of numbers from `n1` through `n2` in steps of `di`.
+`di` may be negative. Floats and some symbolic arguments are supported.
+
+Similar `Lists` can be created by importing Julia `Array`s with `Unpack(:([1.0:10^5]))`.
+This uses embedded Julia to create a typed `Array` and then unpacks it to a List.
+"""
 
 # Need to check for uprules for free symbols
 function apprules(mx::Mxpr{:Range})
@@ -397,9 +417,11 @@ end
 
 #### ConstantArray
 
-@sjdoc ConstantArray "
-ConstantArray(expr,n) creates a list of n copies of expr.
-"
+@sjdoc ConstantArray """
+    ConstantArray(expr,n)
+
+create a `List` of `n` copies of `expr`.
+"""
 
 # We take only attribute to be Protected. So expr is evaled already
 function apprules(mx::Mxpr{:ConstantArray})
@@ -452,12 +474,19 @@ end
 
 @mkapprule Nothing :nodefault => true
 
-@sjdoc Nothing "
-Nothing(args...) evaluates to Nothing
-Instances of Nothing as arguments to List are removed.
+@sjdoc Nothing """
+     Nothing(args...)
+
+is replaced by `Nothing`.
+
+Instances of `Nothing` as arguments to `List` are removed.
+
+```
 [a,b,Nothing,c] == [a,b,c].
-Nothing is only removed from the arguments of expressions with head List.
-"
+```
+
+`Nothing` is only removed from the arguments of expressions with `Head` `List`.
+"""
 
 # I can't find the attributes of Mma's Nothing
 @doap Nothing(args...) = :Nothing
@@ -476,20 +505,29 @@ Nothing is only removed from the arguments of expressions with head List.
 # is expensive. But, older code had free sym lists and was
 # faster. Still don't understand why.
 
-@sjdoc Table "
-Table(expr,[imax]) returns a list of imax copies of expr.
-Table(expr,[i,imax]) returns a list of expr evaluated imax times with
-i set successively to 1 through imax.
-Table(expr,iter) iter can be any standard iterator
-Table(expr,iter1,iter2,...)  is equivalent to Table(Table(expr,iter2),iter1)...
+@sjdoc Table """
+    Table(expr,[imax])
 
-This calls an anonymous Julia function (creates a new function at every evaluatoin).
-It is currently very slow.
-Table( (:((x)->(x^2))(i) ),[i,10])
-This is much faster
+return a `List` of `imax` copies of `expr`.
+
+    Table(expr,[i,imax])
+
+returns a `List` of `expr` evaluated `imax` times with `i` set successively to `1` through `imax`.
+
+    Table(expr,iter)
+
+`iter` can be any standard iterator.
+
+    Table(expr,iter1,iter2,...)
+
+is equivalent to `Table(Table(expr,iter2),iter1)...`
+
+This example calls an anonymous Julia function
+```
 f = :( g(x) = x^2 )
 Table( f(i), [i,10])
-"
+```
+"""
 
 function apprules(mx::Mxpr{:Table})
     expr = mx[1]
@@ -711,18 +749,23 @@ end
 
 #### Keys
 
-@sjdoc Keys "
-Keys(d) returns a list of the keys in Dict d
-"
+@sjdoc Keys """
+    Keys(d)
+
+returns a list of the keys in `Dict` `d`.
+"""
+
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
 do_keys(mx,x) = (symwarn("Can't return keys of $x"); mx)
 
 #### Values
 
-@sjdoc Values "
-Values(d) returns a list of the values in Dict d
-"
+@sjdoc Values """
+    Values(d)
+
+return a list of the values in `Dict` `d`.
+"""
 
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
 do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
@@ -732,14 +775,18 @@ do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
 
 @mkapprule Splat :nargs => 1
 
-@sjdoc Splat "
+@sjdoc Splat """
     Splat(expr)
 
-Splat(expr) is equivalent to Apply(Sequence, expr). In a list of arguments `Splat(expr)` is replaced by the arguments of `expr`.
+equivalent to `Apply(Sequence, expr)`.
 
+In a list of arguments `Splat(expr)` is replaced by the arguments of `expr`.
+
+```
 symata> f(a,b, Splat([c,d]))
  f(a,b, c, d)
-"
+```
+"""
 
 @doap Splat(x::Mxpr) = mxprcf(:Sequence, margs(x))
 
@@ -747,6 +794,12 @@ symata> f(a,b, Splat([c,d]))
 #### Sort
 
 @mkapprule Sort
+
+@sjdoc Sort """
+    Sort(expr)
+
+sort the elements of `expr`.
+"""
 
 do_Sort(mx::Mxpr{:Sort},expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
 
