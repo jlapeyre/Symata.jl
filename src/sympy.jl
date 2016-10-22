@@ -20,6 +20,13 @@ import Base: isless
 
 # Francesco Bonazzi contributed code for an early version of this file.
 
+# FIXME: We may want to SymPy integers to BigInts in Symata when bigint_input is set.
+# SymPy integers are already BigInt, but we are currently converting them to Int (I think)
+# Eg.
+# symata> BigIntInput(True)
+# syamta> Head(Cos(0))
+#     Int64
+
 function import_sympy()
     copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
     copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))    
@@ -147,7 +154,7 @@ const py_to_mx_rewrite_function_dict = Dict(
 # End translation Dicts
 ######################################################
 
-##### Digits of precision for Sympy
+#### Digits of precision for Sympy
 
 const MPMATH_DPS = Int[0]
 
@@ -175,7 +182,7 @@ function get_sympy_math(x)
     return jf,sjf
 end
 
-# These are used for rewriting in both directions and function calling
+# These are used for rewriting in both directions and for calling functions
 # via sympy.symbol
 function make_sympy_to_symata()
     symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
@@ -233,8 +240,6 @@ function lookup_pyfunc_symbol(sjsym)
     get_sjtopy(sjsym)
 end
 
-####################
-
 #### Convert SymPy to Mxpr
 
 #  Note: To convert, say a hypergeometric function to a float, do this:  f1[:evalf]()
@@ -252,15 +257,14 @@ function populate_py_to_mx_dict()
                     (sympy[:containers][:Tuple], :List),  # Problem, a List may be huge, Tuple not... but this is a sympy Tuple
                     (sympy[:oo], :Infinity),
                     (sympy[:zoo],:ComplexInfinity))
-#        (sympy.functions[:special][:hyper][:TupleArg], :List))
         py_to_mx_dict[onepair[1]] = onepair[2]
-        if haskey(sympy[:functions][:special][:hyper], :TupleArg)  # This cannot be found by Travis
+        if haskey(sympy[:functions][:special][:hyper], :TupleArg)  # This is missing in older versions of SymPy. (But so are many other symbols)
             py_to_mx_dict[sympy[:functions][:special][:hyper][:TupleArg]] = :List
         end
     end
 end
 
-# These functions are also contained in sympy.C
+# These functions are also contained in sympy.C (but sympy.C has been deprecated)
 function mk_py_to_mx_funcs()
     for (pysym,sjsym) in SYMPY_TO_SYMATA_FUNCTIONS
         pystr = string(pysym)
@@ -475,19 +479,15 @@ function mk_mx_to_py_funcs()
             try
                 obj = eval(pysym)
             catch
-#                println("*** $pystr symbol not found")
                 continue
             end
         else
             try
-#                obj = eval(parse("sympy." * pystr))   # These call the sympy functions directly
                 obj = eval(parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly
             catch
-#                println("*** $pystr symbol not found")
                 continue
             end
         end
-#        println("    $pystr symbol found")
         mx_to_py_dict[Symbol(sjstr)] = obj
     end
 end
@@ -541,14 +541,7 @@ function _sjtopy(mx::Mxpr{:DirectedInfinity})
     end
 end
 
-##### Rewrite
-
-# function _sjtopy(mx::Mxpr{:Rewrite})
-#     println("Trying $mx")
-# end
-
-#                        :Gamma => :uppergamma,
-
+#### Rewrite
 
 const RewriteDict = Dict( :Gamma => :gamma,
                           :HypergeometricPFQ => :hyper,
@@ -576,9 +569,7 @@ Rewrite(CatalanNumber(n), HypergeometricPFQ)
     pytosj(pyres)
 end
 
-
-
-###### HypergeometricPFQ
+#### HypergeometricPFQ
 
 do_HypergeometricPFQ{W<:AbstractFloat}(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) =
     eval_hypergeometric(mx,p,q,z)
@@ -596,6 +587,8 @@ function eval_hypergeometric(mx, p, q, z)
         end
     pytosj(fresult)
 end
+
+#### MeijerG
 
 @mkapprule MeijerG
 
@@ -643,13 +636,13 @@ function eval_meijerg(mx, p, q, z)
     pytosj(fresult)
 end
 
+#### Tuple
+
 function _sjtopy(t::Tuple)
     @sjdebug(3,"Tuple ", mx)
     (map(_sjtopy,t)...)
 end
 
-
-###############################
 
 ## Sympy functions are called here.
 function _sjtopy(mx::Mxpr)
@@ -668,7 +661,9 @@ function _sjtopy(mx::Mxpr)
     end
 end
 
-# mx is a julia Symbol
+#### Symbol
+
+# mx is a julia Symbol.
 # We create a sympy symbol, unless it has already been created
 function _sjtopy(mx::Symbol)
     @sjdebug(3,"Symbol ", mx)
@@ -686,6 +681,8 @@ function _sjtopy(mx::Symbol)
     end
 end
 
+#### Assume
+
 @mkapprule Assume
 
 @sjdoc Assume "
@@ -695,7 +692,8 @@ These properties are used in simplifying relations, `Refine`, integral transform
 Properties are: commutative, complex, imaginary, real, integer, odd, even,
 prime, composite, zero, nonzero, rational, algebraic, transcendental, irrational, finite, infinite, negative, nonnegative, positive, nonpositive, hermitian, antihermitian.
 
-These property symbols may contain uppercase characters. For example `Positive` and `positive` are the same.
+These property symbols may contain uppercase characters. For example `Positive` and `positive` are the same. Use of
+properties with lowercase initial is deprecated.
 "
 
 # TODO. We implemented this to use, e.g. the inequality solvers
@@ -713,6 +711,8 @@ These property symbols may contain uppercase characters. For example `Positive` 
     s
 end
 
+#### Max
+
 # TODO Max(x,y) == Max(y,x)
 # TODO Do numerical arguments in Julia
 # TODO Flatten lists
@@ -724,6 +724,8 @@ end
 
 @doap Max() = MinusInfinity
 
+#### Min
+
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
     args = margs(flatten_recursive!(mxpr(:List,args...)))
@@ -732,14 +734,10 @@ end
 
 @doap Min() = Infinity
 
-# @doap function Assume(s::Symbol, prop, val)
-#     sympy.Symbol(s, prop=val)
-# end
-
-
 _sjtopy{T<:Integer}(mx::Rational{T}) = sympy[:Rational](num(mx),den(mx))
 
-_sjtopy{T<:Number}(mx::T) = mx
+#_sjtopy{T<:Number}(mx::T) = mx
+_sjtopy(mx::Number) = mx
 
 function _sjtopy{T<:Qsym}(s::T)
     f = sympy[:Function]("_context")
@@ -764,9 +762,7 @@ end
 # We call init_sympy() from __init__
 function init_sympy()
     import_sympy()
-#    eval(parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
     eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
-#    eval(parse("const SymPyMinusInfinity = sympy.Mul(-1 , sympy.oo)"))
     eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
     make_sympy_to_symata()
     populate_py_to_mx_dict()
@@ -780,118 +776,17 @@ end
 
 name{T <: PyCall.PyObject}(x::T) = pytypeof(x)[:__name__]
 
-
-const KeywordDict = Dict( :Complex => :complex,
-                          :Basic => :basic,
-                          :Conditions => :conds,
-                          :Modulus => :modulus,
-                          :Gaussian => :gaussian,
-                          :Force => :force,
-                          :Deep => :deep)
-
-@sjdoc Deep "
-Deep is an option for the functions Together and Expand.
-"
-
-@sjdoc Conditions "
-Conditions is an option for the Integrate and other integral transforms.
-"
-
-@sjdoc Modulus "
-Modulus is an option for Factor.
-"
-
-@sjdoc Gaussian "
-Gaussian is an option specifiying that solutions including Gaussian integers should be returned.
-"
-
-
-# Convert Mxpr to sympy, pulling out Rule(a,b) to dict of keyword args.
-# That is, we separate keyword args from positional argss
-function sjtopy_kw{T<:Mxpr}(mx::T, kws)
-    args = margs(mx)
-    nargs = newargs()
-    for i in 1:length(args)
-        if is_Mxpr(args[i], :Rule)
-            lhs = get(KeywordDict, args[i][1], args[i][1])
-            rhs = args[i][2]
-            kws[lhs] = rhs
-        else
-            push!(nargs, sjtopy(args[i]))
-        end
-    end
-    nargs
-end
-
-function sjtopy_kw{T<:Mxpr}(mx::T)
-    kws = Dict()  # type ? probably symbols
-    nargs  = sjtopy_kw(mx, kws)
-    return (nargs, kws)
-end
-
-# Separate the Rule()'s from other arguments in an Mxpr expression
-# Store keywords in a Dict so they can by passed as keword arguments.
-# These do the same as above, but no conversion to sympy.
-function separate_rules{T<:Mxpr}(mx::T, kws)
-    args = margs(mx)
-    nargs = newargs()
-    for i in 1:length(args)
-        if is_Mxpr(args[i], :Rule)
-            length(args[i]) != 2 && error("Rule requires two arguments. " * length(args[i]) * " found.")
-            kws[args[i][1]] = args[i][2]
-        else
-            push!(nargs, args[i])
-        end
-    end
-    nargs
-end
-
-function separate_rules{T<:Mxpr}(mx::T)
-    kws = Dict()  # type ? probably symbols
-    nargs  = separate_rules(mx, kws)
-    return (nargs, kws)
-end
-
-# Mma uses the expression Rule(a,b) to represent a keyword
-# argument. It also uses Rule for many other things. This is awkward.
-# Here, we separate keyword Rules from all other args including Rules
-# that are not meant to be keywords.
-# kws -- Dict of legal keywords with their default values.
-# Only Rules with keywords in kws will be extracted
-function separate_known_rules{T<:Mxpr}(mx::T, kws)
-    args = margs(mx)
-    nargs = newargs()
-    for i in 1:length(args)
-        a = args[i]
-        if is_Mxpr(a, :Rule)
-            @checknargs a :Rule 2
-            if haskey(kws,a[1])
-                kws[a[1]] = a[2]
-            else
-                push!(nargs, a)
-            end
-        else
-            push!(nargs, a)
-        end
-    end
-#    println("Separated, now have ($nargs) and ($kws)")
-    nargs
-end
-
-
 # Try the sympy function 'pycall'. If there is an error,
 # give warning 'errstr' and return (from surrounding function body) 'return_val_err'
 # Store the error message in the kernel state
 # On success, return the result of the function call.
 macro try_sympyfunc(pycall, errstr, return_val_err)
-#    npycall = parse( "sympy[:" * string(pycall) * "]")
     qpycall = QuoteNode(pycall)
     return :(
              begin
              (sflag, _pyres) =
                  try
                    res = $pycall
-#                   res = sympy[$qpycall]
                    (true, res)
                  catch pyerr
                   (false,pyerr)

@@ -311,6 +311,13 @@ BigIntInput() returns the current state.
 You can always specify that an integer should be a BigInt by using BI(n).
 "
 
+"""
+    bigintinput()
+
+return true if the "kernel option" for converting input integers to BigInt is set.
+"""
+bigintinput() = getkerneloptions(:bigint_input)
+
 #### BigFloatInput
 
 @mkapprule BigFloatInput  :nargs => 0:1

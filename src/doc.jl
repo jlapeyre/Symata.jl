@@ -17,7 +17,7 @@
 
 # Repeating @sjexamp pushes more examples onto an array for SomeHead
 
-## do_example evaluates the examples (only input strings) and
+# do_example evaluates the examples (only input strings) and
 # prints input and output, and pushes input strings onto the history
 # so the user can play with them.
 
@@ -210,8 +210,13 @@ end
 
 #### Examples
 
-# use in source files to define examples for a symbol (representing a Head)
-# maybe this should be a function
+"""
+    macro sjexamp(sym,strs...)
+
+define examples for a symbol (representing a Head). This is used
+in source files to define examples for a symbol (representing a Head).
+Maybe this should be a function
+"""
 macro sjexamp(sym,strs...)
     if ! haskey(SJEXAMPLES,sym)
         SJEXAMPLES[sym] = Array(Any,0)
@@ -224,7 +229,12 @@ macro sjexamp(sym,strs...)
     push!(exs,ar)
 end
 
-#  For printing along with doc string.
+
+"""
+    format_sjexamples(sym)
+
+Print Symata examples associated with a symbol.
+"""
 function format_sjexamples(sym)
     if haskey(SJEXAMPLES,sym)
         exs = SJEXAMPLES[sym]
@@ -236,9 +246,13 @@ function format_sjexamples(sym)
     end
 end
 
-# Format just one example for printing with docs. Do not evaluate.
-# Each item in example is either an explanatory string,
-# or a 2-tuple of input and output.
+
+"""
+    format_sjexample(lines)
+
+Format just one example for printing with docs. Do not evaluate.
+Each item in example is either an explanatory string, or a 2-tuple of input and output.
+"""
 function format_sjexample(lines)
     local ins, outs, expl
     for i in 1:length(lines)

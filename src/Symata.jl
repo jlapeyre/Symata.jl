@@ -66,6 +66,7 @@ include("sortorderless.jl")
 include("module.jl")
 include("strings.jl")
 include("wrappers.jl")
+include("keyword_translation.jl")
 include("sympy.jl")
 include("math_functions.jl")
 include("sympy_application.jl")
@@ -77,7 +78,7 @@ include("client_symata.jl")
 include("isymata.jl")
 include("plot.jl")
 
-# This will cause problems with non-interactive code. We need to load symata synchronously in that case
+# This may cause problems with non-interactive code. We need to load symata synchronously in that case
 function load_symata_code()
     @async begin
         sleep(2.0)
