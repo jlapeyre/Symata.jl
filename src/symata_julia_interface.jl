@@ -221,11 +221,11 @@ function names in the translated expression and symbols that are bound in the Sy
 excludes `e`, for instance.
 """
 
-@doap Compile(a::Mxpr{:List}, body ) = eval(Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
+@doap Compile(a::Mxpr{:List}, body ) = eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
 
 @doap function Compile(body)
     jbody = mxpr_to_expr(body)
-    eval(Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
+    eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
 end
 
 ####  ToJulia

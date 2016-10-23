@@ -18,6 +18,8 @@ end
 
 export devimport, @ex
 
+export mmul, mplus, mpow, mabs
+
 # For IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
