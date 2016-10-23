@@ -207,7 +207,7 @@ convert `expr` to a compiled function.
     f = Compile( [x,y,...], expr) 
 
 create an anonymous Julia function `(x,y,...) -> expr` from Symata expression `expr` and bind
-the result to `f`. The translation of `expr` to Julia is crude, but works in many cases.
+the result to `f`.
 
 ```
 symata> f = Compile(x^2 + y^2)
@@ -253,7 +253,6 @@ function expression_to_julia_function(var0,expr0::Mxpr)
     (var,expr) = localize_variable(var0,expr0)
     function (x)
         setsymval(var,x)
-        unsetfixed(expr)        
         doeval(expr)
     end
 end

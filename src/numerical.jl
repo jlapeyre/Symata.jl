@@ -13,7 +13,7 @@ end
 @sjdoc NIntegrate """
     NIntegrate( expr, [x,x0,xf])
 
-Integrate the Symata expression `expr` numerically  between `x0` and `xf`. 
+Integrate the Symata expression `expr` numerically  between `x0` and `xf`.
 
     NIntegrate( expr , [x,x0,x1,...,xf])
 
@@ -32,6 +32,11 @@ NIntegrate returns `[result, err]`.
     `f = Compile(expr)` compiles `expr` to the function `f`.
 """
 
-quadgklist(f,args) = mxprcf(:List, quadgk(f, map(float, args)...)...)
-@doap NIntegrate(f::Function, range::Mxpr{:List}) =  quadgklist(f, margs(range))
-@doap NIntegrate(expr::Mxpr, range::Mxpr{:List}) = quadgklist(expression_to_julia_function(range[1],expr), margs(range)[2:end])
+quadgklist(f,args) = mxprcf(:List, quadgk(f, map( x -> float(doeval(x)), args)...)...)
+
+@doap function NIntegrate(expr, range::Mxpr{:List})
+    f = doeval(expr)
+    isa(f,Function) && return quadgklist(f, margs(range))
+    (sym,x0,x1) = (margs(range)...)
+    quadgklist(expression_to_julia_function(sym,expr), (x0,x1))
+end

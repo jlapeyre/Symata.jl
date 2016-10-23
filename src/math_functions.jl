@@ -445,6 +445,16 @@ set_pytosj(:gamma, :Gamma)
 set_pytosj(:uppergamma, :Gamma)
 set_sjtopy(:Gamma, :sympy_gamma)
 
+@sjdoc Gamma """
+    Gamma(a)
+
+the gamma function.
+
+    Gamma(a,z)
+
+the upper incomplete Gamma function.
+"""
+
 #### Erf
 
 @mkapprule Erf :nargs => 1:2
@@ -1008,6 +1018,11 @@ end
 
 do_LowerGamma(mx::Mxpr{:LowerGamma}, a, z) =  mxpr(:Gamma,a) - mxpr(:Gamma,a,z)
 
+@sjdoc LowerGamma """
+    LowerGamma(a,z)
+
+the lower incomplete gamma function.
+"""
 
 #### Norm
 

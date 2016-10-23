@@ -1,10 +1,33 @@
+"""
+    tolistoflists(a)
+
+convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
+`a` might be, for instance, `Array{Array{T, 1}, 1}` or nested `Tuple`s.
+"""
+function tolistoflists(a)
+    nargs = newargs(a)
+    for i in 1:length(a)
+        nargs[i] = mxpr(:List,a[i]...)
+    end
+    mxpr(:List,nargs)
+end
+
 # not used yet
 #totuple(mx::Mxpr{:List}) = tuple(margs(mx)...)
 
-# we use this for copying expression trees.
+"""
+    recursive_copy(x)
+
+just calls `deepcopy`.
+"""
 recursive_copy(x) = deepcopy(x)
 
-# Count the number of first-level elements of mx that are of type Mxpr{head}
+
+"""
+    mxpr_count_heads(mx::Mxpr, head)
+
+Count the number of first-level elements of mx that are of type Mxpr{head}.
+"""
 function mxpr_count_heads(mx::Mxpr, head)
     cnt = 0
     for i in 1:length(mx)
@@ -13,6 +36,10 @@ function mxpr_count_heads(mx::Mxpr, head)
     cnt
 end
 
+
+
+
+###
 
 # This is applied at toplevel after expression has been constructed.
 # It is applied now to binomial expansion. Needs to be applied more
@@ -40,6 +67,9 @@ function deep_apply_upvalues!(mx::Mxpr,sym)
     return applyupvalues(mx,sym)
 end
 deep_apply_upvalues!(x,sym) = x
+
+
+####
 
 macro mdebug(level, a...)
     if level <= MXDEBUGLEVEL

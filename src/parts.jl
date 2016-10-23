@@ -12,20 +12,6 @@ return a list of part specifications (indices) of positions in
 
 @mkapprule Position
 
-"""
-    tolistoflists(a)
-
-convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
-`a` might be, for instance, `Array{Array{T, 1}, 1}` or nested `Tuple`s.
-"""
-function tolistoflists(a)
-    nargs = newargs(a)
-    for i in 1:length(a)
-        nargs[i] = mxpr(:List,a[i]...)
-    end
-    mxpr(:List,nargs)
-end
-
 function do_Position(mx::Mxpr{:Position},expr,subx)
     tolistoflists(find_positions(expr,subx))
 end
@@ -103,14 +89,14 @@ function setpart!(mx::Mxpr,val,inds...)
     elseif length(inds) == 1
         margs(mx)[inds[1]] = val
     elseif inds[end] == 0
-        ex = getpart(mx, inds[1:end-2]...)        
+        ex = getpart(mx, inds[1:end-2]...)
         ex1 = margs(ex)[inds[end-1]]
         margs(ex)[inds[end-1]] = mxpr(val, margs(ex1))
     else
-        ex = getpart(mx, inds[1:end-1]...)        
+        ex = getpart(mx, inds[1:end-1]...)
         margs(ex)[inds[end]] = val
     end
-end    
+end
 
 #### localize variable
 
