@@ -12,6 +12,7 @@ test = Symata_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "numeric_test.sj",
               "julia_interface_test.sj",
               "latex_test.sj",
               "output_test.sj",
