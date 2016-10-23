@@ -786,12 +786,12 @@ do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat) = rationalize(x)
 do_Rationalize(mx::Mxpr{:Rationalize},x::AbstractFloat,tol::Number) = rationalize(x,tol=float(tol))
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic)
     r = doeval(mxpr(:N,x))  # we need to redesign do_N so that we can call it directly. See above
-    return is_type_less(r,AbstractFloat) ? do_Rationalize(mx,r) : x
+    return isa(r,AbstractFloat) ? do_Rationalize(mx,r) : x
 end
 function do_Rationalize(mx::Mxpr{:Rationalize},x::Symbolic,tol::Number)
     ndig = round(Int,-log10(tol))      # This is not quite correct.
     r = doeval(mxpr(:N,x,ndig))  # we need to redesign do_N so that we can call it directly. See above.
-    return is_type_less(r,AbstractFloat) ? do_Rationalize(mx,r,tol) : x
+    return isa(r,AbstractFloat) ? do_Rationalize(mx,r,tol) : x
 end
 do_Rationalize(mx::Mxpr{:Rationalize},x) = x
 

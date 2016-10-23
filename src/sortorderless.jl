@@ -137,27 +137,27 @@ jslexless(x::Mxpr{:Power}, y::Mxpr{:Times}) = jslexless(x,y[end])
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr)
     if y == base(x)
-        return is_type_less(expt(x),Real) && expt(x) < 0
+        return (typeof(expt(x)) <: Real) && expt(x) < 0
     end
     jslexless(base(x),y)
 end
 function jslexless(x::Mxpr, y::Mxpr{:Power})
     if x == base(y)
-        return is_type_less(expt(y),Real) && expt(y) > 1
+        return isa(expt(y),Real) && expt(y) > 1
     end
     jslexless(x,base(y))
 end
 
 function jslexless(x::Mxpr{:Power}, y::SJSym)
     if y == base(x)
-        return is_type_less(expt(x),Real) && expt(x) < 0
+        return isa(expt(x),Real) && expt(x) < 0
     end
     jslexless(base(x),y)
 end
 
 function jslexless(x::SJSym, y::Mxpr{:Power})
     if x == base(y)
-        return is_type_less(expt(y),Real) && expt(y) > 1
+        return isa(expt(y),Real) && expt(y) > 1
     end
     jslexless(x,base(y))
 end
@@ -438,10 +438,10 @@ function _canonexpr_orderless!(mx)
     is_Number(mx) && return mx
     mx = distribute_minus_one(mx)
     orderexpr!(mx)  # sort terms
-    if is_type_less(mx,Mxpr)
+    if isa(mx,Mxpr)
         mx = compactsumlike!(mx) # sum numbers not gotten by loopnumsfirst.
         @mdebug(2,"_canonexpr_orderless!, returned from compactsumlik1!: ", mx)
-        if is_type_less(mx,Mxpr)
+        if isa(mx,Mxpr)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
             @mdebug(2,"_canonexpr_orderless!, returned from collectordered!: ", mx)
             # following is rarely if ever used.
@@ -544,7 +544,7 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
                 sum0 = ($fop)(sum0,a[1])
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
-            (length(a) == 0 || is_type_less(a[1],Number)) && return sum0
+            (length(a) == 0 || isa(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return handle_coefficient_is_zero(mx,sum0)) : :())
             sum0 != $id && unshift!(a,sum0)
             @mdebug(3, $name, ": checking length: ",a)
@@ -562,14 +562,14 @@ end
 
 # Get numeric coefficient of expr. It is 1 if there is none.
 function numeric_coefficient(x::Mxpr{:Times})
-    c = is_type_less(x[1],Number) ? x[1] : 1
+    c = isa(x[1],Number) ? x[1] : 1
 end
 numeric_coefficient{T<:Number}(x::T) = x
 numeric_coefficient(x) = 1
 
 # Get numeric exponent; may be 1 (zero never encountered, I hope)
 function numeric_expt(x::Mxpr{:Power})
-    c = is_type_less(expt(x),Number) ? expt(x) : 1
+    c = isa(expt(x),Number) ? expt(x) : 1
 end
 numeric_expt{T<:Number}(x::T) = 1
 numeric_expt(x) = 1
@@ -629,7 +629,7 @@ for (op,name,matchf) in  ((:mplus,:collectmplus!, :_matchterms),
             count = 0
             coeffcount = 0
             while n < length(a)
-                is_type_less(a[n],Number) && (n += 1; continue)
+                isa(a[n],Number) && (n += 1; continue)
                 (success,coeffsum,fac) = ($matchf)(a[n],a[n+1])
                 if success
                     count = 1
@@ -709,7 +709,7 @@ function newcollectmmul!(mx::Mxpr)
     coeffcount = 0
     cumterms = Array(Any,0)
     while n < length(a)
-        is_type_less(a[n],Number) && (n += 1; continue)
+        isa(a[n],Number) && (n += 1; continue)
         (success,fac) = _matchfacs2a(a[n],a[n+1],cumterms)
         if success
             count = 1

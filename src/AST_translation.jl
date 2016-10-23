@@ -184,7 +184,7 @@ function extomx(ex::Expr)
     newa = newargs()
     local head::Any
     ex = rewrite_expr(ex)
-    is_type(ex,Expr) || return ex  # may be a rational
+    isa(ex,Expr) || return ex  # may be a rational
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
@@ -203,15 +203,15 @@ function extomx(ex::Expr)
         return parsepattern(ex)
     elseif ex.head == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
-            if is_type(a[1], Symbol) && is_type(a[2], Expr) &&   # FIXME use isa() here
+            if isa(a[1], Symbol) && isa(a[2], Expr) &&   # FIXME use isa() here
                 (a[2].args)[1] == :(?)
                 ptargs = a[2].args
                 length(ptargs) != 2 && error("extomx: too many args to PatternTest")
                 pt = ptargs[2]
-                if is_type(pt,Expr)  # assume it is a Function
+                if isa(pt,Expr)  # assume it is a Function
                     pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
                 end
-                is_type(pt,Symbol) || is_type(pt,Function) || typeof(pt) <: Function ||
+                isa(pt,Symbol) || isa(pt,Function) || typeof(pt) <: Function ||
                         error("extomx: argument to PatternTest must be a Symbol or a Function")
                 head = :PatternTest
                 push!(newa,extomx(a[1]),pt)
@@ -314,7 +314,7 @@ const INSYMTRANS = Dict( :⇒  => :(=>),
 function rewrite_expr(ex::Expr)
     for i in 1:length(ex.args)
         x = ex.args[i]
-        if is_type(x,Expr) && x.head == :macrocall
+        if isa(x,Expr) && x.head == :macrocall
             ex.args[i] = eval(x)
         end
         if haskey(INSYMTRANS,x)

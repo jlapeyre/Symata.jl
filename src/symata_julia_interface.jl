@@ -238,37 +238,18 @@ end
 
 @doap ToJulia(x) = Jexpr(mxpr_to_expr(x))
 
-####
-
 """
-    maybe_localize_variable(var::Symbol,expr)
+    f = expression_to_julia_function(var,expr::Mxpr)
 
-If `var` is unbound (that is, evaluates to itself), return `(var,expr)`.
-If `var` is bound, return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
-and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
+return a Julia function corresponding to `f(var) = expr`.
+
+This wraps `expr` in a single-argument Julia function.
+
+First creates a lexical scope, that is a new gensym symbol `nvar` is generated and is substituted
+everywhere in `expr` for `var`. Calling `f(x)`  Symata-binds `x` to `nvar` and `expr` is
+Symata-evaluated and the result is returned.
 """
-function maybe_localize_variable(var,expr)
-    isbound(var) || return (var,expr)
-    localize_variable(var,expr)
-end
-
-"""
-    localize_variable(var::Symbol,expr)
-
-return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
-and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
-"""
-function localize_variable(var,expr)
-    sym = get_localized_symbol(var)  # not really necessary that it be named like var
-    positions = find_positions(expr,var)
-    nexpr = deepcopy(expr)
-    for pos in positions
-        setpart!(nexpr, sym, pos...)
-    end
-    (sym, nexpr)
-end
-
-function expression_to_julia_function(var0,expr0)
+function expression_to_julia_function(var0,expr0::Mxpr)
     (var,expr) = localize_variable(var0,expr0)
     function (x)
         setsymval(var,x)
@@ -277,6 +258,12 @@ function expression_to_julia_function(var0,expr0)
     end
 end
 
+function expression_to_julia_function(var0,expr0::SJSym)
+    sym = get_localized_symbol(var0)    
+    var0 == expr0 && return (sym,sym)
+    return (sym,expr0)
+end
+    
 #### CodeNative
 
 # This does not yet work. Symata evaluates the symbol `f` to

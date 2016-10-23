@@ -111,3 +111,39 @@ function setpart!(mx::Mxpr,val,inds...)
         margs(ex)[inds[end]] = val
     end
 end    
+
+#### localize variable
+
+"""
+    maybe_localize_variable(var::Symbol,expr)
+
+If `var` is unbound (that is, evaluates to itself), return `(var,expr)`.
+If `var` is bound, return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
+and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
+"""
+function maybe_localize_variable(var,expr::Mxpr)
+    isbound(var) || return (var,expr)
+    localize_variable(var,expr)
+end
+
+"""
+    localize_variable(var::Symbol,expr)
+
+return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
+and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
+"""
+function localize_variable(var,expr::Mxpr)
+    sym = get_localized_symbol(var)  # not really necessary that it be named like var
+    positions = find_positions(expr,var)
+    nexpr = deepcopy(expr)
+    for pos in positions
+        setpart!(nexpr, sym, pos...)
+    end
+    (sym, nexpr)
+end
+
+function localize_variable(var,expr::SJSym)
+    sym = get_localized_symbol(var)
+    var == expr && return (sym,sym)
+    return (sym, expr)
+end

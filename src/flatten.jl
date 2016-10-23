@@ -25,7 +25,7 @@
 function flatten!{T}(mx::T)
     needsflat::Bool = false
     for x in margs(mx)
-        if is_type(x,T)
+        if isa(x,T)
             needsflat = true
             break
         end
@@ -33,7 +33,7 @@ function flatten!{T}(mx::T)
     needsflat == false && return mx
     na = newargs()
     for x in margs(mx)
-        if is_type(x,T)
+        if isa(x,T)
             for y in margs(x)
                 push!(na,y)
             end
@@ -53,7 +53,7 @@ maybeflatten!(x) = x
 function flatten_recursive!{T}(mx::T)
     needsflat::Bool = false
     for x in margs(mx)
-        if is_type(x,T)
+        if isa(x,T)
             needsflat = true
             break
         end
@@ -61,7 +61,7 @@ function flatten_recursive!{T}(mx::T)
     needsflat == false && return mx
     na = newargs()
     for x in margs(mx)
-        if is_type(x,T)
+        if isa(x,T)
             for y in margs(flatten_recursive!(x))
                 push!(na,y)
             end

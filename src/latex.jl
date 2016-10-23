@@ -193,7 +193,7 @@ function latex_string(opt, mx::Mxpr{:Plus})
     end
     s = latex_string(opt, terms[1])
     for i in 2:length(terms)
-        if is_type(terms[i],Mxpr{:Minus})
+        if isa(terms[i],Mxpr{:Minus})
             s *=  " - " * latex_string(opt, (terms[i]).terms[1])
         # following is slightly broken. Fix it later
         # elseif  is_Mxpr(terms[i], :Times) && typeof(terms[i][1])  <:Union{AbstractFloat,Integer} && terms[i][1] < 0

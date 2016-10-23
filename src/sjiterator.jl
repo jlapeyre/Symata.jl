@@ -52,12 +52,12 @@ function make_sjiter{T}(mx,args::Array{T,1})
     len < 1 && itererror(mx)
     if len == 1
         imax = doeval(args[1])
-        if is_type_less(imax,Real)
+        if isa(imax,Real) # FIXME: can we use <:  ?
             return SJIter1(imax)
         else
             itererror(mx)
         end
-    elseif ! is_type(args[1],Symbol)
+    elseif ! isa(args[1],Symbol)  # FIXME: can we use <:  ?
         return itererror(mx)
     else
         if  len ==  2
@@ -66,7 +66,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
                 return SJIterList(args[1],margs(arg2))
             else
                 imax = arg2
-                if is_type_less(imax,Real)
+                if isa(imax,Real) # FIXME: can we use <:  ?
 #                    return SJIter2(args[1],doeval(args[2]))
                     return SJIter2(args[1],arg2)
                 else
@@ -76,7 +76,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
         elseif len == 3        # We need to overload ops to make these easier to write
             # do we need deepcopy here ?
             num_iters = doeval(mxpr(:Plus, args[3], -1 * args[2]))
-            if is_type_less(num_iters, Number) # args3 - args2
+            if isa(num_iters, Number) # args3 - args2  # FIXME: can we use <:  ?
                 return SJIter3(args[1],doeval(args[2]),doeval(args[3]),floor(Int,num_iters)) # use splat ?
             else
                 itererror(mx)
@@ -88,7 +88,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
             #  Mma does simplify this: x + y + -1*(x + y)
             tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
             num_iters = doeval(tst)
-            if is_type_less(num_iters, Number)
+            if isa(num_iters, Number)  # FIXME: can we use <: Number ?
                 nargs[2] = doeval(args[2])
                 nargs[3] = doeval(args[3])
                 nargs[4] = doeval(args[4])
@@ -138,7 +138,7 @@ function make_sjitera{T}(args::Array{T,1})
     len < 1 && itererrora(args)
     if len == 1
         imax = doeval(args[1])
-        if is_type_less(imax,Real)
+        if isa(imax,Real) # FIXME: can we use <:  ?
             return SJIterA1(imax,floor(Int,imax))
         else
             itererrora(args,"imax is not a Real number.")
@@ -146,7 +146,7 @@ function make_sjitera{T}(args::Array{T,1})
     elseif len ==  2
         nargs = recursive_copy(args)
         num_iters = doeval(mxpr(:Plus, nargs[2], -1 * nargs[1]))
-        if is_type_less(num_iters, Real) # args2 - args1
+        if isa(num_iters, Real) # args2 - args1 # FIXME: can we use <:  ?
             return SJIterA2(args[1],args[2],floor(Int,num_iters)+1)
         else
             itererrora(args, "(imax-imin) is not a Real number.")
@@ -156,7 +156,7 @@ function make_sjitera{T}(args::Array{T,1})
         (imin,imax,di) = (nargs[1],nargs[2],nargs[3])
         tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
         num_iters = doeval(tst)
-        if is_type_less(num_iters, Real)
+        if isa(num_iters, Real) # FIXME: can we use <:  ?
             return SJIterA3(args...,floor(Int,num_iters)+1)
         else
             itererrora(args,"(imax-imin)/di = $num_iters is not a Real number, but has type $(typeof(num_iters))")

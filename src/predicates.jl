@@ -1,11 +1,5 @@
 #### predicates
 
-is_type(x,t::DataType) = typeof(x) == t
-is_type(x,t::Union) = typeof(x) == t
-
-is_type_less(x,t::DataType) = typeof(x) <: t
-is_type_less{T}(x::T,t::Union) = T <: t
-
 is_SSJSym(s::SSJSym) = true
 is_SSJSym(x) = false
 
@@ -112,8 +106,8 @@ return `True` if `expr` is an odd integer.
 """
 
 @sjseealso_group(AtomQ,EvenQ,OddQ)
-apprules(mx::Mxpr{:EvenQ}) = is_type_less(mx[1],Integer) && iseven(mx[1])
-apprules(mx::Mxpr{:OddQ}) = is_type_less(mx[1],Integer) &&  ! iseven(mx[1])
+apprules(mx::Mxpr{:EvenQ}) = isa(mx[1],Integer) && iseven(mx[1])
+apprules(mx::Mxpr{:OddQ}) = isa(mx[1],Integer) &&  ! iseven(mx[1])
 
 @sjdoc DirtyQ """
     DirtyQ(m)

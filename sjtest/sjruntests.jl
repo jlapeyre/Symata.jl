@@ -23,6 +23,7 @@ function runalltests()
               "flowcontrol_test.sj",
               "evaluation_test.sj",
               "lists_test.sj",
+              "ntable_test.sj",
               "patterns_test.sj",
               "up_downvalues_test.sj",
               "predicate_test.sj",

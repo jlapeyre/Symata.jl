@@ -253,7 +253,7 @@ function match_head(head::SJSym,ex)
 end
 
 function match_head(head::DataType,ex)
-    is_type_less(ex,head)
+    isa(ex,head)
 end
 
 match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))

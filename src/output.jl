@@ -3,7 +3,7 @@ module SymataIO
 import Base: show
 
 import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
-       getsym, symname, mhead, margs, is_type, getoptype, mtojsym,
+       getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output
 
@@ -363,7 +363,7 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
     end
     show(io,args[1])
     for i in 2:length(args)
-        if is_type(args[i],Mxpr{:Minus})
+        if isa(args[i],Mxpr{:Minus})
             print(io, " - ")
             show(io,(args[i]).args[1])
         else

@@ -83,40 +83,6 @@ T NestList(f,x,3) == [x,f(x),f(f(x)),f(f(f(x)))]
 
 ClearAll(f,x)
 
-#### Table
-
-# A gensym is added to user symbols somewhere here.
-# It is not removed and is not displayed properly.
-
-T  Table(i,[i,3]) == [1,2,3]
-T  Table(a(i^2),[i,3]) == [a(1),a(4),a(9)]
-      a(9) := "zebra"
-      a(x_) := x + 1
-T  Table(a(i^2),[i,4])  == [2,5,"zebra",17]
-
-# Tests two bug fixes
-T  Table(x^n+2*x,[n,3]) == [3*x,2*x + x^2,2*x + x^3]
-T  Table(x^i + x*i + 1,[i,5]) == [1 + 2*x,1 + 2*x + x^2,1 + 3*x + x^3,1 + 4*x + x^4,1 + 5*x + x^5]
-
-ClearAll(p,z,i)
-p = 1
-z := Increment(p)
-T  Table(i, [i, [z,z,z]]) == [1,2,3]
-T  Table( i, [i, Range(10)]) == Range(10)
-T  Table(i^2, [i, [a+b,c,d]]) == [(a + b)^2,c^2,d^2]
-T  Table(f(i), [i, 10, -5, -2]) == [f(10),f(8),f(6),f(4),f(2),f(0),f(-2),f(-4)]
-T  Table(Table( i * j , [i,3]), [j,3]) == [[1,2,3],[2,4,6],[3,6,9]]
-
-T Table( f(i,j) , [i,3], [j,4]) == Table(Table( f(i,j) , [j,4]), [i,3])
-
-T Table(i + j - 1, [i, 4], [j, i]) == [[1],[2,3],[3,4,5],[4,5,6,7]]
-
-# FIXME  Does not work
-#  Table(2^x + x, [x, a, a + 5 *n, n])
-# Neither is this implemented for Range
-# FIXME Does not work
-#  Table( zz(x), [zz(x), 5])
-
 T  Range(0) == []
 T  Range(1) == [1]
 T  Range(3) == [1,2,3]
@@ -182,8 +148,6 @@ T  ReplaceAll([a,b,c,d], c => Nothing) == [a,b,d]
 T [[ a, b, Nothing], [c, d, Nothing]] == [[a,b],[c,d]]
 
 T ReplaceAll( Range(20) ,  _:?(PrimeQ) => Nothing) == [1,4,6,8,9,10,12,14,15,16,18,20]
-
-T Table(Nothing,[10]) == []
 
 ClearAll(a,b,c,d,f,ex)
 

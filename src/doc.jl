@@ -36,7 +36,7 @@ end
 # or an expression.
 # no io stream specified when printing here
 function check_doc_query(ex)
-    if is_type(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
+    if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
         if length(ex.args) == 1
             println("Documentation is available for these symbols.")
             print(list_documented_symbols())
@@ -117,7 +117,7 @@ function print_matching_topics(r::Regex)
     i = 0
     lastt = :none
     for (t,doc) in SJDOCS
-        if ismatch(r,doc)
+        if ismatch(r,string(doc))
             i += 1
             println(t)
             lastt = t
@@ -260,7 +260,7 @@ function format_sjexample(lines)
     local ins, outs, expl
     for i in 1:length(lines)
         ln = lines[i]
-        if is_type_less(ln,AbstractString)
+        if isa(ln,AbstractString)
             println(ln)
         else
             expl = ""
@@ -288,7 +288,7 @@ function do_example(lines)
     local ins, outs, expl
     for i in 1:len
         ln = lines[i]
-        if is_type_less(ln,AbstractString)
+        if isa(ln,AbstractString)
             println(ln)
         else
             expl = ""
