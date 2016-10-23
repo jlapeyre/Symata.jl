@@ -5,7 +5,7 @@
 # an infinite evaluation loop. This is what Mma does.
 macro checkunbound(mx,x,sv)
     esc( quote
-           $sv = symval($x)
+           $sv = symval($x)   # could replace with isbound($x)
            if $sv == $x
              warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
              setfixed($mx)

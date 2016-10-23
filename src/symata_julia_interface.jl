@@ -58,18 +58,9 @@ allows embedding Julia expressions. A Jxpr is entered like this `:( expr )`.
 
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
 # Mxpr with head Jxpr. It is evaluated here.
-# Eg.  m = :( [1:10] )  creates a Julia array and assigns to Symata symbol m
-function apprules(mx::Mxpr{:Jxpr})
-    do_jxpr(mx,mx[1])
-end
-
-function do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T)
-    return eval(ex)
-end
-
-function do_jxpr(mx::Mxpr{:Jxpr}, x)
-    symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
-end
+apprules(mx::Mxpr{:Jxpr}) = do_jxpr(mx,mx[1])
+do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T) = eval(ex)
+do_jxpr(mx::Mxpr{:Jxpr}, x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
 
 #### Unpack
 
@@ -94,19 +85,8 @@ function apprules(mx::Mxpr{:Unpack})
     return mx
 end
 
-function unpack_to_List(obj)
-    args = do_unpack(obj)
-    return mxpr(:List,args)
-end
-
-function do_unpack(obj)
-    args = newargs(length(obj))
-    @inbounds for i in 1:length(obj)
-        args[i] = obj[i]
-    end
-    return args
-end
-
+unpack_to_List(obj) = mxpr(:List, do_unpack(obj))
+do_unpack(obj) = copy!(newargs(length(obj)),obj)
 
 function do_unpack(dict::Dict)
     args = newargs(length(dict))
@@ -153,20 +133,12 @@ end
 function apprules(mx::Mxpr{:Pack})
     a = margs(margs(mx)[1])
     T = typejoin_array(a)
-    args = do_pack(T,a)
-    return args
+    do_pack(T,a)
 end
 
-function do_pack(T,sjobj)
-    args = Array(T,length(sjobj))
-    @inbounds for i in 1:length(sjobj)
-        args[i] = sjobj[i]
-    end
-    return args
-end
+do_pack(T,sjobj) = copy!(Array(T,length(sjobj)), sjobj)
 
 #### Translate Symata to Julia
-# This stuff is partly implemented, but some of it works pretty well
 
 # Wrap Expr to prevent Symata from evaluating it.
 
@@ -191,21 +163,13 @@ function mtojsym_compile(s::Symbol)
     mtojsym(s)
 end
 
-# Instead of lowercasing everything (which will fail sometimes anyway), we
-# should define Cos, Sin, etc. in Julia, and have them do something with symbols, etc.
-# Examples are in julia_level.jl. But, for compiling, this becomes more important.
 function mxpr_to_expr(mx::Mxpr)
     head = mtojsym_compile(mhead(mx))
-#    head = Symbol(lowercase(string(h)))  don't lowercase
-    if length(mx) == 0
-        return :(  $(head)() )
-    end
+    length(mx) == 0 && return :(  $(head)() )
     a = margs(mx)
     a1 = mxpr_to_expr(a[1])
     ex = :( $(head)($(a1)) )
-    if length(mx) == 1
-        return ex
-    end
+    length(mx) == 1 && return ex
     for i in 2:length(a)
         push!(ex.args, mxpr_to_expr(a[i]))
     end
@@ -214,26 +178,29 @@ end
 
 #### Compile
 
+"""
+    freesyms(ex::Expr)
+
+return a list of unbound symbols at any depth in expression `ex`.
+"""
 function freesyms(x)
     syms = Dict()
-    freesyms(x,syms)
+    freesyms!(x,syms)
     sort(collect(keys(syms)))
 end
 
-function freesyms(ex::Expr, syms)
-#    a = ex.head == :call ?  @view((ex.args)[2:end]) : ex.args
-    a = ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args    
-    foreach( x -> freesyms(x,syms), a)
+function freesyms!(ex::Expr, syms)
+    a = ( ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args )
+    foreach( x -> freesyms!(x,syms), a)
 end
 
-freesyms(s::Symbol, syms) = (if ! isdefined(s) syms[s] = 1 end)
-
-freesyms(x,syms) = nothing
+freesyms!(s::Symbol, syms) = (if ! isdefined(s) syms[s] = 1 end)
+freesyms!(x,syms) = nothing
 
 @mkapprule Compile
 
 @sjdoc Compile """
-f = Compile(expr)
+    f = Compile(expr)
 
 convert `expr` to a compiled function.
 
@@ -270,6 +237,45 @@ end
 @mkapprule ToJulia
 
 @doap ToJulia(x) = Jexpr(mxpr_to_expr(x))
+
+####
+
+"""
+    maybe_localize_variable(var::Symbol,expr)
+
+If `var` is unbound (that is, evaluates to itself), return `(var,expr)`.
+If `var` is bound, return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
+and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
+"""
+function maybe_localize_variable(var,expr)
+    isbound(var) || return (var,expr)
+    localize_variable(var,expr)
+end
+
+"""
+    localize_variable(var::Symbol,expr)
+
+return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
+and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
+"""
+function localize_variable(var,expr)
+    sym = get_localized_symbol(var)  # not really necessary that it be named like var
+    positions = find_positions(expr,var)
+    nexpr = deepcopy(expr)
+    for pos in positions
+        setpart!(nexpr, sym, pos...)
+    end
+    (sym, nexpr)
+end
+
+function expression_to_julia_function(var0,expr0)
+    (var,expr) = localize_variable(var0,expr0)
+    function (x)
+        setsymval(var,x)
+        unsetfixed(expr)        
+        doeval(expr)
+    end
+end
 
 #### CodeNative
 

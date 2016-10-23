@@ -25,7 +25,14 @@ lcheckhash(x) = x      # do nothing
 
 const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
 
-# We should generate our own
+# We should generate our own  (why did I write this ?)
+
+"""
+    get_localized_symbol(s::Symbol)
+
+return a new symbol, like gensym. But, also set `Attribute` `Temporary` for
+the new symbol.
+"""
 function get_localized_symbol(s::Symbol)
     gsym = gensym(string(s))
     set_attribute(gsym, :Temporary)

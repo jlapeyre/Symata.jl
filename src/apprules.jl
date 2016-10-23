@@ -184,6 +184,7 @@ function do_Part(mx::Mxpr{:Part},texpr,tinds...)
     return texpr
 end
 
+# FIXME. don't need T template
 function get_part_one_ind{T<:Integer, V<:Union{Mxpr,Array}}(texpr::V,ind::T)
 #    ind::Int = tind
     ind = ind < 0 ? length(texpr)+ind+1 : ind

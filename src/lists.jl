@@ -488,10 +488,12 @@ Instances of `Nothing` as arguments to `List` are removed.
 `Nothing` is only removed from the arguments of expressions with `Head` `List`.
 """
 
-# I can't find the attributes of Mma's Nothing
 @doap Nothing(args...) = :Nothing
 
 #### Table
+
+## FIXME. We are rewriting the expression at every evaluation. This is slow and
+## unnecessary. We need to do the localization once and then set the value and doeval.
 
 ## Newer Table.
 # NOTE: we need to change to dynamic scoping

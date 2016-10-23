@@ -90,6 +90,13 @@ fastsetsymval(s::SJSym,val) = (getssym(s).val[1] = val)
 
 fastsetsymval(s::SSJSym,val) = (s.val[1] = val)
 
+"""
+    isbound(s::SJSym)
+
+return true if `s` is unbound, that is, if evaluates to itself.
+"""
+isbound(s::SJSym) = (symval(s) != s)
+
 function setdefinition(s::SSJSym, val::Mxpr)
     s.definition = val
 end
@@ -348,7 +355,20 @@ end
 
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 
+# FIXME. I don't think we need the template here
+
+"""
+    mhead(mx::Mxpr)
+
+return the `Head` of `mx.
+"""
 mhead{T<:Mxpr}(mx::T) = mx.head
+
+"""
+    margs(mx::Mxpr)
+
+return the `Array` of arguments `mx`.
+"""
 margs{T<:Mxpr}(mx::T) = mx.args
 
 # Everything that is not an Mxpr
@@ -359,12 +379,21 @@ mhead(x) = typeof(x)
 # Probably not slower, either.
 margs{T<:Dict}(d::T) = collect(values(d))
 
+# The following makes sense for Mxpr{:GenHead}. It might be useful in this case. But, probably not.
+# """
+#     setmhead(mx::Mxpr,val)
+# set the `Head` of `mx` to `val`. This function is not
+# worth much because the head information is also stored in the type.
+# """
+# setmhead(mx::Mxpr,val) = (mx.head = val)
+
 @inline setage(mx::Mxpr) = mx.age = increvalage()
 @inline getage(mx::Mxpr) = mx.age
 getfreesyms(mx::Mxpr) = mx.syms
 setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
 # These should be fast: In the Symata language, mx[0] gets the head, but not here.
+# Oct 2016, Not sure about the statement above. It depends on where the convenient notation is used more
 # TODO: iterator for mx that iterates over args would be useful
 setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
 @inline getindex{T<:Integer}(mx::Mxpr, k::T) = margs(mx)[k]
@@ -372,7 +401,9 @@ setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
 @inline Base.length(s::SJSym) = 0
 # We are claiming a lot of space here. But in Symata,
 # Most things should have length zero.
+# FIXME: get rid of this. We have to use our own length function. This is easy.
 Base.length(x) = 0
+
 @inline Base.endof(mx::Mxpr) = length(mx)
 
 @inline mxprtype{T}(mx::Mxpr{T}) = T

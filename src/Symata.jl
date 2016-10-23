@@ -11,7 +11,7 @@ import Base: /, *, +, -, ^, setindex!, getindex, replace
 # For development
 function devimport()
     eval(Main, parse("""
-import Symata: @ex, @testex, symval, symname, @aex, meval, doeval, infseval,
+import Symata: @ex, @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
        sympy, pytypeof, mxpr, canonexpr!
 """))
 end
