@@ -82,11 +82,16 @@ include("plot.jl")
 
 # This may cause problems with non-interactive code. We need to load symata synchronously in that case
 function load_symata_code()
-    @async begin
-        sleep(2.0)
-        include(joinpath(dirname(@__FILE__), "symata_code.jl"))
-    end
+    # @async begin
+    #     sleep(2.0)
+    #     include(joinpath(dirname(@__FILE__), "symata_code.jl"))
+    # end
 end
+
+function load_symata_code_now()
+    include(joinpath(dirname(@__FILE__), "symata_code.jl"))
+end
+
 
 function __init__()
     have_ijulia = isdefined(Main, :IJulia)

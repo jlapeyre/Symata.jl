@@ -30,6 +30,23 @@ macro BF_str(s)
     parse(BigFloat,s)
 end
 
+global isautoloaded = false
+
+const autoloadsymbols = Dict( :Array => true, :ExpToTrig => true)
+
+check_autoload(x) = nothing
+
+function check_autoload(s::Symbol)
+    global isautoloaded
+    if (! isautoloaded) && haskey(autoloadsymbols, s)
+        println("Autoloading code")
+        isautoloaded = true        
+        load_symata_code_now()
+    end
+end
+
+
+
 # Complicated:
 # 1. preprocess :> to .>, because :> cannot be parsed
 #  on output write .> as :>, so that it can be read again. But, .> also works as input
@@ -97,6 +114,7 @@ function extomx(s::Symbol)
     s == :∑ && return :Sum
     s == :True && return true
     s == :False && return false
+
     ss = string(s)
     if contains(ss,"_")  # Blanks used in patterns
         return parseblank(ss)
@@ -188,6 +206,7 @@ function extomx(ex::Expr)
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
+        check_autoload(a[1])
         head = jtomsym(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.

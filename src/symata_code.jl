@@ -18,6 +18,7 @@ replace exponentials with trigonometric functions in `expr`.
 # ALSO: Check dynamic vs. lexical scoping. What we have here might not be what we want.
 
 @ex ( Array(f_, n_Integer) := Table(f(i), [i,n]) )
+@ex ( Array(f_, r_Integer, n_Integer) := Table(f(i), [i,r,n+r-1]) )
 @ex ( Array(f_, [n_Integer, m_Integer]) := Table(f(i,j), [i,n], [j,m]))
 @ex ( Array(f_, [n_Integer, m_Integer, p_Integer]) := Table(f(i,j,k), [i,n], [j,m], [k,p]))
 @ex ( Array(f_, n_Integer, [a_,b_]) := Table(f(i), [i, Range(a,b,(b-a)/n)]))
