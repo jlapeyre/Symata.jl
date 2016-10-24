@@ -323,9 +323,25 @@ the `Head` of `expr`, and the entire `expr`.
 replace parts at all levels according to the
 list of rules. If given explicitly, the rules should be given as `List(...)` rather than
 `[...]` because of a parsing error.
+
+    op = ReplaceAll(rule)
+
+Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
 """
 
-apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
+#apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,mx[1],mx[2])
+apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,margs(mx)...)
+
+# These two rules specify Currying with the second argument
+
+doreplaceall(mx,a) = mx
+do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+
+
+# FIXME. level spec, if present, goes in wrong place. easy to fix.
+doreplace(mx,a) = mx
+do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+
 
 function doreplaceall{T<:Rules}(mx,expr,r::T)
     replaceall(expr,r)
@@ -344,6 +360,7 @@ function doreplaceall(mx,expr,rs::Mxpr{:List})
     replaceall(expr,rsa)
 end
 doreplaceall(mx,a,b) = mx
+
 
 @sjexamp( ReplaceAll,
          ("ClearAll(zz,b,c)",""),
@@ -380,8 +397,12 @@ do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
 @sjdoc MatchQ """
     MatchQ(expr,pattern)
 
-return `True` if `expr` matches `pattern`. `MatchQ` can
-be used in operator form. For example, `myintq = MatchQ(_Integer)`.
+return `True` if `expr` matches `pattern`.
+
+    op = MatchQ(pattern)
+    
+Define a function `op(expr)` that returns `MatchQ(expr,pattern)`.
+For example, `myintq = MatchQ(_Integer)`.
 """
 
 @sjexamp( MatchQ,
@@ -411,7 +432,7 @@ end
 
 #### GenHead
 # for operator form of MatchQ
-# do_GenHead in evaluation.jl curries the first argument
+# do_GenHead in evaluation.jl currys the first argument
 function do_GenHead(mx,head::Mxpr{:MatchQ})
     mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 end
