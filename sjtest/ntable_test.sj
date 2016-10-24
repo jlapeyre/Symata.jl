@@ -67,6 +67,13 @@ T  Table(i^2, [i, [a+b,c,d]]) == [(a + b)^2,c^2,d^2]
 
 T Table(Nothing,[10]) == []
 
+ClearAll(it)
+
+it = [i,3]
+
+T Table( i^2 , Evaluate(it)) == [1,4,9]
+
+ClearAll(it)
 
 ClearAll(x,y,a,b,c,d,m,p,z,f,j)
 ClearAll(a,b,c,d,f,ex)

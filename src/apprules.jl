@@ -161,12 +161,17 @@ returns the `n`th element of expression `expr`.
 
     Part(expr,n1,n2,...) or expr[n1,n2,...]
 
-return the subexpression at index `[n1.n2,...]`.
+return the subexpression at index `[n1,n2,...]`.
 
 The same can be achieved less efficiently with `expr[n1][n2]...`.
 
-`expr[n] = val` sets the `n`th part of `expr` to `val`. `n` and `val` are evaluated
+    expr[n] = val
+
+set the `n`th part of `expr` to `val`. `n` and `val` are evaluated
 normally. `expr` is evaluated once.
+
+`n` less than zero counts backward from the end of the expression or subexpression.
+
 `expr[n]` also returns the `n`th element of instances of several
 Julia types such as `Array`, or the element with key `n` for `Dict`'s.
 """

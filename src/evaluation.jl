@@ -47,6 +47,21 @@ end
 remove temporary symbols, ie all beginnig with "##", from the symbol table.
 """
 
+@sjdoc Evaluate """
+    Evaluate(expr)
+
+specify that `expr` should be evaluated even if it appears as an argument protected by `HoldAll`, etc.
+
+!!! note
+    `Evaluate` is only implemented for `HoldAll`; not `HoldRest`, etc.
+"""
+
+@mkapprule Evaluate :nargs => 1
+
+# This only handles trivial cases, where Evaluate is not protected by HoldXXX. The cases in which it
+# *is* protected are handled below in meval_arguments()
+@doap Evaluate(x) = x
+
 # The Temporary attribute is not working. the symbols that escape are just gensysms
 @doap function ClearTemporary()
     syms = usersymbols()
@@ -333,6 +348,11 @@ function meval_arguments(mx::Mxpr)
         end
     elseif get_attribute(nhead,:HoldAll)
         nargs = copy(mxargs)
+        for i=1:length(nargs)
+            if isa(nargs[i],Mxpr{:Evaluate}) && length(nargs[i]) > 0
+                nargs[i] = doeval(nargs[i][1])
+            end
+        end
     elseif get_attribute(nhead,:HoldRest)
         nargs = copy(mxargs)
         nargs[1] = doeval(nargs[1])
@@ -501,6 +521,9 @@ end
 #### Splice expressions with head Sequence into argument list
 
 ## f(a,b,Sequence(c,d),e,f) -> f(a,b,c,d,e,f)
+## The following is broken. returns a non-symata object
+## FIXME!: f(Sequence([i1,3],[i2,4],[i3,2],[i4,10]))
+## No, the sequence is ok. something is broken with Out(n), or ...
 ## args are args of an Mxpr
 function splice_sequences!(args)
     length(args) == 0 && return
