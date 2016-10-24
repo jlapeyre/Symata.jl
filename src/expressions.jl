@@ -453,11 +453,33 @@ end
 
 #### FreeQ
 
+# don't know how to put this in the macro string
+# const levelstring = """
+# - `n`       levels `0` through `n`.
+# - `[n]`     level `n` only.
+# - `[n1,n2]` levels `n1` through `n2`
+# """
+
 @mkapprule FreeQ :nargs => 2:3
 
 @doap FreeQ(expr, pattern) = freeq(LevelSpecAll(),expr,pattern)
 
 @doap FreeQ(expr, pattern, inlevelspec)  = freeq(make_level_specification(expr, inlevelspec), expr, pattern)
+
+@sjdoc FreeQ """
+    FreeQ(expr, pattern)
+
+return `True` if no subexpression of `expr` matches `pattern`.
+
+    FreeQ(expr, pattern, levelspec)
+
+return `True` if `expr` does not match `pattern` on levels specified by `levelspec`.
+
+- `n`       levels `0` through `n`.
+- `[n]`     level `n` only.
+- `[n1,n2]` levels `n1` through `n2`
+"""
+
 
 #### Push!
 

@@ -281,7 +281,15 @@ do_Example(mx::Mxpr{:Example}, topic, n::Int) = do_example_n(mx[1],n)
 @sjdoc Replace """
     Replace(expr,rule)
 
-replaces parts in expr according to `rule`.
+replace parts in expr according to `rule`.
+
+    Replace(expr,rule,n)
+
+replace at levels less than or equal to `n`.
+
+    Replace(expr,rule,[n])
+
+replace at level `n` only.
 """
 
 @sjseealso_group(Replace,ReplaceAll)
