@@ -8,6 +8,9 @@
 
 # At the command line h"topic" prints help
 macro h_str(s)
+    try
+        check_autoload(Symbol(strip(s)))
+    end
     reg = eval(Expr(:macrocall, Symbol("@r_str"), strip(s), "i"))
     print_matching_topics(reg)
     :Null
@@ -29,22 +32,6 @@ end
 macro BF_str(s)
     parse(BigFloat,s)
 end
-
-global isautoloaded = false
-
-const autoloadsymbols = Dict( :Array => true, :ExpToTrig => true)
-
-check_autoload(x) = nothing
-
-function check_autoload(s::Symbol)
-    global isautoloaded
-    if (! isautoloaded) && haskey(autoloadsymbols, s)
-        println("Autoloading code")
-        isautoloaded = true        
-        load_symata_code_now()
-    end
-end
-
 
 
 # Complicated:
@@ -206,7 +193,6 @@ function extomx(ex::Expr)
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
-        check_autoload(a[1])
         head = jtomsym(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
@@ -214,6 +200,7 @@ function extomx(ex::Expr)
     elseif ex.head == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
     elseif haskey(JTOMSYM,ex.head)
         head = JTOMSYM[ex.head]
+        check_autoload(head)
         extomxarr!(a,newa)
     elseif ex.head == :kw  # Interpret keword as Set, but Expr is different than when ex.head == :(=)
         head = :Set

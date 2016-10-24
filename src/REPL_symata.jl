@@ -225,7 +225,6 @@ function symata_run_frontend(repl::LineEditREPL, backend)
     end
     repl.backendref = backend
     #### Use this to add a mode to the stock repl
-    load_symata_code()
     run_interface(repl.t, interface)
     dopushdisplay && popdisplay(d)
 end

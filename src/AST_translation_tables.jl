@@ -92,6 +92,7 @@ merge!(JTOMSYM, JTOMSYM_ONEWAY)
 MTOJSYM[:Span] = :(:)
 
 function jtomsym(x::Symbol)
+    check_autoload(x)  # trigger autoload of Symata language code
     if haskey(JTOMSYM,x)
         return JTOMSYM[x]
     end

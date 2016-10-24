@@ -186,11 +186,8 @@ return true if `x` is an explicit number. i.e. it is a subtype of Julia type `Nu
 @doap Positive(x::Number) = false
 @doap Positive(x::String) = nothing
 
-
 #### PermuationQ
-
 @mkapprule PermutationQ :nargs => 1
-
 @sjdoc PermutationQ """
     PermutationQ(list)
 
