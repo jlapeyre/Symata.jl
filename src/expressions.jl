@@ -14,7 +14,7 @@ end
 #using Combinatorics
 
 
-#### Apply
+### Apply
 
 @sjdoc Apply """
     Apply(f,expr)
@@ -69,12 +69,12 @@ function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
     return mx
 end
 
-#### Hash
+### Hash
 
 @mkapprule Hash :nargs => 1
 @doap Hash(x) = hash(x)
 
-#### Head
+### Head
 
 @sjdoc Head """
     Head(expr)
@@ -101,7 +101,7 @@ return the `Head` of `expr`.
 # Julia v0.5 and later : a hash key or something
 @doap Head{T<:Function}(f::T) = :Function
 
-#### ReleaseHold
+### ReleaseHold
 
 #typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
 
@@ -122,7 +122,7 @@ end
 @doap ReleaseHold(ex) = ex
 
 
-#### Reverse
+### Reverse
 
 function Base.reverse(mx::Mxpr)
     mx1 = copy(mx)
@@ -151,7 +151,7 @@ function do_reverse(mx::Mxpr)
     setfixed(mxpr(mhead(mx),reverse(margs(mx))))
 end
 
-#### Permutations
+### Permutations
 
 @sjdoc Permutations """
     Permutations(expr)
@@ -178,12 +178,12 @@ give a list of prime factors of `n` and their multiplicities.
 
 apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
 
-#### Level
+### Level
 
 
 
 
-#### Map
+### Map
 
 @sjdoc Map """
     Map(f,expr)
@@ -230,21 +230,21 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     mxpr(mhead(expr),nargs)
 end
 
-#### ToExpression
+### ToExpression
+
+apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 
 @sjdoc ToExpression """
     ToExpression(str)
 
 convert string `str` to an expression.
 """
-
-set_pattributes("ToExpression")
-apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 do_ToExpression{T<:AbstractString}(mx,s::T) = eval(parse("@ex " * mx[1]))
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
+set_pattributes("ToExpression")
 
-#### Count
+### Count
 
 @sjdoc Count """
     Count(expr,pattern)
@@ -293,7 +293,7 @@ function do_GenHead(mx,head::Mxpr{:Count})
 end
 
 
-#### Cases
+### Cases
 
 @sjdoc Cases """
     Cases(expr,pattern)
@@ -407,7 +407,7 @@ function do_GenHead(mx,head::Mxpr{:Cases})
 end
 
 
-#### DeleteCases
+### DeleteCases
 
 @sjdoc DeleteCases """
     DeleteCases(expr,pattern)
@@ -451,7 +451,7 @@ function do_GenHead(mx,head::Mxpr{:DeleteCases})
     mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
 end
 
-#### FreeQ
+### FreeQ
 
 # don't know how to put this in the macro string
 # const levelstring = """
@@ -481,7 +481,7 @@ return `True` if `expr` does not match `pattern` on levels specified by `levelsp
 """
 
 
-#### Push!
+### Push!
 
 @sjdoc Push! """
     Push!(a,val)
@@ -506,7 +506,7 @@ do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
 do_Push1(mx,x,val) = mx
 do_Push1(mx,x::Mxpr,val) = (push!(x.args,val); x)
 
-#### Pop!
+### Pop!
 
 @sjdoc Pop! """
     Pop!(expr)

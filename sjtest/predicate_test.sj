@@ -29,6 +29,11 @@ T AtomQ(a + b) == False
 T AtomQ(a)
 T AtomQ(Pi)
 
+T PermutationQ([1,2,3])
+T PermutationQ([3,2,1])
+T Not(PermutationQ([3,2,3]))
+T Not(PermutationQ([x,2,3]))
+
 ClearAll(a,b)
 
 T Positive(1)
