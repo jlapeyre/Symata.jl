@@ -1,4 +1,4 @@
-import Symata: unprotect, protect, @sjdoc
+import Symata: unprotect, protect, @sjdoc, set_attributes
 
 unprotect(:ExpToTrig)
 
@@ -11,6 +11,11 @@ protect(:ExpToTrig)
 
 replace exponentials with trigonometric functions in `expr`.
 """
+
+@ex ( Array(f_, n_Integer) := Table(f(i), [i,n]) )
+@ex ( Array(f_, [n_Integer, m_Integer]) := Table(f(i,j), [i,n], [j,m]))
+
+protect(:Array)
 
 # Maybe defined elsewhere
 # unprotect(:StringQ)
