@@ -104,7 +104,7 @@ end
 
 const single_arg_float_int_complex =
         [
-         (:conj,:Conjugate,:conjugate)
+#         (:conj,:Conjugate,:conjugate)
          ]
 
     const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),
@@ -853,7 +853,9 @@ pow_sign(x, texpt::Number) = texpt < 0 ? -1 : 1
 pow_sign(x, texpt) = 1
 find_numerator(x) = x
 
-## Chop
+### Chop
+
+@mkapprule Chop  :nargs => 1:2
 
 @sjdoc Chop """
     Chop(expr)
@@ -864,9 +866,9 @@ set small floating point numbers in `expr` to zero.
 
 set floating point numbers smaller in magnitude than `eps` in `expr` to zero.
 """
-
+do_Chop(mx::Mxpr{:Chop}, x) = zchop(x)
+do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
 const chop_eps = 1e-14
-
 zchop{T<:AbstractFloat}(x::T, eps=chop_eps) = abs(x) > eps ? x : 0  # don't follow abstract type
 zchop{T<:Number}(x::T, eps=chop_eps) = x
 zchop{T<:AbstractFloat}(x::Complex{T}, eps=chop_eps) = complex(zchop(real(x),eps),zchop(imag(x),eps))
@@ -888,11 +890,15 @@ function zchop{T<:Mxpr}(mx::T,zeps)
     mxpr(mhead(mx), nargs)
 end
 
-@mkapprule Chop  :nargs => 1:2
-do_Chop(mx::Mxpr{:Chop}, x) = zchop(x)
-do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
+### Conjugate
 
-#### Exp
+@mkapprule Conjugate :nargs => 1
+
+@doap Conjugate(z::Number) = conj(z)
+@doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, map( x -> mxpr(:Conjugate, x), margs(z))...)
+@doap Conjugate(z::Mxpr) = z |> sjtopy |> sympy[:conjugate] |> pytosj
+
+### Exp
 
 # The parser normally takes care of this,
 # But, when converting expressions from Sympy, we get Exp, so we handle it here.

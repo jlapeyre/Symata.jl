@@ -29,6 +29,7 @@ const JTOMSYM  =
       :+ => :Plus,
       :- => :Minus,
       :* => :Times,
+      :⋅ => :Dot,
       :^ => :Power,
       :(*=) => :TimesBy,
       :(+=) => :AddTo,
@@ -133,7 +134,7 @@ for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
     OPTYPE[op] = :binary
 end
 
-for op in (:Plus, :Times, :Span, :And, :Or, :Alternatives)
+for op in (:Plus, :Times, :Dot, :Span, :And, :Or, :Alternatives)
     OPTYPE[op] = :infix
 end
 

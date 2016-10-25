@@ -53,3 +53,5 @@ typealias ExpNoCanon Union{SJSym,Number}
 
 # used in flatten.jl
 typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
+
+typealias List Mxpr{:List}
