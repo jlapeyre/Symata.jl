@@ -1,7 +1,7 @@
 #### ExpandA
 
 function _doexpand(x)
-    ! is_Mxpr(x) && return x
+    ! isa(x,Mxpr) && return x
     n = length(x)
     args = margs(x)
     nargs = newargs(n)
@@ -117,7 +117,8 @@ function mulfacs(a::Mxpr{:Plus},b)
     i = 0
     for ax in a.args
         i += 1
-        if is_Mxpr(ax) && mxprtype(ax) == :Times
+#        if is_Mxpr(ax) && mxprtype(ax) == :Times
+        if isa(ax, Mxpr{:Times})
             facs = copy(margs(ax))
             _pushfacs!(facs,b)  # I hope type inference optimizes this.
             terms[i] = mxpr(:Times,facs)

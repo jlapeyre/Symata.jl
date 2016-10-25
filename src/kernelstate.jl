@@ -26,7 +26,11 @@ return the version numbers of Symata, Julia, and Python.
     end
 end
 
-# Data structure for monitoring evaluation
+"""
+    type Meval
+
+Holds flags and counters for monitoring evaluation.
+"""
 type Meval
     entrycount::Int             # For trace
     trace_ev_flag::Bool         # Trace()
@@ -35,9 +39,9 @@ type Meval
     timingon::Bool              # Time() does @time on every user input
     try_downvalue_count::Int
     try_upvalue_count::Int
-    is_sjinteractive::Bool
+#    is_sjinteractive::Bool
 end
-const MEVAL = Meval(0,false,false,false,false,0,0,true)
+const MEVAL = Meval(0,false,false,false,false,0,0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -67,13 +71,12 @@ get_try_upvalue_count() = MEVAL.try_upvalue_count
 increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
 increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
 
-function set_issjinteractive(val::Bool)
-    oldval = MEVAL.is_sjinteractive
-    MEVAL.is_sjinteractive = val
-    return oldval
-end
-
-is_sjinteractive() = MEVAL.is_sjinteractive
+# function set_issjinteractive(val::Bool)
+#     oldval = MEVAL.is_sjinteractive
+#     MEVAL.is_sjinteractive = val
+#     return oldval
+# end
+# is_sjinteractive() = MEVAL.is_sjinteractive
 
 #### Tracing evaluation
 

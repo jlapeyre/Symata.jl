@@ -397,16 +397,11 @@ setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 # TODO: iterator for mx that iterates over args would be useful
 setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
 @inline getindex{T<:Integer}(mx::Mxpr, k::T) = margs(mx)[k]
-@inline Base.length(mx::Mxpr) = length(margs(mx))
-@inline Base.length(s::SJSym) = 0
-# We are claiming a lot of space here. But in Symata,
-# Most things should have length zero.
-# FIXME: get rid of this. We have to use our own length function. This is easy.
-Base.length(x) = 0
+
 
 @inline Base.endof(mx::Mxpr) = length(mx)
 
-@inline mxprtype{T}(mx::Mxpr{T}) = T
+#mxprtype{T}(mx::Mxpr{T}) = T
 
 @inline function Base.copy(mx::Mxpr)
     args = copy(mx.args)

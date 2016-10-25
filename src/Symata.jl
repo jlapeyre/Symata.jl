@@ -80,6 +80,7 @@ include("client_symata.jl")
 include("isymata.jl")
 include("plot.jl")
 include("autoload.jl")
+include("docautoloaded.jl")
 
 function __init__()
     have_ijulia = isdefined(Main, :IJulia)

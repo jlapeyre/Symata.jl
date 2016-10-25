@@ -39,7 +39,7 @@ function check_doc_query(ex)
     if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
         if length(ex.args) == 1
             println("Documentation is available for these symbols.")
-            print(list_documented_symbols())
+            print(wrapout(list_documented_symbols()))
             return true
         end
         q = ex.args[2]

@@ -1,4 +1,4 @@
-#### Args
+### Args
 
 @sjdoc Args """
     Args(ex)
@@ -12,7 +12,7 @@ replace the `Head` of expression `ex` with `List`.
 
 do_Args(mx::Mxpr{:Args}, ex::Mxpr) = mxpr(:List, copy(margs(ex)))
 
-#### First
+### First
 
 @mkapprule First :nargs => 1
 
@@ -23,7 +23,7 @@ end
 
 @doap First(x) = mx
 
-#### Join
+### Join
 
 @mkapprule Join
 
@@ -41,7 +41,7 @@ concatenate arguments of expressions with the same `Head`, returning an expressi
     mxpr(mhead(args[1]),nargs)
 end
 
-#### Rest
+### Rest
 
 @mkapprule Rest :nargs => 1
 
@@ -56,7 +56,7 @@ end
 
 @doap Rest(x) = mx
 
-#### Most
+### Most
 
 @mkapprule Most :nargs => 1
 
@@ -71,7 +71,7 @@ end
 
 @doap Most(x) = mx
 
-#### Last
+### Last
 
 @mkapprule Last :nargs => 1:2
 
@@ -89,7 +89,7 @@ end
 end
 
 
-#### Fold
+### Fold
 
 @mkapprule Fold :nargs => 2:3
 
@@ -178,7 +178,7 @@ for head in (:Nest, :NestList)
 end
 end
 
-#### Range
+### Range
 
 @sjdoc Range """
     Range(n)
@@ -415,7 +415,7 @@ function range_args3(n0,n,di,off)
     args
 end
 
-#### ConstantArray
+### ConstantArray
 
 @sjdoc ConstantArray """
     ConstantArray(expr,n)
@@ -433,7 +433,7 @@ do_ConstantArray(mx,args...) = mx
 # The annotation for Number is needed, because deepcopy tries
 # to do something very slow with numbers.
 # Copying a small Mxpr is extremely slow
-# 'c^2' is 40 times slower than Symbol 'c'.
+# 'c^2' is 200 times slower than Symbol 'c'.
 function do_ConstantArray(mx,expr,n)
     nargs = newargs(n)
     @inbounds for i in 1:n
@@ -442,7 +442,6 @@ function do_ConstantArray(mx,expr,n)
     setfixed(mxpr(:List,nargs))
 end
 
-# We need to find something more efficient than deepcopy
 function do_ConstantArray(mx,expr::Mxpr,n)
     nargs = newargs(n)
      @inbounds for i in 1:n
@@ -467,7 +466,7 @@ function do_ConstantArray(mx,expr::AbstractString,n)
     setfixed(mxpr(:List,nargs))
 end
 
-#### Nothing
+### Nothing
 
 # Nothing is removed where it appears in a List, but not from expressions with other Heads.
 # This is too expensive to implement as a rule. Better to write special code in evaluation.jl
@@ -490,7 +489,7 @@ Instances of `Nothing` as arguments to `List` are removed.
 
 @doap Nothing(args...) = :Nothing
 
-#### Keys
+### Keys
 
 @sjdoc Keys """
     Keys(d)
@@ -502,7 +501,7 @@ apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
 do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
 do_keys(mx,x) = (symwarn("Can't return keys of $x"); mx)
 
-#### Values
+### Values
 
 @sjdoc Values """
     Values(d)
@@ -514,7 +513,7 @@ apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
 do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
 do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
 
-#### Splat
+### Splat
 
 @mkapprule Splat :nargs => 1
 
@@ -534,7 +533,7 @@ symata> f(a,b, Splat([c,d]))
 @doap Splat(x::Mxpr) = mxprcf(:Sequence, margs(x))
 
 
-#### Sort
+### Sort
 
 @mkapprule Sort
 
@@ -545,12 +544,3 @@ sort the elements of `expr`.
 """
 
 do_Sort(mx::Mxpr{:Sort},expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
-
-#### Transpose
-
-# TODO implement the rest of the methods; nargs > 1
-#@mkapprule Transpose :nargs => 1
-
-
-#@doap Transpose(lst
-#Transpose[{{a, b, c}, {x, y, z}}]

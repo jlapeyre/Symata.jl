@@ -17,13 +17,7 @@ leaf_count(x) = 1
 leaf_count(x::Complex) = 3
 leaf_count{T<:Rational}(x::Complex{T}) = 7
 leaf_count(x::Rational) = 3
-function leaf_count(mx::Mxpr)
-    count::Int = 1 #  1 for the Head
-    for i in 1:length(mx)
-        count += leaf_count(mx[i])
-    end
-    return count
-end
+leaf_count(mx::Mxpr) = sum(leaf_count,margs(mx)) + 1  #   1 for the Head
 
 ## ByteCount
 

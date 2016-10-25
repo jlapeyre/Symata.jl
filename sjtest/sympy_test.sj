@@ -4,12 +4,17 @@ T testUserSyms
 
 T Limit(x, x => 0) == 0
 T Limit(Sin(x)/x, x => Infinity) == 0
-  f = :( fff(x) = x^10 )
+  # isdef = :( isdefined(:fff) )
+  # If(isdef, f = :(fff), f = :( fff(x) = x^10))
+  #  f = :( if ! isdefined(:fff)  fff(x) = x^10 end )
+  f  = :( x -> x^10 )
 T Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
 # We need to fix this. Inf is a Float64. Convert it to SJulia
 T Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == Infinity
 # Mma 3 cannot do the following:
 T Limit( Log(Log(x*Exp(x*Exp(x)) + 1)) - Exp(Exp(Log(Log(x)) + 1/x)), x => Infinity) == 0
+
+ClearAll(isdef)
 
 ## Solve
 
@@ -26,7 +31,7 @@ T  Roots(q) == [[4 + -2 * (2 ^ (1//2)),1],[4 + 2 * (2 ^ (1//2)),1]]
 
  ClearAll(a,b,x,y,z,p,q,rex,f)
 
-## Orthoganal Polynomials, etc.
+## Orthogonal Polynomials, etc.
 
 T JacobiP(1,2,3,x)  == -1//2 + (7//2) * x
 

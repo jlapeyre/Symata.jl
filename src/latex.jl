@@ -41,7 +41,7 @@ end
 bytestring(s::MyLaTeXString) = bytestring(s.s)
 endof(s::MyLaTeXString) = endof(s.s)
 next(s::MyLaTeXString, i::Int) = next(s.s, i)
-length(s::MyLaTeXString) = length(s.s)
+length(s::MyLaTeXString) = symjlength(s.s)
 getindex(s::MyLaTeXString, i::Int) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Integer) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Real) = getindex(s.s, i)

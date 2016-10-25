@@ -2,12 +2,12 @@
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
-import Symata: runtest, @ex, setkerneloptions, Symata_Plain_Test, print_test_results
+import Symata: runtest, @ex, @exsimple, setkerneloptions, Symata_Plain_Test, print_test_results
 
 # Standard test type
 test = Symata_Plain_Test()
 
-@ex testUserSyms = True
+@exsimple testUserSyms = True
 
 # "context_test.sj",
 function runalltests()

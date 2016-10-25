@@ -27,8 +27,11 @@ function check_autoload(s::Symbol)
     end
 end
 
-load_symata_code_now() = include(joinpath(dirname(@__FILE__), "symata_code.jl"))
+function load_symata_code_now()
+    fqpath = joinpath(dirname(@__FILE__), "../symsrc/autoloaded.sj")
+    read_Symata_file(fqpath)
+end
 
 ####
 
-addtriggers(:Array, :ExpToTrig)
+addtriggers(:Array, :ExpToTrig, :Subdivide)

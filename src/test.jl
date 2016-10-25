@@ -24,6 +24,12 @@
 
 abstract Symata_Test
 
+"""
+    Symata_NullTest <: Symata_Test
+
+A test passed to `read_Symata_file` that causes the contents
+of the file to be read as ordinary Symata code, with no test syntax.
+"""
 type Symata_NullTest <: Symata_Test
 end
 
@@ -84,4 +90,5 @@ runs the tests in `filename` in the directory `sjtest`.
 
 @doap Tests() = run_testsuite()
 
-@doap Tests(s::String) = ( eval(Expr(:macrocall,Symbol("@ex"), :(testUserSyms = True))); runtest(Symata_Plain_Test(), s))
+#@doap Tests(s::String) = ( eval(Expr(:macrocall,Symbol("@ex"), :(testUserSyms = True))); runtest(Symata_Plain_Test(), s))
+@doap Tests(s::String) = ( setsymval(:testUserSyms,true); runtest(Symata_Plain_Test(), s))

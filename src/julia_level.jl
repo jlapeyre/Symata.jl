@@ -10,7 +10,8 @@ end
 for f in (:cos, :sin, :abs, :tan, :exp, :log, (:acos, :ArcCos) , (:asin, :ArcSin), (:atan, :ArcTan ),
           :cot, :cosh, :sinh, :tanh, :sqrt, :erf, :gamma)
     local uf
-    if length(f) == 2
+#    if length(f) == 2
+    if isa(f, Tuple)
         uf = f[2]
         f = f[1]
     else        

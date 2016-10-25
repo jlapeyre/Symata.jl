@@ -277,7 +277,7 @@ function Base.show(io::IO, s::Mxpr)
 end
 
 function Base.show(io::IO, mx::Mxpr{:Comparison})
-    args = mx.args
+    args = margs(mx)
     for i in 1:length(args)-1
         show(io, outsym(args[i]))
         print(io," ")
@@ -357,7 +357,7 @@ function Base.show(io::IO, mx::Mxpr{:Minus})
 end
 
 function Base.show(io::IO, mx::Mxpr{:Plus})
-    args = mx.args
+    args = margs(mx)
     if length(args) < 1
         error("show: can't show Plus with no args.")
     end

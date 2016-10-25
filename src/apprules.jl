@@ -148,9 +148,20 @@ Julia `length`.
 """
 
 apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
-symjlength(mx::Mxpr) = length(margs(mx))
+
+
+Base.length(mx::Mxpr) = length(margs(mx))
+symjlength(mx::Mxpr) = length(mx)
 symjlength(s::String) = 1
-symjlength(x) = length(x)
+symjlength(s::Symbol) = 0
+symjlength(s::Number) = 0
+function symjlength(x)
+    try
+        length(x)
+    catch
+        0
+    end
+end
 
 #### Part
 

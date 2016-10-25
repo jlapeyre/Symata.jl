@@ -43,7 +43,6 @@ function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
 #        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
         mx = mxpr(head,margs(mxa))
         mx = canonexpr!(mx)            # this is ok
-#        mx = canonexpr_orderless!(mx) # this is ok too.
         setcanon(mx)
     else
         mx = mxpr(head,margs(mxa))
@@ -239,7 +238,7 @@ apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 
 convert string `str` to an expression.
 """
-do_ToExpression{T<:AbstractString}(mx,s::T) = eval(parse("@ex " * mx[1]))
+do_ToExpression{T<:AbstractString}(mx,s::T) = exfunc(parse(s), SimpleExFuncOptions)
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
 set_pattributes("ToExpression")

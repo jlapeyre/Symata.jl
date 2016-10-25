@@ -4,7 +4,7 @@ function Symata_module_path()
     joinpath(dirname(@__FILE__), "..")
 end
 
-#### Println
+### Println
 
 @sjdoc Println """
     Println(expr1,expr2,...)
@@ -15,7 +15,7 @@ print the expressions and a newline.
 apprules(mx::Mxpr{:Println}) = (symprintln(margs(mx)...) ; Null)
 
 
-#### Print
+### Print
 
 @sjdoc Print """
     Print(expr1,expr2,...)
@@ -47,17 +47,20 @@ function Symata_eval_string(s)
 end
 
 
-function Symata_eval_file(fname)
-    fname |> readstring |> Symata_eval_string
-end
-
+Symata_eval_file(fname) = fname |> readstring |> Symata_eval_string
 
 # TODO. Read more than one expression from a line.
 # TODO. Use a new exception type
-# Read and evaluate Symata expressions from a file.
-# Return the last returned value.
+# TODO. use ExFuncOptions. I think it is simpler than the try catch stuff below
+
+"""
+    read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest() )
+
+Read and evaluate Symata expressions from file `f`.
+Return the last returned value. If `test` is given, interpret the contents
+of the file as Symata tests.
+"""
 function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest() )
-    oldval = set_issjinteractive(false)
     eline = ""
     local sjretval
     reading_test::Bool = false
@@ -72,7 +75,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                 eline = eline * pline[3:end]
             end
         else
-            eline = eline * pline
+            eline = eline * pline   # is it worth using takebuf here ?
         end
         expr =
             try
@@ -80,7 +83,6 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                     parse(eline)
                 end
             catch
-                set_issjinteractive(oldval)
                 error("Syntax error in file $f, line $line_number: '", chomp(pline), "'")
             end
         if typeof(expr) ==  Expr && expr.head == :incomplete
@@ -91,21 +93,19 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
         sjretval =
             try
                 incomplete_flag = false
-                res = Symata.exfunc(expr)
+                res = Symata.exfunc(expr, SimpleExFuncOptions)
                 if typeof(test) != Symata_NullTest && reading_test
                     reading_test = false
                     record_SJTest(test, f, line_number, res)
                 end
                 res
             catch e
-                set_issjinteractive(oldval)
                 warn("SJ Error reading file $f,  line $line_number\n")
                 rethrow(e)
             finally
                 eline = ""
             end
     end
-    set_issjinteractive(oldval)
     if incomplete_flag
         error(incomplete_message, " in file $f line $line_number")
     end
@@ -113,7 +113,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
 end
 
 
-#### Get
+### Get
 
 @mkapprule Get
 
@@ -128,7 +128,7 @@ read and evaluate Symata expressions from file `filename`.
 
 do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_Symata_file(fname)
 
-#### ReadString
+### ReadString
 
 @mkapprule ReadString  :nargs => 1
 
@@ -157,7 +157,7 @@ function attributes_set_string{T<:Union{AbstractString, SJSym}}(sym::T)
     end
 end
 
-#### Definition
+### Definition
 
 @mkapprule Definition
 
@@ -193,7 +193,7 @@ function write_definition(io::IO, sym)
     println(io)
 end
 
-#### Save
+### Save
 
 @mkapprule Save
 
@@ -222,7 +222,7 @@ end
 
 @sjseealso_group(Get, Save, Definition)
 
-#### Open
+### Open
 
 # we should fold this behavior into mkapprule
 @mkapprule Open  :nodefault => true
@@ -236,7 +236,7 @@ The Julia methods that take array arguments are not implemented.
 
 do_Open(mx::Mxpr{:Open}, args...) = open(args...)
 
-#### Close
+### Close
 
 @mkapprule Close
 
@@ -306,7 +306,7 @@ end
 
 do_Out(mx::Mxpr{:Out}, x) = :Null
 
-#### In
+### In
 
 @mkapprule In :nargs => 1
 
@@ -315,7 +315,6 @@ do_Out(mx::Mxpr{:Out}, x) = :Null
 
 returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
 """
-
 @doap function In(n::Integer)
     if isymata_mode()
         doeval(eval(Expr(:macrocall,Symbol("@ex"), parse(Main.IJulia.In[n]))))
@@ -325,14 +324,13 @@ returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
 end
 
 
-
 # We should probably explicitly return Null
 # from functions. But,this might catch all
 # of the nothings from causing printing
 # ...No. this did not help
 apprules(expr::Void) = :Null
 
-##### TempName
+### TempName
 
 @mkapprule TempName :nargs => 0
 
@@ -341,11 +339,10 @@ apprules(expr::Void) = :Null
 
 generate a unique temporary file path.
 """
-
 @doap TempName() = tempname()
 
 
-##### DeleteFile
+### DeleteFile
 
 @mkapprule DeleteFile :nargs => 1
 
@@ -354,5 +351,4 @@ generate a unique temporary file path.
 
 delete `filename`.
 """
-
 @doap DeleteFile(file::AbstractString) = rm(file)
