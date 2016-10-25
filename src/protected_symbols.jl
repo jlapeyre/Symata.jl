@@ -108,11 +108,11 @@ set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
 
 set_pattributes([
-                  "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","AtomQ",
+                  "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConditionalExpression", "ConstantArray","ConstantQ",
-                  "Depth","DirtyQ","Dump","Example","Except","ExpToTrig","Expand","ExpandA",
+                  "Depth","DirtyQ","Dump","Evaluate","Example","Except","ExpToTrig","Expand","ExpandA",
                   "Factor","FactorInteger","FixedQ","Flat","FullForm",
                   "FullSimplify","Head","Help","Indeterminate","Infinity",
                   "Integer","Integers","IntegerDigits","JVar","Keys","LeafCount",
@@ -123,7 +123,7 @@ set_pattributes([
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
                   "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
-                  "StringLength","StringQ","Symbol","Syms","Temporary","Throw","Time",
+                  "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing"], :Protected)

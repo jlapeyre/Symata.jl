@@ -270,7 +270,7 @@ function infseval(mxin::Mxpr)
             break
         end
         neval += 1
-        if neval > 2
+        if neval > 10  # Defining Subdivide via Subdivide(a_,b_) := Subdivide(0,a,b), etc. causes neval == 3, which was too many
             setfixed(mx)
             throw(RecursionLimitError("infseval: Too many, $neval, evaluations. Expression still changing", mxprcf(:Hold,mx)))
         end

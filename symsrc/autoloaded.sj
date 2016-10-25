@@ -34,13 +34,10 @@ Protect(Array)
 
 ### Subdivide
 
-# FIXME: Having these call each other causes evaluation oscillation
+Unprotect(Subdivide)
+
 Subdivide(n_) := Range(0,n)/n
-
 Subdivide(xmax_, n_) := xmax*Range(0,n)/n
-
 Subdivide(xmin_, xmax_, n_) := xmin + (xmax-xmin)*Range(0,n)/n
 
 Protect(Subdivide)
-
-
