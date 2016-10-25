@@ -246,17 +246,14 @@ function infseval(mxin::Mxpr)
     end
     @mdebug(2, "infseval ", mxin)
     neval = 0
-    if checkdirtysyms(mxin) # is timestamp on any free symbol in mxin more recent than timestamp on mxin ?
-        unsetfixed(mxin)    # Flag mxin as not being at its fixed point in this environment.
-    end                     # This might be good for iterating over list of args in Mxpr.
-    if is_fixed(mxin)       # If mxin was already fixed and none of its free vars changed, just return.
-        return lcheckhash(mxin)
-    end
-    mx = meval(mxin)        # Do the first evaluation
+    if checkdirtysyms(mxin)                   # is timestamp on any free symbol in mxin more recent than timestamp on mxin ?
+        unsetfixed(mxin)                      # Flag mxin as not being at its fixed point in this environment.
+    end                                       # This might be good for iterating over list of args in Mxpr.
+    is_fixed(mxin) && return lcheckhash(mxin) # If mxin was already fixed and none of its free vars changed, just return.
+    mx = meval(mxin)                          # Do the first evaluation
     if is_Mxpr(mx)
-        if is_fixed(mx)     # The first meval may have set the fixed point flag. Eg, an Mxpr with only numbers, does not need another eval.
-            return lcheckhash(mx)  # Only a few exits counted here
-        elseif mx == mxin   # meval did not set fixed flag, but we see that it is at fixed point.
+        is_fixed(mx) && return lcheckhash(mx) # The first meval may have set the fixed point flag. Eg, an Mxpr with only numbers, does not need another eval.
+        if mx == mxin       # meval did not set fixed flag, but we see that it is at fixed point.
             setfixed(mx)    # They may be equal but we need to set fixed bit in mx !
             setfixed(mxin)  # Do we need to do this to both ?
             return lcheckhash(mx)

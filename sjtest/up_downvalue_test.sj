@@ -54,15 +54,16 @@ T  g(4) == 4
 T  Head(g(5)) == g
 T  Head(g("cat")) == g
 T  g("zebra") == "Greater than 4"
-T         Head(g(4.0)) == g
-T         g(6.0) == 1
-             h(x_AbstractFloat:?(:((y)-> y < 3) )) = 1
-T         Head(h(2)) == h
-T         Head(h(4)) == h
-T         Head(h(2)) == h
-T         Head(h(4.0)) == h
-T         h(2.0) == 1
-      ClearAll(a,b,stringgt4,g,gt5)
+T  Head(g(4.0)) == g
+T  g(6.0) == 1
+     h(x_AbstractFloat:?(:((y)-> y < 3) )) = 1
+T  Head(h(2)) == h
+T  Head(h(4)) == h
+T  Head(h(2)) == h
+T  Head(h(4.0)) == h
+T   h(2.0) == 1
+
+ClearAll(a,b,stringgt4,g,gt5)
 
 #### UpValues
 
@@ -150,6 +151,19 @@ ClearAll(f,g,fg,h,a,z,y,x,rate,m1,m2, rand, int, tabsum, h0, s, area, sq, fgh, m
 f(x_) = x^2
 T f(3) == 9   # 9, rather than 3^2
 
-ClearAll(f)
+ClearAll(f,sd)
+
+## The following triggered recursion limit reached in infseval() in evaluation.jl at 3 iterations.
+## So, we have increased it to 10. We will have to increase agian because user code may call
+## rule functions at greater depth... but, I want to know when this happens
+
+sd(n_) := sd(1,n)
+sd(xmax_, n_) := sd(0,xmax,n)
+sd(xmin_, xmax_, n_) := xmin + (xmax-xmin)*Range(0,n)/n
+
+T Length(sd(10)) == 11
+
+ClearAll(sd)
+
 
 T testUserSyms
