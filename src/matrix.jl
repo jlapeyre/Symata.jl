@@ -151,7 +151,7 @@ Compute the trace of matrix `m`.
     for i=1:n
         a[i] = m[i,i]
     end
-    mxpr(:Plus,a...)
+    MPlus(a)
 end
 
 
@@ -173,5 +173,5 @@ Compute the eigenvalues of matrix `m`.
     for (k,v) in eigdict
         push!(a, mxpr(:List,k,v))
     end
-    mxpr(:List,a...)
+    MList(a)
 end

@@ -7,10 +7,8 @@ replace the `Head` of expression `ex` with `List`.
 
 `Args(ex)` is equivalent to `Apply(List,ex)`.
 """
-
 @mkapprule Args :nargs => 1
-
-do_Args(mx::Mxpr{:Args}, ex::Mxpr) = mxpr(:List, copy(margs(ex)))
+@doap Args(ex::Mxpr) = MList(copy(margs(ex)))
 
 ### First
 

@@ -37,7 +37,14 @@ function mxpr_count_heads(mx::Mxpr, head)
 end
 
 
+###
 
+for sym in ( :List, :Plus, :Times )
+    f = Symbol(:M,sym)
+    s = QuoteNode(sym)
+    @eval ($f)(a) = mxpr($s,a...)
+    @eval ($f)(a...) = mxpr($s,a...)    
+end
 
 ###
 
