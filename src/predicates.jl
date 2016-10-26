@@ -228,3 +228,37 @@ vectorq(x::Mxpr{:List}, test) = isa(test,Function) ? all(t -> test(t), margs(x))
 @doap VectorQ(x) = false
 @doap VectorQ(x::Mxpr{:List}) = vectorq(x)
 @doap VectorQ(x::Mxpr{:List}, test) = vectorq(x,test)
+
+### MatrixQ
+
+@mkapprule MatrixQ :nargs => 1:2  :nodefault => true
+
+@sjdoc MatrixQ """
+    MatrixQ(m)
+
+return `True` if `m` has the form of a matrix. 
+`m` has the form of a matrix if it is a `List`, each
+of whose elements is a `List` of the same length,
+none of whose elements is a `List`.
+
+    MatrixQ(m,test)
+
+return `True` if `test` applied to each element of the matrix `m`.
+"""
+@doap MatrixQ(args...) = matrixq(args...)
+
+function matrixq(x::Mxpr{:List})
+    a = margs(x)
+    length(a) < 1 && return false
+    len = symjlength(a[1])
+    all(t -> ( symjlength(t) == len && vectorq(t) ), a)
+end
+
+function matrixq(x::Mxpr{:List},test)
+    a = margs(x)
+    length(a) < 1 && return false
+    len = symjlength(a[1])
+    all(t -> ( symjlength(t) == len && vectorq(t,test) ), a)
+end
+matrixq(x) = false
+matrixq(x,test) = false
