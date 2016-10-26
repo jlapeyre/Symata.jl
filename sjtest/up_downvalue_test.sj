@@ -67,6 +67,8 @@ ClearAll(a,b,stringgt4,g,gt5)
 
 #### UpValues
 
+ClearAll(m1,m2)
+
  rate(m1) ^= 1/2
  rate(m2) ^= 3/4
 T rate(m1)/rate(m2) == 2/3

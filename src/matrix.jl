@@ -52,7 +52,7 @@ The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `
     symjlength(u) == 0 || symjlength(v) == 0 && return mx
     vv = vectorq(v)
     if vectorq(u) && vv
-        return  MPlus( [MTimes(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
+        return  MPlus( [mmul(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
     end
     mqu = matrixq(u)
     if mqu && vv && symjlength(u[1]) == symjlength(v)
@@ -78,11 +78,12 @@ function matmulvec(m,v)
     n2 = symjlength(m[1])
     a = newargs(n1)
     for i=1:n1
-        a[i] = 0
+        c = 0
         r = m[i]
         for j=1:n2
-            a[i] += mmul(r[j], v[j])
+            c += mmul(r[j], v[j])
         end
+        a[i] = c
     end
     MList(a)
 end
@@ -93,9 +94,11 @@ function matmulmat(a,b)
     c = zeromatrix(ma,mb)
     for i in 1:ma
         for j in 1:mb
+            acc = 0 #  much faster
             for k in 1:n
-                c[i,j] += a[i,k]*b[k,j]
+                acc += a[i,k]*b[k,j]
             end
+            c[i,j] = acc
         end
     end
     c
