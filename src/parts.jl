@@ -1,7 +1,7 @@
 ## The code in this file should replace other similar code.
 ## For setting and getting with Part, in Table, ...
 
-#### Position
+### Position
 
 @sjdoc Position """
     Position(expr,x)
@@ -73,6 +73,8 @@ function getpart(mx::Mxpr,ind) ind == 0 ? mhead(mx) : mx[ind] end
 getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
 getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
 
+Base.getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
+
 #### setpart
 
 """
@@ -97,6 +99,8 @@ function setpart!(mx::Mxpr,val,inds...)
         margs(ex)[inds[end]] = val
     end
 end
+
+Base.setindex!(mx::Mxpr, val, inds...) = setpart!(mx,val,inds...)
 
 #### localize variable
 
@@ -132,4 +136,39 @@ function localize_variable(var,expr::SJSym)
     sym = get_localized_symbol(var)
     var == expr && return (sym,sym)
     return (sym, expr)
+end
+
+### Take
+
+@mkapprule Take
+
+@sjdoc Take """
+    Take(expr,-n)
+
+return `expr` dropping all but the last `n` elements.
+"""
+
+@doap function Take(x::Mxpr, inspec)
+    spec = make_sequence_specification(inspec)
+    take(x,spec)
+end
+
+function take(x,spec::SequenceLastN)
+    xa = margs(x)
+    n = - spec.n
+    mxpr(mhead(x), xa[(length(xa)-n+1):end]...)
+end
+
+function take(x,spec::SequenceN)
+    xa = margs(x)
+    n = spec.n
+    mxpr(mhead(x), xa[1:n]...)
+end
+
+function take(x,spec::SequenceNone)
+    mxpr(mhead(x))
+end
+
+function take(x,spec::SequenceAll)
+    mxpr(mhead(x),margs(x)...)
 end
