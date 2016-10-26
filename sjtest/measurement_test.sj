@@ -20,3 +20,11 @@ T Length(f()) == 0
 T Length("cat") == 1
 T StringLength("cat") == 3
 
+T Depth(1) == 1
+T Depth("cat") == 1
+T Depth([1]) == 2
+T Depth([1,[2]]) == 3
+T Depth([1,f(2)]) == 3
+
+
+

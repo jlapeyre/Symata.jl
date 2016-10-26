@@ -58,6 +58,14 @@ T  CombSimp(Rewrite(CatalanNumber(n+1)/CatalanNumber(n), Binomial)) ==  2(1 + 2n
 # FIXME. A number is converted to a float
 #T  Rewrite(CatalanNumber(I), Gamma) == (0.183457 + 0.983028I)*(Pi^(-1/2))*(Gamma(2 + I)^(-1))*Gamma(1/2 + I)
 
+### Conjugate
+
+T Conjugate(1) == 1
+T Conjugate(I) == -I
+T Conjugate(1-I) == 1 + I
+T Head(Conjugate(a)) == Conjugate
+T Conjugate(a+b+c)  == Conjugate(a) + Conjugate(b) + Conjugate(c)
+
 #### EllipticE
 
 T EllipticE(0) == (1/2)*Pi
