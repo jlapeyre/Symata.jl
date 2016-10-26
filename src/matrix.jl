@@ -53,8 +53,16 @@ The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `
     if vectorq(u) && vv
         return  MPlus( [MTimes(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
     end
-    if matrixq(u) && vv && symjlength(u[1]) == symjlength(v)
+    mqu = matrixq(u)
+    if mqu && vv && symjlength(u[1]) == symjlength(v)
        return matmulvec(u,v)
+    end
+    mqv = matrixq(v)
+    if mqu && mqv
+        (nu,mu) = matrixdims(u)
+        (nv,mv) = matrixdims(v)
+        mu != nv && return mx
+        return matmulmat(u,v)
     end
     mx
 end
@@ -76,6 +84,20 @@ function matmulvec(m,v)
         end
     end
     MList(a)
+end
+
+function matmulmat(a,b)
+    (ma,n) = matrixdims(a)
+    (n,mb) = matrixdims(b)
+    c = zeromatrix(ma,mb)
+    for i in 1:ma
+        for j in 1:mb
+            for k in 1:n
+                c[i,j] += a[i,k]*b[k,j]
+            end
+        end
+    end
+    c
 end
 
 ### IdentityMatrix
@@ -111,7 +133,9 @@ end
 return an `n1 x n2` matrix of zeros.
 """
 
-@doap function ZeroMatrix(n1,n2)
+@doap  ZeroMatrix(n1,n2) = zeromatrix(n1,n2)
+
+function zeromatrix(n2,n1)
     m = newargs(n2)
     for i=1:n2
         r = newargs(n1)
@@ -156,7 +180,7 @@ end
 ### Tr
 
 # assumes we have a matrix
-matrixdims(m::List) = (length(m),length(m[1]))
+matrixdims(m::List) = (length(m), length(m[1]))
 
 @mkapprule Tr
 

@@ -72,8 +72,9 @@ set_pattributes(["BellB"],
                 [:NumericFunction,:ReadProtected])
 
 
+# Note: Simplify is not Listable in Mma
 set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
-                 "ToExpression"]
+                 "ToExpression", "Simplify", "FullSimplify"]
                 ,[:Listable])
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
@@ -115,7 +116,7 @@ set_pattributes([
                   "Complex","Complexes","ComplexInfinity","ConditionalExpression", "ConstantArray","ConstantQ",
                   "Depth","DirtyQ","Dump","Evaluate","Example","Except","ExpToTrig","Expand","ExpandA",
                   "Factor","FactorInteger","FixedQ","Flat","FullForm",
-                  "FullSimplify","Head","Help","Indeterminate","Infinity",
+                  "Head","Help","Indeterminate","Infinity",
                   "Integer","Integers","IntegerDigits","JVar","Keys","LeafCount",
                   "Length","List","ListQ","Listable","Map","MatchQ","N",
                   "None","Not","Null","Numerator","NumericFunction","NumericQ",
@@ -123,7 +124,7 @@ set_pattributes([
                   "Primes","Print", "Println","Protected","RatSimp","Rational",
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
-                  "Sequence","Series","Simplify","Solve","Span","String","StringJoin",
+                  "Sequence","Series","Solve","Span","String","StringJoin",
                   "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
