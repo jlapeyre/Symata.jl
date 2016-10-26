@@ -543,4 +543,6 @@ symata> f(a,b, Splat([c,d]))
 sort the elements of `expr`.
 """
 
-do_Sort(mx::Mxpr{:Sort},expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
+@doap Sort(expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
+@doap Sort(a::AbstractArray) = sort(a)
+
