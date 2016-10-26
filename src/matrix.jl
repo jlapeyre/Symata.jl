@@ -127,6 +127,8 @@ return the `n x n` identity matrix.
     mr
 end
 
+### DiagonalMatrix
+
 ### ZeroMatrix
 
 @mkapprule ZeroMatrix
@@ -148,7 +150,6 @@ function zeromatrix(n2,n1)
     end
     MList(m)
 end
-
 
 ### Transpose
 

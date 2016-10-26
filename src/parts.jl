@@ -148,10 +148,12 @@ end
 return `expr` dropping all but the last `n` elements.
 """
 
-@doap function Take(x::Mxpr, inspec)
-    spec = make_sequence_specification(inspec)
-    take(x,spec)
+@doap function Take(x::Mxpr, inspecs...)
+    specs = map(make_sequence_specification, inspecs)
+    take(x,specs...)
 end
+
+take(x, spec1, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,spec1)))...)
 
 function take(x,spec::SequenceLastN)
     xa = margs(x)
