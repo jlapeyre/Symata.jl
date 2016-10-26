@@ -38,12 +38,13 @@ end
 @mkapprule Dot
 
 @sjdoc Dot """
-    Dot(u,v)
-    u ⋅ v
-    ⋅(u,v)
+    Dot(a,b)
+    a ⋅ b
+    ⋅(a,b)
 
-return the inner product of vectors `u` and `v`. The complex conjugate is
-applied to neither `u` nor `v`.
+
+Compute the matrix product or inner product for `a` and `b` matrices or vectors.
+The complex conjugate is applied to neither `a` nor `b`.
 
 The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `TAB`
 """
@@ -80,7 +81,7 @@ function matmulvec(m,v)
         a[i] = 0
         r = m[i]
         for j=1:n2
-            a[i] += r[j] * v[j]
+            a[i] += mmul(r[j], v[j])
         end
     end
     MList(a)
