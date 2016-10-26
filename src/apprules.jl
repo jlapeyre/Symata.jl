@@ -135,34 +135,6 @@ representation is printed.
 # DumpHold does not evaluate args before dumping
 apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
-#### Length
-
-@sjdoc Length """
-    Length(expr) 
-
-print the length of `expr`.
-
-For Symata expressions, the length is the number or arguments. For scalar Julia
-types, the length is zero. For `Array`'s and `Dict`'s the length is the same as
-Julia `length`.
-"""
-
-apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
-
-
-Base.length(mx::Mxpr) = length(margs(mx))
-symjlength(mx::Mxpr) = length(mx)
-symjlength(s::String) = 1
-symjlength(s::Symbol) = 0
-symjlength(s::Number) = 0
-function symjlength(x)
-    try
-        length(x)
-    catch
-        0
-    end
-end
-
 #### Part
 
 @sjdoc Part """

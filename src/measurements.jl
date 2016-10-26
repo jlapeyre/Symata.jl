@@ -1,4 +1,30 @@
-###  LeafCount, ByteCount, Depth
+#### Length
+
+@sjdoc Length """
+    Length(expr) 
+
+print the length of `expr`.
+
+For Symata expressions, the length is the number or arguments. For scalar Julia
+types, the length is zero. For `Array`'s and `Dict`'s the length is the same as
+Julia `length`.
+"""
+
+apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
+
+
+Base.length(mx::Mxpr) = length(margs(mx))
+symjlength(mx::Mxpr) = length(mx)
+symjlength(s::String) = 1
+symjlength(s::Symbol) = 0
+symjlength(s::Number) = 0
+function symjlength(x)
+    try
+        length(x)
+    catch
+        0
+    end
+end
 
 ## LeafCount
 
@@ -53,7 +79,7 @@ function depth(mx::Mxpr)
     for i in 1:length(mx)
         if is_Mxpr(mx[i])
             nd = depth(mx[i])
-            if nd > d d
+            if nd > d
                 d = nd
             end
         else
