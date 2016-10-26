@@ -83,7 +83,7 @@ end
     [ mtr(:sin), mtr(:cos), mtr(:tan), (:sind,:SinD), (:cosd,:CosD),(:tand,:TanD),
          (:sinpi,:SinPi), (:cospi,:CosPi), mtr(:sinh), mtr(:cosh),
          mtr(:tanh), (:acos,:ArcCos,:acos), (:asin,:ArcSin,:asin),
-         (:atan,:ArcTan,:atan),(:atan2,:ArcTan2,:atan2),(:acosd,:ArcCosD), (:asind,:ArcSinD),
+         (:atan,:ArcTan,:atan),(:acosd,:ArcCosD), (:asind,:ArcSinD),
          (:atand,:ArcTanD), mtr(:sec), mtr(:csc), mtr(:cot),(:secd,:SecD),(:csc,:CscD),(:cot,:CotD),
          (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
          (:csch,), mtr(:coth,),(:asinh,:ASinh,:asinh), (:acosh,:ACosh, :acosh),(:atanh,:ATanh, :atanh),
@@ -141,7 +141,8 @@ const single_arg_float_int_complex =
       (:besselj,:BesselJ, :besselj), (:besseljx,:BesselJx), (:bessely,:BesselY,:bessely),
       (:besselyx,:BesselYx), (:hankelh1,:HankelH1,:hankel1), (:hankelh1x,:HankelH1x),
       (:hankelh2,:HankelH2,:hankel2), (:hankelh2x,:HankelH2x), (:besseli,:BesselI, :besseli),
-      (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx)
+      (:besselix,:BesselIx), (:besselk,:BesselK,:besselk), (:besselkx,:BesselKx),
+       (:atan2,:ArcTan2,:atan2)
       ]
 
     const  two_arg_float = [ (:beta,),(:lbeta,:LogBeta),(:hypot,)]
