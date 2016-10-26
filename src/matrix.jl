@@ -11,9 +11,9 @@ function sympy_matrix_to_sj(spmat)
     mat = newargs()
     (nx,ny) = size(jlist)
     for i in 1:nx
-        push!(mat, mxpr(:List, jlist[i,:]...))
+        push!(mat, MList(jlist[i,:]))
     end
-    mxpr(:List,mat)
+    MList(mat)
 end
 
 
@@ -51,7 +51,7 @@ The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `
     symjlength(u) == 0 || symjlength(v) == 0 && return mx
     vv = vectorq(v)
     if vectorq(u) && vv
-        return  mxpr(:Plus, [mxpr(:Times, x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
+        return  MPlus( [MTimes(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
     end
     if matrixq(u) && vv && symjlength(u[1]) == symjlength(v)
        return matmulvec(u,v)
@@ -71,10 +71,10 @@ function matmulvec(m,v)
     for i=1:n1
         a[i] = 0
         for j=1:n2
-            a[i] += m[i,j] * v[j]
+            a[i] += m[i,j] * v[j] # Not efficient
         end
     end
-    mxpr(:List,a...)
+    MList(a)
 end
 
 ### IdentityMatrix
@@ -91,9 +91,9 @@ return the `n x n` identity matrix.
     for i=1:n
         c = newargs(n)
         fill!(c,0)
-        r[i] = mxpr(:List,c...)
+        r[i] = MList(c)
     end
-    mr = mxpr(:List,r...)
+    mr = MList(r)
     for i=1:n
         mr[i,i] = 1
     end
@@ -123,9 +123,9 @@ return the transpose of the matrix `m`.
 #            a1[j] = margs(margs(x)[j])[i]
             a1[j] = x[j,i]
         end
-        a0[i] = mxpr(:List,a1...)
+        a0[i] = MList(a1)
     end
-    mxpr(:List,a0...)
+    MList(a0)
 end
 
 ### Outer
@@ -171,7 +171,7 @@ Compute the eigenvalues of matrix `m`.
     eigdict = pyres |> pytosj
     a = newargs()
     for (k,v) in eigdict
-        push!(a, mxpr(:List,k,v))
+        push!(a, MList(k,v))
     end
     MList(a)
 end
