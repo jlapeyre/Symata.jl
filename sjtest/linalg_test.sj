@@ -14,6 +14,8 @@ T Dot([[a,b], [c,d]] , [e,f]) == [a*e + b*f,c*e + d*f]
 T Transpose([[1,2,c], [3,4,5]]) == [[1,3],[2,4],[c,5]]
 T Tr(IdentityMatrix(3)) == 3
 
+T ZeroMatrix(2,3) == [[0,0],[0,0],[0,0]]
+
 Transpose( [ [a,b], [c,d]] ) == [[a,c],[b,d]]
 
 Eigenvalues( [ [a,b], [c,d]] ) == [[(1/2)*a + (1/2)*d + (-1/2)*((a^2 + 4b*c - 2a*d + d^2)^(1/2)),1],[(1/2)*a + (1/2)*d + (1/2)*((a^2 + 4b*c - 2a*d + d^2)^(1/2)),1]]

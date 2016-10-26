@@ -72,8 +72,7 @@ function matmulvec(m,v)
         a[i] = 0
         r = m[i]
         for j=1:n2
-#            a[i] += m[i,j] * v[j] # Not efficient
-            a[i] += r[j] * v[j]    # more efficient
+            a[i] += r[j] * v[j]
         end
     end
     MList(a)
@@ -102,6 +101,26 @@ return the `n x n` identity matrix.
     mr
 end
 
+### ZeroMatrix
+
+@mkapprule ZeroMatrix
+
+@sjdoc ZeroMatrix """
+    ZeroMatrix(n1,n2)
+
+return an `n1 x n2` matrix of zeros.
+"""
+
+@doap function ZeroMatrix(n1,n2)
+    m = newargs(n2)
+    for i=1:n2
+        r = newargs(n1)
+        fill!(r,0)
+        m[i] = MList(r)
+    end
+    MList(m)
+end
+
 
 ### Transpose
 
@@ -123,7 +142,7 @@ return the transpose of the matrix `m`.
         a1 = newargs(n)
         for j in 1:n
 #            a1[j] = margs(margs(x)[j])[i]
-            a1[j] = x[j,i]
+             a1[j] = x[j,i]  # is there a more efficient way ?
         end
         a0[i] = MList(a1)
     end
