@@ -70,8 +70,10 @@ function matmulvec(m,v)
     a = newargs(n1)
     for i=1:n1
         a[i] = 0
+        r = m[i]
         for j=1:n2
-            a[i] += m[i,j] * v[j] # Not efficient
+#            a[i] += m[i,j] * v[j] # Not efficient
+            a[i] += r[j] * v[j]    # more efficient
         end
     end
     MList(a)

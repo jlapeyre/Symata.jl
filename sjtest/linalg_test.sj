@@ -9,6 +9,8 @@ T Dot([1,2,3], [a,b,c]) == a + 2b + 3c
 idmat = IdentityMatrix(5)
 T idmat == [[1,0,0,0,0],[0,1,0,0,0],[0,0,1,0,0],[0,0,0,1,0],[0,0,0,0,1]]
 T Dot(idmat, [1,2,3,4,5]) == [1,2,3,4,5]
+T Dot([[a,b], [c,d]] , [e,f]) == [a*e + b*f,c*e + d*f]
+
 T Transpose([[1,2,c], [3,4,5]]) == [[1,3],[2,4],[c,5]]
 T Tr(IdentityMatrix(3)) == 3
 
