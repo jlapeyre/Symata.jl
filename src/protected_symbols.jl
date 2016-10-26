@@ -72,7 +72,8 @@ set_pattributes(["BellB"],
                 [:NumericFunction,:ReadProtected])
 
 
-set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount"]
+set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
+                 "ToExpression"]
                 ,[:Listable])
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
