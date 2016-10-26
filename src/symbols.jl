@@ -14,20 +14,22 @@ macro checkunbound(mx,x,sv)
     end)
 end
 
+protectstr(s) = "Symbol '" * string(s) * "' is proctected. Did you mean `==` ?"
+
 function checkprotect(s::Qsym)
     get_attribute(s,:Protected) &&
-    symerror("Symbol '",s, "' is protected.")
+    symerror(protectstr(s))
 end
 
 function checkprotect(s::SJSym)
     get_attribute(symname(s),:Protected) &&
-    symerror("Symbol '",symname(s), "' is protected.")
+    symerror(protectstr(symname(s)))
 end
 checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 function warncheckprotect(s::SJSym)
     if get_attribute(symname(s),:Protected)
-        symwarn(string("Symbol '",symname(s), "' is protected."))
+        symwarn(protectstr(symname(s)))
         return false
     else
         return true
