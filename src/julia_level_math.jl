@@ -5,16 +5,12 @@
 
 # SJSym is an alias of Symbol
 
-# FIXME: These are needed by some reasonable tests in the test suite.
-# But, we don't want to define these methods.
-# We need to remove dependence on these.
+## The following could be used optionally as a convenience for
+## the user. But, they are disabled because they extend Base methods for Base objects.
+
 # *(a::Number,b::SJSym) = mxpr(:Times,a,b)
 # *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
 # +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
-
-# Symata depends on some of these too. Don't want this.
-# Probably depends on all of them. But there I am not sure
-# there is a test for each one.
 
 # *(a::SJSym,b::Number) = mxpr(:Times,b,a)
 # +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
