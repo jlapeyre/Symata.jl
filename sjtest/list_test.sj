@@ -6,11 +6,11 @@ ClearAll(f,g,b,a)
 
 T Array(f,3) == [f(1),f(2),f(3)]
 
-g = :( x -> x^2 + :a)
+g = :( x -> mplus(x^2 , :a))
 T Array(g,3) == [1 + a,4 + a,9 + a]
 
 b = 3
-g = :( x -> x^2 + :b)
+g = :( x -> mplus(x^2, :b))
 T Array(g,3) == [4,7,12]
 
 T Array(a,[2,3]) == [[a(1,1),a(1,2),a(1,3)],[a(2,1),a(2,2),a(2,3)]]

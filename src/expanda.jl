@@ -139,13 +139,13 @@ end
 
 ## construct Power. Decide whether to canonicalize according to types of args
 function canonpower{T<:Real}(base,expt::T)
-    canonexpr!(base^expt)
+    canonexpr!(mpow(base,expt))
 end
 function canonpower(base::SJSym,expt)
-    base^expt
+    mpow(base,expt)
 end
 function canonpower(base,expt)
-    base^expt
+    mpow(base,expt)
 end
 
 ##
@@ -215,7 +215,8 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     setfixed(m2)
     mergesyms(m1,b1)
     mergesyms(m2,b2)
-    return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
+#    return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
+    return flatcanon!(mmul(fac,mmul(m1,m2)))
 end
 
 function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
@@ -252,7 +253,7 @@ function expand_binomial_aux(k,l,n,fac,a,b,args)
         @inbounds for j in 2:n-2
             k = k - 1
             l = l + 1
-            fac *= k
+            fac = mmul(fac,k)
             fac = div(fac,l)
             args[j+1] = _expand_mulpowers(fac,a,n-j,b,j)
             mergesyms(args[j+1],a)

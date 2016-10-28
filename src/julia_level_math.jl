@@ -15,11 +15,12 @@
 # Symata depends on some of these too. Don't want this.
 # Probably depends on all of them. But there I am not sure
 # there is a test for each one.
-*(a::SJSym,b::Number) = mxpr(:Times,b,a)
-+(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
-+(a::Number,b::SJSym) = mxpr(:Plus,a,b)
-^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
-^(base::SJSym,expt) = mxpr(:Power,base,expt)
+
+# *(a::SJSym,b::Number) = mxpr(:Times,b,a)
+# +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
+# +(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+# ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+# ^(base::SJSym,expt) = mxpr(:Power,base,expt)
 
 #### Useful and OK methods
 
