@@ -123,7 +123,7 @@ function mulfacs(a::Mxpr{:Plus},b)
             _pushfacs!(facs,b)  # I hope type inference optimizes this.
             terms[i] = mxpr(:Times,facs)
         else
-            terms[i] = mmul(b, ax)
+            terms[i] = doeval(mmul(b, ax))
         end
         canonexpr!(terms[i])
         mergeargs(terms[i])
@@ -216,7 +216,8 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     mergesyms(m1,b1)
     mergesyms(m2,b2)
 #    return flatcanon!(mxpr(:Times, fac, m1, m2)) # flatcanon adds 10x time !, even if nothing is done
-    return flatcanon!(mmul(fac,mmul(m1,m2)))
+#    return flatcanon!(mmul(fac,mmul(m1,m2)))
+    return doeval(mmul(fac,mmul(m1,m2)))    # flatcannon is enough because of nested call.
 end
 
 function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
