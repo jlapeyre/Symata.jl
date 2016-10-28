@@ -106,7 +106,7 @@ ClearAll(a,b,c,f,x,p)
 T Nest(f,x,0) == x
 T Nest(f,x,1) == f(x)
 T Nest(f,x,3) == f(f(f(x)))
-T Nest(:( x -> x + 1), x,100) == 100 + x
+T Nest(:( x -> mplus(x, 1)), x,100) == 100 + x
 T Chop(Nest( :( x -> (x + 2/x)/2 ), 1.0, 5) - Sqrt(2.0)) == 0
 
 ClearAll(f,x)
