@@ -123,7 +123,7 @@ function mulfacs(a::Mxpr{:Plus},b)
             _pushfacs!(facs,b)  # I hope type inference optimizes this.
             terms[i] = mxpr(:Times,facs)
         else
-            terms[i] = b * ax
+            terms[i] = mmul(b, ax)
         end
         canonexpr!(terms[i])
         mergeargs(terms[i])

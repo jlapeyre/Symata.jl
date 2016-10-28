@@ -155,6 +155,7 @@ function make_sjitera{T}(args::Array{T,1})
     elseif len == 3
         nargs = recursive_copy(args) # needed if we do the computation below
         (imin,imax,di) = (nargs[1],nargs[2],nargs[3])
+        # TODO: replace lines like following with mmul, mplus, etc.
         tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
         num_iters = doeval(tst)
         if isa(num_iters, Real) # FIXME: can we use <:  ?
