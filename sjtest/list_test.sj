@@ -193,4 +193,25 @@ T Subdivide(5) == [0,1/5,2/5,3/5,4/5,1]
 T Subdivide(2,5) == [0,2/5,4/5,6/5,8/5,2]
 T Subdivide(1,2,5) == [1,6/5,7/5,8/5,9/5,2]
 
+
+### Take
+
+ClearAll(a,b,c,d,e,f,expr)
+
+expr = a + b + c + d + e + f
+
+T Take(expr,1) == a
+T Take(expr,2) == a + b
+T Take(expr,3) == a + b + c
+T Take(expr,None) == 0
+T Take(expr,All) == expr
+T Take(expr,-1) == f
+T Take(expr,-2) == e + f
+T Take(expr,[2,4]) == b + c + d
+T Take(expr,[1,6,2]) == a + c + e
+
+T Take(Range(3), UpTo(4)) == Range(3)
+T Take(Range(10), [-1,1,-1]) == Reverse(Range(10))
+
+ClearAll(a,b,c,d,e,f,expr)
 T testUserSyms

@@ -69,10 +69,11 @@ Note that `0` only makes sense as the last index.
 
 Negative indices are not supported here.
 """
-function getpart(mx::Mxpr,ind) ind == 0 ? mhead(mx) : mx[ind] end
+getpart(mx::Mxpr,ind) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
 getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
 getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
 
+# This gives error with a single index. Why ?
 Base.getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
 
 #### setpart
@@ -140,37 +141,44 @@ end
 
 ### Take
 
-@mkapprule Take
-
 @sjdoc Take """
+    Take(expr,n)
+
+returns `expr` keeping only the first `n` arguments.
+
     Take(expr,-n)
 
-return `expr` dropping all but the last `n` elements.
+returns `expr` dropping all but the last `n` arguments.
+
+    Take(expr,[n])
+
+returns `expr` keeping only the `n`th arguments.
+
+    Take(expr,[m,n])
+
+returns `expr` keeping only the `m`th through `n`th arguments.
+
+    Take(expr,[m,n,s])
+
+returns `expr` keeping only the `m`th through `n`th arguments, with step `s`.
+
+    Take(expr,spec1,spec2,...)
+
+apply `spec1` at level `1`, `spec2` at level `2`...
 """
+@mkapprule Take
+@doap Take(x::Mxpr, rawspecs...) = take(x,map(sequencespec, rawspecs)...)
+take(x, onespec, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,onespec)))...)
+#take(x,spec::SequenceLastN) =  mxpr(mhead(x), margs(x)[(length(x)+spec.n+1):end]...)
+take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0?(1:spec.n):(length(x)+spec.n+1:end)]...)
+take(x,spec::SequenceUpToN) = mxpr(mhead(x), margs(x)[1:min(spec.n,length(x))]...)
+take(x,spec::SequenceNOnly) = mxpr(mhead(x), margs(x)[posnegi(x,spec.n)])
+take(x,spec::SequenceMN)    = mxpr(mhead(x), margs(x)[posnegi(x,spec.m):posnegi(x,spec.n)]...)
+take(x,spec::SequenceMNS)   = mxpr(mhead(x), margs(x)[posnegi(x,spec.m):spec.s:posnegi(x,spec.n)]...)
+take(x,spec::SequenceNone)  = mxpr(mhead(x))
+take(x,spec::SequenceAll)   = mxpr(mhead(x), margs(x)...)
 
-@doap function Take(x::Mxpr, inspecs...)
-    specs = map(make_sequence_specification, inspecs)
-    take(x,specs...)
-end
+posnegi(x::Mxpr,n::Integer) = n > 0 ? n : length(x) + n + 1
 
-take(x, spec1, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,spec1)))...)
+### Drop
 
-function take(x,spec::SequenceLastN)
-    xa = margs(x)
-    n = - spec.n
-    mxpr(mhead(x), xa[(length(xa)-n+1):end]...)
-end
-
-function take(x,spec::SequenceN)
-    xa = margs(x)
-    n = spec.n
-    mxpr(mhead(x), xa[1:n]...)
-end
-
-function take(x,spec::SequenceNone)
-    mxpr(mhead(x))
-end
-
-function take(x,spec::SequenceAll)
-    mxpr(mhead(x),margs(x)...)
-end

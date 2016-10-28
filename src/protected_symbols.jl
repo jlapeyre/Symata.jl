@@ -128,4 +128,4 @@ set_pattributes([
                   "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
-                  "UserSyms","Values", "ans","nothing"], :Protected)
+                  "UoTo","UserSyms","Values", "ans","nothing"], :Protected)

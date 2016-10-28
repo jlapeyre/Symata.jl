@@ -770,10 +770,28 @@ unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
 
 clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
 
-## Some types of Heads of Mxpr's
+
+#### typealiases
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
 
 # Everything except Bool is what we want
 # Maybe we actually need a separate Bool from julia
 typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned}
+
+# used in predicates.jl
+typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
+
+# used in apprules.jl
+typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
+
+# used in expressions.jl
+typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
+
+# used in sortorderless.jl
+typealias ExpNoCanon Union{SJSym,Number}
+
+# used in flatten.jl
+typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
+
+typealias List Mxpr{:List}

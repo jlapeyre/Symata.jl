@@ -238,3 +238,9 @@ T testUserSyms
 # FIXME. this returns false. should return true
 # c= Exp( Sin(Sqrt(2)) + BesselJ(3,4))
 #  NumericQ(c)
+
+T Plus() == 0
+T Times() == 1
+
+T Plus(a) == a
+T Times(a) == a

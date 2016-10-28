@@ -2,9 +2,6 @@
 ## Canonical ordering of elements in orderless Mxpr       #
 ###########################################################
 
-## TODO:
-## Handle expressions like: 2.0 * Pi
-
 ### !! This file has other canonicalizing code.: for Power
 
 # There are four (more or less) steps:
@@ -398,6 +395,8 @@ function whichinfinity(mx)
 end
 
 function canonexpr_orderless!(mx::Mxpr{:Times})
+    length(mx) == 0 && return 1
+    length(mx) == 1 && return mx[1]
     analysis = analyze_operands(mx)
     if analysis.isIndeterminate
         return Indeterminate
@@ -410,6 +409,8 @@ function canonexpr_orderless!(mx::Mxpr{:Times})
 end
 
 function canonexpr_orderless!(mx::Mxpr{:Plus})
+    length(mx) == 0 && return 0
+    length(mx) == 1 && return mx[1]
     analysis = analyze_operands(mx)
     if analysis.isIndeterminate return Indeterminate end
     if analysis.isComplexInfinity return ComplexInfinity end

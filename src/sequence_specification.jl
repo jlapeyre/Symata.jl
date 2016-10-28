@@ -1,56 +1,50 @@
-# Take uses the standard sequence specification:
-# 	All	all elements
-# 	None	no elements
-# 	n	elements 1 through n
-# 	UpTo[n]	elements 1 up to at most n, as available
-# 	-n	last n elements
-# 	{n}	element n only
-# 	{m,n}	elements m through n inclusive
-# 	{m,n,s}	elements m through n in steps of s
-
 abstract SequenceSpec
 
+#  All all elements
 type SequenceAll <: SequenceSpec
 end
 
+#  None  no elements
 type SequenceNone <: SequenceSpec
 end
 
-immutable SequenceN <: SequenceSpec
-    n::Int
+#  n  elements 1 through n
+immutable SequenceN{T<:Integer} <: SequenceSpec
+    n::T
 end
 
-immutable SequenceUpToN <: SequenceSpec
-    n::Int
+#  UpTo[n] elements 1 up to at most n
+immutable SequenceUpToN{T<:Integer} <: SequenceSpec
+    n::T
 end
 
-immutable SequenceLastN <: SequenceSpec
-    n::Int
+#  [n]  element n only
+immutable SequenceNOnly{T<:Integer} <: SequenceSpec
+    n::T
 end
 
-immutable SequenceNOnly <: SequenceSpec
-    n::Int
+#  [m,n] elements m through n
+immutable SequenceMN{T<:Integer,V<:Integer} <: SequenceSpec
+    m::V    
+    n::T
 end
 
-immutable SequenceMN <: SequenceSpec
-    n::Int
-    m::Int
+#  [m,n] elements m through n, step s
+immutable SequenceMNS{T<:Integer,V<:Integer,W<:Integer} <: SequenceSpec
+    m::V
+    n::T    
+    s::W
 end
 
-immutable SequenceMNS <: SequenceSpec
-    n::Int
-    m::Int
-    s::Int    
-end
+seqspecerr(x) = symerror(x, " is not a valid sequence specification")
+sequencespec(n::Integer) = SequenceN(n)
+sequencespec(x::Mxpr{:UpTo}) = SequenceUpToN(x[1])
+sequencespec(x::Symbol) = x == :None ? SequenceNone() : x == :All ? SequenceAll() : seqspecerr(x)
 
-
-function make_sequence_specification(n::Int)
-    n >= 0  && return SequenceN(n)
-    SequenceLastN(n)
-end
-
-function make_sequence_specification(x::Symbol)
-    x == :None && return SequenceNone()
-    x == :All && return SequenceAll()
-    symerror(x, " is not a valid sequence specification")
+function sequencespec(x::List)
+    len = length(x)
+    len == 1 && return SequenceNOnly(x[1])
+    len == 2 && return SequenceMN(x[1],x[2])
+    len == 3 && return SequenceMNS(x[1],x[2],x[3])
+    seqspecerr(x)
 end

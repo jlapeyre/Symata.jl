@@ -1111,7 +1111,3 @@ give the sum of elements in `list`
 
 # We could try some things to speed this up... check that all elements are numbers ?
 @doap Total(x::Mxpr{:List}) = mxpr(:Plus,margs(x))
-
-
-
-nothing
