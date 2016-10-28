@@ -34,4 +34,4 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide)
+addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop)

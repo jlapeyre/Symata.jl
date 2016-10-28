@@ -1,5 +1,9 @@
 import Symata: unprotect, protect, @sjdoc
 
+## These macro calls are also valid Symata. But, we do not include them in the
+## autoloaded Symata code, because we want the text to be searchable before it
+## is loadable. e.g. h"interval"
+
 @sjdoc ExpToTrig """
     ExpToTrig(expr)
 
@@ -41,3 +45,21 @@ divide the interval `(0,xmax)` into `n` intervals
 
 divide the interval `(xmin,xmax)` into `n` intervals.
 """
+
+@sjdoc TakeDrop """
+    TakeDrop(expr, seq)
+
+returns `[Take(expr,seq), Drop(expr,seq)]`.
+"""
+
+protect(:TakeDrop)
+
+
+@sjdoc UpTo """
+    Take(expr, UpTo(n))
+
+return `expr` keeping only the first `n` elements, or all elements
+is there are less than `n` of them.
+"""
+
+protect(:UpTo)

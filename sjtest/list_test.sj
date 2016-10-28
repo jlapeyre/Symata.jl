@@ -209,9 +209,24 @@ T Take(expr,-1) == f
 T Take(expr,-2) == e + f
 T Take(expr,[2,4]) == b + c + d
 T Take(expr,[1,6,2]) == a + c + e
-
 T Take(Range(3), UpTo(4)) == Range(3)
 T Take(Range(10), [-1,1,-1]) == Reverse(Range(10))
+expr = Array(f,[3,3,3])
+Take(r,[2],[2],[2]) == [[[f(2,2,2)]]]
+
+### Drop
+
+T Drop(Range(10),5) == Range(6,10)
+T Drop(Range(10),-1) == Range(9)
+T Drop(Range(10),1) == Range(2,10)
+T Drop(Range(10),10) == []
+T Drop(Range(10),-10) == []
+T Drop(Range(10),11) == []   # Mma gives an error here
+T Drop(Range(10),UpTo(11)) == []
+T Drop(Range(10),[3,6]) == [1,2,7,8,9,10]
+
+T TakeDrop(Range(10),[3,6]) == [Take(Range(10),[3,6]), Drop(Range(10),[3,6])]
+
 
 ClearAll(a,b,c,d,e,f,expr)
 T testUserSyms

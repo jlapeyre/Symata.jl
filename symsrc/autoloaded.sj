@@ -34,6 +34,20 @@ Protect(Array)
 
 ### Subdivide
 
+@sjdoc Subdivide """
+    Subdivide(n)
+
+is equivalent to `Range(0,n)/n`.
+
+    Subdivide(xmax, n)
+
+is equivalent to `xmax*Range(0,n)/n`
+
+    Subdivide(xmin, xmax, n)
+
+is equivalent to `xmin + (xmax-xmin)*Range(0,n)/n`.
+"""
+
 Unprotect(Subdivide)
 
 Subdivide(n_) := Range(0,n)/n
@@ -43,3 +57,13 @@ Subdivide(xmax_, n_) := xmax*Range(0,n)/n
 Subdivide(xmin_, xmax_, n_) := xmin + (xmax-xmin)*Range(0,n)/n
 
 Protect(Subdivide)
+
+
+### TakeDrop
+
+Unprotect(TakeDrop)
+
+TakeDrop(x_, seq_) := [Take(x,seq), Drop(x,seq)]
+TakeDrop(x_, seq1_, seq2_) := [Take(x,seq1,seq2), Drop(x,seq1,seq2)]
+
+Protect(TakeDrop)

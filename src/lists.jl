@@ -543,4 +543,3 @@ sort the elements of `expr`.
 
 @doap Sort(expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
 @doap Sort(a::AbstractArray) = sort(a)
-

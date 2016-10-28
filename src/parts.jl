@@ -182,3 +182,33 @@ posnegi(x::Mxpr,n::Integer) = n > 0 ? n : length(x) + n + 1
 
 ### Drop
 
+# With a little work, we could raise an error if the user tries to drop more elements
+# than exists. In fact, the behavior is as if we always use UpTo.
+@sjdoc Drop """
+    Drop(expr,n)
+    Drop(expr,-n)    
+    Drop(expr,[m,n])    
+
+!!! note
+    `Drop(expr,UpTo(n))` is not necessary because `Drop(expr,n)` already gives the
+    desired behavior.
+"""
+
+@mkapprule Drop
+@doap Drop(x::Mxpr, rawspecs...) = drop(x,map(sequencespec, rawspecs)...)
+drop(x, onespec, specs...) = mxpr(mhead(x),map(t -> drop(t,specs...), margs(drop(x,onespec)))...)
+drop(x,spec::SequenceN) = mxpr(mhead(x), margs(x)[spec.n>0?(((spec.n)+1):end):(1:length(x)+spec.n)]...)
+drop(x,spec::SequenceUpToN) = drop(x,SequenceN(spec.n))
+
+function drop(x,spec::SequenceNOnly)
+    n = posnegi(x,spec.n)
+    ma = margs(x)
+    mxpr(mhead(x), ma[1:n-1]..., ma[n+1:end]...)
+end
+
+function drop(x,spec::SequenceMN)
+    m = posnegi(x,spec.m)
+    n = posnegi(x,spec.n)    
+    ma = margs(x)
+    mxpr(mhead(x), ma[1:m-1]..., ma[n+1:end]...)
+end

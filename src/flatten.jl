@@ -126,7 +126,15 @@ end
 @sjdoc Flatten """
     Flatten(expr)
 
-remove braces from `Lists` in the first level of `expr`.
+remove braces from `Lists` at all levels of `expr`.
+
+    Flatten(expr,n)
+
+flatten only down to level `n`.
+
+    Flatten(expr,n,h)
+
+flatten only expressions with head `h`.
 """
 
 @doap Flatten(x::Mxpr) = flatten_recursive!(x)
