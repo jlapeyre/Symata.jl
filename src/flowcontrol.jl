@@ -340,7 +340,8 @@ function do_doloop(expr,iter::SJIter4)
         @checkbreak res
         @checkreturn(res)
         @checkcontinue0(res)
-        setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
+#        setsymval(isym,doeval(mxpr(:Plus,isym,iter.di)))
+        setsymval(isym,doeval(mplus(isym,iter.di)))
     end
     delete_sym(isym)
     Null

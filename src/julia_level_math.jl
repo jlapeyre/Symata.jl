@@ -8,9 +8,9 @@
 # FIXME: These are needed by some reasonable tests in the test suite.
 # But, we don't want to define these methods.
 # We need to remove dependence on these.
-*(a::Number,b::SJSym) = mxpr(:Times,a,b)
-*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
-+(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+# *(a::Number,b::SJSym) = mxpr(:Times,a,b)
+# *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+# +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
 
 # Symata depends on some of these too. Don't want this.
 # Probably depends on all of them. But there I am not sure

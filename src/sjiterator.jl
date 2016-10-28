@@ -75,7 +75,7 @@ function make_sjiter{T}(mx,args::Array{T,1})
             end
         elseif len == 3        # We need to overload ops to make these easier to write
             # do we need deepcopy here ?
-            num_iters = doeval(mxpr(:Plus, args[3], -1 * args[2]))
+            num_iters = doeval(mxpr(:Plus, args[3], mmul(-1, args[2])))
             if isa(num_iters, Number) # args3 - args2  # FIXME: can we use <:  ?
                 return SJIter3(args[1],doeval(args[2]),doeval(args[3]),floor(Int,num_iters)) # use splat ?
             else
@@ -86,7 +86,8 @@ function make_sjiter{T}(mx,args::Array{T,1})
             (i,imin,imax,di) = (nargs[1],nargs[2],nargs[3],nargs[4])
             #  Mma does not simplify this: x + y + -2*(x + y)
             #  Mma does simplify this: x + y + -1*(x + y)
-            tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
+#            tst = mxpr(:Times, mxpr(:Plus,imax, mxpr(:Minus,imin)), mxpr(:Power,di,-1))
+            tst = mmul(mplus(imax, mmul(-1,imin)), mpow(di,-1))
             num_iters = doeval(tst)
             if isa(num_iters, Number)  # FIXME: can we use <: Number ?
                 nargs[2] = doeval(args[2])
@@ -145,7 +146,7 @@ function make_sjitera{T}(args::Array{T,1})
         end
     elseif len ==  2
         nargs = recursive_copy(args)
-        num_iters = doeval(mxpr(:Plus, nargs[2], -1 * nargs[1]))
+        num_iters = doeval(mxpr(:Plus, nargs[2], mmul(-1 , nargs[1])))
         if isa(num_iters, Real) # args2 - args1 # FIXME: can we use <:  ?
             return SJIterA2(args[1],args[2],floor(Int,num_iters)+1)
         else
