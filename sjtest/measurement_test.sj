@@ -44,6 +44,7 @@ T Depth(m) == 5
   m[1,1,1] = [ f(1,1,1)]
 T Depth(m) == 6
 T Dimensions(m) == [4,2,3]
+T Dimensions(IdentityMatrix(10)) == [10,10]
 
 ClearAll(m)
 

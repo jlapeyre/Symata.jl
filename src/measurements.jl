@@ -141,35 +141,34 @@ type DimensionsData
     done::Bool
 end
 
+@doap function Dimensions(x::Mxpr)
+    data = DimensionsData(Array(Int,0), 1, mhead(x), false)
+    dimensions(x,data)
+    MList(data.dims)
+end
+
 dimensions(x,data) = 0
 
 function dimensions(x::Mxpr,data)
     length(x) ==  0 && return 0
-#    thehead = mhead(x[1])
     thehead = data.head
     thelength = symjlength(x[1])
-#    data.level += 1
-    failflag = false
+#    failflag = false
     for i in 2:length(x)
         if symjlength(x[i]) != thelength || mhead(x[i]) != thehead
-            failflag = true
+            #            failflag = true
+            data.done = true
             break
         end
     end
+    if length(data.dims) < data.level
+        push!(data.dims, symjlength(x))
+    end
+    data.done && return
     # if failflag
     #     data.done = true
     #     return
-    # else
-        if length(data.dims) >= data.level
-            nothing
-        else
-            push!(data.dims, symjlength(x))
-        end
-    if failflag
-        data.done = true
-        return
-    end
-#    end
+    # end
     data.level +=1    
     for i in 1:symjlength(x)
         dimensions(x[i],data)
@@ -178,9 +177,3 @@ function dimensions(x::Mxpr,data)
     data.level -=1
 end
 
-@doap function Dimensions(x::Mxpr)
-    data = DimensionsData(Array(Int,0), 0, mhead(x), false)
-    data.level = 1
-    dimensions(x,data)
-    mxpr(:List, data.dims...)
-end
