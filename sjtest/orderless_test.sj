@@ -1,6 +1,3 @@
-
-T testUserSyms
-
    ClearAll(a,c,z,za,zg,x,y,r,t,h,A,Z)
 T 0 == 0
 T -0  == 0
@@ -107,6 +104,3 @@ T Head(3.0 * π) == Float64
 
 
 T Apply(List, a___ + x) == List(x,a___)  # BlankNullSequence not implemented
-
-
-T testUserSyms

@@ -1,8 +1,5 @@
 #### Cosh, ACosh
 
-T testUserSyms
-
-
 T Exp(0) == 1
 T Exp(1) == E
 T Exp(2) == E^2
@@ -43,7 +40,4 @@ T D(Cosh(x),x) == Sinh(x)
 T D(Cosh(x),[x,4]) == Cosh(x)
 T Integrate(Cosh(x),x) == Sinh(x)
 
-
-
  ClearAll(x)
-T testUserSyms

@@ -46,7 +46,12 @@ T Depth(m) == 6
 T Dimensions(m) == [4,2,3]
 T Dimensions(IdentityMatrix(10)) == [10,10]
 
-ClearAll(m)
+ClearAll(m,f)
+
+# Array creates these
+ClearTemporary()
+
+
 
 
 

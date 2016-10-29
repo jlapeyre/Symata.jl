@@ -1,6 +1,3 @@
-
-T testUserSyms
-
 T Head(1//1) == Int64
 T Head(3//1) == Int64
 
@@ -47,5 +44,3 @@ T Sqrt(-1) == I      # fixes bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rationa
 T Sqrt(-1)^2 == -1   # same bug
 
  ClearAll(a,b)
-
-T testUserSyms

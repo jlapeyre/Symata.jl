@@ -1,5 +1,3 @@
-T testUserSyms
-
 # Currently disabled
 
 # This is an example of writing a function for SJulia in Julia, rather than SJulia
@@ -15,5 +13,3 @@ function addtom(n,m)
     mx = symval(m) # m is a symbol, symval(m) is the SJulia expression
     for i in 1:length(mx)  doeval( mxpr(:Set, mxpr(:Part, mx , i),  i + n)) end
 end
-
-T testUserSyms

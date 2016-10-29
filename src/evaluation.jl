@@ -46,6 +46,18 @@ end
 
 remove temporary symbols, ie all beginnig with "##", from the symbol table.
 """
+# The Temporary attribute is not working. the symbols that escape are just gensysms
+@doap function ClearTemporary()
+    syms = usersymbols()
+    for sym in syms
+        ss = string(sym)
+        if length(ss) > 2 && ss[1:2] == "##"
+            delete_sym(Symbol(sym))
+        end
+    end
+    Null
+end
+
 
 @sjdoc Evaluate """
     Evaluate(expr)
@@ -61,18 +73,6 @@ specify that `expr` should be evaluated even if it appears as an argument protec
 # This only handles trivial cases, where Evaluate is not protected by HoldXXX. The cases in which it
 # *is* protected are handled below in meval_arguments()
 @doap Evaluate(x) = x
-
-# The Temporary attribute is not working. the symbols that escape are just gensysms
-@doap function ClearTemporary()
-    syms = usersymbols()
-    for sym in syms
-        ss = string(sym)
-        if length(ss) > 2 && ss[1:2] == "##"
-            delete_sym(Symbol(sym))
-        end
-    end
-    Null
-end
 
 ## Macro for translation and evaluation, at repl or from file
 

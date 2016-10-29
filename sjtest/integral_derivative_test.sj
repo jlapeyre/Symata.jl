@@ -1,6 +1,4 @@
-T testUserSyms
-
-#### Integrate
+### Integrate
 
  ClearAll(r,y,x)
 T Integrate(x,x) == 1//2 * x^2
@@ -80,7 +78,7 @@ T InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
 T InverseLaplaceTransform(Exp(-a*s)/s, s, t) == HeavisideTheta(t + -a)
 
 # This uses the 'old' SymPy assumptions system
-Assume(ta,real)
+Assume(ta,Real)
 T InverseLaplaceTransform( 1/(s*ta + 1)^n,s,t) == (E^(-t*(ta^(-1))))*(t^(-1 + n))*(ta^(-n))*(Gamma(n)^(-1))*HeavisideTheta(t)
 
 # FIXME: This does not remove the SymPy assumption
@@ -138,5 +136,3 @@ T Sum(1/n^2, [n,1,Infinity]) == Pi^2/6
 T Sum( x^n/Factorial(n)^2 , [n,0,Infinity])  == BesselI(0,2(x^(1/2)))
 
  ClearAll(x,s,t,conds,f,i,m,k)
-
-T testUserSyms

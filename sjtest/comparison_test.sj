@@ -1,7 +1,5 @@
  ClearAll(a,b,c,d,x)
 
-T testUserSyms
-
 T 1 == 1
 T !(1 != 1)
 T !(1 > 1)
@@ -109,11 +107,15 @@ T Args(a && b && c && d ) == [a,b,c,d]
 
 # This belongs elsewhere
 
-Assume(aaa,positive)
+ClearAll(aaa)
+
+Assume(aaa,Positive)
 T Refine(Abs(aaa)) == aaa
+
+ClearAll(aaa)
 
 #### String
 
 T Not(f(x) == "cat")
 
-T testUserSyms
+ClearAll(f,x)

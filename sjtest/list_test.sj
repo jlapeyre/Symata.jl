@@ -1,5 +1,3 @@
-T testUserSyms
-
 ### Array
 
 ClearAll(f,g,b,a)
@@ -229,4 +227,3 @@ T TakeDrop(Range(10),[3,6]) == [Take(Range(10),[3,6]), Drop(Range(10),[3,6])]
 
 
 ClearAll(a,b,c,d,e,f,expr)
-T testUserSyms

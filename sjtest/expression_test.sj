@@ -1,6 +1,3 @@
-
-T testUserSyms
-
  ClearAll(a,b)
  mx = ExpandA((a+b)^3)
 T  mx == Plus(Power(a,3),Times(3,Power(a,2),b),Times(3,a,Power(b,2)),Power(b,3))
@@ -77,5 +74,3 @@ T Pop!(a) == 11
 T a == Range(10)
 
 ClearAll(a)
-
-T testUserSyms

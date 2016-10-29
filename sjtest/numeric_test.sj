@@ -56,5 +56,6 @@ f = Compile(Cos(Pi*x))
 T approxeq(f(1), -1)
 
 
-
 ClearAll(approxeq, f, f1, x, a, mygamma, ex)
+ClearTemporary()
+

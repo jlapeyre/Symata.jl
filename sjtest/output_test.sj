@@ -1,6 +1,4 @@
 # Test printing of expressions
-
-T testUserSyms
  savestate = CompactOutput(True)
 
 T ToString((-27/64)^(2/3)) == "(9/16)*((-1)^(2/3))"
@@ -37,5 +35,5 @@ T ToString(Sum(f(i), [i,1,10])) == "1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 + 7^2 + 8^
 T Map(ReleaseHold, Sum(f(i), [i,1,10])) == 385
 
 CompactOutput(savestate)
-ClearAll(a,b,x,savestate,f,x,ex)
-T testUserSyms
+
+ClearAll(a,b,x,savestate,f,x,ex,n)

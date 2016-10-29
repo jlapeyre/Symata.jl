@@ -1,7 +1,4 @@
-
-T testUserSyms
-
-#### Do
+### Do
 
  ClearAll(a,i,x,q)
 
@@ -146,5 +143,4 @@ T Catch(Catch(Throw(x,u)),u) == x
 
 
 ClearAll(f,x,z,u)
-
-T testUserSyms
+ClearTemporary()

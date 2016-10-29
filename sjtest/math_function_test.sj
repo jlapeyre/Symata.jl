@@ -1,5 +1,3 @@
-T testUserSyms
-
 T  Abs(-1) == 1
 T  Abs(-2.0) == 2.0
 T  Abs(z^3) == Abs(z)^3
@@ -233,8 +231,6 @@ T Min([1,2,3],[[8,0],4,5,6],7) == 0
 
 ClearAll(x,y,z)
 
-T testUserSyms
-
 # FIXME. this returns false. should return true
 # c= Exp( Sin(Sqrt(2)) + BesselJ(3,4))
 #  NumericQ(c)
@@ -244,3 +240,5 @@ T Times() == 1
 
 T Plus(a) == a
 T Times(a) == a
+
+Apply(ClearAll, UserSyms())

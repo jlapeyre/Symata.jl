@@ -124,7 +124,7 @@ set_pattributes([
                   "Primes","Print", "Println","Protected","RatSimp","Rational",
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
-                  "Sequence","Series","Solve","Span","String","StringJoin",
+                  "Sequence", "SequenceHold", "Series","Solve","Span","String","StringJoin",
                   "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",

@@ -4,8 +4,6 @@
 # We are missing several test cases here.
 # But, do_Power and mpow should now reproduce, more or less what Mma does.
 
-T testUserSyms
-
 T Arg(Complex(1.0,1.0)) - N(Arg(Complex(1,1))) == 0.0
 T Arg(Complex(1,1)) == π/4
 
@@ -59,4 +57,3 @@ T 27^(1/2) == 3(3^(1/2))
 T Head((a*b)^(1/2)) == Power
 
  ClearAll(z,a,b)
-T testUserSyms

@@ -1,6 +1,4 @@
-T testUserSyms
-
-#### Cancel
+### Cancel
 
 T Cancel( (2*x^2-2)/(x^2-2*x+1)) == (-1 + x) ^ (-1) * (2 + 2 * x)
 
@@ -150,5 +148,3 @@ T Rewrite(Tan(x), Sin)  ==  2(Sin(2x)^(-1))*(Sin(x)^2)
 
 
  ClearAll(x,y,z,f,deep,gaussian,modulus)
-
-T testUserSyms

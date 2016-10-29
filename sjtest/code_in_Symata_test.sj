@@ -1,6 +1,3 @@
-
-T testUserSyms
-
 # These are tests for functions that are written in  The code
 # that is tested is in code_in_jl.
 # eg ExpToTrig() is implemented as an SJulia DownValue and rule.
@@ -30,5 +27,3 @@ T  Sin(-z) == -1*Sin(z)
 T  Sin(-z^2)^2 == Sin(z^2)^2
 
  ClearAll(a,x,y,F,q,z)
-
-T testUserSyms

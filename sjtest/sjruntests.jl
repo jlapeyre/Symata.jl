@@ -7,7 +7,7 @@ import Symata: runtest, @ex, @exsimple, setkerneloptions, Symata_Plain_Test, pri
 # Standard test type
 test = Symata_Plain_Test()
 
-@exsimple testUserSyms = True
+#@exsimple testUserSyms = True
 
 # "context_test.sj",
 function runalltests()
@@ -30,7 +30,7 @@ function runalltests()
               "up_downvalue_test.sj",
               "predicate_test.sj",
               "trig_test.sj",
-              "context_test.sj",   #    breaks
+              "context_test.sj",
               "mxpr_test.sj",
               "integral_derivative_test.sj",
               "algebraic_transformation_test.sj",
@@ -46,6 +46,9 @@ function runalltests()
         )
         runtest(test,f)
         println(STDERR, "Done testing $f")
+        Symata.exfunc(parse("Apply(ClearAll, UserSyms())"), Symata.SimpleExFuncOptions)
+        # Symata.exfunc(parse("SetJ(symatausersyms, ToString(UserSyms()))"))
+        # println(STDERR, " ", Main.symatausersyms)        
     end
 end
 
@@ -75,4 +78,5 @@ finally
     setkerneloptions(:bigint_input, save_biginput_state)
 end
 
+@exsimple ClearAll(testUserSyms)
 print_test_results(test)

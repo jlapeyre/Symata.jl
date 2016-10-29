@@ -1,7 +1,4 @@
-
-testUserSyms
-
-#### Blanks
+### Blanks
 
 # Only Blank is currently useful
 
@@ -599,5 +596,3 @@ T ! FreeQ([a,f(f(f(3)))], _Integer, 4)
 # Table(FreeQ(Integrate(x^n, x), Log), [n, -5, 5])
 
 ClearAll(f,a,b,c)
-
- testUserSyms

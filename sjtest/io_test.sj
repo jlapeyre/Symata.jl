@@ -1,7 +1,6 @@
 # Test reading Symata expressions from a file
 
  ClearTemporary()
-T testUserSyms
 
 # Use julia code to create the path to the test file  symata_code.mx 
  codefile = :( joinpath(dirname(@__FILE__), "symata_code.mx") )
@@ -44,6 +43,3 @@ T f(2) == "Integer"
 T f("dog") == "String"
 
  ClearAll(f,file,x,y)
-
-
-T testUserSyms

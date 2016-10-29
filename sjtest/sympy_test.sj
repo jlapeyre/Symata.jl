@@ -1,6 +1,4 @@
-T testUserSyms
-
-#### Limit
+### Limit
 
 T Limit(x, x => 0) == 0
 T Limit(Sin(x)/x, x => Infinity) == 0
@@ -52,20 +50,17 @@ T Factor(ex) == ((-1 + x) ^ 2) * (1 + x) * (1 + x + x ^ 2)
  ClearAll(x,ex)
 
 
-#### BellB
+### BellB
 
 T BellB(30) == 846749014511809332450147
 T BellB(6,4,[x1,x2,x3]) == 45 * (x1 ^ 2) * (x2 ^ 2) + 20 * (x1 ^ 3) * x3
 T BellB(4,t) == t + 7 * (t ^ 2) + 6 * (t ^ 3) + t ^ 4
 
 
-#### Divisors
+### Divisors
 
 T 10000/Divisors(10000) == Reverse(Divisors(10000))
 
-
-
  ClearAll(x1,x2,x3,t,x)
-T testUserSyms
 
-################
+

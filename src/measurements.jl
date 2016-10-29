@@ -1,4 +1,4 @@
-#### Length
+### Length
 
 @sjdoc Length """
     Length(expr) 
@@ -26,33 +26,33 @@ function symjlength(x)
     end
 end
 
-## LeafCount
+### LeafCount
 
-# View Mxpr's as trees and all other objects as nodes.
-# leafcount(x) returns the number of nodes in x:
-# that is 1 if x is a node and
-# the number of nodes in the tree if it is an Mxpr.
-# An empty Mxpr is an empty tree, i.e. a node.
-#
-# LeafCount is Mma's term. But better might be NodeCount,
-# because it counts all nodes in the tree, not only terminal nodes.
-# This is not the same as Mma.
-# 1/2 + I  -> Complex[Rationa[1,2],1]  : LeafCount is 5
-# We have Complex{:Rational}(Rational(1,2),Rational(1,1)), LeafCount is 7
+## View Mxpr's as trees and all other objects as nodes.
+## leafcount(x) returns the number of nodes in x:
+## that is 1 if x is a node and
+## the number of nodes in the tree if it is an Mxpr.
+## An empty Mxpr is an empty tree, i.e. a node.
+##
+## LeafCount is Mma's term. But better might be NodeCount,
+## because it counts all nodes in the tree, not only terminal nodes.
+## This is not the same as Mma.
+## 1/2 + I  -> Complex[Rationa[1,2],1]  : LeafCount is 5
+## We have Complex{:Rational}(Rational(1,2),Rational(1,1)), LeafCount is 7
 leaf_count(x) = 1
 leaf_count(x::Complex) = 3
 leaf_count{T<:Rational}(x::Complex{T}) = 7
 leaf_count(x::Rational) = 3
 leaf_count(mx::Mxpr) = sum(leaf_count,margs(mx)) + 1  #   1 for the Head
 
-## ByteCount
+### ByteCount
 
-# Try to count bytes allocated for everything in an object.
-# This relies in part on Julia's ability to do this with sizeof.
-# But the result is not quite what we want, so we define jssizeof.
-# For instance, sizeof a BigInt always returns 16. The amount of data allocated
-# is it is probably actually  8 * x.size or x.alloc.
-# We also guess what to do for symbol, and we don't yet handle BigFloat.
+## Try to count bytes allocated for everything in an object.
+## This relies in part on Julia's ability to do this with sizeof.
+## But the result is not quite what we want, so we define jssizeof.
+## For instance, sizeof a BigInt always returns 16. The amount of data allocated
+## is it is probably actually  8 * x.size or x.alloc.
+## We also guess what to do for symbol, and we don't yet handle BigFloat.
 
 jssizeof(x) = sizeof(x)
 # I think they are 64 bit chunks
@@ -68,11 +68,11 @@ function byte_count(mx::Mxpr)
     return count
 end
 
-## Depth
+### Depth
 
-# This is the maximum depth of the tree.
-# We do not descend into Complex and Rational.
-# Different than tree for LeafCount.
+## This is the maximum depth of the tree.
+## We do not descend into Complex and Rational.
+## Different than tree for LeafCount.
 depth(x) = 1
 function depth(mx::Mxpr)
     d::Int = 1
@@ -89,9 +89,8 @@ function depth(mx::Mxpr)
     return d + 1
 end
 
-################
 
-#### LeafCount
+### LeafCount
 
 @sjdoc LeafCount """
     LeafCount(expr)
@@ -128,7 +127,13 @@ any part of `expr`, plus `1`.
 
 apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 
-#### Dimensions
+### Dimensions
+
+@sjdoc Dimensions """
+    Dimensions(expr)
+
+returns a list of the dimensions of `expr`.
+"""
 
 @mkapprule Dimensions :nargs => 1:2
 
@@ -151,12 +156,9 @@ dimensions(x,data) = 0
 
 function dimensions(x::Mxpr,data)
     length(x) ==  0 && return 0
-    thehead = data.head
     thelength = symjlength(x[1])
-#    failflag = false
     for i in 2:length(x)
-        if symjlength(x[i]) != thelength || mhead(x[i]) != thehead
-            #            failflag = true
+        if symjlength(x[i]) != thelength || mhead(x[i]) != data.head
             data.done = true
             break
         end
@@ -165,10 +167,6 @@ function dimensions(x::Mxpr,data)
         push!(data.dims, symjlength(x))
     end
     data.done && return
-    # if failflag
-    #     data.done = true
-    #     return
-    # end
     data.level +=1    
     for i in 1:symjlength(x)
         dimensions(x[i],data)
@@ -176,4 +174,3 @@ function dimensions(x::Mxpr,data)
     end
     data.level -=1
 end
-

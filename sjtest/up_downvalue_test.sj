@@ -1,6 +1,3 @@
-
-T testUserSyms
-
  ClearAll(fib)
  fib(1) := 1
  fib(2) := 1
@@ -166,6 +163,3 @@ sd(xmin_, xmax_, n_) := xmin + (xmax-xmin)*Range(0,n)/n
 T Length(sd(10)) == 11
 
 ClearAll(sd)
-
-
-T testUserSyms

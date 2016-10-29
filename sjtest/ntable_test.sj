@@ -1,5 +1,3 @@
-T testUserSyms
-
 #### SJIter1
 
 T  Table(x,[0]) == []
@@ -77,5 +75,3 @@ ClearAll(it)
 
 ClearAll(x,y,a,b,c,d,m,p,z,f,j)
 ClearAll(a,b,c,d,f,ex)
-
-T testUserSyms

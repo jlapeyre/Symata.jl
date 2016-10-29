@@ -1,7 +1,5 @@
 # Contexts are only partially implemented.
 
-T testUserSyms
-
 # comparisons
 T a.b == a.b
 T a.b <= a.b
@@ -27,7 +25,5 @@ T ContextSymbols(b)  == ["d"]
  ClearAll(b.d)
 T ContextSymbols(b)  == []
 T Args(b.d == 1) == [b.d,==,1 ]
-
-
 
  ClearAll(b.c,b.d,b)

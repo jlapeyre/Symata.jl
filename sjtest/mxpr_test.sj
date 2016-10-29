@@ -1,7 +1,3 @@
-
- testUserSyms
-
-
 # Fails in 0.5.0-dev+3385, probably because the parser has changed
 # ==(2,2) is an expression with Head '=='
 T [1,2,3][2] == 2
@@ -118,5 +114,3 @@ T Attributes(Plus)  == [Flat,Listable,NumericFunction,OneIdentity,Orderless,Prot
  ClearAll(f,a,c,z)
 T Apply(List,f(z,c,a)) == [z,c,a]
  ClearAll(f,a,c,z,g,res,x)
-
- testUserSyms

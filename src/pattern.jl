@@ -247,23 +247,16 @@ end
 #### BlankT
 
 # For instance, in x_Integer, we match Integer.
-function match_head(head::SJSym,ex)
-    head == :All && return true
-    return is_Mxpr(ex,head)
-end
-
-function match_head(head::DataType,ex)
-    isa(ex,head)
-end
-
+match_head(head::SJSym,ex) = head == :All ? true : is_Mxpr(ex,head)
+match_head(head::DataType,ex) = isa(ex,head)
 match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))
 
-function matchBlank(blank::BlankT,ex)
-    head = getBlankhead(blank)  # head to match
-    match_head(head,ex) || return false
-end
+matchBlank(blank::BlankT,ex) = (match_head(getBlankhead(blank),ex) || return false)
 
-ematch(mx, pat::BlankT, captures)  = matchBlank(pat,mx)
+ematch(mx, pat::BlankT, captures) = matchBlank(pat,mx)
+
+### BlankSequenceT
+
 
 #### Alternatives
 
@@ -396,6 +389,22 @@ function match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
 end
 
 # mx -- expression to match
+# imx -- current index in mx
+# captures -- dict of captured variables
+# default_min -- 0 for RepeatedNull, 1 for Repeated
+function doBlankSequence(mx, imx, captures, default_min)
+    repeat_count = 0
+    while imx <= length(mx) && ematch(mx[imx],repeat_pattern,captures)
+        repeat_count += 1
+        imx += 1
+        repeat_count >= rmax && break
+    end
+    imx -= 1
+    repeat_count >= rmin && repeat_count <= rmax && return (true,imx)
+    (false, imx)
+end
+
+# mx -- expression to match
 # p -- Repeated or RepeatedNull
 # imx -- current index in mx
 # captures -- dict of captured variables
@@ -437,6 +446,9 @@ function doRepeated(mx, p, imx, captures, default_min)
     repeat_count >= rmin && repeat_count <= rmax && return (true,imx)
     (false, imx)
 end
+
+
+
 
 function match_and_capt_no_optional_yes_repeated(mx,pat,captures)
     imx = 0

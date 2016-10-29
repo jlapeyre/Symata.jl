@@ -5,8 +5,6 @@
 # one part of a large expression that is 'fixed' say the part m[1] of
 # m, requires evaluating neither m nor m1, but merely retrieving m[1].
 
-T testUserSyms
-
  m = ExpandA((a+b)^2)
 T Syms(m) == HoldForm([a,b])
  m = ExpandA((a*c + b*d)^2)
@@ -17,25 +15,25 @@ T FixedQ(m)
  a = 1
  Length(m)
 T FixedQ(m) == false
- Clear(a)
+ ClearAll(a)
  Length(m)
 T FixedQ(m)
  m = Range(10) # depends on no symbols, should never be dirty.
 T DirtyQ(m) == false
- Clear(m)
+ ClearAll(m)
 
 ## More testing of dirty symbols
 
 # Note that this fails for Sin, because it is done by SymPy
 
- Clear(a)
+ ClearAll(a)
  m = Cos(3*a)
  a = Pi
 T m == -1
 
 # Sin is done atm by sympy. we call mergeargs once in sympy.jl
 # We will probably need recursive call for deeper expressions, like Integrate with conditions.
- Clear(a)
+ ClearAll(a)
  m = Sin(Pi*a)
  a = 1/6
 T m == 1/2
@@ -97,5 +95,3 @@ T ReplaceAll([w,w,w], w => Sequence(x,y)) == [x,y,x,y,x,y]
 T ReplaceAll(f([[x,y],[u,[v,w]]]),  List => Sequence) == f(x,y,u,v,w)
 
 ClearAll(g,a,b,c,d,w,x,y)
-
-T testUserSyms

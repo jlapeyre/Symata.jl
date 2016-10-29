@@ -33,6 +33,6 @@ T  Compile( Cos(x) )(a) == Cos(a)
 
 T  Compile( Exp(x)*Cos(x)*x )(1.0) == :( exp(1.0) * cos(1.0) *1.0 )
 
-ClearAll(a)
+ClearAll(a,b)
 
 

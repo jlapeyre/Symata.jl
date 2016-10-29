@@ -37,7 +37,7 @@ function warncheckprotect(s::SJSym)
 end
 warncheckprotect(mx::Mxpr) = warncheckprotect(mhead(mx))
 
-#### Attributes
+### Attributes
 
 @sjdoc Attributes """
     Attributes(s)
@@ -62,7 +62,7 @@ function get_attributesList(sj::SJSymbol)
     mxpr(:List,ks...) # need to splat because array ks is not of type Any
 end
 
-#### SetAttributes
+### SetAttributes
 
 @mkapprule SetAttributes :nargs => 2
 
@@ -104,7 +104,7 @@ do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attr::SJSym) = set_att
 do_SetAttributes(mx::Mxpr{:SetAttributes}, syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
 do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
 
-#### Unprotect
+### Unprotect
 
 ###  Wolfram does this: Protect[a,b,c,....] returns a list of symbol names (strings) of those symbols which were not
 ###  protected before, but now are. Non-symbols are silently ignored. Symbols which were already protected are
@@ -137,7 +137,7 @@ end
 
 do_unprotect(mx,a) = false
 
-##### Protect
+### #Protect
 
 @sjdoc Protect """
     Protect(z1,z2,...)
@@ -166,7 +166,7 @@ end
 
 do_protect(mx,a) = false
 
-#### Set and SetDelayed
+### Set and SetDelayed
 
 @sjdoc Set """
     Set(a,b), a = b
@@ -298,7 +298,7 @@ setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module
 
 @doap Set(lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
-#### Contexts
+### Contexts
 
 @mkapprule Contexts  :nargs => 0:1
 
@@ -326,7 +326,7 @@ return a `List` of all symbols in `context`.
 end
 
 
-#### UpSet
+### UpSet
 
 @sjdoc UpSet """
     UpSet(a(g(x_)),b),  a(g(x_)) ^= b 
@@ -377,7 +377,7 @@ function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
 end
 
 
-#### Symbol
+### Symbol
 
 @sjdoc Symbol """
     Symbol(str)
@@ -423,7 +423,7 @@ function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
     Null
 end
 
-#### ClearAll
+### ClearAll
 
 @sjdoc ClearAll """
     ClearAll(x,y,z,...)
@@ -443,3 +443,17 @@ function apprules(mx::Mxpr{:ClearAll})  # already threaded
         delete_sym(a)
     end
 end
+
+
+### Unique
+
+@sjdoc Unique """
+    Unique()
+
+creates a unique symbol.
+"""
+
+
+@mkapprule Unique :nargs => 0:1
+
+@doap Unique() = (s = gensym(); setsymval(s,s); s)

@@ -1,4 +1,4 @@
-ClearAll(mat,imat,a,b,c)
+ClearAll(mat,imat,idmat,a,b,c)
 
 mat = [[1,2], [3,4]]
 imat = Inverse(mat)
@@ -23,4 +23,4 @@ Eigenvalues( [ [a,b], [c,d]] ) == [[(1/2)*a + (1/2)*d + (-1/2)*((a^2 + 4b*c - 2a
 mat = [[a,b],[c,d]]
 T Simplify(Dot(mat,Inverse(mat))) == IdentityMatrix(2)
 
-ClearAll(mat,imat)
+ClearAll(mat,imat,idmat,a,b,c,f,e,d)

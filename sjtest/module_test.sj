@@ -1,5 +1,3 @@
-T testUserSyms
-
 T Module([], 1) == 1
 
 T Module([x],(Return(0);x)) == 0
@@ -49,4 +47,3 @@ T f("dog") == "dog"
  ClearAll(f,x)
 
  ClearTemporary()
-T testUserSyms
