@@ -130,40 +130,57 @@ apprules(mx::Mxpr{:Depth}) = depth(mx[1])
 
 #### Dimensions
 
-# @mkapprule Dimensions :nargs => 1:2
+@mkapprule Dimensions :nargs => 1:2
 
-# @doap Dimensions(x) = 0
+@doap Dimensions(x) = 0
 
-# type DimensionsData
-#     dims::Array{Int,1}
-#     level::Int
-# end
+type DimensionsData
+    dims::Array{Int,1}
+    level::Int
+    head
+    done::Bool
+end
 
-# dimensions(x,data) = 0
+dimensions(x,data) = 0
 
-# function dimensions(x::Mxpr,data)
-#     length(x) ==  0 && return 0
-#     thehead = mhead(x[1])
-#     thelength = length(x[1])
-#     data.level += 1
-#     failflag = false
-#     for i in 2:length(x)
-#         if length(x[i]) != thelength || mhead(x[i]) != thehead
-#             failflag = true
-#             break
-#             dimensions
-#         end
-#     end
-#     if failflag
-#         push!(data.dims, 0)
-#     else
-#         push!(data.dims, length(x))
-#     end
-#     data.level -=1
-# end
+function dimensions(x::Mxpr,data)
+    length(x) ==  0 && return 0
+#    thehead = mhead(x[1])
+    thehead = data.head
+    thelength = symjlength(x[1])
+#    data.level += 1
+    failflag = false
+    for i in 2:length(x)
+        if symjlength(x[i]) != thelength || mhead(x[i]) != thehead
+            failflag = true
+            break
+        end
+    end
+    # if failflag
+    #     data.done = true
+    #     return
+    # else
+        if length(data.dims) >= data.level
+            nothing
+        else
+            push!(data.dims, symjlength(x))
+        end
+    if failflag
+        data.done = true
+        return
+    end
+#    end
+    data.level +=1    
+    for i in 1:symjlength(x)
+        dimensions(x[i],data)
+        data.done && return
+    end
+    data.level -=1
+end
 
-# @doap function Dimensions(x::Mxpr)
-#     data = DimensionsData(Array(Int,0), 0)
-#     dimensions(x,data)
-#     mxpr(:List, data.dims...)
-# end
+@doap function Dimensions(x::Mxpr)
+    data = DimensionsData(Array(Int,0), 0, mhead(x), false)
+    data.level = 1
+    dimensions(x,data)
+    mxpr(:List, data.dims...)
+end

@@ -1,7 +1,8 @@
-# methods for Julia math functions that operate
-# on symbols and Mxpr. Some of these are used
-# in Symata code. They can also be used at the Julia
-# repl.
+## methods for Julia math functions that operate
+## on symbols and Mxpr. Some of these are used
+## in Symata code. They can also be used at the Julia
+## repl. Note, using mmul, mplus, mpow is just as good,
+## and is defined for more objects.
 
 # SJSym is an alias of Symbol
 

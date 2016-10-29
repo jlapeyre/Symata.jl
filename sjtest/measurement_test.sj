@@ -27,4 +27,28 @@ T Depth([1,[2]]) == 3
 T Depth([1,f(2)]) == 3
 
 
+T Dimensions(1) == 0
+T Dimensions("dog") == 0
+T Dimensions(a) == 0
+T Dimensions([]) == []
+T Dimensions([1]) == [1]
+T Dimensions([1,1]) == [2]
+T Dimensions([[1],[1]]) == [2,1]
+T Dimensions(Transpose([[1],[1]])) == [1,2]
+T Dimensions(Array(f,[2,3,4])) == [2,3,4]
+T Dimensions(ReplaceAll(Array(f,[2,3,4]), f => List)) ==  [2,3,4,3]
+T Dimensions(ReplaceAll(Array(f,[2,3,4]), List => f)) ==  [2,3,4,3]
+  m = Array(f,[4,2,3])
+T Dimensions(m) == [4,2,3]  
+T Depth(m) == 5
+  m[1,1,1] = [ f(1,1,1)]
+T Depth(m) == 6
+T Dimensions(m) == [4,2,3]
+
+ClearAll(m)
+
+
+
+
+
 
