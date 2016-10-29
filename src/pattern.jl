@@ -54,9 +54,10 @@ end
 
 patterntoBlank(x) = x
 
+# Nov 2016, added isa(head,Symbol) in order to handle [x__Integer]
 function process_blank_head(head)
     head = get(blank_head_dict, head, head)
-    ehead = isdefined(head) ? eval(head) : head  # Symbol may eval to DataType
+    ehead = ( isa(head,Symbol) &&  isdefined(head) )  ? eval(head) : head  # Symbol may eval to DataType
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
@@ -255,9 +256,6 @@ matchBlank(blank::BlankT,ex) = (match_head(getBlankhead(blank),ex) || return fal
 
 ematch(mx, pat::BlankT, captures) = matchBlank(pat,mx)
 
-### BlankSequenceT
-
-
 #### Alternatives
 
 # Lots of room for optimization here. But, we want to avoid premature optimization.
@@ -392,14 +390,18 @@ end
 # imx -- current index in mx
 # captures -- dict of captured variables
 # default_min -- 0 for RepeatedNull, 1 for Repeated
-function doBlankSequence(mx, imx, captures, default_min)
+function doBlankSequence(mx, p, imx, captures, default_min)
     repeat_count = 0
-    while imx <= length(mx) && ematch(mx[imx],repeat_pattern,captures)
+    rmin = default_min
+    rmax = typemax(Int)
+#    println("Here doBlankSequence ", p)
+    p1 = patterntoBlank(mxpr(:Blank,p.head))  # TODO: make this less of a hack
+    while imx <= length(mx) && ematch(mx[imx], p1, captures)
         repeat_count += 1
         imx += 1
-        repeat_count >= rmax && break
     end
     imx -= 1
+    (true, imx)
     repeat_count >= rmin && repeat_count <= rmax && return (true,imx)
     (false, imx)
 end
@@ -447,11 +449,9 @@ function doRepeated(mx, p, imx, captures, default_min)
     (false, imx)
 end
 
-
-
-
 function match_and_capt_no_optional_yes_repeated(mx,pat,captures)
     imx = 0
+#    println("Doing bladksdf 1")
     for i in 1:length(pat)
         p = pat[i]
         imx += 1
@@ -461,6 +461,9 @@ function match_and_capt_no_optional_yes_repeated(mx,pat,captures)
         elseif is_Mxpr(p, :RepeatedNull)
             (success, imx) =  doRepeated(mx, p, imx, captures, 0)
             success == false && return false
+        elseif isa(p, BlankSequenceT)
+            (success, imx) =  doBlankSequence(mx, p, imx, captures, 1)
+            success == false && return false            
         else
             imx > length(mx) && return false
             ematch(mx[imx],p,captures) == false && return false
@@ -477,7 +480,10 @@ end
 function ematch(mx, pat::Mxpr, captures)
     (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
-    have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull))
+#    println("pat ", pat)
+    have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull)) ||
+                             any(t -> isa(t, BlankSequenceT), margs(pat))
+#    println("havesome ", have_repeated)
     lp = length(pat)
     lm = length(mx)
     # TODO: Optimize the line below

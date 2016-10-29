@@ -559,6 +559,14 @@ T MatchQ([], [RepeatedNull(_Integer,0)])
 T MatchQ([], [RepeatedNull(_Integer, [0,4])])
 T ! MatchQ([], [RepeatedNull(_Integer, [1,4])])
 
+f(Repeated(x_)) := x
+
+T f(3,3,3) == 3
+T Head(f(3,3,2)) == f
+
+ClearAll(f)
+
+    
 # FIXME.
 # f(x_Integer, y::Repeated(_Symbol)) := [x,y]
 # f(3,a,b) --> [3,a,b], i.e. y should be spliced in.

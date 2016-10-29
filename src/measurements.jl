@@ -1,7 +1,7 @@
 ### Length
 
 @sjdoc Length """
-    Length(expr) 
+    Length(expr)
 
 print the length of `expr`.
 
@@ -9,9 +9,8 @@ For Symata expressions, the length is the number or arguments. For scalar Julia
 types, the length is zero. For `Array`'s and `Dict`'s the length is the same as
 Julia `length`.
 """
-
-apprules(mx::Mxpr{:Length}) = symjlength(mx[1])
-
+@mkapprule Length :nargs => 1
+@doap Length(x) = symjlength(x)
 
 Base.length(mx::Mxpr) = length(margs(mx))
 symjlength(mx::Mxpr) = length(mx)
@@ -28,17 +27,20 @@ end
 
 ### LeafCount
 
-## View Mxpr's as trees and all other objects as nodes.
-## leafcount(x) returns the number of nodes in x:
-## that is 1 if x is a node and
-## the number of nodes in the tree if it is an Mxpr.
-## An empty Mxpr is an empty tree, i.e. a node.
-##
-## LeafCount is Mma's term. But better might be NodeCount,
-## because it counts all nodes in the tree, not only terminal nodes.
 ## This is not the same as Mma.
 ## 1/2 + I  -> Complex[Rationa[1,2],1]  : LeafCount is 5
 ## We have Complex{:Rational}(Rational(1,2),Rational(1,1)), LeafCount is 7
+
+"""
+    leaf_count(x)
+
+return the number of nodes in `x`. This views `Mxpr`'s as trees and all other objects as nodes.
+This is `1` if `x` is a node and the number of nodes in the tree if `x` is an `Mxpr`.
+An empty `Mxpr` is an empty tree, i.e. a node.
+
+`LeafCount` is Mma's term. But better might be `NodeCount`,
+because it counts all nodes in the tree, not only terminal nodes.
+"""
 leaf_count(x) = 1
 leaf_count(x::Complex) = 3
 leaf_count{T<:Rational}(x::Complex{T}) = 7
@@ -60,11 +62,8 @@ jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
 jssizeof(a::Symbol) = Int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
 byte_count(x) = jssizeof(x)
 function byte_count(mx::Mxpr)
-    count::Int = jssizeof(mx)
-    args = margs(mx)
-    for i in 1:length(mx)
-        count += byte_count(args[i])
-    end
+    count::Int = sum(byte_count, margs(mx))
+    count += jssizeof(mx)
     return count
 end
 
@@ -82,8 +81,6 @@ function depth(mx::Mxpr)
             if nd > d
                 d = nd
             end
-        else
-            nothing
         end
     end
     return d + 1
@@ -102,9 +99,8 @@ that is compound expressions.
 
 A more accurate name is `NodeCount`.
 """
-
-
-apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
+@mkapprule LeafCount :nargs => 1
+@doap LeafCount(x) = leaf_count(x)
 
 #### ByteCount
 
@@ -113,8 +109,9 @@ apprules(mx::Mxpr{:LeafCount}) = leaf_count(mx[1])
 
 gives number of bytes in `expr`.
 """
+@mkapprule ByteCount :nargs => 1
+@doap ByteCount(x) = byte_count(x)
 
-apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
 
 #### Depth
 
@@ -124,8 +121,8 @@ apprules(mx::Mxpr{:ByteCount}) = byte_count(mx[1])
 gives the maximum number of indices required to specify
 any part of `expr`, plus `1`.
 """
-
-apprules(mx::Mxpr{:Depth}) = depth(mx[1])
+@mkapprule Depth :nargs => 1
+@doap Depth(x) = depth(x)
 
 ### Dimensions
 
@@ -136,7 +133,6 @@ returns a list of the dimensions of `expr`.
 """
 
 @mkapprule Dimensions :nargs => 1:2
-
 @doap Dimensions(x) = 0
 
 type DimensionsData
@@ -167,7 +163,7 @@ function dimensions(x::Mxpr,data)
         push!(data.dims, symjlength(x))
     end
     data.done && return
-    data.level +=1    
+    data.level +=1
     for i in 1:symjlength(x)
         dimensions(x[i],data)
         data.done && return
