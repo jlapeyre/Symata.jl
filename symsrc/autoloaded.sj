@@ -71,3 +71,20 @@ TakeDrop(x_, seq_) := [Take(x,seq), Drop(x,seq)]
 TakeDrop(x_, seq1_, seq2_) := [Take(x,seq1,seq2), Drop(x,seq1,seq2)]
 
 Protect(TakeDrop)
+
+### ArrayDepth
+
+Unprotect(ArrayDepth)
+
+ArrayDepth(x_) := Length(Dimensions(x))
+
+# We want to protect ArrayDepth, but this causes a mysterious error.
+Protect(ArrayDepth)
+
+### TensorRank
+
+Unprotect(TensorRank)
+
+TensorRank(x_) := Length(Dimensions(x))
+
+Protect(TensorRank)

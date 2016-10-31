@@ -12,6 +12,8 @@ test = Symata_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "pattern_test.sj",
+              "up_downvalue_test.sj",
               "linalg_test.sj",
               "string_test.sj",
               "numeric_test.sj",
@@ -26,8 +28,6 @@ function runalltests()
               "evaluation_test.sj",
               "list_test.sj",
               "ntable_test.sj",
-              "pattern_test.sj",
-              "up_downvalue_test.sj",
               "predicate_test.sj",
               "trig_test.sj",
               "context_test.sj",

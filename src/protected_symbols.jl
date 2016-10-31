@@ -1,6 +1,6 @@
 # Set the Attributes of some "builtin" Protected symbols
 
-set_pattributes(["Pattern", "SetJ", "SetAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
+set_pattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
 
 set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
@@ -110,7 +110,7 @@ set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
 
 set_pattributes([
-                  "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","AtomQ",
+                  "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","ArrayDepth","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
                   "Complex","Complexes","ComplexInfinity","ConditionalExpression", "ConstantArray","ConstantQ",
@@ -125,7 +125,7 @@ set_pattributes([
                   "Rationals","RealRoots", "Reals",
                   "Replace","ReplaceAll","ReplaceRepeated","Reverse","Roots",
                   "Sequence", "SequenceHold", "Series","Solve","Span","String","StringJoin",
-                  "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","Throw","Time",
+                  "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","TensorRank","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing"], :Protected)

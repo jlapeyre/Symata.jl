@@ -34,4 +34,4 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop)
+addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank)

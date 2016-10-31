@@ -1,4 +1,4 @@
-const SYMATA_VERSION = v"0.1.0-dev.007"
+const SYMATA_VERSION = v"0.1.0-dev.008"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
@@ -36,4 +36,3 @@ setsymval(:BigFloat, BigFloat)
 setsymval(:Float64, Float64)
 setsymval(:Int64, Int64)
 setsymval(:Int, Int)
-

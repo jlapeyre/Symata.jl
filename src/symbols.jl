@@ -104,6 +104,17 @@ do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attr::SJSym) = set_att
 do_SetAttributes(mx::Mxpr{:SetAttributes}, syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
 do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
 
+### ClearAttributes
+
+@sjdoc ClearAttributes """
+    ClearAttributes(sym,attr)
+
+removes `attr` from the list of attributes of symbol `sym`.
+"""
+@mkapprule ClearAttributes :nargs => 2
+
+@doap ClearAttributes(sym,attr) = (unset_attribute(sym,attr); Null)
+
 ### Unprotect
 
 ###  Wolfram does this: Protect[a,b,c,....] returns a list of symbol names (strings) of those symbols which were not

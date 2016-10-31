@@ -1,6 +1,6 @@
-### Blanks
+Apply(ClearAll, UserSyms())
 
-# Only Blank is currently useful
+### Blanks
 
 T Head(_) == Blank
 T Head(__) == BlankSequence
@@ -9,7 +9,62 @@ T _b == Blank(b)
 T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
 
-ClearAll(a,b,c,d,p,f,d)
+
+#### BlankSequence
+
+ClearAll(f,a,b,c)
+
+f(x__) := [x]
+
+T Head(f()) == f
+T f(1) == [1]
+T f(1,2,3) == [1,2,3]
+T f(a,b,c) == [a,b,c]
+T f(a,b+c) == [a,b+c]
+
+ClearAll(f)
+f(x__Integer) := [x]
+T Head(f(a,b,c)) == f
+T f(1,2,3) == [1,2,3]
+
+ClearAll(f,g)
+f(x_, [y__]) := g(x,[y])
+T f(1,[2,3,4]) == g(1,[2,3,4])
+
+ClearAll(f)
+f(x_, y__) := [x,[y]]
+f(1,[2,3,4]) = [1,[2,3,4]]
+
+ClearAll(f)
+f(x__) := Length([x])
+T  [f(x,y,z), Head(f())] == [3,f]
+
+approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
+
+g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
+
+T  g(x,1,2,3,4) == x + x^2 + x^3 + x^4
+T  Head(g(x,1,2,3,4.0)) == g
+T  Head(g(0,1,2,3,4)) == g
+ClearAll(f)
+T  ReplaceAll( f(a, b, c) ,  f(x__) => p(x, x, x)) == p(a,b,c,a,b,c,a,b,c)
+
+# FIXME: does not work
+# h(a___, x_, b___, x_, c___) := hh(x) * h(a, b, c)
+# h(2, 3, 2, 4, 5, 3) -->  h(4,5) * hh(2) * hh(3)
+
+# FIXME.  ff() -> p()
+# ff(x___) := p(x, x)
+
+T MatchQ([], [__]) == False
+T MatchQ([], [___]) == True
+
+T  MatchQ(Expand(x*(1 + 2*x + 3 * x^2)), Plus(_, __))
+T  MatchQ(x*(1 + 2*x + 3 * x^2), Plus(_, __)) == False
+
+####
+
+ClearAll(a,b,c,d,p,f,d,g)
 
 T ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
 
@@ -369,6 +424,9 @@ T Cases([1, 1, f(a), 2, 3, y, f(8), 9, f(10)], f(x_) => x) == [a,8,10]
 # Cases and currying
 T Cases(_Integer)([1, 1, f(a), 2, 3, y, f(8), 9, f(10)]) == [1,1,2,3,9]
 
+# Catch bug during implementation of BlankSequence
+T MatchQ( [2], [_,_]) == False
+
 # Two unnamed blanks can match different expressions
 T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) == [[1,2],[5,4],[3,3],[a,a]] 
 
@@ -521,11 +579,15 @@ T Cases([f(a), f(a, b, a), f(a, a, a)], f(Repeated(a))) == [f(a),f(a,a,a)]
 T Cases([f(a), f(a, a, b), f(a, b, a), f(a, b, b)], f(Repeated(a), Repeated(b))) == [f(a,a,b),f(a,b,b)]
 T Cases([f(a), f(a, b, a), f(a, c, a)], f(Repeated(a | b))) == [f(a),f(a,b,a)]
 
-# Need to implement Transpose to test this
-# v(x::[Repeated([_, _])] := Transpose(x)
+v(x::[Repeated([_, _])]) := Transpose(x)
+T v([[a,b],[c,d],[e,f]]) == [[a,c,e],[b,d,f]]
 
-# This too
-# v(x::[Repeated([_,n_])] := Transpose(x)
+v1(x::[Repeated([_,n_])]) := Transpose(x)
+T  Head(v1([[a,b],[c,d],[e,f]])) == v1
+T  v1([[a,b],[c,b],[e,b]]) == [[a,c,e],[b,b,b]]
+
+ClearAll(v,v1)
+
 
 # We do not have enough of Norm implemented. But the pattern does work.
 # T  f(x::[Repeated([_, _])]) := Norm(N(x))
@@ -600,7 +662,7 @@ T ! FreeQ([a,f(f(f(3)))], _Integer, 4)
 # No AC matching, although this will work in a few simple cases.
 # f(c_ * x_, x_) := Condition( c * f(x, x) , FreeQ(c, x))
 
-# Fails. we are not matching heads.
+# FIXME: Fails. we are not matching heads.
 # Table(FreeQ(Integrate(x^n, x), Log), [n, -5, 5])
 
 ClearAll(f,a,b,c)

@@ -275,7 +275,9 @@ function do_Count(mx,expr,pat)
     jp = patterntoBlank(pat)
     capt = capturealloc()
     @inbounds for i in 1:length(args)
+#        println("arg is ", args[i])
         (gotmatch,capt) = match_and_capt(args[i],jp,capt)
+#        println("got match , capt", gotmatch)
         gotmatch ? c += 1 : nothing
     end
     return c

@@ -385,5 +385,10 @@ end
 #     return nothing
 # end
 
+function _do_Comparison(args...)
+    symerror("No comparison for args ", args)
+end
+    
+
 ## These allow converting values returned by sympy, although we could do it differntly
 apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])

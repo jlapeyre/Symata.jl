@@ -81,6 +81,11 @@ SetAttributes(g,Flat)
 T g(g(x)) == g(x)
 T [f(f(x)), f(g(g(1,2),3))] == [f(f(x)),f(g(1,2,3))]
 
+T Depth(g(g(x))) == 2
+ClearAttributes(g,Flat)
+T Depth(g(g(x))) == 3
+
+
 ClearAll(f,g,x)
 
 

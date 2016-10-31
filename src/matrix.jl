@@ -180,8 +180,6 @@ end
 
 ### Outer
 
-### EigenValues
-
 ### Tr
 
 # assumes we have a matrix
@@ -224,4 +222,24 @@ Compute the eigenvalues of matrix `m`.
         push!(a, MList(k,v))
     end
     MList(a)
+end
+
+### Eigenvectors
+
+@mkapprule Eigenvectors :nargs => 1
+
+@sjdoc Eigenvectors """
+    Eigenvectors(m)
+
+Compute the eigenvectors of matrix `m`.
+"""
+@doap function Eigenvectors(expr)
+    arg1 = _sjtopy(mx[1])
+    mat = sympy[:Matrix](arg1)
+    pyres = mat[:eigenvects]()
+    args = newargs()
+    for x in pyres
+        push!(args, sympy_matrix_to_sj(x[3][1]))
+    end
+    MList(args)
 end

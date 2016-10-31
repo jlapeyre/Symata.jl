@@ -63,3 +63,19 @@ is there are less than `n` of them.
 """
 
 protect(:UpTo)
+
+@sjdoc ArrayDepth """
+    ArrayDepth(m)
+
+return the depth to which `m` is an array. If `m` is viewed as
+a tensor, this is the tensor rank.
+
+`ArrayDepth(m)` is equivalent to `Length(Dimensions(m))`.
+"""
+
+@sjdoc TensorRank """
+    TensorRank(m)
+
+return the depth to which `m` is an array. If `m` is viewed as
+a tensor, this is the tensor rank.
+"""

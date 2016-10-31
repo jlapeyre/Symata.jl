@@ -1,5 +1,18 @@
 ## Pattern matching and rules
 
+"""
+    Match
+
+object storing information during matching
+"""
+type Match
+    ex        # expression to match
+    parent    # parent of ex
+    special   # if non-null, use special for replacement rather than ex
+    imx       # ex is parent[imx]
+    capt      # dictionary of named captures
+end
+
 #### BlankT
 
 abstract Blanks
@@ -61,40 +74,17 @@ function process_blank_head(head)
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
-
-function patterntoBlank(mx::Mxpr{:Blank})
-    blank = mx
-    if length(blank) == 0 # match any head
-       res = BlankT(:All)
-    else
-        head = blank[1]
-        head = process_blank_head(head)
-        res = BlankT(head)
-    end
-    res
-end
-
-function patterntoBlank(mx::Mxpr{:BlankSequence})
-    blank = mx
-    if length(blank) == 0 # match any head
-       res = BlankSequenceT(:All)
-    else
-        head = blank[1]
-        head = process_blank_head(head)
-        res = BlankSequenceT(head)
-    end
-    res
-end
+patterntoBlank(blank::Mxpr{:Blank}) = length(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankSequence}) = length(blank) == 0 ? BlankSequenceT(:All) : BlankSequenceT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankNullSequence}) = length(blank) == 0 ? BlankNullSequenceT(:All) : BlankNullSequenceT(process_blank_head(blank[1]))
 
 # Try a downvalue
 # hmmm, is it possible is is Rule rather than RuleDelayed ?
 function trysymbolrule(mx::Mxpr,rd::Mxpr{:RuleDelayed})
-    local lhs
-    lhs = rd[1]
-    rhs = rd[2]
+    (lhs, rhs) = (rd[1],rd[2])
     ptp = patterntoBlank(lhs)
     rrd = mxpr(:RuleDelayed, ptp, rhs)
-    res = match_and_replace(mx,rrd)
+    match_and_replace(mx,rrd)
 end
 
 #### DownValues
@@ -105,9 +95,7 @@ function trydownvalues(mx::Mxpr)
         if is_down_trace() println("downvalue ",r) end
         increment_try_downvalue_count()
         res = trysymbolrule(mx,r)
-        if res !== false  # false can be a legitimate value ?
-            return res
-        end
+        res !== false && return res # false can be a legitimate value ?
     end
     return false
 end
@@ -127,9 +115,7 @@ function tryupvalues(mx::Mxpr,m::SJSym)
         if is_up_trace() println("upvalue ",r) end
         increment_try_upvalue_count()
         res = trysymbolrule(mx,r)  # should be the same
-        if res !== false  # false can be a legitimate value ?
-            return res
-        end
+        res !== false && return res
     end
     return false
 end
@@ -164,15 +150,17 @@ applyupvalues(x) = x
 # We had a few optimizations, but they are removed for flexibility.
 function match_and_capt(expr,pattern)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
-    success_flag = ematch(expr,pattern,capt) # do the matching
+    m = Match(expr,NullMxpr,NullMxpr,1,capt)
+    success_flag = ematch(pattern,m)
     return (success_flag,capt)  # report whether matched, and return captures
 end
 
 # pre-allocate the capture Dict. This can be much faster in a loop.
-function match_and_capt(ex,pat, capt)
+function match_and_capt(expr,pattern, capt)
     empty!(capt)
-    success_flag = ematch(ex,pat,capt) # do the matching
-    return (success_flag,capt)  # report whether matched, and return captures
+    m = Match(expr,NullMxpr,NullMxpr,1,capt)
+    success_flag = ematch(pattern,m)  # do the matching
+    return (success_flag,capt)        # report whether matched, and return captures
 end
 
 capturealloc() = Dict{SJSym,Any}()
@@ -194,19 +182,28 @@ havecapt(sym::SJSym,cd) = haskey(cd,symname(sym))
 
 # HoldPattern has held its argument during the evaluation sequence.
 # We now strip HoldPattern during pattern matching
-ematch(ex, pat::Mxpr{:HoldPattern}, captures) = ematch(ex,pat[1],captures)
+#ematch(ex, pat::Mxpr{:HoldPattern}, captures) = ematch(ex,pat[1],captures)
+ematch(pat::Mxpr{:HoldPattern}, m::Match) = ematch(pat[1],m)
 
 #### Pattern
 
 # First arg is a name.
 # Second arg is a pattern. If it matches, store the matching expression in
 # a dict under the name.
-function ematch(ex, pat::Mxpr{:Pattern}, captures)
+function ematch(pat::Mxpr{:Pattern}, m::Match)
+    ex = m.ex
+    captures = m.capt
     if length(pat) == 2
         (name,pattern) = (margs(pat)...)
-        success_flag::Bool = ematch(ex,pattern,captures)
+        success_flag::Bool = ematch(pattern,m)
+        local capture_success_flag::Bool
         if success_flag
-            capture_success_flag::Bool = capturepatternname(captures,name,ex)
+            if m.special != NullMxpr   # a matched sequence a,b,c is replaced by Sequence(a,b,c)
+                capture_success_flag = capturepatternname(captures,name,m.special)
+                m.special = NullMxpr
+            else
+                capture_success_flag = capturepatternname(captures,name,ex)
+            end
             return capture_success_flag
         else
             return success_flag
@@ -224,17 +221,16 @@ function apply_test(ex,test)
     res = apprules(test)        # we decide that apprules (builtin) overrides and up or down values.
     res == true && return true
     res == false && return false
-    if has_downvalues(test)
-        return doeval(applydownvalues(test)) == true  # or maybe just return what infseval gives
-    else
-        return false
-    end
+    has_downvalues(test) && return doeval(applydownvalues(test)) == true  # or maybe just return what infseval gives
+    false
 end
 
-function ematch(ex, pat::Mxpr{:PatternTest}, captures)
+function ematch(pat::Mxpr{:PatternTest}, m::Match)
+    ex = m.ex
+    captures = m.capt
     if length(pat) == 2
         (pattern,test) = (pat[1],pat[2])
-        success_flag::Bool = ematch(ex, pattern, captures)
+        success_flag::Bool = ematch(pattern, m)
         success_flag == false && return false
         test = isa(test,Symbol) ? mxpr(symval(test),0) : isa(test,Function) ?
             mxpr(test,0) : symerror("PatternTest: unrecognized test $test")
@@ -245,24 +241,72 @@ function ematch(ex, pat::Mxpr{:PatternTest}, captures)
     end
 end
 
-#### BlankT
+### BlankT
 
 # For instance, in x_Integer, we match Integer.
 match_head(head::SJSym,ex) = head == :All ? true : is_Mxpr(ex,head)
 match_head(head::DataType,ex) = isa(ex,head)
 match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))
 
-matchBlank(blank::BlankT,ex) = (match_head(getBlankhead(blank),ex) || return false)
+matchBlank(blank::Blanks,ex) = (match_head(getBlankhead(blank),ex) || return false)
 
-ematch(mx, pat::BlankT, captures) = matchBlank(pat,mx)
+ematch(pat::BlankT, m::Match) = matchBlank(pat,m.ex)
+
+### BlankSequenceT
+
+function ematch(pat::BlankSequenceT, m::Match)
+    m.parent == NullMxpr && error("BlankSequence with no parent expression")
+    imx = m.imx
+    args = newargs()  # TODO: move allocation
+    len = symjlength(m.parent)
+    while imx <= len
+        if matchBlank(pat,(m.parent)[imx])
+            push!(args,(m.parent)[imx])
+        else
+            imx = imx - 1
+            return false
+        end
+        imx += 1
+        if imx > len break end
+    end
+    m.imx = imx
+    m.special = mxpr(:Sequence, args...)
+    true
+end
+
+function ematch(pat::BlankNullSequenceT, m::Match)
+    m.parent == NullMxpr && error("BlankNullSequence with no parent expression")
+    imx = m.imx
+    args = newargs()
+    len = symjlength(m.parent)
+    while imx <= len
+        if matchBlank(pat,(m.parent)[imx])
+            push!(args,(m.parent)[imx])
+        else
+            imx = imx - 1
+            if length(args) == 0
+                m.special = mxpr(:Sequence)
+                return true
+            end
+            return false
+        end
+        imx += 1
+        if imx > len break end
+    end
+    m.imx = imx
+    m.special = mxpr(:Sequence, args...)
+    true
+end
 
 #### Alternatives
 
 # Lots of room for optimization here. But, we want to avoid premature optimization.
-function ematch(mx, pat::Mxpr{:Alternatives}, captures)
+function ematch(pat::Mxpr{:Alternatives}, m)
+    mx = m.ex
+    captures = m.capt
     for i in 1:length(pat)
         alt = pat[i]
-        res = ematch(mx, alt, captures)
+        res = ematch(alt, m)
         if res != false       # Accept the first match
             names = Symbol[]  # We bind all the symbols that don't match to Sequence[], so they disappear
             for j in 1:length(pat)
@@ -280,19 +324,21 @@ end
 
 #### Except
 
-function ematch(mx, pat::Mxpr{:Except}, captures)
+function ematch(pat::Mxpr{:Except}, m)
+    captures = m.capt
+    mx = m.ex
     if length(margs(pat)) == 1   # Not matching is matching
-        res = ematch(mx, pat[1], captures)
+        res = ematch(pat[1], m)
         if res == false    # no match
-            res = ematch(mx, patterntoBlank(mxpr(:Blank)), captures) # match anything
+            res = ematch(patterntoBlank(mxpr(:Blank)), m) # match anything
             res == false && error("Programming error matching 'Except'") # use assert
             return res
         end
         return false   # hmmm, but the capture is still there. We probably should delete it.
     elseif length(margs(pat)) == 2  # Must not match first and must match second
-        res = ematch(mx, pat[1], captures)
+        res = ematch(pat[1], m)
         if res == false   # need no match with pat[1] ....
-            res = ematch(mx, pat[2], captures)  # and a match with pat[2]
+            res = ematch(pat[2], m)  # and a match with pat[2]
             return res
         end
         return false
@@ -310,13 +356,15 @@ end
 
 # Get both of these messages. Usage with number of args != 2 is not documented.
 # NB. Condition[1,2,3] --> 1 /; Sequence[2, 3]
-function ematch(mx, pat::Mxpr{:Condition}, captures)
+function ematch(pat::Mxpr{:Condition}, m)
+    mx = m.ex
+    captures = m.capt
     if length(pat) != 2  # For now, we require 2 args
         sjthrow(ExactNumArgsErr("Condition", 2, length(pat)))
         return false
     end
     lhs = doeval(pat[1]) # Condition has Attribute HoldAll
-    res = ematch(mx, lhs, captures)
+    res = ematch(lhs, m)
     res == false && return false
     # We must copy, otherwise, on repeated calls to this function, rhs has the previous substituted value on entry.
     # Must be deep because replacements can be deep.
@@ -332,15 +380,15 @@ end
 # When this method is called, the optional argument has
 # been supplied, so we just check if it matches. Of course, failure
 # does not revert to the default value.
-function ematch(mx, pat::Mxpr{:Optional}, captures)
+function ematch(pat::Mxpr{:Optional}, m)
+    mx = m.ex
+    captures = m.capt
     if length(pat) != 2
         sjthrow(ExactNumArgsErr("Optional", 2, length(pat)))
         return false
     end
-    pattern = pat[1]
-    default = pat[2]
-    patname = pattern[1]
-    res = ematch(mx, pattern, captures)
+    (pattern, default) = (pat[1],pat[2])
+    res = ematch(pattern, m)
     res == true && return true
     return false
 end
@@ -353,8 +401,7 @@ function _do_optional(pat::Mxpr{:Optional}, captures)
         sjthrow(ExactNumArgsErr("Optional", 2, length(pat)))
         return false
     end
-    pattern = pat[1]
-    default = pat[2]
+    (pattern, default) = (pat[1],pat[2])
     patname = pattern[1]
     capturepatternname(captures,patname,default)
     return true
@@ -363,15 +410,50 @@ end
 
 #### General Mxpr
 
-function match_and_capt_no_optional_no_repeated(mx,pat,captures)
-    length(mx) != length(pat) && return false
-    for i in 1:length(mx)
-        ematch(mx[i],pat[i],captures) == false && return false
+# It is starting to look like we should iterate over the patterns and not the expression parts.
+# ie, iterarate over pat. As it is, not much of BlankNullSequence works
+# eg, BlankNullSequence can match even if there is no expression to iterate over.
+function match_and_capt_no_optional_no_repeated(pat,m)
+    mx = m.ex
+    captures = m.capt
+    #    length(mx) != length(pat) && return false
+    # TODO: The following will fail sometimes. eg, BlankNullSequence
+    #length(mx) < length(pat) && return false
+    saveparent = m.parent
+    m.parent = m.ex
+
+    if length(mx) < length(pat)  # This is not a robust solution.
+        for i in 1:length(pat)
+            if isa(pat[i],BlankNullSequenceT)
+                m.special = mxpr(:Sequence)
+                return true
+            end
+        end
+        return false
     end
+    for i in 1:length(mx)
+        m.ex = mx[i]
+        m.imx = i
+        if i > length(pat)
+            m.parent = saveparent
+            return false
+        end
+        res = ematch(pat[i], m)
+        if  res == false
+            m.parent = saveparent
+            return false
+        end
+        i = m.imx
+        i > length(mx) && break
+    end
+    m.parent = saveparent
     return true
 end
 
-function match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
+# TODO: rewrite to do this in match_and_capt_no_optional_no_repeated
+function match_and_capt_yes_optional_no_repeated(pat,m,lm,lp)
+    mx = m.ex
+    captures = m.capt
     for i in 1:lp
         if i > lm
             if is_Mxpr(pat[i],:Optional)
@@ -380,38 +462,24 @@ function match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
                 return false
             end
         else
-            ematch(mx[i],pat[i],captures) == false && return false
+            m.ex = mx[i]
+            ematch(pat[i], m) == false && return false
         end
     end
     return true
 end
 
-# mx -- expression to match
-# imx -- current index in mx
-# captures -- dict of captured variables
-# default_min -- 0 for RepeatedNull, 1 for Repeated
-function doBlankSequence(mx, p, imx, captures, default_min)
-    repeat_count = 0
-    rmin = default_min
-    rmax = typemax(Int)
-#    println("Here doBlankSequence ", p)
-    p1 = patterntoBlank(mxpr(:Blank,p.head))  # TODO: make this less of a hack
-    while imx <= length(mx) && ematch(mx[imx], p1, captures)
-        repeat_count += 1
-        imx += 1
-    end
-    imx -= 1
-    (true, imx)
-    repeat_count >= rmin && repeat_count <= rmax && return (true,imx)
-    (false, imx)
-end
-
+# TODO: rewrite to do this in match_and_capt_no_optional_no_repeated
+# Repeated should be handled by dispatching on pattern Repeated like everything else.
 # mx -- expression to match
 # p -- Repeated or RepeatedNull
 # imx -- current index in mx
 # captures -- dict of captured variables
 # default_min -- 0 for RepeatedNull, 1 for Repeated
-function doRepeated(mx, p, imx, captures, default_min)
+function doRepeated(p,m,imx,default_min)
+    mx = m.ex
+    saveex = m.ex
+    captures = m.capt
     if length(p) < 1 || length(p) > 2
         sjthrow(TwoNumArgsErr(default_min == 0 ? "RepeatedNull" : "Repeated" , 1:2, length(p)))
     end
@@ -439,77 +507,95 @@ function doRepeated(mx, p, imx, captures, default_min)
         end
     end
     repeat_count = 0
-    while imx <= length(mx) && ematch(mx[imx],repeat_pattern,captures)
+
+    while imx <= symjlength(mx)
+        m.ex = mx[imx]
+        res = ematch(repeat_pattern, m)
+        if ! res break end
         repeat_count += 1
         imx += 1
+        imx > symjlength(mx) && break
         repeat_count >= rmax && break
     end
+
+    m.ex = saveex
     imx -= 1
     repeat_count >= rmin && repeat_count <= rmax && return (true,imx)
     (false, imx)
 end
 
-function match_and_capt_no_optional_yes_repeated(mx,pat,captures)
+# TODO: rewrite to do this in match_and_capt_no_optional_no_repeated
+function match_and_capt_no_optional_yes_repeated(pat, m)
     imx = 0
-#    println("Doing bladksdf 1")
+    mx = m.ex
+    saveex = m.ex
     for i in 1:length(pat)
         p = pat[i]
         imx += 1
         if is_Mxpr(p, :Repeated)
-            (success, imx) =  doRepeated(mx, p, imx, captures, 1)
+            (success, imx) =  doRepeated(p, m, imx, 1)
             success == false && return false
         elseif is_Mxpr(p, :RepeatedNull)
-            (success, imx) =  doRepeated(mx, p, imx, captures, 0)
+            (success, imx) =  doRepeated(p, m, imx, 0)
             success == false && return false
-        elseif isa(p, BlankSequenceT)
-            (success, imx) =  doBlankSequence(mx, p, imx, captures, 1)
-            success == false && return false            
         else
             imx > length(mx) && return false
-            ematch(mx[imx],p,captures) == false && return false
+            m.ex = mx[imx]
+            res = ematch(p,m)
+            m.ex = saveex
+            res  == false && return false
         end
     end
     imx < length(mx) && return false
     return true
 end
 
+#### Non-atomic expression
+
 # Matching a non-atomic expression. The head and length must match and each subexpression must match.
 # We get ambiguity warnings if first arg is annotated: mx::Mxpr. But, it should always be Mxpr
-#function ematch(mx::Mxpr, pat::Mxpr, captures)
-# Accounting for Optional here is ugly. I don't like it. Must be a better way
-function ematch(mx, pat::Mxpr, captures)
+# function ematch(mx::Mxpr, pat::Mxpr, captures)
+# TODO: We don't need to handle Repeated separately, as is done currently
+function ematch(pat::Mxpr, m)
+    mx = m.ex
+    captures = m.capt
     (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
-#    println("pat ", pat)
-    have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull)) ||
-                             any(t -> isa(t, BlankSequenceT), margs(pat))
-#    println("havesome ", have_repeated)
+    have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull))
     lp = length(pat)
     lm = length(mx)
     # TODO: Optimize the line below
-    if have_repeated  # FIXME: handle repeated and optional
-        return match_and_capt_no_optional_yes_repeated(mx,pat,captures)
-    end
-    ((lm >= lp - nopt) && (lm <= lp)) || return false
-    if nopt == 0
-        return match_and_capt_no_optional_no_repeated(mx,pat,captures)
-    end
-    return match_and_capt_yes_optional_no_repeated(mx,pat,captures,lm,lp)
+    # FIXME: handle repeated and optional
+    have_repeated  && return match_and_capt_no_optional_yes_repeated(pat,m)
+    # following line only works if we have no sequences or repeated.
+    #    ((lm >= lp - nopt) && (lm <= lp)) || return false
+    nopt == 0 && return match_and_capt_no_optional_no_repeated(pat,m)
+    return match_and_capt_yes_optional_no_repeated(pat, m,lm,lp)
 end
 
 ##### Atoms
 
 # This is a leaf on the tree, because mx is not an Mxpr and
 # pat is not a BlankT.
-ematch(mx,pat,captures) = mx == pat  # 'leaf' on the tree. Must match exactly.
+
+# Note: if we also dispatch on expression m.ex in ematch, then we won't
+# needd ematch2
+
+ematch(pat,m) = m.ex == pat
 
 # Allow different kinds of integers and floats to match
-ematch(mx::Integer,pat::Integer,captures) = mx == pat
+ematch(pat::Integer, m) = m.ex == pat
 
-ematch{T<:AbstractFloat,V<:AbstractFloat}(mx::T,pat::V,captures) = mx == pat
+ematch(pat::AbstractFloat,m) = ematch2(pat,m.ex)
+
+ematch2(pat::AbstractFloat, ex::AbstractFloat) = ex == pat
+
+ematch(pat::Number,m) = ematch2(pat,m.ex)
 
 # In general, Numbers should be === to match. Ie. floats and ints are not the same
-ematch{T<:Number,V<:Number}(mx::T,pat::V,captures) = mx === pat
+ematch2(pat::Number, ex::Number) = pat === ex
+
+ematch2(pat,ex) = pat == ex
 
 ##### Get Pattern names
 
@@ -537,14 +623,12 @@ end
 
 function match_and_replace(ex,r::Rules)
     @mdebug(1, "enter match_and_replace with ", ex)
-    lhs =r[1]
-    rhs =r[2]
+    (lhs,rhs) = (r[1],r[2])
     (res,capt) = match_and_capt(ex,lhs)
     res == false && return false # match failed
     local rhs1
     if is_Mxpr(rhs, :Condition)
-        rhs1 = rhs[1]
-        condition = rhs[2]
+        (rhs1, condition) = (rhs[1],rhs[2])
         cond_pat_subst = patsubst!(deepcopy(condition),capt)
         cres = doeval(cond_pat_subst)
         cres == false && return false
@@ -688,6 +772,7 @@ replacerepeated{T<:Rules}(ex, therule::T; kws...) =  replacerepeated(ex,Rules[th
 
 #### FreeQ
 
+# FIXME: this should match heads, as well
 type FreeQData
     pattern
     gotmatch::Bool
@@ -711,6 +796,5 @@ function freeq(levelspec::LevelSpec, expr, pat)
     data.gotmatch && return false
     return true
 end
-
 
 nothing

@@ -38,6 +38,9 @@ T Dimensions(Transpose([[1],[1]])) == [1,2]
 T Dimensions(Array(f,[2,3,4])) == [2,3,4]
 T Dimensions(ReplaceAll(Array(f,[2,3,4]), f => List)) ==  [2,3,4,3]
 T Dimensions(ReplaceAll(Array(f,[2,3,4]), List => f)) ==  [2,3,4,3]
+
+T ArrayDepth(ReplaceAll(Array(f,[2,3,4]), List => f)) ==  4
+
   m = Array(f,[4,2,3])
 T Dimensions(m) == [4,2,3]  
 T Depth(m) == 5

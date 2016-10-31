@@ -212,7 +212,8 @@ function tryexfunc(mxin)
             warn(e.msg)
             e.mx
         else
-            rethrow(e)
+            println(e)
+            rethrow(e)  # It would be nice to get better error information.
         end
     end
 end
@@ -348,12 +349,17 @@ function meval(mx::Mxpr)
     return res
 end
 
+# ?? why the first test  ! is_canon(nmx). This must apparently always be satisfied.
 function meval_apply_all_rules(nmx::Mxpr)
     if  ! is_canon(nmx)
         if get_attribute(nmx,:Flat) nmx = flatten!(nmx) end
         if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
+    # We disable the following. Unlike Flat and Listable and Orderless, OneIdentity is only used for pattern matching.
+    # if get_attribute(res,:OneIdentity) && length(res) == 1
+    #     res = res[1]
+    # end
     @mdebug(2, "meval_apply_all_rules: entering apprules: ", res)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
