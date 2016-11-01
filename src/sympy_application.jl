@@ -473,11 +473,11 @@ register_sjfunc_pyfunc("Collect", "collect")
 #### Solve
 
 @sjdoc Solve """
-    Solves(expr)
+    Solve(expr)
 
 solve `expr == 0` for one variable.
 
-    Solves(expr,var)
+    Solve(expr,var)
 
 solve `expr == 0` for `var`.
 """
