@@ -64,8 +64,9 @@ needsparen(x::Mxpr) = length(x) > 1
 needsparen{T<:Integer}(x::Rational{T}) = true
 
 needsparen(x::Real) =  x < 0
-needsparen{T<:Integer}(x::Complex{T}) = real(x) != 0
+needsparen{T<:Integer}(x::Complex{T}) = (real(x) != 0)
 needsparen{T<:Real}(x::Complex{T}) = true
+
 needsparen(x) = false
 
 # Mma displays gensyms with all the linenoise.
@@ -86,6 +87,8 @@ de_gensym(x) = x
 #### Wrap output
 
 abstract AbstractWO
+
+needsparen(y::AbstractWO) = needsparen(y.x)
 
 immutable WOSymbol <: AbstractWO
     x::Symbol
