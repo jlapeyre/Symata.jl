@@ -23,7 +23,24 @@ T  0 * Indeterminate == Indeterminate
 T  0 * Infinity == Indeterminate
 T  0 * ComplexInfinity == Indeterminate
 T  1/0 == ComplexInfinity
+T 0/0 == Indeterminate
 T  a * 3 * ComplexInfinity == ComplexInfinity
+
+T Infinity * (1+I) == DirectedInfinity((1 + I)*(2^(-1/2)))
+T Args(a*Infinity) == [a,Infinity]
+T Args(Infinity * -a) == [a,-Infinity]
+
+
+T Infinity + 1 == Infinity
+T Infinity + 10 == Infinity
+T Infinity - 10 == Infinity
+T Infinity * 10 == Infinity
+T Infinity * -10 == -Infinity
+
+# FIXME
+# T - Infinity * -10 == -Infinity
+# T - Infinity * 10 == -Infinity
+# T -Infinity - 10
 
 T :( mpow(1,0) == 1 )
 T :( mpow(1,1) == 1 )

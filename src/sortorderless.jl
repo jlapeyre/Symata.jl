@@ -382,16 +382,31 @@ end
 
 # TODO: What to do about overflow ?
 # maybe do the julia way. caveat emptor
-function whichinfinity(mx)
+function whichinfinity(mx::Mxpr{:Times})
     ma = margs(mx)
     prod = BigInt(1)  # This won't be type stable :(
+    nonum = newargs()
     for i in 1:length(ma)
-        if is_Number(ma[i]) prod *= ma[i] end
+        x = ma[i]
+        if is_Number(x)
+            prod *= x
+        elseif mhead(x) != :DirectedInfinity
+            push!(nonum,x)
+        end
     end
     prodsq = real(prod * conj(prod))
     fac = mpow(prodsq,-1//2)
-    direction = prod*mpow(prodsq,-1//2)
-    return mxprcf(:DirectedInfinity, direction)
+    direction = doeval(prod*mpow(prodsq,-1//2)) # TODO: optimize
+    if length(nonum) > 0
+        mxpr(:Times, nonum..., mxpr(:DirectedInfinity, direction))
+    else
+        return mxprcf(:DirectedInfinity, direction)
+    end
+end
+
+# This is not complete
+function whichinfinity(mx::Mxpr{:Plus})
+    return mxprcf(:DirectedInfinity, 1)
 end
 
 function canonexpr_orderless!(mx::Mxpr{:Times})
