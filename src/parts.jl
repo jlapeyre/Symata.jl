@@ -10,12 +10,7 @@ return a list of part specifications (indices) of positions in
 `expr` at which `x` occurs.
 """
 @mkapprule Position
-
 @doap Position(expr,subx) = tolistoflists(find_positions(expr,subx))
-
-# function do_Position(mx::Mxpr{:Position},expr,subx)
-#     tolistoflists(find_positions(expr,subx))
-# end
 
 """
     find_positions(ex,subx)
@@ -27,20 +22,20 @@ function find_positions(ex,subx)
     lev = Array(Int,100)
     clev::Int = 1
     lev[clev] = 0
-    _find_positions(ex,subx,lev,posns,clev)
+    capt = capturealloc()
+    psubx = patterntoBlank(subx)
+    _find_positions(ex,psubx,lev,posns,clev,capt)
     return posns
 end
 
-# TODO: 1) split out literal pattern code.  2) allocate capt outside of this function.
-function _find_positions(ex::Mxpr,subx,lev,posns,clev)
+# TODO: 1) split out literal pattern code.
+function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
     if clev > length(lev) push!(lev,0) end
     args = margs(ex)
-    capt = capturealloc()
     @inbounds for i in 1:length(args)
         lev[clev] = i
-        _find_positions(args[i],subx,lev,posns,clev+1)
+        _find_positions(args[i],psubx,lev,posns,clev+1,capt)
     end
-    psubx = patterntoBlank(subx)
     (gotmatch, capt) = match_and_capt(mhead(ex),psubx,capt)    
     if gotmatch
 #    if mhead(ex) == subx        
@@ -56,8 +51,10 @@ function _find_positions(ex::Mxpr,subx,lev,posns,clev)
     end
 end
 
-function _find_positions(ex,subx,lev,posns,clev)
-    if ex == subx
+function _find_positions(ex,psubx,lev,posns,clev,capt)
+    (gotmatch, capt) = match_and_capt(ex,psubx,capt)
+    if gotmatch    
+#    if ex == subx
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev-1))
     end
@@ -177,7 +174,6 @@ apply `spec1` at level `1`, `spec2` at level `2`...
 @mkapprule Take
 @doap Take(x::Mxpr, rawspecs...) = take(x,map(sequencespec, rawspecs)...)
 take(x, onespec, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,onespec)))...)
-#take(x,spec::SequenceLastN) =  mxpr(mhead(x), margs(x)[(length(x)+spec.n+1):end]...)
 take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0?(1:spec.n):(length(x)+spec.n+1:end)]...)
 take(x,spec::SequenceUpToN) = mxpr(mhead(x), margs(x)[1:min(spec.n,length(x))]...)
 take(x,spec::SequenceNOnly) = mxpr(mhead(x), margs(x)[posnegi(x,spec.n)])

@@ -45,7 +45,9 @@ T Position(m,b) == [[2],[3,1,2],[3,2,2,0]]
 T Position(m,c(d)) == [[3,2,2,1]]
  m = f(a,b,g(c(d,b),a(a,b(c(d)))),c(d,b))
 T Position(m, c(d,b)) == [[3,1],[4]]
- ClearAll(f,a,b,g,c,d,m)
+T Position([1 + x^2, 5, x^4, a + (1 + x^2)^2], x^_) == [[1,2],[3],[4,2,1,2]]
+
+ClearAll(f,a,b,g,c,d,m)
 
 #### Span
  ClearAll(m)
