@@ -7,14 +7,15 @@
     Position(expr,x)
 
 return a list of part specifications (indices) of positions in
-`expr` at which `x` occurs. Only literal values for `x` are supported, not patterns.
+`expr` at which `x` occurs.
 """
-
 @mkapprule Position
 
-function do_Position(mx::Mxpr{:Position},expr,subx)
-    tolistoflists(find_positions(expr,subx))
-end
+@doap Position(expr,subx) = tolistoflists(find_positions(expr,subx))
+
+# function do_Position(mx::Mxpr{:Position},expr,subx)
+#     tolistoflists(find_positions(expr,subx))
+# end
 
 """
     find_positions(ex,subx)
@@ -30,19 +31,26 @@ function find_positions(ex,subx)
     return posns
 end
 
+# TODO: 1) split out literal pattern code.  2) allocate capt outside of this function.
 function _find_positions(ex::Mxpr,subx,lev,posns,clev)
     if clev > length(lev) push!(lev,0) end
     args = margs(ex)
+    capt = capturealloc()
     @inbounds for i in 1:length(args)
         lev[clev] = i
         _find_positions(args[i],subx,lev,posns,clev+1)
-        end
-    if mhead(ex) == subx
+    end
+    psubx = patterntoBlank(subx)
+    (gotmatch, capt) = match_and_capt(mhead(ex),psubx,capt)    
+    if gotmatch
+#    if mhead(ex) == subx        
         lev[clev] = 0
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev))
     end
-    if ex == subx
+    (gotmatch, capt) = match_and_capt(ex,psubx,capt)
+    if gotmatch
+#    if ex == subx        
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev-1))
     end
@@ -212,3 +220,48 @@ function drop(x,spec::SequenceMN)
     ma = margs(x)
     mxpr(mhead(x), ma[1:m-1]..., ma[n+1:end]...)
 end
+
+
+### Extract
+
+@sjdoc Extract """
+    Extract(expr, list)
+
+returns the subexpression specified by `list`.
+
+    Extract(expr, [list1, list2, ...])
+
+returns a list of subexpressions.
+
+    Extract(expr, [list1, list2, ...], h)
+
+wraps each subexpression with head `h`.
+
+    Extract(list)
+
+operator form of `Extract`.
+"""
+@mkapprule Extract
+
+@doap function Extract(expr, p::List)
+    isa(p[1],Integer) && return expr[margs(p)...]
+    ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
+    nargs = newargs(length(p))
+    for i in 1:length(p)
+        nargs[i] = expr[margs(p[i])...]
+    end
+    return MList(nargs)
+end
+
+@doap function Extract(expr, p::List, h)
+    isa(p[1],Integer) && return mxpr(h,expr[margs(p)...])
+    ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
+    nargs = newargs(length(p))
+    for i in 1:length(p)
+        nargs[i] = mxpr(h,expr[margs(p[i])...])
+    end
+    return MList(nargs)
+end
+
+# Currying
+do_GenHead(mx,head::Mxpr{:Extract}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)

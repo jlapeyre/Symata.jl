@@ -480,20 +480,28 @@ solve `expr == 0` for one variable.
     Solve(expr,var)
 
 solve `expr == 0` for `var`.
+
+    Solve([expr1,expr2,...], [var1,var2,...])
+
+solve a system of equations.
 """
 
-apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
+@mkapprule Solve :nargs => 1:2
 
-do_Solve(mx, expr) = expr |> sjtopy |> sympy[:solve] |> pytosj
+#apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
 
-function do_Solve(mx, expr, var::Symbol)
+@doap Solve(expr) = (expr |> sjtopy |> sympy[:solve] |> pytosj)
+
+#do_Solve(mx, expr) = expr |> sjtopy |> sympy[:solve] |> pytosj
+
+@doap function Solve(expr, var::Symbol)
     pyexpr = expr |> sjtopy
     pyvar = var |> sjtopy
     res =     sympy[:solve](pyexpr,pyvar)
     res |>  pytosj
 end
 
-function do_Solve(mx, eqs::Mxpr{:List}, vars::Mxpr{:List})
+@doap function Solve(eqs::Mxpr{:List}, vars::Mxpr{:List})
     peqs = eqs |> sjtopy
     pyvars = vars |> sjtopy
     sympy[:solve](peqs,pyvars) |>  pytosj
