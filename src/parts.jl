@@ -28,7 +28,8 @@ function find_positions(ex,subx)
     return posns
 end
 
-# TODO: 1) split out literal pattern code.
+# TODO: split out literal pattern code: This routine will be the main routine for
+# finding positions, inlcuding when we know that the pattern is literal.
 function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
     if clev > length(lev) push!(lev,0) end
     args = margs(ex)
@@ -38,7 +39,7 @@ function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
     end
     (gotmatch, capt) = match_and_capt(mhead(ex),psubx,capt)    
     if gotmatch
-#    if mhead(ex) == subx        
+#    if mhead(ex) == subx      # Use this for literal pattern
         lev[clev] = 0
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev))
