@@ -543,3 +543,28 @@ sort the elements of `expr`.
 
 @doap Sort(expr::Mxpr{:List}) = mxpr(:List,sort(margs(expr)))
 @doap Sort(a::AbstractArray) = sort(a)
+
+### Split
+
+@sjdoc Split """
+    Split(lst)
+
+splits `lst` into runs of identical elements.
+"""
+@mkapprule Split
+
+@doap function Split(lst::List)
+    length(lst) == 0 && return MList()
+    a = margs(lst)
+    a0 = newargs()
+    a1 = newargs()
+    for i in 1:length(a)
+        if length(a1) != 0 && a[i-1] != a[i]
+            push!(a0, MList(a1))
+            a1 = newargs()
+        end
+        push!(a1, a[i])
+    end
+    push!(a0,MList(a1))
+    MList(a0)
+end
