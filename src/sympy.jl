@@ -361,13 +361,13 @@ macro pytosj_comparisons(fname, pyfname, sjsymbolstr)
        end)
 end
 
+# TODO: Symata a > 3 is translated as Comparision(a,>,3). Instead, this should be translated using StrictGreaterThan
 @pytosj_comparisons("greater_than_equal", "GreaterThan", ">=")
 @pytosj_comparisons("less_than_equal", "LessThan", "<=")
 @pytosj_comparisons("less_than", "StrictLessThan", "<")
 @pytosj_comparisons("greater_than", "StrictGreaterThan", ">")
 @pytosj_comparisons("equality", "Equality", "==")
 @pytosj_comparisons("unequality", "Unequality", "!=")
-
 
 pytosj_BooleanTrue(pyexpr) = true
 

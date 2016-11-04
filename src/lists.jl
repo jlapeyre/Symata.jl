@@ -241,7 +241,7 @@ function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
         end
     else  # Mma does not allow this second branch: eg Range(5,1) implies di = -1
         nd = -nd + 2
-        args = newargs(iters.num_iters)
+        args = newargs(iter.num_iters)
         @inbounds for i in zero(iter.imin):(nd - 1)
             args[i+1] = mplus(iter.imin, -i)
         end

@@ -130,7 +130,7 @@ return `(var1,expr1)`, where `var1` is a new symbol (from `gensym`)
 and `expr1` is a copy of `expr` with `var` replaced everywhere by `var1`.
 """
 function localize_variable(var,expr::Mxpr)
-    sym = get_localized_symbol(var)  # not really necessary that it be named like var
+    sym = get_localized_symbol(var)  # not really necessary that named contains var
     positions = find_positions(expr,var)
     nexpr = deepcopy(expr)
     for pos in positions
