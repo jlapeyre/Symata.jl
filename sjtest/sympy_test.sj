@@ -16,12 +16,17 @@ ClearAll(isdef)
 
 ## Solve
 
-   res = Solve([x+y-1, x - y + 1], [x,y])
-T  res[x] == 0
-T  res[y] == 1
-T  Solve(x^4-1,x) == [-1,1,-1I,I]
-T  Solve(x^3-1,x) == [1,-1//2 + (-1//2*I) * (3 ^ (1//2)),-1//2 + (1//2*I) * (3 ^ (1//2))]
-T  Solve(x^3-1) == Solve(x^3-1,x)
+#    res = Solve([x+y-1, x - y + 1], [x,y])
+# T  res[x] == 0
+# T  res[y] == 1
+T  Solve([x+y-1, x - y + 1], [x,y]) == [[y => 1,x => 0]]  # todo. sort lexically
+T  Solve(x^4-1,x) == [[x => (-1)],[x => 1],[x => -I],[x => I]]
+#T  Solve(x^4-1,x) == [-1,1,-1I,I]
+#T  Solve(x^3-1,x) == [1,-1//2 + (-1//2*I) * (3 ^ (1//2)),-1//2 + (1//2*I) * (3 ^ (1//2))]
+T  Solve(x^3-1,x) == [[x => 1],[x => (-1/2 + (I * -1/2)*(3^(1/2)))],[x => (-1/2 + (I * 1/2)*(3^(1/2)))]]
+
+# FIXME: Solve(x^3-1) should return rules as in examples above.
+#T  Solve(x^3-1) == Solve(x^3-1,x)
 
 ## Roots
 

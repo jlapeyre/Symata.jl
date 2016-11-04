@@ -215,6 +215,7 @@ rather to the current value of `b` every time `a` is evaluated.
 
 @mkapprule Set
 
+# TODO: implement 1 or more in @mkapprule
 function do_Set(mx::Mxpr{:Set})
     warn("Set called with 0 arguments; 1 or more arguments are expected.")
     setfixed(mx)
@@ -222,11 +223,12 @@ function do_Set(mx::Mxpr{:Set})
 end
 
 # This is what Mma does.
+# When is this used ?
 function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
     checkprotect(lhs)
     rhs = mxprcf(:Sequence)
     setsymval(lhs,rhs)
-    setdefinition(lhs, mx)
+    setdefinition(lhs, mx) # This is correct. Definition includes `Set`.
     rhs
 end
 
@@ -250,6 +252,7 @@ function setdelayed(mx::Mxpr{:SetDelayed},lhs::SJSymbol, rhs)
     Null
 end
 
+# TODO: Use OwnValues here rather than binding.
 function do_Set(mx::Mxpr{:Set},lhs::SJSymbol, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)

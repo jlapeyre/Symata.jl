@@ -399,7 +399,7 @@ function _cse_post(lists)
     end
     rules = mxpr(:List,nargs)
     mxpr(:List, expr, rules)
-end 
+end
 
 # These apparently have been removed from SymPy
 #@make_simplify_func :Separate separate
@@ -414,7 +414,7 @@ does trigonometric simplification.
 """
 
 @sjdoc RatSimp """
-    RatSimp(expr)    
+    RatSimp(expr)
 
 rewrite `expr` with a common denominator, cancel and reduce.
 """
@@ -488,23 +488,34 @@ solve a system of equations.
 
 @mkapprule Solve :nargs => 1:2
 
-#apprules(mx::Mxpr{:Solve}) = do_Solve(mx,margs(mx)...)
 
-@doap Solve(expr) = (expr |> sjtopy |> sympy[:solve] |> pytosj)
-
-#do_Solve(mx, expr) = expr |> sjtopy |> sympy[:solve] |> pytosj
+# TODO: find free symbols in expr and return rules as in following methods
+@doap function Solve(expr)
+    sres = (expr |> sjtopy |> sympy[:solve] |> pytosj)
+#    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,sym,t)), margs(sres)))...)
+end
 
 @doap function Solve(expr, var::Symbol)
     pyexpr = expr |> sjtopy
     pyvar = var |> sjtopy
-    res =     sympy[:solve](pyexpr,pyvar)
-    res |>  pytosj
+    res =  sympy[:solve](pyexpr,pyvar)
+    sres = res |>  pytosj
+    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
 end
 
 @doap function Solve(eqs::Mxpr{:List}, vars::Mxpr{:List})
     peqs = eqs |> sjtopy
     pyvars = vars |> sjtopy
-    sympy[:solve](peqs,pyvars) |>  pytosj
+    sres = sympy[:solve](peqs,pyvars) |>  pytosj
+    if isa(sres,Dict)  # why does pytosj sometimes return Dict and sometimes List ?
+        nargs = newargs()
+        for (k,v) in sres
+            push!(nargs, mxpr(:Rule, k, v))
+        end
+        mxpr(:List, mxpr(:List, nargs...))
+    else
+        return sres  # TODO. convert these to Rules
+    end
 end
 
 register_sjfunc_pyfunc("Solve", "solve")

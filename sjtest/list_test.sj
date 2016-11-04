@@ -226,4 +226,6 @@ T Drop(Range(10),[3,6]) == [1,2,7,8,9,10]
 T TakeDrop(Range(10),[3,6]) == [Take(Range(10),[3,6]), Drop(Range(10),[3,6])]
 
 
+T Split([a,a, b,b,b,b,c,c,c,c]) == [[a,a],[b,b,b,b],[c,c,c,c]]
+
 ClearAll(a,b,c,d,e,f,expr)

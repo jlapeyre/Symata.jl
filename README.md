@@ -43,11 +43,12 @@ prompt, the online help, `? Topic`, with TAB completion, and regex
 search `h"word"`.
 
 The core of Symata is not complete. But, a large number of features are implemented;
-enough to be useful. Here are [examples of pattern matching](sjtest/patterns_test.sj).
+enough to be useful. Here are [examples of pattern matching](sjtest/pattern_test.sj).
 
 ### IJulia Notebooks
 
-A few brief tutorial notebooks are in [the example directory](examples/). The typeset math will look better
+A few brief tutorial notebooks are in [the example directory](examples/). These are snapshots, not live, so you can
+view them immediately with your browswer. The typeset math will look better
 in the IJulia notebook, which renders it with higher quality than github does.
 
 ### Installing
