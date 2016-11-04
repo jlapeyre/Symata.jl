@@ -37,7 +37,7 @@ function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
         lev[clev] = i
         _find_positions(args[i],psubx,lev,posns,clev+1,capt)
     end
-    (gotmatch, capt) = match_and_capt(mhead(ex),psubx,capt)    
+    (gotmatch, capt) = match_and_capt(mhead(ex),psubx,capt)
     if gotmatch
 #    if mhead(ex) == subx      # Use this for literal pattern
         lev[clev] = 0
@@ -46,7 +46,7 @@ function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
     end
     (gotmatch, capt) = match_and_capt(ex,psubx,capt)
     if gotmatch
-#    if ex == subx        
+#    if ex == subx
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev-1))
     end
@@ -54,7 +54,7 @@ end
 
 function _find_positions(ex,psubx,lev,posns,clev,capt)
     (gotmatch, capt) = match_and_capt(ex,psubx,capt)
-    if gotmatch    
+    if gotmatch
 #    if ex == subx
         nlev = copy(lev)
         push!(posns,view(nlev,1:clev-1))
@@ -145,6 +145,38 @@ function localize_variable(var,expr::SJSym)
     return (sym, expr)
 end
 
+function localize_variable(var,expr)
+    sym = get_localized_symbol(var)
+    return (sym, expr)
+end
+
+function localize_variables(vars::Array,expr::Mxpr)
+    syms = map(get_localized_symbol, vars)
+    nexpr = deepcopy(expr)
+    for (sym,var) in zip(syms,vars)
+        positions = find_positions(expr,var)
+        for pos in positions
+            setpart!(nexpr, sym, pos...)
+        end
+    end
+    (syms, nexpr)
+end
+
+function localize_variables(vars::Array,expr::SJSym)
+    syms = map(get_localized_symbol, vars)
+    for (sym,var) in zip(syms,vars)
+        if var == expr
+            return (syms,sym)
+        end
+    end
+    return (syms, expr)
+end
+
+function localize_variables(vars::Array,expr)
+    syms = map(get_localized_symbol, vars)
+    return (syms, expr)
+end
+
 ### Take
 
 @sjdoc Take """
@@ -191,8 +223,8 @@ posnegi(x::Mxpr,n::Integer) = n > 0 ? n : length(x) + n + 1
 # than exists. In fact, the behavior is as if we always use UpTo.
 @sjdoc Drop """
     Drop(expr,n)
-    Drop(expr,-n)    
-    Drop(expr,[m,n])    
+    Drop(expr,-n)
+    Drop(expr,[m,n])
 
 !!! note
     `Drop(expr,UpTo(n))` is not necessary because `Drop(expr,n)` already gives the
@@ -213,7 +245,7 @@ end
 
 function drop(x,spec::SequenceMN)
     m = posnegi(x,spec.m)
-    n = posnegi(x,spec.n)    
+    n = posnegi(x,spec.n)
     ma = margs(x)
     mxpr(mhead(x), ma[1:m-1]..., ma[n+1:end]...)
 end

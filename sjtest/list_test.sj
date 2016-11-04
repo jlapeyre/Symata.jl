@@ -143,6 +143,9 @@ T  Range(x+y, x + y  + 4) == [x + y,1 + x + y,2 + x + y,3 + x + y,4 + x + y]
 
 T  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
+# For some reason, this, but not the examples above, triggered a bug.
+T Map(Function(x,Range(x+1,2*x)), Range(4)) == [[2],[3,4],[4,5,6],[5,6,7,8]]
+
 ClearAll(x,y,a,b,c,d,m,p,z,f,j)
 
 ### ConstantArray
