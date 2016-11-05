@@ -1,5 +1,9 @@
 Apply(ClearAll, UserSyms())
 
+# FIXME: automatic Currying prevents the following from working as expected.
+# we probably need to disable automatic Currying.
+# p = (Pattern(f, Blank()))(x)
+
 ### Blanks
 
 T Head(_) == Blank
