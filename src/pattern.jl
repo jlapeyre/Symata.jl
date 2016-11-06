@@ -61,7 +61,8 @@ function patterntoBlank(mx::Mxpr)
         nx = patterntoBlank(x)
         push!(nargs,nx)
     end
-    nmx = mxpr(mhead(mx), nargs...)
+    #    nmx = mxpr(mhead(mx), nargs...)  # Nov 4, 2016
+    nmx = mxpr(patterntoBlank(mhead(mx)), nargs...)
     nmx
 end
 
@@ -74,9 +75,9 @@ function process_blank_head(head)
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
-patterntoBlank(blank::Mxpr{:Blank}) = length(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
-patterntoBlank(blank::Mxpr{:BlankSequence}) = length(blank) == 0 ? BlankSequenceT(:All) : BlankSequenceT(process_blank_head(blank[1]))
-patterntoBlank(blank::Mxpr{:BlankNullSequence}) = length(blank) == 0 ? BlankNullSequenceT(:All) : BlankNullSequenceT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:Blank}) = symjlength(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankSequence}) = symjlength(blank) == 0 ? BlankSequenceT(:All) : BlankSequenceT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankNullSequence}) = symjlength(blank) == 0 ? BlankNullSequenceT(:All) : BlankNullSequenceT(process_blank_head(blank[1]))
 
 # Try a downvalue
 # hmmm, is it possible is is Rule rather than RuleDelayed ?
@@ -193,7 +194,8 @@ ematch(pat::Mxpr{:HoldPattern}, m::Match) = ematch(pat[1],m)
 function ematch(pat::Mxpr{:Pattern}, m::Match)
     ex = m.ex
     captures = m.capt
-    if length(pat) == 2
+#    println("Pattern match, ", pat, " ", m)
+    if symjlength(pat) == 2
         (name,pattern) = (margs(pat)...)
         success_flag::Bool = ematch(pattern,m)
         local capture_success_flag::Bool
@@ -228,7 +230,7 @@ end
 function ematch(pat::Mxpr{:PatternTest}, m::Match)
     ex = m.ex
     captures = m.capt
-    if length(pat) == 2
+    if symjlength(pat) == 2
         (pattern,test) = (pat[1],pat[2])
         success_flag::Bool = ematch(pattern, m)
         success_flag == false && return false
@@ -422,7 +424,7 @@ function match_and_capt_no_optional_no_repeated(pat,m)
     saveparent = m.parent
     m.parent = m.ex
 
-    if length(mx) < length(pat)  # This is not a robust solution.
+    if symjlength(mx) < symjlength(pat)  # This is not a robust solution.
         for i in 1:length(pat)
             if isa(pat[i],BlankNullSequenceT)
                 m.special = mxpr(:Sequence)
@@ -556,14 +558,24 @@ end
 # We get ambiguity warnings if first arg is annotated: mx::Mxpr. But, it should always be Mxpr
 # function ematch(mx::Mxpr, pat::Mxpr, captures)
 # TODO: We don't need to handle Repeated separately, as is done currently
+# Need to detect genhead and match it differently
 function ematch(pat::Mxpr, m)
     mx = m.ex
     captures = m.capt
-    (mhead(pat) == mhead(mx)) || return false
+#    m.ex = mhead(m)  # !?? This is wrong ?
+    m.ex = mhead(mx)  # !?? This is wrong ?    
+#    println("pat is ", pat)
+#    println("head of pat is ", mhead(pat))
+#    println("typeof  ", typeof(pat))
+    # TODO: detect genhead here
+    (mhead(pat) == mhead(mx)) || ematch(mhead(pat),m) || return false
+#    println(" *** capt is  ", m.capt)            
+    m.ex = mx
+#    (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
     have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull))
-    lp = length(pat)
-    lm = length(mx)
+    lp = symjlength(pat)
+    lm = symjlength(mx)
     # TODO: Optimize the line below
     # FIXME: handle repeated and optional
     have_repeated  && return match_and_capt_no_optional_yes_repeated(pat,m)
@@ -621,6 +633,7 @@ end
 
 #######  Replacing
 
+# Head pattern (f::_)(x) is not captured properly
 function match_and_replace(ex,r::Rules)
     @mdebug(1, "enter match_and_replace with ", ex)
     (lhs,rhs) = (r[1],r[2])
@@ -635,7 +648,10 @@ function match_and_replace(ex,r::Rules)
         rhs  = rhs1
     end
     rhs_copy = deepcopy(rhs)
+#    println("match_and_replace 1 ", rhs_copy)
+#    println("cap is  ", capt)        
     rhs_copy_subst = patsubst!(rhs_copy,capt) # do replacement
+#    println("match_and_replace ", rhs_copy_subst)
     return rhs_copy_subst
 end
 
@@ -686,6 +702,7 @@ function replaceall(ex,rule::Rules)
     # first try at current level
     rule = patterntoBlank(rule)
     res = match_and_replace(ex,rule)
+#    println("res ", res)
     res !== false && return res  # return if we had success
     if is_Mxpr(ex)               # no success so we try at lower levels.
         ex = mxpr(replaceall(mhead(ex),rule),

@@ -46,3 +46,15 @@ return a `List` of the characters in `String` `s`.
 """
 @mkapprule Characters
 @doap Characters(s::String) = mxpr(:List, [string(x) for x in s]...)
+
+### StringReverse
+
+@sjdoc StringReverse """
+    StringReverse(s)
+
+return string `s` with characters in reverse order.
+"""
+
+@mkapprule StringReverse
+
+@doap StringReverse(s::String) = reverse(s)

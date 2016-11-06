@@ -255,7 +255,6 @@ end
 # This is causing stack overflow in some cases.
 # Base.show{T<:BigFloat}(io::IO,x::T) = Base.showcompact(io,x)
 
-
 Base.show(io::IO, v::WOBool) = show_bool(io,v.x)
 
 function show_bool(io::IO, v::Bool)
@@ -290,7 +289,8 @@ end
 
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    is_Mxpr(mx,:List) ? nothing : print(io,outsym(mhead(mx)))
+#    is_Mxpr(mx,:List) ? nothing : print(io,outsym(mhead(mx)))
+    is_Mxpr(mx,:List) ? nothing : show(io, wrapout(mhead(mx)))
     args = mx.args
     print(io,mhead(mx) == getsym(:List) ? LISTL : FUNCL)
     wantparens = true

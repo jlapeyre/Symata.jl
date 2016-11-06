@@ -74,7 +74,7 @@ set_pattributes(["BellB"],
 
 # Note: Simplify is not Listable in Mma
 set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
-                 "ToExpression", "Simplify", "FullSimplify"]
+                 "ToExpression", "Simplify", "FullSimplify", "StringReverse"]
                 ,[:Listable])
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])

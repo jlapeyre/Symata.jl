@@ -88,3 +88,12 @@ Unprotect(TensorRank)
 TensorRank(x_) := Length(Dimensions(x))
 
 Protect(TensorRank)
+
+
+### UnsameQ
+
+Unprotect(UnsameQ)
+
+UnsameQ(x_,y_) := Not( x === y )
+
+Protect(UnsameQ)

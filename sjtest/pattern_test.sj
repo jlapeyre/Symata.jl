@@ -262,8 +262,7 @@ T ReplaceAll(x , [x :> 1, x :> 3, x :> 7]) ==  1
 # It is documented, but not on the /. page. Just the example is shown
 # x /. {{x -> 1}, {x -> 3}, {x -> 7}}
 
-# FIXME ReplaceAll should do currying with the rules, not the expression.
-# ReplaceAll(x => a)([x, x^2, y, z])
+T ReplaceAll(x => a)([x, x^2, y, z]) == [a, a^2, y, z]
 
 T ReplaceAll( [a,b,c] , List :> f)  == f(a,b,c)
 
@@ -385,6 +384,7 @@ T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e
 T ReplaceAll( b^b, a::(_^_) => g(a)) == g(b^b)
 
 # Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
+# Update: we have disabled automatic currying because it interferes with patterns with heads.
 # sjulia > f(a)(b)(c)(d)
 # f(a,b,c,d)
 

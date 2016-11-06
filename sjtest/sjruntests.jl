@@ -12,6 +12,7 @@ test = Symata_Plain_Test()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "shifrin_test.sj",
               "function_test.sj",              
               "pattern_test.sj",
               "up_downvalue_test.sj",

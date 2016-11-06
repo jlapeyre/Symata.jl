@@ -34,4 +34,8 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank)
+addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :UnsameQ)
+
+# we need to do this for some reason (it is done for others in docautoloaded.jl
+protect(:UnsameQ)
+

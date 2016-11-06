@@ -725,30 +725,6 @@ Sympy version `Expand()` is more capable, but slower.
 
 apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])
 
-#### RandomReal
-
-@mkapprule RandomReal
-
-do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
-
-#### Random
-
-@mkapprule Random
-
-do_Random(mx::Mxpr{:Random}) = rand()
-
-function do_Random(mx::Mxpr{:Random}, sym::SJSym)
-    if sym == :Integer
-        rand(0:1)
-    elseif sym == :Real
-        rand()
-    elseif sym == :Complex
-        complex(rand(),rand())
-    else
-        mx
-    end
-end
-
 #### Counts
 
 @mkapprule Counts

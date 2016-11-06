@@ -548,6 +548,13 @@ end
     mx
 end
 
+function mxprcf(s,args::MxprArgs)
+    mx = Mxpr{GenHead}(s,args,true,true,newsymsdict(),0,0,Any)
+    setage(mx)
+    mx
+end
+
+
 ######  Manage lists of free symbols
 
 # Sometimes protected symbols need to be merged, somewhere.

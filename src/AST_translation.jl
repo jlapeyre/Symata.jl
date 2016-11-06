@@ -193,7 +193,7 @@ function extomx(ex::Expr)
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
-        head = jtomsym(a[1])
+        head = extomx(a[1])
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
     elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])

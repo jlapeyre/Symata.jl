@@ -185,7 +185,7 @@ function exfunc(ex, options=NullExFuncOptions)
     end
     symval(mx) == Null  && return nothing
     # do_we_print_outstring is for IJulia
-    if (! options.simple ) && isinteractive() && do_we_print_outstring  
+    if (! options.simple ) && isinteractive() && do_we_print_outstring
         print("Out(" * string(get_line_number()) * ") = ")
     end
     if is_throw()
@@ -598,6 +598,8 @@ do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
 # But, not all functions use the first operator. Eg for MatchQ it is
 # the second.
 # We do currying automatically for all functions. Mma does it only for select functions.
-function do_GenHead(mx,head::Mxpr)
-    mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
-end
+
+# TODO: need to safely disable this
+# function do_GenHead(mx,head::Mxpr)
+#     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
+# end

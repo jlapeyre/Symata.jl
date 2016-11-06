@@ -21,6 +21,8 @@
 # a`b is symbol b in context a.  a .* b is illegal in Mma, but a .* b is legal syntax in Julia
 # So: in Symata  a.b for contexts,  and a .* b for matrix multiplication
 
+# We can use $ for (Symata) Function, but the translation to compound expression is broken
+# We can use -> for (Symata) Function. This seems to work
 const JTOMSYM  =
  Dict(
       :(=) => :Set,
@@ -33,13 +35,16 @@ const JTOMSYM  =
       :^ => :Power,
       :(*=) => :TimesBy,
       :(+=) => :AddTo,
-# $ is good for Function below, but we might want it for interpolation instead
-#      :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
+      # $ is good for Function below, but we might want it for interpolation instead
+      # No, it does not interfere with interpolation, but it still wraps args in Comound expression. dont know why
+      :(->) => :Function,
+      :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->. We use => because it has a higher precedence than ->, which is what we want.
 #      :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
       :(.>) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
       :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
+      :(.//) => :ReplaceRepeated,
 #      :(:) => :Span, # this is done specially in extomx. colon means various things
       :(&=) => :UpSetDelayed,  # This is available, at least. Not sure we want to take it.
       :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence
@@ -75,7 +80,9 @@ const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :≤  =>  :<=,
                                                 :≠  =>  :!=,
                                                 :𝕖  =>  :E,
-                                                :⇒  =>  :(=>) )
+                                                :⇒  =>  :(=>),
+                                                :→ => :Function
+)
 
 # Output. Reverse dict for printing if unicode printing is enabled
 const unicode_output = Dict{Symbol,Symbol}()
@@ -129,7 +136,7 @@ end
 const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
-           :Set, :SetDelayed, :UpSet, :(*=), :(+=),
+           :Set, :SetDelayed, :UpSet, :(*=), :(+=), :→, :(->), :Function,
            :TimesBy, :AddTo) # need :Set here
     OPTYPE[op] = :binary
 end
