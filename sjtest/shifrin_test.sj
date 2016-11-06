@@ -95,7 +95,8 @@ T testexpr ./ (Plus => List) ./ ( x^(y_:?(EvenQ)) :> f(x^y)) == [1,10x,45f(x^2),
 
 
 # pg 112
-frules = [ fact(1) => 1, fact(n_Integer) :> n * fact(n-1)]
+# NOTE: we can use  => for the first definition, but Julia v0.4 cannot parse this.
+frules = [ fact(1) :> 1, fact(n_Integer) :> n * fact(n-1)]
 T fact(5) .//  frules == 120
 
 #pg 115
