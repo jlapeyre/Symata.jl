@@ -168,29 +168,39 @@ prints definitions associated with `Symbol` `sym`.
 """
 
 function maybeprint(io::IO,s)
-    if length(s)>0 symprintln(io,s) end
+    if length(s)>0 symprintln(io,s)
+        return true
+    end
+    false
 end
 
 function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, sym::T)
     write_definition(STDOUT,sym)
 end
 
+write_definition(sym) = write_definition(STDOUT,sym)
+
 function write_definition(io::IO, sym)
-    maybeprint(io,getdefinition(Symbol(sym)))
+    gotdef = maybeprint(io,getdefinition(Symbol(sym)))
     dvdefs = jlistdownvaluedefs(sym)
     if length(dvdefs) > 0
+        gotdef = true
         for def in dvdefs
             symprintln(io,def)
         end
     end
     uvdefs = jlistupvaluedefs(sym)
     if length(uvdefs) > 0
+        gotdef = true
         for def in uvdefs
             symprintln(io,def)
         end
     end
-    maybeprint(io,attributes_set_string(sym))
-    println(io)
+    gotdef = maybeprint(io,attributes_set_string(sym)) || gotdef
+    if gotdef
+        println(io)
+    end
+    return gotdef
 end
 
 ### Save

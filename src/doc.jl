@@ -62,7 +62,7 @@ function print_doc(qs...)
             println()
             format_see_alsos(q)
             format_sjexamples(q)
-        else
+        elseif ! write_definition(q)
             println("No documentation for '", string(q),"'.")
         end
         as = get_attributes(q)
