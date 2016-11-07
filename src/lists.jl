@@ -1,3 +1,12 @@
+### List
+
+@sjdoc List """
+    [e1, e2, ...],  List(e1, e2, ...)
+
+creates a list. Lists are printed delimited by square brackets. The head
+of the internal form is `List`.
+"""
+
 ### Args
 
 @sjdoc Args """
