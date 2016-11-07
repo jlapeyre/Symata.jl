@@ -100,6 +100,29 @@ return the `Head` of `expr`.
 # Julia v0.5 and later : a hash key or something
 @doap Head{T<:Function}(f::T) = :Function
 
+### Isa
+
+@sjdoc Isa """
+    Isa(x,type)
+
+return `True` if `x` is of type `type`.
+"""
+
+@mkapprule Isa
+
+@doap function Isa(x,T::DataType)
+    isa(x,T)
+end
+
+const Float = AbstractFloat
+
+@doap function Isa(x,T::Symbol)
+    t = eval(T)
+    isa(x,t)
+end
+
+@doap Isa(x,T) = mx
+
 ### ReleaseHold
 
 #typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}

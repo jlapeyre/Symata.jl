@@ -99,7 +99,24 @@ T testexpr ./ (Plus => List) ./ ( x^(y_:?(EvenQ)) :> f(x^y)) == [1,10x,45f(x^2),
 frules = [ fact(1) :> 1, fact(n_Integer) :> n * fact(n-1)]
 T fact(5) .//  frules == 120
 
-#pg 115
+# pg 115
 T [a, "cat", 3] ./ (x_String :> StringReverse(x)) == [a,"tac",3]
+
+# pg 119
+T Range(30) ./ ( Condition( x_, IntegerQ(Sqrt(x))) :> [Sqrt(x)] ) == [[1],2,3,[2],5,6,7,8,[3],10,11,12,13,14,15,[4],17,18,19,20,21,22,23,24,[5],26,27,28,29,30]
+
+# pg 120
+T Range(100) ./ (Condition( x_Integer, Not(PrimeQ(x))) :> Sequence() ) == [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
+
+testlist = [[1,14],[2,6],[10,20],[19,14],[6,3],[17,8],[11,13],[19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[16,7],[7,19],[17,11],[11,13],[20,12],[6,12]]
+exchangerule = Condition( [x_, y_ ] , EvenQ(x) && OddQ(y)) :>  [y,x]
+
+T testlist ./ exchangerule == [[1,14],[2,6],[10,20],[19,14],[3,6],[17,8],[11,13],[19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[7,16],[7,19],[17,11],[11,13],[20,12],[6,12]]
+
+
+# pg 121
+T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x)) == [x,2^(1/2),Pi,(2^(-1/2))*(3^(1/2)),(2^(1/2))*(5^(-1/2)),2,Sin(y),2(2^(1/2)),Cos(z)]
+
+T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( Condition(x_, Isa(x,Integer) || Isa(x,Rational)) => Sqrt(x)) == [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x))
 
 Apply(ClearAll, UserSyms())
