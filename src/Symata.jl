@@ -9,7 +9,9 @@ import Compat.view
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 
 # These are of general use
-export @sym, doeval
+# Need to export @ex until we can track down all uses and remove them.
+# Prefer @sym
+export @sym, doeval, @ex
 export mmul, mplus, mpow, mabs, symatamath
 
 # For development
