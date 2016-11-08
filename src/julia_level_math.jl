@@ -6,32 +6,44 @@
 
 # SJSym is an alias of Symbol
 
-## The following could be used optionally as a convenience for
-## the user. But, they are disabled because they extend Base methods for Base objects.
+# """
+#     symatamath()
 
-# *(a::Number,b::SJSym) = mxpr(:Times,a,b)
-# *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
-# +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+# define math methods that operate on symbols. This allows Julia expressions such as
+# ```
+# :a + :b
+# :c^2
+# ```
 
-# *(a::SJSym,b::Number) = mxpr(:Times,b,a)
-# +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
-# +(a::Number,b::SJSym) = mxpr(:Plus,a,b)
-# ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
-# ^(base::SJSym,expt) = mxpr(:Power,base,expt)
+# These methods are disabled by default because they extend `Base` methods for `Base` types. These methods are
+# in general reserved for definition in future versions of Julia.
+# """
+# function symatamath()
+#     @eval begin
+#         *(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ?
+#         *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+#         +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+#         *(a::SJSym,b::Number) = mxpr(:Times,b,a)
+#         +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
+#         +(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+#         ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+#         ^(base::SJSym,expt) = mxpr(:Power,base,expt)
+#     end
+# end
 
-#### Useful and OK methods
+# #### Useful and OK methods
 
-*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
-*(a::Mxpr,b) = mxpr(:Times,a,b)
-*(a,b::Mxpr) = mxpr(:Times,a,b)
+# *(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
+# *(a::Mxpr,b) = mxpr(:Times,a,b)
+# *(a,b::Mxpr) = mxpr(:Times,a,b)
 
 
-+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
-+(a::Mxpr,b) = mxpr(:Plus,a,b)
-+(a,b::Mxpr) = mxpr(:Plus,a,b)
+# +(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
+# +(a::Mxpr,b) = mxpr(:Plus,a,b)
+# +(a,b::Mxpr) = mxpr(:Plus,a,b)
 
--(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
-^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
-^(base::Mxpr,expt) = mxpr(:Power,base,expt)
+# -(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
+# ^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
+# ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 
-/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+# /(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))

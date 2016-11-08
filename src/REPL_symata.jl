@@ -79,6 +79,14 @@ function populate_builtins()
     nothing
 end
 
+function add_completion_symbols(syms...)
+    for sym in syms
+        push!(sorted_builtins,sym)
+    end
+    sort!(sorted_builtins)
+    nothing
+end
+
 function complete_symata_builtins(s::AbstractString)
     r = searchsorted(sorted_builtins, s)
     i = first(r)
