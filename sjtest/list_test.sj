@@ -231,4 +231,24 @@ T TakeDrop(Range(10),[3,6]) == [Take(Range(10),[3,6]), Drop(Range(10),[3,6])]
 
 T Split([a,a, b,b,b,b,c,c,c,c]) == [[a,a],[b,b,b,b],[c,c,c,c]]
 
-ClearAll(a,b,c,d,e,f,expr)
+### Partition
+
+ClearAll(a,b,c,d,e,f,expr,unflatten,lst,ftest)
+
+# Convert a flat list into an array with dimensions d = [n1,n2,...]
+ftest(x_) :=  IntegerQ(x) && Positive(x)
+unflatten(e_, [d__:?(ftest)]) :=  Condition(
+           Fold(Partition, e, 
+             Take([d], [-1, 2, -1])), (Length(e) == Times(d)) == True)
+lst = [a,b,c,d,e,f]
+
+# Note: Length(e) == Times(d) fails if BigIntInput(True)
+# FIXME: d__:?(ftest) does not correctly apply the test
+
+T unflatten(lst , [2,3])  == [[a,b,c],[d,e,f]]
+T unflatten(lst , [3,2])  == [[a,b],[c,d],[e,f]]
+T Head(unflatten(lst , [3,3])) == unflatten
+
+T Dimensions(unflatten(Range(Apply(Times,[8,9,10])), [8,9,10])) == [8,9,10]
+
+#ClearAll(a,b,c,d,e,f,expr,unflatten,lst,ftest)

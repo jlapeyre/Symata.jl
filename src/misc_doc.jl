@@ -1,5 +1,6 @@
 ## Documentation not attached to an Symata Head with apprules
 
+# FIXME: All means other things as well
 @sjdoc All """
    All
 
@@ -65,4 +66,3 @@ Unicode characters may be input at the Symata REPL just as they are in Julia. Eg
 """
 
 @sjseealso_group(ReturnSymPy,ToSymPy,ToSymata,ShowSymPyDocs)
-

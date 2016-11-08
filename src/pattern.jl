@@ -227,6 +227,8 @@ function apply_test(ex,test)
     false
 end
 
+## FIXME, apply tests to each match for patterns with BlankSequence
+## How ? Carry a test in type m ? and set it to Null when not in use ?
 function ematch(pat::Mxpr{:PatternTest}, m::Match)
     ex = m.ex
     captures = m.capt

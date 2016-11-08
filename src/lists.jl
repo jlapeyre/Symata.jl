@@ -578,3 +578,40 @@ splits `lst` into runs of identical elements.
     push!(a0,MList(a1))
     MList(a0)
 end
+
+### Partition
+
+@sjdoc Partition """
+    Partition(list,n)
+
+partitions `list` into lists of `n` elements.
+
+    Partition(list,n,m)
+
+partitions `list` into lists of `n` elements with offset `m`.
+
+`Partition(list,n)` is equivalent to `Partition(list,n,n)`
+"""
+@mkapprule Partition :nargs => 2:3
+
+@doap Partition(x::Mxpr, n::Integer) = partition(x,n,n)
+@doap Partition(x::Mxpr, n::Integer, m::Integer) = partition(x,n,m)
+
+function partition(x::Mxpr, n, m)
+    m < 1 && symerror("Partition, m must be greater than zero")
+    h = mhead(x)
+    a = margs(x)
+    na = newargs()
+    i = 1
+    while true
+        na1 = newargs(n)
+        if i + n - 1 > length(a) break end
+        for j in 1:n
+            na1[j] = a[i]
+            i += 1
+        end
+        i -= (n - m)
+        push!(na, mxpr(h,na1))
+    end
+    mxpr(h,na)
+end
