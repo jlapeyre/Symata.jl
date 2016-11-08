@@ -79,3 +79,10 @@ a tensor, this is the tensor rank.
 return the depth to which `m` is an array. If `m` is viewed as
 a tensor, this is the tensor rank.
 """
+
+
+@sjdoc Divide """
+    Divide(x,y)
+
+is equivalent to `x * y^(-1)`.
+"""

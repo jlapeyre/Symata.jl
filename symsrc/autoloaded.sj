@@ -97,3 +97,11 @@ Unprotect(UnsameQ)
 UnsameQ(x_,y_) := Not( x === y )
 
 Protect(UnsameQ)
+
+### Divide
+
+Unprotect(Divide)
+
+Divide(x_, y_) := x/y
+
+Protect(Divide)

@@ -41,7 +41,7 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
                  "Cot", "Cosh", "Conjugate", "Sinh","Minus","Abs","Re","Im", "ReIm", "Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
-                 "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma"
+                 "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "Divide"
                  ],
                 [:Listable,:NumericFunction])
 
