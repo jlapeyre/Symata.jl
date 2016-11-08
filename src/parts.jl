@@ -64,6 +64,8 @@ end
 
 #### getpart
 
+# TODO: implement :All in expressions like a[All,2]
+
 """
      getpart(mx::Mxpr,ind1::Integer,ind2::Integer,...)
 

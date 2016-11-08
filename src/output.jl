@@ -38,7 +38,7 @@ const LISTR = ']'
 # This is faster than looking in the dict for I
 Istring() =  using_unicode_output() ? "𝕚" : "I"
 
-# We could probably replace all instances of mtosjym below with this.
+# We could probably replace all instances of mtojsym below with this.
 # It depends on which positions unicode symbols may occur.
 function outsym(s)
     haskey(unicode_output, s) && using_unicode_output() && return unicode_output[s]

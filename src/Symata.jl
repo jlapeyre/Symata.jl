@@ -8,6 +8,10 @@ import Compat.view
 
 import Base: /, *, +, -, ^, setindex!, getindex, replace
 
+# These are of general use
+export @sym, doeval
+export mmul, mplus, mpow, mabs, symatamath
+
 # For development
 function devimport()
     eval(Main, parse("""
@@ -16,9 +20,7 @@ import Symata: @ex, @testex, symval, symname, setsymval, @aex, meval, doeval, in
 """))
 end
 
-export devimport, @ex
-
-export mmul, mplus, mpow, mabs
+export devimport
 
 # For IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
@@ -33,7 +35,6 @@ include("level_specification.jl")
 include("sequence_specification.jl")
 include("sjiterator.jl")
 include("sortpattern.jl")
-include("julia_level_math.jl")
 include("AST_translation_tables.jl")
 include("julia_level.jl")
 include("arithmetic.jl")

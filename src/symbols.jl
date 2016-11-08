@@ -249,6 +249,7 @@ function setdelayed(mx::Mxpr{:SetDelayed},lhs::SJSymbol, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)   # Using this works just as well. But, for printing, we don't whether Set or SetDelayed
     setdefinition(lhs, mx)
+    add_completion_symbols(string(lhs))
     Null
 end
 
@@ -257,6 +258,7 @@ function do_Set(mx::Mxpr{:Set},lhs::SJSymbol, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
     setdefinition(lhs, mx)
+    add_completion_symbols(string(lhs))
     rhs
 end
 
