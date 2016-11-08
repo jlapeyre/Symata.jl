@@ -88,6 +88,30 @@ macro ex(ex)   # use this macro from the julia prompt
     :(($(esc(mx))))
 end
 
+
+# The same macro, but we export it for users
+
+"""
+    @sym expr
+
+Embed symata expression `expr` in Julia code.
+
+Read and evaluate `expr` embedded in Julia code.
+
+```
+julia> a = 1       # Julia symbol `a`
+julia> @sym a = 2  # Symata symbol
+julia> a
+1
+julia> @sym a
+2
+```
+"""
+macro sym(ex)   # use this macro from the julia prompt
+    mx = exfunc(ex)
+    :(($(esc(mx))))
+end
+
 # Simply evaluate. Do not print "Out", or count things, etc.
 
 """
