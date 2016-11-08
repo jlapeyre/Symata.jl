@@ -112,7 +112,7 @@ set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","ArrayDepth","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
-                  "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison",
+                  "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison", "CompiledFunction",
                   "Complex","Complexes","ComplexInfinity","ConditionalExpression", "ConstantArray","ConstantQ",
                   "Depth","DirtyQ","Dump","Evaluate","Example","Except","ExpToTrig","Expand","ExpandA",
                   "Factor","FactorInteger","FixedQ","Flat","FullForm",

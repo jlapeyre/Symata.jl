@@ -1,3 +1,4 @@
+## TODO: move this code somewhere more appropriate
 function Base.convert(::Type{AbstractFloat}, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 1
         margs(mx)[1] == 1 && return Inf
@@ -35,8 +36,9 @@ NIntegrate returns `[result, err]`.
 quadgklist(f,args) = mxprcf(:List, quadgk(f, map( x -> float(doeval(x)), args)...)...)
 
 @doap function NIntegrate(expr, range::Mxpr{:List})
+    r = margs(range)
+    (sym,x0,x1) = length(r) == 3 ? (r...) : length(r) == 2 ? (:x,r...) : symerror(range, " is not a valid integration ranges")
     f = doeval(expr)
-    isa(f,Function) && return quadgklist(f, margs(range))
-    (sym,x0,x1) = (margs(range)...)
+    isa(f,Function) && return quadgklist(f,(x0,x1))
     quadgklist(expression_to_julia_function(sym,expr), (x0,x1))
 end

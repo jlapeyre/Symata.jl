@@ -94,11 +94,29 @@ return the `Head` of `expr`.
 @doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
 @doap Head(ex) = typeof(ex)
 
+## `Function` is the head of Symata pure functions. So we use a different head for Julia functions
 # Unclear what to do here.
 # typeof( (x) -> x) in
 # Julia v0.4 : Function
 # Julia v0.5 and later : a hash key or something
-@doap Head{T<:Function}(f::T) = :Function
+
+@sjdoc CompiledFunction """
+    CompiledFunction
+
+is the head of compiled functions.
+
+Compiled functions can be written directly in the host language, Julia.
+```
+f = :( x -> x^2 )
+```
+
+They may also be compiled from Symata expressions
+
+```
+f = Compile([x], x^2)
+```
+"""
+@doap Head{T<:Function}(f::T) = :CompiledFunction
 
 ### Isa
 
@@ -107,7 +125,6 @@ return the `Head` of `expr`.
 
 return `True` if `x` is of type `type`.
 """
-
 @mkapprule Isa
 
 @doap function Isa(x,T::DataType)

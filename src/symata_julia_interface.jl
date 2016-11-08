@@ -215,12 +215,26 @@ symata> f(3,4)
         25
 ```
 
-Compile works by creating an anonymous Julia function from the Symata expression `expr`. The function
-signature is the sorted list of free symbols found in `expr`. Free symbols are all symbols found excluding
-function names in the translated expression and symbols that are bound in the Symata module scope. This
-excludes `e`, for instance.
-"""
+Compile works by creating an anonymous Julia function from the Symata expression `expr`. This anonymous
+function is just-in-time compiled for the arguments that it is called with.
+If no arguments are specified, then the function signature is the sorted list of free symbols found in `expr`. Free symbols are all symbols
+that are not bound in the Julia. More precisely, in the Symata module scope. This
+excludes `e`, for instance. Alternatively, the arguments may be specified, for example `Compile( [x,y], expr)`.
 
+By default `expr` is not evaluated. This works for literal expressions, such as `x^2`. If the expression must be evaluated, wrap it
+in `Evaluate`. For example
+
+```
+symata 1> expr = x^2 + y^3
+Out(1) = x^2 + y^3
+
+symata 2> f = Compile(Evaluate(expr))
+Out(2) = (::#1) (generic function with 1 method)
+
+symata 3> f(2,3)
+Out(3) = 31
+```
+"""
 @doap Compile(a::Mxpr{:List}, body ) = eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
 
 @doap function Compile(body)

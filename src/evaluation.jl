@@ -64,6 +64,13 @@ end
 
 specify that `expr` should be evaluated even if it appears as an argument protected by `HoldAll`, etc.
 
+Example:
+
+```
+expr = 1 + x^2
+f = Compile(Evaluate(expr))
+```
+
 !!! note
     `Evaluate` is only implemented for `HoldAll`; not `HoldRest`, etc.
 """
@@ -399,7 +406,6 @@ function meval_apply_all_rules(nmx::Mxpr)
 end
 
 # Evaluate arguments of mx, construct and return new Mxpr
-# FIXME: Implement use of Evaluate here.
 function meval_arguments(mx::Mxpr)
     nhead = doeval(mhead(mx))
     local nargs::MxprArgs
