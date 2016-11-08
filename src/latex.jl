@@ -372,9 +372,9 @@ function latex_string(opt, s::WOSymbol)
 end
 
 function latex_string(opt, s::Symbol)
-    ms = mtojsym(s)
+#    ms = mtojsym(s)
+    ms = s
     haskey(symbol_to_latex_table, ms) ? symbol_to_latex_table[ms] : latex_string_mathop(ms)
-#    latex_string_mathop(mtojsym(s))
 end
 
 function latex_string(opt, v::WOBool)
