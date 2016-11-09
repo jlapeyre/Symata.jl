@@ -7,7 +7,7 @@ ClearAll(f,g,h,x)
 # no longer differs from Mma.
 #T f(g)(h)(x) == f(g,h,x)
 
-# 1. Mma has Int64 -> Integer, Float64 -> Real, and only Complex and Rationa.
+# 1. Mma has Int64 -> Integer, Float64 -> Real, and only Complex and Rational.
 # 2. Complex{Int64} is not valid Symata.
 # Map(Head, [f,2,Pi,3.14,"abc",2/3,1+I]) == [Symbol,Int64,Symbol,Float64,String,Rational{Int64},Complex{Int64}]
 
