@@ -63,7 +63,7 @@ set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
 # This is not quite what Mma has for these. I don't understand why. Eg. CosIntegral is not a NumericFunction
 # Many are not Listable in the docs, although they are in practice.
-set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS",
+set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS", "MittagLefflerE",
                  "HarmonicNumber", "BellB", "InverseErf", "Log"],
                 [:Listable,:NumericFunction,:ReadProtected])
 

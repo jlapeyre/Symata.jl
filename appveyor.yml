@@ -23,13 +23,13 @@ environment:
 
 # Nightlies
     
-  # - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
-  #   PYTHONDIR: "use_conda"
-  #   PYTHON: "use_conda"
+  - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
+    PYTHONDIR: "use_conda"
+    PYTHON: "use_conda"
     
-  # - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
-  #   PYTHONDIR: "use_conda"
-  #   PYTHON: "use_conda"
+  - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
+    PYTHONDIR: "use_conda"
+    PYTHON: "use_conda"
 
 branches:
   only:

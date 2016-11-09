@@ -1115,6 +1115,7 @@ give the sum of elements in `list`
 ### CosPi, SinPi
 
 ## for non-float arguments
+## Not sure it is good to do this: N(CosPi(100)) will be less accurate than CosPi(N(100))
 @doap CosPi(x) = mxpr(:Cos, mmul(x,Pi))
 @doap SinPi(x) = mxpr(:Sin, mmul(x,Pi))
 
@@ -1131,3 +1132,15 @@ floating point `x`.
 returns `sin(π x)`. This is more accurate than `Sin(Pi*x)` for
 floating point `x`.
 """
+
+### MittagLefflerE
+
+# @sjdoc MittagLefflerE """
+#     MittagLeffler(α,β,z)
+
+#     MittagLeffler(α,z)
+
+# represents the Mittag-Leffler function.
+# """
+
+# @mkapprule MittagLefflerE
