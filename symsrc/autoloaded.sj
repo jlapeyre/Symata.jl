@@ -105,3 +105,29 @@ Unprotect(Divide)
 Divide(x_, y_) := x/y
 
 Protect(Divide)
+
+### ListCorrelate
+
+Unprotect(ListCorrelate)
+
+# FIXME: zzz can apparently collide with a global symbol. But, maybe not if it is in the Module list
+ListCorrelate(ker_List, list_List) := Module([pl,zzz],
+                                    (
+                                     pl = Partition(list, Length(ker), 1),
+                                     Map( Function(zzz, Dot(ker,zzz)), pl)))
+
+Protect(ListCorrelate)
+
+
+### ListConvolve
+
+Unprotect(ListConvolve)
+
+ListConvolve(ker_List, list_List) := Module([pl,zzz,rker],
+                                    (
+                                     pl = Partition(list, Length(ker), 1),
+                                     rker = Reverse(ker),
+                                     Map( Function(zzz, Dot(rker,zzz)), pl)))
+
+Protect(ListConvolve)
+

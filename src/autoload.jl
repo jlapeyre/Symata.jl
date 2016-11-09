@@ -34,8 +34,10 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :UnsameQ, :Divide)
+addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :UnsameQ, :Divide, :ListCorrelate, :ListConvolve)
 
 # we need to do this for some reason (it is done for others in docautoloaded.jl
 protect(:UnsameQ)
+protect(:ListCorrelate)
+protect(:ListConvolve)
 
