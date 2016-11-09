@@ -38,7 +38,7 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
                  ],:ReadProtected)
 
 # We kinda need Exp, see the apprules.
-set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan",
+set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "SinPi",
                  "Cot", "Cosh", "Conjugate", "Sinh","Minus","Abs","Re","Im", "ReIm", "Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
                  "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "Divide"

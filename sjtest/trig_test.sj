@@ -14,6 +14,12 @@ T Cos(Pi/2) == 0
 T Cos(3*Pi/2) == 0
 T Cos(Pi/3) == 1/2
 
+T CosPi(1/3) == 1/2
+T Abs(CosPi(1/3.0) - N(1/2)) < 10.0^(-10)
+
+T SinPi(1/3) == Sin(Pi/3)
+T Abs(SinPi(1/3.0) - :(sinpi(1/3.0))) < 10.0^(-10)
+
 T Cos(0) == 1
 T Cos(I*a) == Cosh(a)
 
@@ -39,5 +45,6 @@ T ACosh(1/2) == Pi*I/3
 T D(Cosh(x),x) == Sinh(x)
 T D(Cosh(x),[x,4]) == Cosh(x)
 T Integrate(Cosh(x),x) == Sinh(x)
+
 
  ClearAll(x)

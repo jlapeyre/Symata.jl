@@ -52,7 +52,9 @@ The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `
     symjlength(u) == 0 || symjlength(v) == 0 && return mx
     vv = vectorq(v)
     if vectorq(u) && vv
+        # Using MPlus is much faster than mplus. This means mplus should be implemented differently
         return  MPlus( [mmul(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
+#        return  mplus( [mmul(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
     end
     mqu = matrixq(u)
     if mqu && vv && symjlength(u[1]) == symjlength(v)

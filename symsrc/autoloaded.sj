@@ -106,6 +106,8 @@ Divide(x_, y_) := x/y
 
 Protect(Divide)
 
+## ListCorrelate and ListConvolve are ok here for symbolic elements. For numeric, they are very slow
+
 ### ListCorrelate
 
 Unprotect(ListCorrelate)

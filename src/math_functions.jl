@@ -1084,7 +1084,7 @@ gives the `n^{th}` Bell polynomial, `B_n(x)`.
     BellB(n, k, [x1, x2, ... x_{n-k+1}])
 """
 
-#### Identity
+### Identity
 
 @sjdoc Identity """
     Identity(expr)
@@ -1097,7 +1097,7 @@ return `expr`.
 @doap Identity(x) = x
 
 
-#### Total
+### Total
 
 @mkapprule Total
 
@@ -1111,3 +1111,23 @@ give the sum of elements in `list`
 
 # We could try some things to speed this up... check that all elements are numbers ?
 @doap Total(x::Mxpr{:List}) = mxpr(:Plus,margs(x))
+
+### CosPi, SinPi
+
+## for non-float arguments
+@doap CosPi(x) = mxpr(:Cos, mmul(x,Pi))
+@doap SinPi(x) = mxpr(:Sin, mmul(x,Pi))
+
+@sjdoc CosPi """
+    CosPi(x)
+
+returns `cos(π x)`. This is more accurate than `Cos(Pi*x)` for
+floating point `x`.
+"""
+
+@sjdoc SinPi """
+    SinPi(x)
+
+returns `sin(π x)`. This is more accurate than `Sin(Pi*x)` for
+floating point `x`.
+"""
