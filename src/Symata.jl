@@ -12,7 +12,7 @@ import Base: /, *, +, -, ^, setindex!, getindex, replace
 # Need to export @ex until we can track down all uses and remove them.
 # Prefer @sym
 export @sym, doeval, @ex
-export mmul, mplus, mpow, mabs, symatamath
+export mmul, mplus, mpow, mabs, mminus, symatamath
 
 # For development
 function devimport()
@@ -76,6 +76,7 @@ include("strings.jl")
 include("wrappers.jl")
 include("keyword_translation.jl")
 include("sympy.jl")
+include("mittleff.jl")
 include("math_functions.jl")
 include("sympy_application.jl")
 include("matrix.jl")

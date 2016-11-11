@@ -26,7 +26,7 @@ set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 set_pattributes(["Timing","Allocated","SetDelayed","UpSetDelayed"], [:HoldAll,:SequenceHold])
 
 set_pattributes(["Pi","E"],[:ReadProtected,:Constant])
-set_pattributes(["EulerGamma", "GoldenRatio"],[:Constant])
+set_pattributes(["EulerGamma", "GoldenRatio", "Catalan"],[:Constant])
 
 set_pattributes("I", [:ReadProtected,:Locked]) # Careful with this. We mostly use julia symbol :I bound to complex(0,1)
 
@@ -41,7 +41,8 @@ set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
 set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "SinPi",
                  "Cot", "Cosh", "Conjugate", "Sinh","Minus","Abs","Re","Im", "ReIm", "Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
-                 "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "Divide"
+                 "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "Divide",
+                 "DirichletEta", "PolyLog"
                  ],
                 [:Listable,:NumericFunction])
 

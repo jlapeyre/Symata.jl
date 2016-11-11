@@ -5,7 +5,7 @@
 @mkapprule SetPrecision :nargs => 1
 
 @sjdoc SetPrecision """
-    SetPrecison(n) 
+    SetPrecison(n)
 
 set the precsion of BigFloat numbers to `n` decimal digits. If `N` does not give the result you
 want, you can use `SetPrecision`.
@@ -96,7 +96,8 @@ end
          (:airyai,:AiryAi,:airyai),
          (:airybi,:AiryBi,:airybi),(:airyaiprime,:AiryAiPrime,:airyaiprime),(:airybiprime,:AiryBiPrime,:airybiprime),
          (:besselj0,:BesselJ0),(:besselj1,:BesselJ1),(:bessely0,:BesselY0),(:bessely1,:BesselY1),
-         (:eta,:DirichletEta,:dirichlet_eta), (:zeta,:Zeta,:zeta)
+         (:zeta,:Zeta,:zeta)
+#         (:eta,:DirichletEta,:dirichlet_eta)
          ]
 
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
@@ -179,7 +180,8 @@ const no_julia_function_one_or_two_int = [ (:HarmonicNumber, :harmonic) , (:Elli
 const no_julia_function_two_args = [(:LegendreP, :legendre_poly), (:EllipticF, :elliptic_f),
                                     (:ChebyshevT, :chebyshevt), (:ChebyshevU, :chebyshevu),
                                     (:Cyclotomic, :cyclotomic_poly), (:SwinnertonDyer, :swinnerton_dyer_poly),
-                                    (:PolyLog, :polylog), (:SphericalBesselJ, :jn), (:SphericalBesselY, :yn), (:DivisorSigma, :divisor_sigma)
+                                    (:SphericalBesselJ, :jn), (:SphericalBesselY, :yn), (:DivisorSigma, :divisor_sigma)
+#                                    (:PolyLog, :polylog), (:SphericalBesselJ, :jn), (:SphericalBesselY, :yn), (:DivisorSigma, :divisor_sigma)
                                     ]
 
 const no_julia_function_two_or_three_args = [ (:EllipticPi, :elliptic_pi), (:LaguerreL, :laguerre_poly)]
@@ -486,7 +488,7 @@ register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
 #### IntegerDigits
 
 @sjdoc IntegerDigits """
-    IntegerDigits(n,[, base][, pad]) 
+    IntegerDigits(n,[, base][, pad])
 
 return an array of the digits of `n` in the given `base`,
 optionally padded with zeros to `pad` characters.
@@ -528,11 +530,11 @@ do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 # do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
 
 @sjdoc N """
-    N(expr) 
+    N(expr)
 
 try to give a the numerical value of `expr`.
 
-    N(expr,p) 
+    N(expr,p)
 
 try to give `p` decimal digits of precision.
 
@@ -631,7 +633,7 @@ make_Mxpr_N()
 
 
 @sjdoc GoldenRatio """
-    GoldenRatio 
+    GoldenRatio
 
 equal to `(1+Sqrt(5))/2`.
 """
@@ -648,7 +650,9 @@ function do_N(s::SJSym)
         return float(eulergamma)
     elseif s == :GoldenRatio
         return float(golden)
-    end    
+    elseif s == :Catalan
+        return float(catalan)
+    end
     return s
 end
 
@@ -661,7 +665,9 @@ function do_N{T<:Integer}(s::SJSym,pr::T)
         return float_with_precision(eulergamma,pr)
     elseif s == :GoldenRatio
         return float_with_precision(golden,pr)
-    end    
+    elseif s == :Catalan
+        return float_with_precision(catalan,pr)
+    end
     return s
 end
 
@@ -1055,7 +1061,7 @@ rewrite some multi-parameter special functions using simpler functions.
 """
 
 @sjdoc I """
-    I    
+    I
 
 the imaginary unit.
 """
@@ -1135,12 +1141,118 @@ floating point `x`.
 
 ### MittagLefflerE
 
-# @sjdoc MittagLefflerE """
-#     MittagLeffler(α,β,z)
+@sjdoc MittagLefflerE """
+    MittagLeffler(α,β,z)
 
-#     MittagLeffler(α,z)
+    MittagLeffler(α,z)
 
-# represents the Mittag-Leffler function.
-# """
+represents the Mittag-Leffler function.
+"""
 
-# @mkapprule MittagLefflerE
+# FIXME: needs fixing and testing. correct routines are not always called.
+@mkapprule MittagLefflerE
+
+@doap MittagLefflerE(α,z) = mittagleffler(mx,α,z)
+
+function mittagleffler(mx,α,z)
+    α == 1//2 && return Exp(mpow(z,2)) * Erfc(mminus(z))
+    α == 0 && return mpow(mminus(1,z),-1)
+    α == 1 && return Exp(z)
+    α == 2 && return Cosh(Sqrt(z))
+    α == 3 && return (1//3)*Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3))
+    α == 4 && return (1//2)* ( Cosh(mpow(z,1//4)) + Cos(mpow(z,1//4)))
+    mx
+end
+
+@doap function MittagLefflerE(α,β::Integer,z)
+    β == 1 && return mxpr(:MittagLefflerE,α,z)
+    z == 0 && return 1/Gamma(β)
+    mx
+end
+
+@doap MittagLefflerE(α::Number,β::Number,z::Number) = _MittagLeffler(mx,promote(α,β,z)...)
+@doap MittagLefflerE(α::Number,β::Integer,z::Number) = _MittagLeffler(mx,promote(α,β,z)...)
+_MittagLeffler(mx,α::AbstractFloat,β::AbstractFloat,z::AbstractFloat) = MittLeff.mittleff(α,β,z)
+_MittagLeffler(mx,α,β,z) = mx
+
+@doap MittagLefflerE(α::Number,z::Number) = _MittagLeffler(mx,promote(α,z)...)
+_MittagLeffler(mx,α::AbstractFloat,z::AbstractFloat) = MittLeff.mittleff(α,z)
+_MittagLeffler(mx,α,z) = mittagleffler(mx,α,z)
+
+
+### DirichletEta
+
+## Note: sympy does not automatically transform eta to a function of zeta.
+## However, Mma transforms it immediately
+## However, if we do ex = DirichletEta(s) and then substitute 1 for s, we get indeterminate.
+## So, one could argue for only converting DirichletEta(s) explicitly
+
+@sjdoc DirichletEta """
+    DirichletEta(s)
+
+is the Dirichlet eta function.
+"""
+
+@mkapprule DirichletEta  :nargs => 1
+@doap DirichletEta(x::FloatRC) = eta(x)
+@doap DirichletEta(x::Number) = x == 1 ? Log(2) : (1-mpow(2,(1-x)))*Zeta(x)
+@doap DirichletEta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
+
+
+### PolyLog
+
+@mkapprule PolyLog :nargs => 2
+
+@doap PolyLog(s, z) = _polylog(mx,s,z)
+
+_polyzero(z) = mmul(z , mpow(mminus(1,z),-1))
+
+function _polylog(mx,s::Integer,z)
+    s == 1 && return -Log(mminus(1,z))
+    s == 0 && return _polyzero(z)
+    if s < 0
+        u = gensym()
+        r = _polyzero(u)
+        for i in 1:(-s)
+            r = doeval(mxpr(:Factor, u*mxpr(:D,r,u)))
+        end
+        return replaceall(r, mxpr(:Rule, u, z))
+    end
+    if z == 1//2
+        if s == 2
+            return (mpow(Pi,2) - 6*(mpow(Log(2),2)))/12
+        elseif s == 3
+            return (4*Log(2)^3  - 2*mpow(Pi,2)*Log(2) + 21*Zeta(3))/24
+        end
+    end
+    if s == 2
+        z == Complex(0,1) && return mmul(I,:Catalan) - mmul(Pi,Pi)/48
+        z == Complex(0,-1) && return -mmul(I,:Catalan) - mmul(Pi,Pi)/48
+    end
+    _polylog1(mx,s,z)
+end
+
+_polylog(mx,s,z) = _polylog1(mx,s,z)
+
+function _polylog1(mx,s,z::Integer)
+    z == 1 && return Zeta(s)
+    z == -1 && return -DirichletEta(s)
+    _polylog2(mx,s,z)
+end
+
+_polylog1(mx,s,z) = _polylog2(mx,s,z)
+
+function _polylog2(mx,s1::Number,z1::Number)
+    (s,z) = promote(s1,z1)
+    polylognum(mx,s,z)
+end
+
+_polylog2(mx,s,z) = mx
+
+polylognum(mx,s::FloatRC,z::FloatRC) = sympy[:polylog](s,z) |> pytosj
+polylognum(mx,s,z) = mx
+
+### ExpPolar
+
+@mkapprule ExpPolar
+@doap ExpPolar(x) = Exp(x)

@@ -615,3 +615,29 @@ function partition(x::Mxpr, n, m)
     end
     mxpr(h,na)
 end
+
+### Riffle
+
+@mkapprule Riffle
+
+## TODO: implement all features. document
+@doap function Riffle(x::Mxpr{:List},ex)
+    nargs = newargs()
+    for i in 1:length(x)
+        push!(nargs,x[i])
+        push!(nargs,ex)  # need copy
+    end
+    MList(nargs)
+end
+
+@doap function Riffle(x::Mxpr{:List},ex::Mxpr{:List})
+    nargs = newargs()
+    j = 1
+    n = length(ex)
+    for i in 1:length(x)
+        push!(nargs,x[i])
+        push!(nargs,ex[j])
+        j = j >= n ? 1 : j + 1
+    end
+    MList(nargs)
+end

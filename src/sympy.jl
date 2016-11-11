@@ -192,7 +192,7 @@ function make_sympy_to_symata()
                       (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
-                      (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),
+                      (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),(:DirichletEta, :dirichlet_eta),(:PolyLog, :polylog),
                       (:Conjugate, :conjugate)
                       ]
 

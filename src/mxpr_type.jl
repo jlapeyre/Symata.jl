@@ -1,5 +1,10 @@
 typealias SJSymbol Union{SJSym,Qsym}
 
+# This is T in Mxpr{T} for any Head that is not a Symbol
+# We have duplicate information about the Head in a field, as well.
+type GenHead
+end
+
 # We have a choice to carry the symbol name in the type parameter or a a field,
 # in which case the value of the symbol is typed
 # Form of these functions depend on whether the symbol name is a type parameter
@@ -149,7 +154,10 @@ function set_downvalue(mx::Mxpr, s::SJSymbol, val)
     set_downvalue(mx, getssym(s), val)
 end
 
-function set_downvalue(mx::Mxpr, s::SSJSym, val)
+# TODO: fix this. necessary for Derivative
+#typealias SS Union{SSJSym,Mxpr{GenHead}}
+typealias SS SSJSym
+function set_downvalue(mx::Mxpr, s::SS, val)
 #    s = getssym(ins)
     dvs = s.downvalues
     isnewrule = true
@@ -190,12 +198,15 @@ function jlistdownvaluedefs(sym::SJSymbol)
     for i in 1:length(dvs)
         lhs = dvs[i][1]
         mx = get_downvalue_def(lhs)
-        mx != NullMxpr && push!(dvlist, get_downvalue_def(lhs))
+#        mx != NullMxpr && push!(dvlist, get_downvalue_def(lhs))  # delete this prbly
+        mx != NullMxpr && push!(dvlist, mx)
     end
     dvlist
 end
 
+# FIXME: storing and printing definition is partly broken here.
 function set_upvalue(mx, ins::SJSym,val)
+#    println("set upvalue ", mx, " ins $ins , val ", val)
     s = getssym(ins)
     uv = s.upvalues
     isnewrule = true
@@ -207,7 +218,9 @@ function set_upvalue(mx, ins::SJSym,val)
         end
     end
     isnewrule && push!(s.upvalues,val)
+#    println("Setting val[1] ", val[1], ", and mx ",mx)
     set_upvalue_def(val[1], mx)
+#    set_upvalue_def(ins, mx)
     # How to sort upvalues ?
     s.age = increvalage()
 end
@@ -491,12 +504,6 @@ end
     setage(mx)
     mx
 end
-
-# This is T in Mxpr{T} for any Head that is not a Symbol
-# We have duplicate information about the Head in a field, as well.
-type GenHead
-end
-
 
 # New method May 2016. We do want to use Mxpr's as heads
 # We disable this for now. A number of expressions are interpreted incorrectly this way.
@@ -801,4 +808,8 @@ typealias ExpNoCanon Union{SJSym,Number}
 # used in flatten.jl
 typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
 
+# TODO: change this so we can define julia function List
 typealias List Mxpr{:List}
+
+## For many jula functions that take real or complex floating point args.
+typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat}}

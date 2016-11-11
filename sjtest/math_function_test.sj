@@ -1,3 +1,26 @@
+### DirichletEta
+
+## At present, we follow Mma with this, but may want to hold this unevaluated
+T DirichletEta(s) == (1 - (2^(1 - s)))*Zeta(s)
+T DirichletEta(1) == Log(2)
+T DirichletEta(3) == (3/4)*Zeta(3)
+T Abs(DirichletEta(3.0) - 0.9015426773696964) < 10^(-10)
+
+### PolyLog
+
+T Head(PolyLog(x,y)) == PolyLog
+T Head(PolyLog(3,2)) == PolyLog
+T Isa(PolyLog(3,2.0),Number)
+T Isa(PolyLog(3.0,2),Number)
+T PolyLog(s,1) == Zeta(s)
+T PolyLog(1,z) == -Log(1-z)
+T PolyLog(s,-1) == -DirichletEta(s)
+T PolyLog(1,-1) == -Log(2)
+T PolyLog(0,z) == z*((1 - z)^(-1))
+T PolyLog(-1,z) == z*((-1 + z)^(-2))
+
+### Abs
+
 T  Abs(-1) == 1
 T  Abs(-2.0) == 2.0
 T  Abs(z^3) == Abs(z)^3

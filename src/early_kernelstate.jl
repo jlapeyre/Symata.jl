@@ -148,7 +148,6 @@ type Evalage
 end
 const evalage = Evalage(0)
 
-# These are probably all inlined anyway
 increvalage() = evalage.t += 1
 getevalage() = evalage.t
 
@@ -174,7 +173,8 @@ delete_downvalue_def(lhs) =  haskey(DOWNVALUEDEFDICT,lhs) ? delete!(DOWNVALUEDEF
 #### Up values
 
 const UPVALUEDEFDICT = Dict{Any,Any}()
-get_upvalue_def(lhs) = getkey(UPVALUEDEFDICT[lhs], lhs, NullMxpr)
+#get_upvalue_def(lhs) = getkey(UPVALUEDEFDICT[lhs], lhs, NullMxpr) # Wrong. below is correct
+get_upvalue_def(lhs) = getkey(UPVALUEDEFDICT, lhs, NullMxpr)
 set_upvalue_def(lhs,rhs) = (UPVALUEDEFDICT[lhs] = rhs)
 delete_upvalue_def(lhs) =  haskey(UPVALUEDEFDICT,lhs) ? delete!(UPVALUEDEFDICT,lhs) : nothing
 

@@ -23,6 +23,12 @@ mplus{T<:Integer,V<:Integer}(x::Rational{T}, y::Rational{V}) = rat_to_int(x+y)
 mplus{T<:Number, V<:Number}(x::T,y::V) = x + y
 mplus(x,y) = mxpr(:Plus, x, y)
 
+mminus(x) = mxpr(:Times,-1,x)
+mminus(x::Number) = -x
+
+mminus(x,y) = mxpr(:Plus, x, mxpr(:Times,-1,y))
+mminus(x::Number,y::Number) = x-y
+
 # mdiv is apparently used in do_Rational, but this should never be used now.
 mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
 mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? res.num : res )
@@ -35,6 +41,12 @@ function mpow(x,y)
 end
 
 _mpow(x::Number, y::Number) =  x^y
+
+function _mpow(x::Irrational, n::Number)
+    n >= 0 && return x^n
+    (x1,n1) = promote(x,n)
+    x1^n1
+end
 
 _mpow(x,y) =  mxpr(:Power, x, y)
 

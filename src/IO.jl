@@ -174,8 +174,11 @@ function maybeprint(io::IO,s)
     false
 end
 
+## FIXME: The correct way is not this way. Instead  Definition(f) does not evaluate to anything.
+## rather displaying the form Definition(f) prints the definitions
 function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, sym::T)
     write_definition(STDOUT,sym)
+    Null
 end
 
 write_definition(sym) = write_definition(STDOUT,sym)
