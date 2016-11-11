@@ -79,7 +79,9 @@ const LLISTR = " \\right] "
 
 latex_needsparen(x) = needsparen(x)
 
-latex_needsparen(mx::Mxpr{:Power}) = symjlength(base(mx)) > 1
+latex_needsparen(mx::Mxpr{:Power}) = _latex_needsparen_power(base(mx),expt(mx))
+_latex_needsparen_power(base,expt) =  symjlength(base) > 1
+_latex_needsparen_power(base::Number,expt) =  base < 0
 
 Ilatexstring() = "\\mathbb{i}"
 Infinitylatexstring() = "\\infty"
