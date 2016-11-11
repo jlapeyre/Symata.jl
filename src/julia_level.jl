@@ -8,7 +8,7 @@
 ## FIXME:  We can't use :List here, because we have defined it as a type as a (useful) convenience for the developer.
 ## We defined it so because Mxpr{:List} is the most common type of Mxpr. We need to resolve this somehow,
 ## probably in favor of using :List here.
-for f in (:Expand, :Factor, :Head, :Take, :Simplify, :Integrate)
+for f in (:Expand, :Factor, :Head, :Take, :Simplify, :Integrate, :DirichletEta)
     @eval ($f)(mx...) = apprules(mxpr($(QuoteNode(f)),mx...))
     @eval export $f
 end
@@ -16,7 +16,7 @@ end
 ## Use Julia inference and dispatch to call numeric functions directly with no overhead when possible.
 ## TODO: Handle two arg functions, etc.
 for f in (:cos, :sin, :abs, :tan, :exp, :log, (:acos, :ArcCos) , (:asin, :ArcSin), (:atan, :ArcTan ),
-          :cot, :cosh, :sinh, :tanh, :sqrt, :erf, :gamma)
+          :cot, :cosh, :sinh, :tanh, :sqrt, :erf, :erfc, :gamma, :zeta)
     local uf
     if isa(f, Tuple)
         uf = f[2]
@@ -98,6 +98,7 @@ end
 +(a,b::Mxpr) = mxpr(:Plus,a,b)
 
 -(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
+-(a::Mxpr) = mxpr(:Times,-1,a)
 ^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 
