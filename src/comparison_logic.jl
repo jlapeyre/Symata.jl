@@ -1,12 +1,17 @@
-## Some tests fail with these. So, they are defined in autoloaded.sj instead.
-## TODO: fix this
-## Also need Equal and Unequal
-# ### Sameq
-# @mkapprule SameQ :nargs => 2
-# @doap SameQ(x,y) = is(x,y)
-# ### UnSameq
-# @mkapprule UnSameQ :nargs => 2
-# @doap UnSameQ(x,y) = ! is(x,y)
+### Sameq
+
+@mkapprule SameQ :nargs => 2
+@doap SameQ(x,y) = sameq(x,y)
+
+### UnSameq
+
+@mkapprule UnsameQ :nargs => 2
+@doap UnsameQ(x,y) = ! sameq(x,y)
+
+sameq(x,y) = x === y
+sameq(x::BigInt,y::BigInt) = x == y 
+sameq(x::BigFloat,y::BigFloat) = x == y
+sameq(x::String,y::String) = x == y
 
 #### And
 

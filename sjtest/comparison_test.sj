@@ -124,6 +124,8 @@ T SameQ(a,a)
 T Not(SameQ(a,b))
 T Not(SameQ(3,3.0))
 T SameQ(3,3)
+# FIXME
+#T SameQ("cat", "cat")
 
 ### Equal
 

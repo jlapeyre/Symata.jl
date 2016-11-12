@@ -92,20 +92,20 @@ Protect(TensorRank)
 
 ### UnsameQ
 
-Unprotect(UnsameQ)
+# Unprotect(UnsameQ)
 
-UnsameQ(x_,y_) := Not(SameQ(x,y))
+# UnsameQ(x_,y_) := Not(SameQ(x,y))
 
-Protect(UnsameQ)
+# Protect(UnsameQ)
 
-### SameQ
+# ### SameQ
 
-Unprotect(SameQ)
+# Unprotect(SameQ)
 
-SameQ(x_,y_) := x === y
-SameQ(x_BigInt,y_BigInt) := x == y
+# SameQ(x_,y_) := x === y
+# SameQ(x_BigInt,y_BigInt) := x == y
 
-Protect(SameQ)
+# Protect(SameQ)
 
 ### Unequal
 
