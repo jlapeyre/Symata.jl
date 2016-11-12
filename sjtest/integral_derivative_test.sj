@@ -1,3 +1,37 @@
+### Sum
+
+T Sum(i^3,[i,1,5]) == Apply(Plus,Table(i^3, [i,5]))
+T Sum(i^3,[i,1,5]) == 225
+T Factor(Sum(i^2,[i,1,n]))  == (1/6)*n*(1 + n)*(1 + 2n)
+  r = Factor(Sum(i^3,[i,1,n]))
+T r == (1/4)*(n^2)*((1 + n)^2)
+T (r ./ (n => 10)) == Sum(i^3,[i,1,10])
+T Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
+T Sum(1/n^2, [n,1,Infinity]) == Pi^2/6
+T Sum( x^n/Factorial(n)^2 , [n,0,Infinity])  == BesselI(0,2(x^(1/2)))
+
+expr = i^2
+T Sum(expr, [i,1,n]) == (i^2)*n
+T Sum(Evaluate(expr), [i,1,n]) == (1/6)*n + (1/2)*(n^2) + (1/3)*(n^3)
+
+# FIXME: infinite loop. Bug is in Symata, not sympy
+# Map(Function(n, Sum(1/i^n,[i,1,Infinity])), [2])
+
+g(n_) := Sum(1/i^n,[i,1,Infinity])
+T Map(g, [2,3,4,5,6]) == [(1/6)*(Pi^2),Zeta(3),(1/90)*(Pi^4),Zeta(5),(1/945)*(Pi^6)]
+
+T Sum((j + i)^(1), [i,1,3], [j,1,i]) == 24
+# Following is returned unevaluated. Bug is in sympy
+# T Sum((j + i)^(-1), [j,1,i], [i,1,3])
+
+r = Sum(x^n, [n,0,Infinity])
+T r == ConditionalExpression(((1 - x)^(-1)),Abs(x) < 1)
+x = 7
+T r == Undefined
+x = 1/2
+T r == 2
+ClearAll(r,x)
+
 ### Integrate
 
  ClearAll(r,y,x)
@@ -129,10 +163,5 @@ T Product(i, [i,1,k], [k,1,n]) == Product(Factorial(k),[k,1,n])
 T Product(1/(1+i), [i,1,n]) == (Pochhammer(2,n))^(-1)
 
 
-#### Sum
-
-T Sum(x^i/Factorial(i), [i,0,Infinity]) == E^x
-T Sum(1/n^2, [n,1,Infinity]) == Pi^2/6
-T Sum( x^n/Factorial(n)^2 , [n,0,Infinity])  == BesselI(0,2(x^(1/2)))
-
- ClearAll(x,s,t,conds,f,i,m,k)
+#ClearAll(x,s,t,conds,f,i,m,k)
+Map(ClearAll, UserSyms())

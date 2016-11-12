@@ -112,7 +112,6 @@ Protect(Divide)
 
 Unprotect(ListCorrelate)
 
-# FIXME: zzz can apparently collide with a global symbol. But, maybe not if it is in the Module list
 ListCorrelate(ker_List, list_List) := Module([pl,zzz],
                                     (
                                      pl = Partition(list, Length(ker), 1),
@@ -133,3 +132,10 @@ ListConvolve(ker_List, list_List) := Module([pl,zzz,rker],
 
 Protect(ListConvolve)
 
+### Accumulate
+
+Unprotect(Accumulate)
+
+Accumulate(list_) := Rest(FoldList(Plus,0,list))
+
+Protect(Accumulate)

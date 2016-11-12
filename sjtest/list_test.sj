@@ -1,3 +1,7 @@
+### Accumulate
+
+T Accumulate([a,b,c]) == [a,a + b,a + b + c]
+
 ### Array
 
 ClearAll(f,g,b,a)

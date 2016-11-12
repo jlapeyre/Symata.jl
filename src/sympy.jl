@@ -89,7 +89,8 @@ function set_pytosj(py,sj)
     SYMPY_TO_SYMATA_FUNCTIONS[spy] = ssj
 end
 
-get_pytosj(py) = SYMPY_TO_SYMATA_FUNCTIONS[py]
+# This is never called. Nov 2016
+# get_pytosj(py) = SYMPY_TO_SYMATA_FUNCTIONS[py]
 
 function set_sjtopy(sj,py)
     spy = Symbol(py)
@@ -132,7 +133,10 @@ const pymx_special_symbol_dict = Dict()
 
 # NOTE: The test suite passes with this dict empty
 # So, we leave it empty until we see something we don't like.
-const py_to_mx_symbol_dict = Dict()
+# Nov 2016. Finally found something to put here...
+const py_to_mx_symbol_dict = Dict(
+                                  :ExprCondPair => :ConditionalExpression
+                                  )
 
 # const py_to_mx_symbol_dict = Dict(
 #                                   :StrictLessThan => :<,
@@ -696,7 +700,7 @@ end
 
 @mkapprule Assume
 
-@sjdoc Assume """n
+@sjdoc Assume """
     Assume(sym,prop1,prop2,...)
 
 sets properties `prop1, prop2,...` for symbols `sym`.

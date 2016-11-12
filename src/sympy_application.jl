@@ -253,11 +253,16 @@ apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
 
 function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
     pymx = sjtopy(expr)
-    pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
+    pyvarspecs = varspecs_to_tuples_of_sympy(reverse(collect(varspecs))) # Symata and Mma use the same convention for position of inner loop
     pysum = sympy[:summation](pymx,pyvarspecs...)
-    return pytosj(pysum)
+    res = pytosj(pysum)
+    if mhead(res) == :Sum
+        summand = res[1]
+        specs = margs(res)[2:end]
+        return mxpr(:Sum,summand,reverse(specs)...)
+    end
+    return is_Mxpr(res,:Piecewise) ? res[1] : res
 end
-
 
 #### Product
 
@@ -608,6 +613,13 @@ end
 ##### ConditionalExpression
 
 # There are several other properties to implement here.
+
+@sjdoc ConditionalExpression """
+    ConditionalExpression(expr,cond)
+
+returns `expr` only when `cond` is true. If `cond` is false,
+return `Undefined`.
+"""
 
 @mkapprule ConditionalExpression :nargs => 2
 @doap ConditionalExpression(expr, cond::Bool) = cond ? expr : Undefined
