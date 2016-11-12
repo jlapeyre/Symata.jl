@@ -13,6 +13,7 @@ T Im(2*a) == 2*Im(a)
 T 1/0 == DirectedInfinity()
 T 1//0 == DirectedInfinity()
 T 1/DirectedInfinity() == 0
+T DirectedInfinity() == ComplexInfinity
 T DirectedInfinity()^(2) == DirectedInfinity()
 T DirectedInfinity()^(-2) == 0
 T DirectedInfinity() * a * 0 == Indeterminate

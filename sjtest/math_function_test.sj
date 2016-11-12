@@ -126,7 +126,10 @@ T Map( Factorial, [-2,-3/2,-1,0,1/2,1,2,3,7/2]) == [-Infinity,-2(Pi^(1/2)),-Infi
 # BigInt below
 T Factorial(21) == 51090942171709440000
 T Factorial(Infinity) == Infinity
-# T Factorial(-Infinity) == Indeterminate
+T Factorial(-Infinity) == Indeterminate
+T Factorial(I*Infinity) == 0
+T Factorial(-I*Infinity) == 0
+T Head(Factorial((I+1)*Infinity)) == Factorial
 
 #### Gamma
 

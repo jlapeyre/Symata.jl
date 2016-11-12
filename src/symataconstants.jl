@@ -12,8 +12,6 @@ const Undefined = :Undefined
 const I = complex(0,1)
 const MinusI = complex(0,-1)
 
-const Pisq = mmul(Pi,Pi)
-
 setsymval(:True, true)
 setsymval(:False, true)
 setsymval(:Infinity, Infinity)
@@ -32,14 +30,26 @@ const _moosq2 = mmul(-1,mpow(2,-1//2))
 ## -1/Sqrt(2)
 const _oosq2 = mpow(2,-1//2)
 
-for s in ( :_moosq2, :_oosq2 )
+## Pi^2
+const Pisq = mmul(Pi,Pi)
+
+## Log(2)
+
+const Log2 = Log(2)
+
+for s in ( :_moosq2, :_oosq2 , :Pisq, :ComplexInfinity, :Infinity, :MinusInfinity, :NullMxpr, :Log2)
     @eval mergesyms($s, :nothing)
     @eval setfixed($s)
     @eval setcanon($s)
 end
 
-setsymval(:BigInt, BigInt)
-setsymval(:BigFloat, BigFloat)
-setsymval(:Float64, Float64)
-setsymval(:Int64, Int64)
-setsymval(:Int, Int)
+for s in ( :BigInt, :BigFloat, :Float64, :Int64, :Int)
+    sq = QuoteNode(s)
+    @eval setsymval($sq,$s)
+end
+
+# setsymval(:BigInt, BigInt)
+# setsymval(:BigFloat, BigFloat)
+# setsymval(:Float64, Float64)
+# setsymval(:Int64, Int64)
+# setsymval(:Int, Int)

@@ -112,10 +112,29 @@ ClearAll(aaa)
 Assume(aaa,Positive)
 T Refine(Abs(aaa)) == aaa
 
-ClearAll(aaa)
+ClearAll(aaa,a)
 
-#### String
+### String
 
 T Not(f(x) == "cat")
 
+### SameQ
+
+T SameQ(a,a)
+T Not(SameQ(a,b))
+T Not(SameQ(3,3.0))
+T SameQ(3,3)
+
+### Equal
+
+# Make sure the following is tested with bigints
+T Equal(3,3)
+T Equal(3,3.0)
+T Head(Equal(x,y)) == Comparison  # Need to fix this
+T Equal(2,bf"2")
+T Equal(2,big"2")
+T Equal(2.0,bf"2")
+T Equal(2.0,big"2")
+
 ClearAll(f,x)
+Apply(ClearAll,UserSyms())

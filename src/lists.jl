@@ -661,3 +661,5 @@ end
     end
     mxpr(mhead(lists[1]),nargs...)
 end
+
+### Tally

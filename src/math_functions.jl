@@ -1188,7 +1188,7 @@ is the Dirichlet eta function.
 @mkapprule DirichletEta  :nargs => 1
 @doap DirichletEta(x::FloatRC) = eta(x)
 @doap DirichletEta(x::Number) = _dirichlet_eta(x)
-@doap DirichletEta(x::Integer) = x == 1 ? Log(2) : _dirichlet_eta(x)
+@doap DirichletEta(x::Integer) = x == 1 ? Log2 : _dirichlet_eta(x)
 @doap DirichletEta(x) = _dirichlet_eta(x)
 _dirichlet_eta(x::Number) = (1-mpow(2,(1-x)))*Zeta(x)
 _dirichlet_eta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
@@ -1221,14 +1221,14 @@ function _polylog(mx,s::Integer,z)
     end
     if z == 1//2
         if s == 2
-            return (mpow(Pi,2) - 6*(mpow(Log(2),2)))/12
+            return (Pisq - 6*(mpow(Log2,2)))/12
         elseif s == 3
-            return (4*Log(2)^3  - 2*mpow(Pi,2)*Log(2) + 21*Zeta(3))/24
+            return (4*Log2^3  - 2*Pisq*Log2 + 21*Zeta(3))/24
         end
     end
     if s == 2
-        z == I && return mmul(I,:Catalan) - mmul(Pi,Pi)/48
-        z == MinusI && return -mmul(I,:Catalan) - mmul(Pi,Pi)/48
+        z == I && return mmul(I,:Catalan) - Pisq/48
+        z == MinusI && return -mmul(I,:Catalan) - Pisq/48
     end
     _polylog1(mx,s,z)
 end
@@ -1272,3 +1272,16 @@ is the factorial function.
 @mkapprule Factorial :nargs => 1
 @doap Factorial(n::SJSym) = mx
 @doap Factorial(n) = sjfactorial(n)
+
+# function sjfactorial(mx::Mxpr{:DirectedInfinity})
+#     _sjfactorial_inf(mx,mx[1])
+# end
+
+_sjfactorial_inf(mx, x, v) = mx
+_sjfactorial_inf(mx,x,v::Real) = v > 0 ? Infinity : Indeterminate
+_sjfactorial_inf(mx,x,v::Complex) = real(v) == 0 ? 0 : mx
+
+@doap function Factorial(x::Mxpr{:DirectedInfinity})
+    length(x) == 0 && return mx
+    _sjfactorial_inf(mx,x,x[1])
+end

@@ -1,3 +1,13 @@
+## Some tests fail with these. So, they are defined in autoloaded.sj instead.
+## TODO: fix this
+## Also need Equal and Unequal
+# ### Sameq
+# @mkapprule SameQ :nargs => 2
+# @doap SameQ(x,y) = is(x,y)
+# ### UnSameq
+# @mkapprule UnSameQ :nargs => 2
+# @doap UnSameQ(x,y) = ! is(x,y)
+
 #### And
 
 function apprules(mx::Mxpr{:And})
@@ -68,7 +78,7 @@ function do_Not(mx::Mxpr{:Not},  ex::Mxpr{:Comparison})
 end
 
 
-#### Comparison
+### Comparison
 
 @sjdoc Comparison """
     Comparison(expr1,c1,expr2,c2,expr3,...)

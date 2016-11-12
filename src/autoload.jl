@@ -34,5 +34,5 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :UnsameQ, :Divide, :ListCorrelate, :ListConvolve,
-             :Accumulate)
+addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :Divide, :ListCorrelate, :ListConvolve,
+             :Accumulate, :SameQ, :UnsameQ, :Equal, :Unequal)

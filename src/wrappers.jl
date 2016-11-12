@@ -70,5 +70,5 @@ end
 
 sjfactorial(n::BigInt) = n < 0 ? MinusInfinity : factorial(n)
 sjfactorial(n::Number) = sjgamma(n+1)
-# Not sure if the following is needed any longer.
+
 sjfactorial(x) = x |> sjtopy |> sympy[:factorial] |> pytosj
