@@ -113,7 +113,9 @@ const single_arg_float_int_complex =
                         ]
 
 # FIXME  Ceiling should probably return integer type. So it can't be included in generic code here (or punt to sympy for everything)
-    const single_arg_float_int = [(:factorial,:Factorial, :factorial),(:signbit,:SignBit), (:ceil, :Ceiling, :ceiling), (:floor, :Floor, :floor)]
+    const single_arg_float_int = [(:signbit,:SignBit), (:ceil, :Ceiling, :ceiling), (:floor, :Floor, :floor)]
+
+#  (:factorial,:Factorial, :factorial), <--- we do this by hand
 
     const single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
                       (:isprime,:PrimeQ)
@@ -436,11 +438,6 @@ make_math()
 
 @mkapprule Gamma :nargs => 1:2
 
-sjgamma{T<:AbstractFloat}(x::T) = gamma(x)
-sjgamma{T<:AbstractFloat}(x::Complex{T}) = gamma(x)
-sjgamma(a) = a |> sjtopy |> sympy_gamma |> pytosj
-sjgamma(a,z) = sympy_gamma(sjtopy(a),sjtopy(z)) |> pytosj
-
 @doap Gamma(a) = sjgamma(a)
 @doap Gamma(a,z) = sjgamma(a,z)
 
@@ -461,11 +458,6 @@ the upper incomplete Gamma function.
 #### Erf
 
 @mkapprule Erf :nargs => 1:2
-
-sjerf{T<:AbstractFloat}(x::T) = erf(x)
-sjerf{T<:AbstractFloat}(x::Complex{T}) = erf(x)
-sjerf(a) = a |> sjtopy |> sympy_erf |> pytosj
-sjerf(a,z) = sympy_erf(sjtopy(a),sjtopy(z)) |> pytosj
 
 @doap Erf(x) = sjerf(x)
 @doap Erf(x,y) = sjerf(x,y)
@@ -1195,8 +1187,11 @@ is the Dirichlet eta function.
 
 @mkapprule DirichletEta  :nargs => 1
 @doap DirichletEta(x::FloatRC) = eta(x)
-@doap DirichletEta(x::Number) = x == 1 ? Log(2) : (1-mpow(2,(1-x)))*Zeta(x)
-@doap DirichletEta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
+@doap DirichletEta(x::Number) = _dirichlet_eta(x)
+@doap DirichletEta(x::Integer) = x == 1 ? Log(2) : _dirichlet_eta(x)
+@doap DirichletEta(x) = _dirichlet_eta(x)
+_dirichlet_eta(x::Number) = (1-mpow(2,(1-x)))*Zeta(x)
+_dirichlet_eta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
 
 
 ### PolyLog
@@ -1254,5 +1249,20 @@ polylognum(mx,s,z) = mx
 
 ### ExpPolar
 
+## sympy returns this sometimes. I am not sure what it is, but it usually just hinders
+## desired evaluation. We could also handle this as a direct translation in sympy.jl.
+## There may be some reason to preserve this.
+
 @mkapprule ExpPolar
 @doap ExpPolar(x) = Exp(x)
+
+### Factorial
+
+@sjdoc Factorial """
+    Factorial(n)
+
+is the factorial function.
+"""
+@mkapprule Factorial :nargs => 1
+@doap Factorial(n::SJSym) = mx
+@doap Factorial(n) = sjfactorial(n)

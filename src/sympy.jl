@@ -186,8 +186,9 @@ function get_sympy_math(x)
     return jf,sjf
 end
 
-# These are used for rewriting in both directions and for calling functions
-# via sympy.symbol
+# These are used for rewriting in both directions and for calling functions via sympy.symbol
+# Functions whose rules are written by hand, ie. that are not handled by
+# the lists single_arg_float_complex, etc. must be entered here.
 function make_sympy_to_symata()
     symbolic_misc = [ (:Order, :Order), (:LaplaceTransform, :laplace_transform),
                       ( :InverseLaplaceTransform, :inverse_laplace_transform ),
@@ -197,7 +198,7 @@ function make_sympy_to_symata()
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
                       (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),(:DirichletEta, :dirichlet_eta),(:PolyLog, :polylog),
-                      (:Conjugate, :conjugate)
+                      (:Conjugate, :conjugate), (:Factorial, :factorial)
                       ]
 
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,

@@ -1,4 +1,13 @@
-# We try some wrapper functions. Maybe we will use more.
+## We try some wrapper functions. Maybe we will use more.
+## The main idea is to try automatically promoting to big integer
+## or complex types. Eg. we want to allow sqrt(-.5), without requiring sqrt(Complex(-.5))
+
+### sjgamma
+
+sjgamma{T<:AbstractFloat}(x::T) = gamma(x)
+sjgamma{T<:AbstractFloat}(x::Complex{T}) = gamma(x)
+sjgamma(a) = a |> sjtopy |> sympy_gamma |> pytosj
+sjgamma(a,z) = sympy_gamma(sjtopy(a),sjtopy(z)) |> pytosj
 
 sympy_gamma(a) = sympy[:gamma](a)
 sympy_gamma(a,z) = sympy[:uppergamma](a,z)
@@ -6,7 +15,14 @@ sympy_gamma(a,z) = sympy[:uppergamma](a,z)
 sympy_erf(x) = sympy[:erf](x)
 sympy_erf(x,y) = sympy[:erf2](x,y)
 
-#### sjlog
+### sjerf
+
+sjerf{T<:AbstractFloat}(x::T) = erf(x)
+sjerf{T<:AbstractFloat}(x::Complex{T}) = erf(x)
+sjerf(a) = a |> sjtopy |> sympy_erf |> pytosj
+sjerf(a,z) = sympy_erf(sjtopy(a),sjtopy(z)) |> pytosj
+
+### sjlog
 
 function sjlog(x::AbstractFloat)
     x <= 0 ? log(complex(x,zero(x))) : log(x)
@@ -43,3 +59,16 @@ function sjlog(b,x)
     sx = sjtopy(x)
     pytosj(sympy[:log](sx,sb))
 end
+
+### sjfactorial
+
+function sjfactorial(n::Int)
+    n < 0 && return -Infinity
+    n < 20 && return factorial(n) # Assumes Int64
+    factorial(big(n))
+end
+
+sjfactorial(n::BigInt) = n < 0 ? -Infinity : factorial(n)
+sjfactorial(n::Number) = sjgamma(n+1)
+# Not sure if the following is needed any longer.
+sjfactorial(x) = x |> sjtopy |> sympy[:factorial] |> pytosj

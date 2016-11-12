@@ -1,3 +1,13 @@
+### Union
+
+## TODO: sorting
+T Head(Union(a)) == Union
+T Union([1,1]) == [1]
+T Union(Range(10)) == Range(10)
+T Union(Range(10),Range(10)) == Range(10)
+T Union([a,b,c],[a],[c,d,e]) == [a,b,c,d,e]
+T Union(f(a, b), f(c, a), f(b, b, a)) == f(a,b,c)
+
 ### Accumulate
 
 T Accumulate([a,b,c]) == [a,a + b,a + b + c]

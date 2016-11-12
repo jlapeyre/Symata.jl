@@ -121,7 +121,12 @@ T Args(Conjugate(Erf(-z))) == [-1,Erf(Conjugate(z))]
 #### Factorial
 
 T CombSimp(Factorial(n)/Factorial(n-3)) == n*(-2 + n)*(-1 + n)
-
+T Head(Factorial(a)) == Factorial
+T Map( Factorial, [-2,-3/2,-1,0,1/2,1,2,3,7/2]) == [-Infinity,-2(Pi^(1/2)),-Infinity,1,(1/2)*(Pi^(1/2)),1,2,6,(105/16)*(Pi^(1/2))]
+# BigInt below
+T Factorial(21) == 51090942171709440000
+T Factorial(Infinity) == Infinity
+# T Factorial(-Infinity) == Indeterminate
 
 #### Gamma
 

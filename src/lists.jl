@@ -641,3 +641,23 @@ end
     end
     MList(nargs)
 end
+
+### Union
+
+@mkapprule Union
+
+@doap function Union(lists::Mxpr...)
+    length(lists) == 0 && return mxpr(:List)
+    seen = Dict{Any,Bool}()
+    nargs = newargs()
+    for list in lists
+        a = margs(list)
+        for x in a
+            if ! haskey(seen,x)
+                push!(nargs,x)
+                seen[x] = true
+            end
+        end
+    end
+    mxpr(mhead(lists[1]),nargs...)
+end
