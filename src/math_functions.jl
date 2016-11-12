@@ -1196,6 +1196,12 @@ _dirichlet_eta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
 
 ### PolyLog
 
+@sjdoc PolyLog """
+    PolyLog(s,z)
+
+is the polylogarithm function.
+"""
+
 @mkapprule PolyLog :nargs => 2
 
 @doap PolyLog(s, z) = _polylog(mx,s,z)
@@ -1221,8 +1227,8 @@ function _polylog(mx,s::Integer,z)
         end
     end
     if s == 2
-        z == Complex(0,1) && return mmul(I,:Catalan) - mmul(Pi,Pi)/48
-        z == Complex(0,-1) && return -mmul(I,:Catalan) - mmul(Pi,Pi)/48
+        z == I && return mmul(I,:Catalan) - mmul(Pi,Pi)/48
+        z == MinusI && return -mmul(I,:Catalan) - mmul(Pi,Pi)/48
     end
     _polylog1(mx,s,z)
 end

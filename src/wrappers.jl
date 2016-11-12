@@ -63,12 +63,12 @@ end
 ### sjfactorial
 
 function sjfactorial(n::Int)
-    n < 0 && return -Infinity
+    n < 0 && return MinusInfinity
     n < 20 && return factorial(n) # Assumes Int64
     factorial(big(n))
 end
 
-sjfactorial(n::BigInt) = n < 0 ? -Infinity : factorial(n)
+sjfactorial(n::BigInt) = n < 0 ? MinusInfinity : factorial(n)
 sjfactorial(n::Number) = sjgamma(n+1)
 # Not sure if the following is needed any longer.
 sjfactorial(x) = x |> sjtopy |> sympy[:factorial] |> pytosj

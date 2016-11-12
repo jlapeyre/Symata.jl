@@ -10,6 +10,9 @@ const Indeterminate = :Indeterminate
 const Undefined = :Undefined
 
 const I = complex(0,1)
+const MinusI = complex(0,-1)
+
+const Pisq = mmul(Pi,Pi)
 
 setsymval(:True, true)
 setsymval(:False, true)
@@ -22,14 +25,18 @@ mergesyms(ComplexInfinity,:nothing)
 ## 1/Sqrt(2) and -1/Sqrt(2)
 # Making these constant does save a bit of time
 # We could do this in an more organized way.
+
+## 1/Sqrt(2)
 const _moosq2 = mmul(-1,mpow(2,-1//2))
+
+## -1/Sqrt(2)
 const _oosq2 = mpow(2,-1//2)
-mergesyms(_moosq2,:nothing)
-mergesyms(_oosq2,:nothing)
-setfixed(_moosq2)
-setcanon(_moosq2)
-setfixed(_oosq2)
-setcanon(_oosq2)
+
+for s in ( :_moosq2, :_oosq2 )
+    @eval mergesyms($s, :nothing)
+    @eval setfixed($s)
+    @eval setcanon($s)
+end
 
 setsymval(:BigInt, BigInt)
 setsymval(:BigFloat, BigFloat)
