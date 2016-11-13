@@ -784,7 +784,6 @@ unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
 
 clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
 
-
 #### typealiases
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
@@ -812,4 +811,5 @@ typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM},
 typealias List Mxpr{:List}
 
 ## For many jula functions that take real or complex floating point args.
-typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat}}
+## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
+typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}

@@ -59,10 +59,15 @@ ClearAll(m)
 
 #### ReleaseHold
 
-T ReleaseHold(Hold()) == Sequence()
-T ReleaseHold(HoldForm()) == Sequence()
-T ReleaseHold(HoldPattern()) == Sequence()
-T ReleaseHold(HoldComplete()) == Sequence()
+## FIXME:
+## These only worked with old Comparison, because they
+## evaluate to Comparison(==) --> True
+## We need to find another way to test this
+# T ReleaseHold(Hold()) == Sequence()
+# T ReleaseHold(HoldForm()) == Sequence()
+# T ReleaseHold(HoldPattern()) == Sequence()
+# T ReleaseHold(HoldComplete()) == Sequence()
+
 T ReleaseHold(Hold(a)) == a
 T List(ReleaseHold(Hold(a,b))) == [a,b]
 T ReleaseHold(f(a,b)) == f(a,b)

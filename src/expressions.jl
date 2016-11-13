@@ -34,9 +34,11 @@ m(f(a,b,c))
 # Why mkapprule does not work ?
 apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
 
+@curry_first Apply
+
 # This allows things like:  Apply(f)([a,b,c])
-do_Apply(mx,f) = mx
-do_Apply(mx,x,y) = mx
+# do_Apply(mx,f) = mx
+# do_Apply(mx,x,y) = mx
 
 function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
     if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
@@ -254,7 +256,6 @@ function do_Map(mx::Mxpr{:Map},f::Function, a::AbstractArray)
     mxpr(:List,nargs)
 end
 
-
 # We create one Mxpr outside the loop. Old
 # code (commented out) created Mxpr every time.
 # This saves 30 percent of time and allocation in some tests.
@@ -268,6 +269,8 @@ function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
     end
     mxpr(mhead(expr),nargs)
 end
+
+@curry_first Map
 
 ### ToExpression
 
@@ -321,16 +324,7 @@ function do_Count(mx,expr,pat)
     return c
 end
 
-# for operator form.
-function do_Count(mx,pat)
-    mx
-end
-
-# operator form of Count
-function do_GenHead(mx,head::Mxpr{:Count})
-    mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
-end
-
+@curry_last Count
 
 ### Cases
 
@@ -435,16 +429,8 @@ end
     _doCases(levelspec,expr,pat)
 end
 
-# for operator form.
-function do_Cases(mx,pat)
-    mx
-end
 
-# operator form of Cases
-function do_GenHead(mx,head::Mxpr{:Cases})
-    mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
-end
-
+@curry_last Cases
 
 ### DeleteCases
 
@@ -479,16 +465,7 @@ For example `noints = DeleteCases(_Integer)`.
     return rmx
 end
 
-# for operator form.
-# Using @doap is not transparent!
-@doap function DeleteCases(pat)
-    mx
-end
-
-# operator form of DeleteCases
-function do_GenHead(mx,head::Mxpr{:DeleteCases})
-    mxpr(mhead(head),sjcopy(margs(mx))...,margs(head)...)
-end
+@curry_last DeleteCases
 
 ### FreeQ
 
@@ -499,11 +476,13 @@ end
 # - `[n1,n2]` levels `n1` through `n2`
 # """
 
-@mkapprule FreeQ :nargs => 2:3
+@mkapprule FreeQ :nargs => 1:3
 
 @doap FreeQ(expr, pattern) = freeq(LevelSpecAll(),expr,pattern)
 
 @doap FreeQ(expr, pattern, inlevelspec)  = freeq(make_level_specification(expr, inlevelspec), expr, pattern)
+
+@curry_second FreeQ
 
 @sjdoc FreeQ """
     FreeQ(expr, pattern)
@@ -517,8 +496,11 @@ return `True` if `expr` does not match `pattern` on levels specified by `levelsp
 - `n`       levels `0` through `n`.
 - `[n]`     level `n` only.
 - `[n1,n2]` levels `n1` through `n2`
-"""
 
+    FreeQ(pattern)
+
+operator form.
+"""
 
 ### Push!
 

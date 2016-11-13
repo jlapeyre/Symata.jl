@@ -20,18 +20,23 @@ T  g(c) == c^2
 ## SetDelay for SJSym
  Clear(a,b,c)
 T a == a
-T Apply(List, a < a) == [a,<,a]
-T Apply(List, a > a) == [a,>,a]
-T Apply(List, a < b) == [a,<,b]
-T Apply(List, a > b) == [a,>,b]
-T  (a == b) != False
-T  (a != b) != True
-T  (a != b) != False
+## FIXME!: from old comparison code
+# T Apply(List, a < a) == [a,<,a]
+# T Apply(List, a > a) == [a,>,a]
+# T Apply(List, a < b) == [a,<,b]
+# T Apply(List, a > b) == [a,>,b]
+
+## Remove these, I think
+# T  (a == b) != False
+# T  (a != b) != True
+# T  (a != b) != False
+T Head(a == b) == Equal
+T Head(a != b) == Unequal
+
 T (1 < 2) == True
 T (1 < 2 < 3) == True
 T (1 < 3 < 2) == False
-# This should perhaps evaluate to  a != b
-T  (a == a != b) != True
+T  Head(a == a != b) == Unequal
 T  (a != a == b) == False
  (a = 1)
  (b = a)

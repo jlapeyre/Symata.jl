@@ -84,6 +84,20 @@ const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :→ => :Function
 )
 
+const comparison_translation = Dict(
+                                    :(==) => :Equal,
+                                    :(!=) => :Unequal,
+                                    :(>) => :Greater,
+                                    :(<) => :Less,
+                                    :(>=) => :GreaterEqual,
+                                    :(<=) => :LessEqual,
+                                    :(===) => :SameQ,
+                                    :(!==) => :UnsameQ
+                                    )
+
+
+const inverse_comparison_translation = Dict((x[2],x[1]) for x in collect(comparison_translation))
+
 # Output. Reverse dict for printing if unicode printing is enabled
 const unicode_output = Dict{Symbol,Symbol}()
 for (k,v) in unicode_translation unicode_output[v] = k end
@@ -98,6 +112,8 @@ merge!(JTOMSYM, JTOMSYM_ONEWAY)
 
 # This is only used for output. (Can't we detect it with the others on input ?)
 MTOJSYM[:Span] = :(:)
+
+merge!(MTOJSYM, inverse_comparison_translation)
 
 function jtomsym(x::Symbol)
     check_autoload(x)  # trigger autoload of Symata language code
@@ -137,7 +153,12 @@ const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
            :Set, :SetDelayed, :UpSet, :(*=), :(+=), :→, :(->), :Function,
-           :TimesBy, :AddTo) # need :Set here
+           :TimesBy, :AddTo,
+           ) # need :Set here
+    OPTYPE[op] = :binary
+end
+
+for op in keys(inverse_comparison_translation)
     OPTYPE[op] = :binary
 end
 

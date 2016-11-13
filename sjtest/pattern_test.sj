@@ -662,6 +662,12 @@ T ! FreeQ([a,f(f(f(3)))], _Integer)
 T FreeQ([a,f(f(f(3)))], _Integer, 3)
 T ! FreeQ([a,f(f(f(3)))], _Integer, 4)
 
+freeint = FreeQ(_Integer)
+
+T Not(freeint([1,2]))
+T freeint([[1,2]],[1])
+T ! freeint([a,f(f(f(3)))], 4)
+
 # Factor out constant
 # No AC matching, although this will work in a few simple cases.
 # f(c_ * x_, x_) := Condition( c * f(x, x) , FreeQ(c, x))
@@ -669,4 +675,4 @@ T ! FreeQ([a,f(f(f(3)))], _Integer, 4)
 # FIXME: Fails. we are not matching heads.
 # Table(FreeQ(Integrate(x^n, x), Log), [n, -5, 5])
 
-ClearAll(f,a,b,c)
+Apply(ClearAll,UserSyms())

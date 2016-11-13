@@ -260,7 +260,7 @@ is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op &
 # is ex a call with len args (including the op) ?
 is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
 
-# is of the form    a op b , where op is <,>, etc.  i.e. thi is  not a chained comparison
+# is of the form    a op b , where op is <,>, etc.  i.e. this is  not a chained comparison
 is_single_comparison(ex::Expr, op::Symbol) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
 
 # We check for :call repeatedly. We can optimize this later.
@@ -296,7 +296,15 @@ rewrite_division(ex::Expr) = Expr(:call, :*, ex.args[2], Expr(:call,:^,ex.args[3
 # not need in julia v0.4, but the parser has changed
 # ==(a,b) --> comparison  a,==,b
 # also,  '<:' is the head in v0.5. We don't yet handle this
-rewrite_to_comparison(ex::Expr) = Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
+#rewrite_to_comparison(ex::Expr) = Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
+
+function rewrite_to_comparison(ex::Expr)
+    op = ex.args[1]
+    if haskey(comparison_translation,op)
+        return Expr(:call, get(comparison_translation,op,:nothing), ex.args[2], ex.args[3])
+    end
+    return  Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
+end
 
 # These symbols are unconditionally translated on input
 # This is almost exactly the Dict unicode_translation. Maybe we can refactor.

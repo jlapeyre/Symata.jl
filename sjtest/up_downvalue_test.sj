@@ -80,7 +80,13 @@ T a^BI(3) == p
 
  ClearAll(a,p)
  a^4.0 ^= p
-T (a^4 == p) != True
+
+## We will follow Mma and not do this:
+#T (a^4 == p) != True
+
+## rather do this
+T Head(a^4 == p) == Equal
+
 T a^BF(4) == p
 T a^4.0 == p
  ClearAll(a,p)

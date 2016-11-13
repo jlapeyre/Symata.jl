@@ -71,7 +71,7 @@ function ExactNumArgsErr_string(head,ngot, nexpected)
     if length(hstr) > 7 && hstr[1:7] == "Symata."   # Strip the package qualification
         hstr = hstr[8:end]
     end
-    msg = hstr * "::argr: " * hstr * " called with " * num_args_string(ngot) * "; " *
+    msg = hstr * "::argx: " * hstr * " called with " * num_args_string(ngot) * "; " *
      num_args_are_string(nexpected) * " expected."
 end
 

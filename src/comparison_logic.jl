@@ -9,9 +9,98 @@
 @doap UnsameQ(x,y) = ! sameq(x,y)
 
 sameq(x,y) = x === y
-sameq(x::BigInt,y::BigInt) = x == y 
+sameq(x::BigInt,y::BigInt) = x == y
 sameq(x::BigFloat,y::BigFloat) = x == y
 sameq(x::String,y::String) = x == y
+
+immutable Compare
+    result::Bool
+    known::Bool
+end
+
+### Equal
+
+@mkapprule Equal :nargs => 2
+@doap function Equal(x,y)
+    res = sjequal(x,y)
+    res.known == false && return mx
+    res.result
+end
+
+sjequal(x::Real,y::Real) = Compare(x == y, true)
+sjequal(x::String,y::String) = Compare(x == y, true)
+
+function sjequal(x,y)
+    if x == y return Compare(true,true) end
+    Compare(false,false)
+end
+
+### Unequal
+
+@mkapprule Unequal :nargs => 2
+@doap function Unequal(x,y)
+    res = sjequal(x,y)
+    res.known == false && return mx
+    !(res.result)
+end
+
+### Less
+
+## In Mma, Less is nary
+@mkapprule Less
+@doap function Less(x,y)
+    res = sjless(x,y)
+    res.known == false && return mx
+    res.result
+end
+
+sjless(x::Real, y::Real) = Compare(x < y, true)
+function sjless(x,y)
+    Compare(false,false)
+end
+
+### LessEqual
+
+## In Mma, Less is nary
+@mkapprule LessEqual
+@doap function LessEqual(x,y)
+    res = sjlessequal(x,y)
+    res.known == false && return mx
+    res.result
+end
+
+sjlessequal(x::Real, y::Real) = Compare(x <= y, true)
+function sjlessequal(x,y)
+    Compare(false,false)
+end
+
+### Greater
+
+@mkapprule Greater
+@doap function Greater(x,y)
+    res = sjgreater(x,y)
+    res.known == false && return mx
+    res.result
+end
+
+sjgreater(x::Real, y::Real) = Compare(x > y, true)
+function sjgreater(x,y)
+    Compare(false,false)
+end
+
+### GreaterEqual
+
+@mkapprule GreaterEqual
+@doap function GreaterEqual(x,y)
+    res = sjgreaterequal(x,y)
+    res.known == false && return mx
+    res.result
+end
+
+sjgreaterequal(x::Real, y::Real) = Compare(x >= y, true)
+function sjgreaterequal(x,y)
+    Compare(false,false)
+end
 
 #### And
 
@@ -61,10 +150,7 @@ return `False` if `expr` is `True`, and `True` if it is `False`.
 
 @mkapprule Not :nargs => 1
 
-do_Not(mx::Mxpr{:Not}, ex::Bool) = ex == true ? false : true
-
-do_Not{T<:Number}(mx::Mxpr{:Not}, ex::T) = mx
-do_Not{T}(mx::Mxpr{:Not}, ex::T) = mx
+@doap Not(ex::Bool) = ex == true ? false : true
 
 const comparison_negations  = Dict(
                                :<   =>  :>=,
@@ -76,10 +162,21 @@ const comparison_negations  = Dict(
                                )
 
 function do_Not(mx::Mxpr{:Not},  ex::Mxpr{:Comparison})
-    if length(ex) == 3
-        return mxpr(:Comparison, ex[1], comparison_negations[ex[2]], ex[3])
-    end
+    length(ex) == 3 && return mxpr(:Comparison, ex[1], comparison_negations[ex[2]], ex[3])
     return mx
+end
+
+for (a,b) in ( (:Less, :GreaterEqual), (:Greater, :LessEqual), (:Equal, :Unequal) )
+    @eval begin
+        function do_Not(mx::Mxpr{:Not}, ex::Mxpr{$(QuoteNode(a))})
+            length(ex) == 2 && return mxpr($(QuoteNode(b)), ex[1], ex[2])
+            return mx
+        end
+        function do_Not(mx::Mxpr{:Not}, ex::Mxpr{$(QuoteNode(b))})
+            length(ex) == 2 && return mxpr($(QuoteNode(a)), ex[1], ex[2])
+            return mx
+        end
+    end
 end
 
 
@@ -99,12 +196,18 @@ displayed using infix notation.
          ("a < b <= c","a < b <= c"),
          ("(a=1,b=2,c=2)","2"),
          ("a < b <= c","true"))
-# We do this the Julia- and mma4max way, not the Mma way.
 
-function apprules(mx::Mxpr{:Comparison})
-    do_Comparison(mx,margs(mx)...)
-#    do_Comparison(mx)
+
+@mkapprule Comparison  :nodefault => true
+
+## Following may be a stopgap in transition to binary comparisons
+@doap function Comparison(x,op,y)
+    mxpr(comparison_translation[op],x,y)
 end
+
+# function apprules(mx::Mxpr{:Comparison})
+#     do_Comparison(mx,margs(mx)...)
+# end
 
 # Mma does this a == a != b  --->  a == a && a != b,  and  a == a  -->  True
 # Note: Mma 10, at least does this: a == a != b  ---> a != b, in disagreement with the above
@@ -241,7 +344,7 @@ end
 
 # a == a  --> True, etc.  for unbound a
 #function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
-function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}, V<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::V)    
+function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}, V<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::V)
     if comp == :(==)
         res = a == b
         res && return res
@@ -403,7 +506,7 @@ end
 function _do_Comparison(args...)
     symerror("No comparison for args ", args)
 end
-    
+
 
 ## These allow converting values returned by sympy, although we could do it differntly
 apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])

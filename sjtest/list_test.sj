@@ -1,3 +1,5 @@
+Apply(ClearAll,UserSyms())
+
 ### Union
 
 ## TODO: sorting
@@ -178,6 +180,9 @@ a = :( [1,2,3] )
 f = :( x -> x^2 )
 T Map(f,a) == [1,4,9]
 
+T Map(g)([1,a,"cat"]) == [g(1),g(a),g("cat")]
+T Map(EvenQ)(Range(4)) == [False,True,False,True]
+
 ClearAll(a,f)
 
 ### Nothing
@@ -268,4 +273,4 @@ T Dimensions(unflatten(Range(Apply(Times,[8,9,10])), [8,9,10])) == [8,9,10]
 T ListCorrelate([x,y], Range(10)) == [x + 2y,2x + 3y,3x + 4y,4x + 5y,5x + 6y,6x + 7y,7x + 8y,8x + 9y,9x + 10y]
 T ListConvolve([x,y], Range(10)) == [2x + y,3x + 2y,4x + 3y,5x + 4y,6x + 5y,7x + 6y,8x + 7y,9x + 8y,10x + 9y]
 
-ClearAll(a,b,c,d,e,f,expr,unflatten,lst,ftest)
+Apply(ClearAll,UserSyms())

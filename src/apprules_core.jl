@@ -185,3 +185,61 @@ set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattribu
 set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
 set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
 set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])
+
+#### Currying
+
+apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
+do_GenHead(mx,h) = mx
+
+# Head is a Julia function. Apply it to the arguments
+do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
+
+# This feature was added to Mma in 2014
+# Assume operator version of an Symata "function". Eg, Map
+# Map(q)([1,2,3])
+# But, not all functions use the first operator. Eg for MatchQ it is the second.
+
+# function do_GenHead(mx,head::Mxpr)
+#     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
+# end
+
+
+macro curry_first(fname)
+    doname = Symbol("do_", string(fname))
+    qname = QuoteNode(fname)
+    esc(quote
+        function ($(doname))(mx,arg1)
+            mx
+        end
+        function do_GenHead(mx,head::Mxpr{$(qname)})
+            mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
+        end
+    end)
+end
+
+macro curry_second(fname)
+    doname = Symbol("do_", string(fname))
+    qname = QuoteNode(fname)
+    esc(quote
+        function ($(doname))(mx,arg1)
+            mx
+        end
+        function do_GenHead(mx,head::Mxpr{$(qname)})
+            args = copy(margs(mx))
+            mxpr(mhead(head),args[1],margs(head)...,args[2:end]...)
+        end
+    end)
+end
+
+macro curry_last(fname)
+    doname = Symbol("do_", string(fname))
+    qname = QuoteNode(fname)
+    esc(quote
+        function ($(doname))(mx,arg1)
+            mx
+        end
+        function do_GenHead(mx,head::Mxpr{$(qname)})
+            mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+        end
+    end)
+end

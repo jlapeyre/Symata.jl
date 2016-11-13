@@ -260,6 +260,7 @@ end
 
 returns the subexpression specified by `list`.
 
+
     Extract(expr, [list1, list2, ...])
 
 returns a list of subexpressions.
@@ -271,6 +272,8 @@ wraps each subexpression with head `h`.
     Extract(list)
 
 operator form of `Extract`.
+
+`list` is a part specification as returned by `Part`.
 """
 @mkapprule Extract
 
@@ -294,5 +297,7 @@ end
     return MList(nargs)
 end
 
+@curry_last Extract
+
 # Currying
-do_GenHead(mx,head::Mxpr{:Extract}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+#do_GenHead(mx,head::Mxpr{:Extract}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)

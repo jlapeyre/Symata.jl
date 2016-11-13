@@ -89,40 +89,6 @@ TensorRank(x_) := Length(Dimensions(x))
 
 Protect(TensorRank)
 
-
-### UnsameQ
-
-# Unprotect(UnsameQ)
-
-# UnsameQ(x_,y_) := Not(SameQ(x,y))
-
-# Protect(UnsameQ)
-
-# ### SameQ
-
-# Unprotect(SameQ)
-
-# SameQ(x_,y_) := x === y
-# SameQ(x_BigInt,y_BigInt) := x == y
-
-# Protect(SameQ)
-
-### Unequal
-
-Unprotect(Unequal)
-
-Unequal(x_,y_) := Not( Equal(x,y) )
-
-Protect(Unequal)
-
-### Equal
-
-Unprotect(Equal)
-
-Equal(x_,y_) := x == y
-
-Protect(Equal)
-
 ### Divide
 
 Unprotect(Divide)

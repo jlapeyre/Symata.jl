@@ -1,3 +1,5 @@
+## NOTE: Some constants are defined in mxpr_type.jl
+
 const SYMATA_VERSION = v"0.2.0-dev.003"
 
 const NullMxpr = mxprcf(:Null)
@@ -47,9 +49,3 @@ for s in ( :BigInt, :BigFloat, :Float64, :Int64, :Int)
     sq = QuoteNode(s)
     @eval setsymval($sq,$s)
 end
-
-# setsymval(:BigInt, BigInt)
-# setsymval(:BigFloat, BigFloat)
-# setsymval(:Float64, Float64)
-# setsymval(:Int64, Int64)
-# setsymval(:Int, Int)

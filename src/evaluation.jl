@@ -614,22 +614,20 @@ function splice_sequences!(args)
 end
 
 
-apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
-do_GenHead(mx,h) = mx
+## moved the following to apprules_core.jl
+# apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
+# do_GenHead(mx,h) = mx
 
-# Head is a Julia function. Apply it to the arguments
-do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
+# # Head is a Julia function. Apply it to the arguments
+# do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
 
 #### Currying
 
-# This feature was added to Mma sometime after 3.0: (actually, in 2014)
+# This feature was added to Mma in 2014
 # Assume operator version of an Symata "function". Eg, Map
 # Map(q)([1,2,3])
-# But, not all functions use the first operator. Eg for MatchQ it is
-# the second.
-# We do currying automatically for all functions. Mma does it only for select functions.
+# But, not all functions use the first operator. Eg for MatchQ it is the second.
 
-# TODO: need to safely disable this
 # function do_GenHead(mx,head::Mxpr)
 #     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
 # end

@@ -31,7 +31,6 @@ include("sjcompat.jl")
 include("early_kernelstate.jl")
 include("mxpr_util.jl")
 include("mxpr_type.jl")
-
 include("exceptions.jl")
 include("level_specification.jl")
 include("sequence_specification.jl")

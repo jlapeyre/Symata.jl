@@ -455,7 +455,45 @@ the gamma function.
 the upper incomplete Gamma function.
 """
 
-#### Erf
+### GammaRegularized
+
+## Implementation is not complete
+@mkapprule GammaRegularized :nargs => 2:3
+
+@doap function GammaRegularized(a,z::Number)
+    if z == 0
+       return  _gammaregularizedzero(mx,a)
+    end
+   return  _gammaregularizednozero(mx,a,z)
+end
+
+function _gammaregularizedzero(mx,a::Real)
+    a > 0 ? 1 : a == 0 ? 0 : ComplexInfinity
+end
+
+function _gammaregularizedzero(mx,a::Complex)
+    ra = real(a)
+    ra > 0 ? 1 : ra == 0 ? Indeterminate : ComplexInfinity
+end
+
+function _gammaregularizedzero(mx,a)
+    mx
+end
+
+function _gammaregularizednozero(mx,a::Real,z::Number)
+    a < 0 && return zero(a) ## need to consider type of z as well
+    mxpr(:Gamma,a,z)/mxpr(:Gamma,a)
+end
+
+function _gammaregularizednozero(mx,a::Number,z::Number)
+    mxpr(:Gamma,a,z)/mxpr(:Gamma,a)
+end
+
+function _gammaregularizednozero(mx,a,z)
+    mx
+end
+
+### Erf
 
 @mkapprule Erf :nargs => 1:2
 
@@ -1141,36 +1179,53 @@ floating point `x`.
 represents the Mittag-Leffler function.
 """
 
-# FIXME: needs fixing and testing. correct routines are not always called.
-@mkapprule MittagLefflerE
+## FIXME: organize this more like polylog is organized
+## in general, we need a way to combine effective pattern matching with efficient dispatch.
+## i.e. we want fewer `isa(...)`s.
+## Maybe one of the Julia matching packages will do this for us.
+## PatternDispatch.jl ?
+## Match.jl appears to not write functions taking advantage of multiple dispatch
+## Stefan mentioned something about ameliorating ambiguity hell in v0.6.
+##
+## for alpha == 0 , must have abs(z) < 1
+## Mma does not return conditions, I think.
+## We could optionally return conditions.
+
+@mkapprule MittagLefflerE :nargs => 2:3
 
 @doap MittagLefflerE(α,z) = mittagleffler(mx,α,z)
+
+@doap function MittagLefflerE(α,β,z)
+    β == 1  && return mittagleffler(mx,α,z)
+    mittagleffler(mx,α,β,z)
+end
 
 function mittagleffler(mx,α,z)
     α == 1//2 && return Exp(mpow(z,2)) * Erfc(mminus(z))
     α == 0 && return mpow(mminus(1,z),-1)
     α == 1 && return Exp(z)
     α == 2 && return Cosh(Sqrt(z))
-    α == 3 && return (1//3)*Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3))
+    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
     α == 4 && return (1//2)* ( Cosh(mpow(z,1//4)) + Cos(mpow(z,1//4)))
+    if isa(α,AbstractFloat) || isa(z, FloatRC)
+        return MittLeff.mittleff(float(α),float(z))
+    end
+    z == 0 && return mpow(Gamma(β),-1)
     mx
 end
 
-@doap function MittagLefflerE(α,β::Integer,z)
-    β == 1 && return mxpr(:MittagLefflerE,α,z)
-    z == 0 && return 1/Gamma(β)
+function mittagleffler(mx,α,β,z)
+    if isa(α,AbstractFloat) || isa(β,AbstractFloat) || isa(z, FloatRC)
+       return MittLeff.mittleff(float(α),float(β),float(z))
+    end
+    z == 0 && return mpow(Gamma(β),-1)
+    if α == 1
+        β == 2 && return (mmul(mplus(Exp(z),-1),mpow(z,-1)))
+        return (mpow(:E,z)*mpow(z,mminus(1,β)) * mxpr(:GammaRegularized, mminus(β,1),0,z))
+    end
+    α == 2 && β == 2 && return mmul(Sinh(mpow(z,1//2)), mpow(mpow(z,1//2),-1))
     mx
 end
-
-@doap MittagLefflerE(α::Number,β::Number,z::Number) = _MittagLeffler(mx,promote(α,β,z)...)
-@doap MittagLefflerE(α::Number,β::Integer,z::Number) = _MittagLeffler(mx,promote(α,β,z)...)
-_MittagLeffler(mx,α::AbstractFloat,β::AbstractFloat,z::AbstractFloat) = MittLeff.mittleff(α,β,z)
-_MittagLeffler(mx,α,β,z) = mx
-
-@doap MittagLefflerE(α::Number,z::Number) = _MittagLeffler(mx,promote(α,z)...)
-_MittagLeffler(mx,α::AbstractFloat,z::AbstractFloat) = MittLeff.mittleff(α,z)
-_MittagLeffler(mx,α,z) = mittagleffler(mx,α,z)
-
 
 ### DirichletEta
 

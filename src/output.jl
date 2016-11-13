@@ -5,7 +5,7 @@ import Base: show
 import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
-       CurrentContext, wrapout, using_unicode_output
+       CurrentContext, wrapout, using_unicode_output, comparison_translation
 
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
@@ -17,13 +17,16 @@ opspc(sym) = haskey(infix_with_space,sym) ? " " : getkerneloptions(:compact_outp
 # These are binary operators that want one space before and one after.
 # The default, e.g  Power is no space. x^y
 # This broke somehow
-function oldbinaryopspc(ss)
-    s = Symbol(ss)
-    (s == :(=>) || s == :(->) || s == Symbol(":>")  || s == Symbol("^:=")) && return " "
-    return ""
-end
+# function oldbinaryopspc(ss)
+#     s = Symbol(ss)
+#     (s == :(=>) || s == :(->) || s == Symbol(":>")  || s == Symbol("^:=")) && return " "
+#     return ""
+# end
+
+const binaryops_space = collect(keys(comparison_translation) )
 
 function binaryopspc(ss)
+    ss in binaryops_space && return " "
     s = string(ss)
     (s == "=>" || s == "->" || s == ":>"  || s == "^:=" || s == "⇒") && return " "
     return ""
