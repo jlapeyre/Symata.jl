@@ -96,7 +96,15 @@ const comparison_translation = Dict(
                                     )
 
 
-const inverse_comparison_translation = Dict((x[2],x[1]) for x in collect(comparison_translation))
+## Make compatible with v0.4
+# if VERSION >= v"0.5"
+#     const inverse_comparison_translation = Dict((x[2],x[1]) for x in collect(comparison_translation))
+# else
+const inverse_comparison_translation = Dict{Symbol,Symbol}()
+for x in comparison_translation
+    inverse_comparison_translation[x[2]] = x[1]
+end
+#end
 
 # Output. Reverse dict for printing if unicode printing is enabled
 const unicode_output = Dict{Symbol,Symbol}()
