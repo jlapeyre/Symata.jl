@@ -46,6 +46,18 @@ T res == b   # test fix for bug in commit 6565
 T a(b) == g(b)
  Clear(a,g)
 
+ClearAll(a,b,x,y)
+
+## Destructured
+
+[a,b] = [1,2]
+
+T [a,b] == [1,2]
+
+[a,b] = [b,a]
+
+T [a,b] == [2,1]
+
 # Test non-Symbol Head for Mxpr
  ClearAll(a,c,f,b)
       a = f(c)

@@ -234,6 +234,15 @@ function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
     rhs
 end
 
+## Destructured. *Can* do [x,y] = [y,x]
+@doap function Set(lhs::Mxpr{:List},rhs::Mxpr{:List})
+    length(lhs) != length(rhs) && return mx
+    for i in 1:length(lhs)
+        doeval(mxpr(:Set,lhs[i],rhs[i]))
+    end
+    rhs
+end
+
 @mkapprule SetDelayed :nodefault => true
 
 @doap SetDelayed(lhs,rhs) = setdelayed(mx,lhs,rhs)
