@@ -81,9 +81,18 @@ end
 
 function add_completion_symbols(syms...)
     for sym in syms
-        push!(sorted_builtins,sym)
+        if ! (sym in sorted_builtins)
+            push!(sorted_builtins,sym)
+        end
     end
     sort!(sorted_builtins)
+    nothing
+end
+
+function remove_completion_symbols(syms...)
+    for sym in syms
+        deleteat!(sorted_builtins,findin(sorted_builtins,(string(sym),)))
+    end
     nothing
 end
 

@@ -7,7 +7,7 @@ set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPatt
                  "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile"],
                 :HoldAll)
 
-set_pattributes("HoldComplete", [:HoldAllComplete])
+set_pattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])
 
 set_pattributes(["Save", "Last"], [:HoldRest] )
 
@@ -74,7 +74,7 @@ set_pattributes(["BellB"],
 
 
 # Note: Simplify is not Listable in Mma
-set_pattributes(["EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
+set_pattributes(["Boole", "EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
                  "ToExpression", "Simplify", "FullSimplify", "StringReverse"]
                 ,[:Listable])
 
@@ -129,4 +129,7 @@ set_pattributes([
                   "StringLength","StringQ","Subdivide","Symbol","Syms","Temporary","TensorRank","Throw","Time",
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
-                  "UserSyms","Values", "ans","nothing"], :Protected)
+                  "UserSyms","Values", "ans","nothing",
+                  "Algebraics", "Booleans"
+
+], :Protected)

@@ -81,6 +81,12 @@ f = Compile(Evaluate(expr))
 # *is* protected are handled below in meval_arguments()
 @doap Evaluate(x) = x
 
+# @mkapprule Unevaluated
+
+# @doap function Unevaluated(arg)
+#     arg
+# end
+
 ## Macro for translation and evaluation, at repl or from file
 
 # Read a line of user input, translate Expr to Mxpr, but don't evaluate result
@@ -383,8 +389,8 @@ end
 # ?? why the first test  ! is_canon(nmx). This must apparently always be satisfied.
 function meval_apply_all_rules(nmx::Mxpr)
     if  ! is_canon(nmx)
-        if get_attribute(nmx,:Flat) nmx = flatten!(nmx) end
-        if get_attribute(nmx,:Listable)  nmx = threadlistable(nmx) end
+        if hasFlat(nmx) nmx = flatten!(nmx) end
+        if hasListable(nmx) nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
     # We disable the following. Unlike Flat and Listable and Orderless, OneIdentity is only used for pattern matching.
@@ -405,6 +411,19 @@ function meval_apply_all_rules(nmx::Mxpr)
     return res
 end
 
+@inline function argeval(arg)
+    if isa(arg,Mxpr{:Unevaluated}) && length(arg) > 0
+        ## We may want to strip Unevaluated here, to make it exactly like Mma
+        ## But, then it will not prevent Sequence substitution below
+        ## And it is not held is some other forms as well.
+        ## So, these would need to be fixed.
+#        return sjcopy(arg[1])
+        return sjcopy(arg)
+    else
+        return doeval(arg)
+    end
+end
+
 # Evaluate arguments of mx, construct and return new Mxpr
 function meval_arguments(mx::Mxpr)
     nhead = doeval(mhead(mx))
@@ -412,37 +431,45 @@ function meval_arguments(mx::Mxpr)
     mxargs::MxprArgs = margs(mx)
     len::Int = length(mxargs)
     if len == 0
-#        nargs = newargs(0)
         return mxpr(nhead)
-    elseif get_attribute(nhead,:HoldFirst)
+    elseif hasHoldFirst(nhead)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
         @inbounds for i in 2:length(mxargs)
-            nargs[i] = doeval(mxargs[i])
+            nargs[i] = argeval(mxargs[i])
         end
-    elseif get_attribute(nhead,:HoldAll)
+    elseif hasHoldAll(nhead)
         nargs = copy(mxargs)
         for i=1:length(nargs)
             if isa(nargs[i],Mxpr{:Evaluate}) && length(nargs[i]) > 0
                 nargs[i] = doeval(nargs[i][1])
             end
         end
-    elseif get_attribute(nhead,:HoldRest)
+    elseif hasHoldAllComplete(nhead)
         nargs = copy(mxargs)
-        nargs[1] = doeval(nargs[1])
+    elseif hasHoldRest(nhead)
+        nargs = copy(mxargs)
+        nargs[1] = argeval(nargs[1])
     else      # Evaluate all arguments
         nargs = newargs(len)
         @inbounds for i in 1:len
-            nargs[i] = doeval(mxargs[i])
+            nargs[i] = argeval(mxargs[i])
         end
     end
-    ! (get_attribute(nhead, :SequenceHold) || get_attribute(nhead, :HoldAllComplete)) ?
-       splice_sequences!(nargs) : nothing
+    if  (! hasSequenceHold(nhead))  &&  (! hasHoldAllComplete(nhead))
+        splice_sequences!(nargs)
+    end
+    for i=1:len
+        if (isa(nargs[i],Mxpr{:Unevaluated}) && length(nargs[i]) > 0) &&
+            ! (hasHoldAll(nhead) || hasHoldAllComplete(nhead))  && !( (hasHoldFirst(nhead) && i == 1) || (hasHoldRest(nhead) && i > 1))
+            nargs[i] = nargs[i][1]
+        end
+    end
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
-    return nmx
 end
 
 # We do meval_arguments specially for List, in order to remove occurrances of Nothing
+## TODO We probably need to worry about Unevaluated, etc. here.
 function meval_arguments(mx::Mxpr{:List})
     nhead = :List
     local nargs::MxprArgs
@@ -452,7 +479,6 @@ function meval_arguments(mx::Mxpr{:List})
     got_nothing::Bool = false
     if len == 0
         return mxpr(:List)
-#        nargs = newargs(0)
     else
         nargs = newargs(len)
         @inbounds for i in 1:len
@@ -473,10 +499,7 @@ function meval_arguments(mx::Mxpr{:List})
     end
     splice_sequences!(nargs)
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
-    return nmx
 end
-
-
 
 # Similar to checkdirtysyms. The original input Mxpr had a list of free symbols.
 # That input has been mevaled at least once and the result is mx, the argument

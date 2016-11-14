@@ -20,6 +20,8 @@ end
 
 ### Equal
 
+## TODO: Implement Equal(a,b,c), etc.
+
 @mkapprule Equal :nargs => 2
 @doap function Equal(x,y)
     res = sjequal(x,y)

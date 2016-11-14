@@ -62,6 +62,36 @@ T f(2^2) == Hold(2^2)
 
 ClearAll(f,x)
 
+### Hold vs. HoldComplete
+
+T ToString(HoldComplete(1+1 , Evaluate(2+3),Sequence(a,b))) == "HoldComplete((1 + 1),Evaluate(2 + 3),Sequence(a,b))"
+T ToString(Hold(1+1 , Evaluate(2+3),Sequence(a,b))) == "Hold((1 + 1),5,a,b)"
+T HoldComplete(f(1 + 2)) ./ ( f(x_) :> g(x) ) == HoldComplete(g(1 + 2))
+
+### Unevaluated
+
+## Symata Unevaluated is not exactly the same as Mma. Maybe it is worth it at some point to make it so.
+
+T Length(Unevaluated(1+2+3)) == 3
+T ToString(Hold(Evaluate(Unevaluated(1+2)))) == "Hold(Unevaluated(1 + 2))"
+ClearAll(f)
+T f(Unevaluated(1+2)) == f(3)
+SetAttributes(f,HoldAll)
+## NOTE: Mma says that Unevaluated remains in a held function. In fact, in Mma
+## In fact, without HoldAll, it still remains.
+## Mma give true for following.
+## T (f(Unevaluated(1 + 2))[1]) == Unevaluated
+T ToString(f(Unevaluated(1 + 2))) == "f(Unevaluated(1 + 2))"
+ClearAll(f)
+
+T Length(Unevaluated(Sequence(1,2,b))) == 3
+f(x_) := g(x)
+f(Unevaluated(1+1)) == g(2)
+
+SetAttributes(symlength, HoldAll)
+symlength(s_Symbol) := StringLength(SymbolName(Unevaluated(s)))
+aaaaa = 1
+T symlength(aaaaa) == 5
 
 #### NHoldFirst
 
@@ -75,7 +105,7 @@ T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(h(1,2,3)))) == [True,True,True
 
  ClearAll(f,g,h,x)
 
-#### Flat
+### Flat
 
 SetAttributes(g,Flat)
 T g(g(x)) == g(x)
@@ -88,8 +118,7 @@ T Depth(g(g(x))) == 3
 
 ClearAll(f,g,x)
 
-
-#### SequenceHold
+### SequenceHold
 
 T g(a,b,Sequence(c,d)) == g(a,b,c,d)
 SetAttributes(g, SequenceHold)
@@ -99,4 +128,4 @@ T ReplaceAll([w,w,w], w => Sequence(x,y)) == [x,y,x,y,x,y]
 
 T ReplaceAll(f([[x,y],[u,[v,w]]]),  List => Sequence) == f(x,y,u,v,w)
 
-ClearAll(g,a,b,c,d,w,x,y)
+Apply(ClearAll,UserSyms())

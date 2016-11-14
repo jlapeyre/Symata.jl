@@ -54,7 +54,7 @@ is_blankxxx(x) = isa(x,BlankXXX)
 
 @sjdoc ConstantQ """
     ConstantQ(x)
- 
+
 return `True` if `x` is a numerical constant.
 """
 do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = is_Constant(x)
@@ -236,7 +236,7 @@ vectorq(x::Mxpr{:List}, test) = isa(test,Function) ? all(t -> test(t), margs(x))
 @sjdoc MatrixQ """
     MatrixQ(m)
 
-return `True` if `m` has the form of a matrix. 
+return `True` if `m` has the form of a matrix.
 `m` has the form of a matrix if it is a `List`, each
 of whose elements is a `List` of the same length,
 none of whose elements is a `List`.
@@ -262,3 +262,93 @@ function matrixq(x::Mxpr{:List},test)
 end
 matrixq(x) = false
 matrixq(x,test) = false
+
+### TrueQ
+
+@mkapprule TrueQ :nargs => 1
+@doap TrueQ(x::Bool) = x
+@doap TrueQ(x) = false
+
+### Boole
+
+@mkapprule Boole
+@doap Boole(x::Bool) = x ? 1 : 0
+
+### BooleanQ
+
+@mkapprule BooleanQ :nodefault => true
+@doap BooleanQ(x::Bool) = true
+@doap BooleanQ(x...) = false
+
+
+### Element
+
+@mkapprule Element :nargs => 2
+
+@doap function Element(x::Integer,sym::Symbol)
+    if sym == :Integers || sym == :Reals || sym == :Rationals || sym == :Complexes ||
+        sym == :Algebraics
+        return true
+    end
+    sym == :Primes && return isprime(x)
+    sym == :Booleans && return false
+    mx
+end
+
+@doap function Element(x::AbstractFloat,sym::Symbol)
+    sym == :Integers && return round(x) == x ? mx : false
+    sym == :Rationals && return mx
+    sym == :Complexes && return true
+    sym == :Booleans && return false
+    sym == :Reals && return true
+    sym == :Algebraics && return mx
+    if sym == :Primes
+        if round(x) == x
+            return isprime(convert(Integer,x))
+        else
+            return false
+        end
+    end
+    mx
+end
+
+@doap function Element{T}(x::Complex{T},sym::Symbol)
+    sym == :Integers && return false
+    sym == :Rationals && return false
+    sym == :Reals && return false
+    sym == :Booleans && return false
+    if sym == :Algebraics
+        T <: Intgers && return true
+        return mx
+    end
+    sym == :Complexes && return true
+    mx
+end
+
+@doap function Element(x::Bool,sym::Symbol)
+    sym == :Booleans && return true
+    sym == :Integers && return false
+    sym == :Rationals && return false
+    sym == :Reals && return false
+    sym == :Complexes && return false
+    sym == :Algebraics && return false
+    mx
+end
+
+@doap function Element(x::Rational,sym::Symbol)
+    sym == :Booleans && return false
+    sym == :Integers && return false
+    sym == :Rationals && return true
+    sym == :Reals && return true
+    sym == :Complexes && return true
+    sym == :Algebraics && return true
+    mx
+end
+
+@doap function Element(x::Symbol,sym::Symbol)
+    if x == :Pi || x == :E
+        (sym == :Integers || sym == :Booleans || sym == :Algebraics || sym == :Primes) && return false
+        sym == :Reals && return true
+    end
+    mx
+end

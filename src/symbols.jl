@@ -1,3 +1,5 @@
+## FIXME: implement SubValues
+
 # NB. attributes for builtin symbols are mostly set in protected_symbols.jl
 
 # Check if we are trying to add to a symbol bound to itself. If
@@ -232,7 +234,11 @@ function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
     rhs
 end
 
-apprules(mx::Mxpr{:SetDelayed}) = setdelayed(mx,mx[1],mx[2])
+@mkapprule SetDelayed :nodefault => true
+
+@doap SetDelayed(lhs,rhs) = setdelayed(mx,lhs,rhs)
+
+@doap SetDelayed(lhs, rhs...) = mxpr(:SetDelayed, lhs, mxpr(:Sequence,rhs...))
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
 # so we look up the original in the table
@@ -274,7 +280,9 @@ end
 function setdelayed(mx,lhs::Mxpr, rhs)
     checkprotect(lhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    set_downvalue(mx,mhead(lhs),rule) # push DownValue
+    h = mhead(lhs)
+    set_downvalue(mx,h,rule) # push DownValue
+    if isa(h,Symbol) add_completion_symbols(string(h)) end
     rule
     Null
 end
@@ -454,12 +462,12 @@ by `UserSyms()`.
 # Remove all values associate with SJSym. values and DownValues
 function apprules(mx::Mxpr{:ClearAll})  # already threaded
     for a in margs(mx)
-        a = typeof(a) <: AbstractString ?  Symbol(a) : a
-        checkprotect(a)
-        delete_sym(a)
+        b = Symbol(a)
+        checkprotect(b)
+        delete_sym(b)
+        remove_completion_symbols(b)
     end
 end
-
 
 ### Unique
 
@@ -469,7 +477,16 @@ end
 creates a unique symbol.
 """
 
-
 @mkapprule Unique :nargs => 0:1
 
 @doap Unique() = (s = gensym(); setsymval(s,s); s)
+
+### SymbolName
+
+@sjdoc SymbolName """
+    SymbolName(symbol)
+
+returns the name of `symbol` as a string.
+"""
+@mkapprule SymbolName :nargs => 1
+@doap SymbolName(x::SJSym) = string(x)

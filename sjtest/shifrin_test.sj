@@ -119,6 +119,8 @@ T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sq
 
 T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( Condition(x_, Isa(x,Integer) || Isa(x,Rational)) => Sqrt(x)) == [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x))
 
+### FIXME
+## Pi/2 == Pi/2.
 
 
 Apply(ClearAll, UserSyms())

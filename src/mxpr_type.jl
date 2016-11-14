@@ -772,6 +772,12 @@ function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
     get_attribute(T,attr)
 end
 
+for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Listable)
+    sf = Symbol("has",s)
+    @eval ($sf)(x) = get_attribute(x,$(QuoteNode(s)))
+end
+
+
 # Related code in predicates.jl and attributes.jl
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
 protect(sj::SJSym) = set_attribute(sj,:Protected)
