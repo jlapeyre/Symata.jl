@@ -53,7 +53,7 @@ end
 # List of not yet implemented sympy functions from keys(sympy.functions)
 # :E1,:Ei,:FallingFactorial,:Heaviside, :Id,
 # :Max,:Min,:Piecewise,
-# :Shi, :Ynm,:Ynm_c,:Znm,
+#  :Ynm_c,:Znm,
 # :__builtins__,:__doc__,:__file__,:__name__,:__package__,:__path__,
 # :acos,:acosh,:acot,:acoth,:acsc,:adjoint,
 #  :assoc_laguerre,:assoc_legendre,
@@ -173,7 +173,8 @@ const no_julia_function_one_arg = [ (:EllipticK, :elliptic_k), (:HeavisideTheta,
                                     (:CosIntegral, :Ci), (:SinIntegral, :Si),
                                     (:FresnelC, :fresnelc), (:FresnelS, :fresnels), (:DiracDelta, :DiracDelta),
                                     (:LogIntegral, :Li), (:Ei, :Ei), (:ExpandFunc, :expand_func), (:Denominator, :denom),
-                                    (:MoebiusMu, :mobius), (:EulerPhi, :totient), (:Divisors, :divisors), (:DivisorCount, :divisor_count)]
+                                    (:MoebiusMu, :mobius), (:EulerPhi, :totient), (:Divisors, :divisors), (:DivisorCount, :divisor_count),
+                                     (:SinhIntegral, :Shi),(:CoshIntegral, :Chi) ]
 
 # elliptic_e take more than ints!
 const no_julia_function_one_or_two_int = [ (:HarmonicNumber, :harmonic) , (:EllipticE, :elliptic_e) ]

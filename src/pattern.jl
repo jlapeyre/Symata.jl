@@ -194,7 +194,6 @@ ematch(pat::Mxpr{:HoldPattern}, m::Match) = ematch(pat[1],m)
 function ematch(pat::Mxpr{:Pattern}, m::Match)
     ex = m.ex
     captures = m.capt
-#    println("Pattern match, ", pat, " ", m)
     if symjlength(pat) == 2
         (name,pattern) = (margs(pat)...)
         success_flag::Bool = ematch(pattern,m)
@@ -566,12 +565,8 @@ function ematch(pat::Mxpr, m)
     captures = m.capt
 #    m.ex = mhead(m)  # !?? This is wrong ?
     m.ex = mhead(mx)  # !?? This is wrong ?    
-#    println("pat is ", pat)
-#    println("head of pat is ", mhead(pat))
-#    println("typeof  ", typeof(pat))
     # TODO: detect genhead here
     (mhead(pat) == mhead(mx)) || ematch(mhead(pat),m) || return false
-#    println(" *** capt is  ", m.capt)            
     m.ex = mx
 #    (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
@@ -650,10 +645,7 @@ function match_and_replace(ex,r::Rules)
         rhs  = rhs1
     end
     rhs_copy = deepcopy(rhs)
-#    println("match_and_replace 1 ", rhs_copy)
-#    println("cap is  ", capt)        
     rhs_copy_subst = patsubst!(rhs_copy,capt) # do replacement
-#    println("match_and_replace ", rhs_copy_subst)
     return rhs_copy_subst
 end
 
@@ -704,7 +696,6 @@ function replaceall(ex,rule::Rules)
     # first try at current level
     rule = patterntoBlank(rule)
     res = match_and_replace(ex,rule)
-#    println("res ", res)
     res !== false && return res  # return if we had success
     if is_Mxpr(ex)               # no success so we try at lower levels.
         ex = mxpr(replaceall(mhead(ex),rule),

@@ -6,7 +6,6 @@
 
 function doeval(x)
     if is_throw()
-#        println("Caught throw at toplevel doeval()")
         return x
     end
     return infseval(x)
@@ -356,9 +355,7 @@ meval(x) = x
 meval(s::SJSym) = symval(s) # this is where var subst happens
 
 function meval(qs::Qsym)
-#    println("meval: Qsym ", qs)
     res = symval(qs)
-#    println("meval: Qsym got res ", res)
     res
 end
 
