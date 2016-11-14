@@ -170,7 +170,7 @@ function latex_string_prefix_function(opt, mx::Mxpr)
     print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(opt, mhead(mx)) * " \\! ")
 #    print(buf, is_Mxpr(mx,:List) ? ""  : latex_string(opt, mhead(mx)) )  # ipython inserts a space that we don't want
     args = margs(mx)
-    print(buf, mhead(mx) == getsym(:List) ? LISTL : llparen)
+    print(buf, mhead(mx) == getsym(:List) ? LLISTL : llparen)
     wantparens = mhead(mx) == :List ? false : true
     for i in 1:length(args)-1
         if latex_needsparen(args[i]) && wantparens
@@ -183,7 +183,7 @@ function latex_string_prefix_function(opt, mx::Mxpr)
         print(buf, ",")
     end
     if  ! isempty(args) print(buf, latex_string(opt, args[end])) end
-    print(buf, mx.head == getsym(:List) ? LISTR : lrparen)
+    print(buf, mx.head == getsym(:List) ? LLISTR : lrparen)
     takebuf_string(buf)
 end
 
