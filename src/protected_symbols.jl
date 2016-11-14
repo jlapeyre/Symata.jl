@@ -130,6 +130,6 @@ set_pattributes([
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing",
-                  "Algebraics", "Booleans"
+                  "Algebraics", "Booleans", "InputForm"
 
 ], :Protected)

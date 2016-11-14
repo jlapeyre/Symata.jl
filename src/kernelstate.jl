@@ -265,7 +265,7 @@ const Kerneloptions = Dict{Any,Any}(
     :bigfloat_input => false,
     :isymata_inited => false,
                                     :isymata_mode => false,
-                                    :output_style => :Plain
+                                    :output_style => :InputForm
 )
 
 function getkerneloptions(sym::Symbol)
@@ -350,7 +350,7 @@ a SymPy error has occurred, you can find the detailed error message.
 
 return the current state.
 
-`CompactOutput` has an effect in `Plain` and `Unicode` output styles, but not in `IJulia` output style.
+`CompactOutput` has an effect in `InputForm` and `UnicodeForm` output styles, but not in `JupyterForm` output style.
 """
 
 #### BigIntInput
@@ -478,28 +478,28 @@ isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(
 @mkapprule OutputStyle  :nargs => 0:1
 
 @sjdoc OutputStyle """
-    OutputStyle(Plain)
+    OutputStyle(InputForm)
 
 print plain 1d text output.
 
-    OutputStyle(Unicode)
+    OutputStyle(UnicodeForm)
 
 print 1d text output with pretty unicode characters.
 
-    OutputStyle(IJulia)
+    OutputStyle(JupyterForm)
 
-in IJulia, print in typeset mathematics style using latex.
+in a Jupyter notebook, print in typeset mathematics style using latex.
 
     OutputStyle()
 
 return the current output style.
 
-`Plain` and `Unicode` give output that is valid `Symata` input for the same expression.
+`InputForm` and `UnicodeForm` give output that is valid `Symata` input for the same expression.
 """
 
 function _set_output_style(st::Symbol)
-    if st != :Plain && st != :Unicode  && st != :IJulia
-        error("OutputStyle: style must be one of Plain, Unicode, IJulia")
+    if st != :InputForm && st != :UnicodeForm  && st != :JupyterForm
+        error("OutputStyle: style must be one of InputForm, UnicodeForm, JupyterForm")
     end
     oldst = getkerneloptions(:output_style)
     setkerneloptions(:output_style, st)
@@ -517,11 +517,11 @@ end
 """
     using_unicode_output()
 
-return true if unicode output style is selected. This is mutually exclusive with Plain output and
-IJulia output styles.
+return true if unicode output style is selected. This is mutually exclusive with InputForm output and
+JupyterForm output styles.
 """
-using_unicode_output() = getkerneloptions(:output_style) == :Unicode
+using_unicode_output() = getkerneloptions(:output_style) == :UnicodeForm
 
 # This means we are using LaTeX
-using_ijulia_output() = getkerneloptions(:output_style) == :IJulia
+using_ijulia_output() = getkerneloptions(:output_style) == :JupyterForm
 

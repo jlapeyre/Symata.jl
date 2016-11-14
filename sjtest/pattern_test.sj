@@ -66,6 +66,15 @@ T MatchQ([], [___]) == True
 T  MatchQ(Expand(x*(1 + 2*x + 3 * x^2)), Plus(_, __))
 T  MatchQ(x*(1 + 2*x + 3 * x^2), Plus(_, __)) == False
 
+## Fixme: various attempts at this.
+
+## The module is not evaluated correctly
+## rotheadargs(f_(args__)) := Module([ls = [args]], (Null,(Last(ls)(f,Splat(Rest(ls))))))
+
+rotheadargs(f_(args__)) := (Last([args])(f,Splat(Most([args]))))
+T rotheadargs( a + b + c + d) == d(Plus,a,b,c)
+
+
 ####
 
 ClearAll(a,b,c,d,p,f,d,g)

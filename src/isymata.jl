@@ -43,7 +43,7 @@ function init_isymata()
         return
     end
     isymata_inited(true)
-    setkerneloptions(:output_style, :IJulia) # this is only set when initing. The user can change it
+    setkerneloptions(:output_style, :JupyterForm) # this is only set when initing. The user can change it
     nothing
 end
 

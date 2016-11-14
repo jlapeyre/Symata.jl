@@ -117,8 +117,8 @@ end
 # show will print this correctly
 latex_display(mx::Mxpr{:FullForm}) = mx
 
-## Strip the wrapper.... hmmm print PlainForm// or something ?
-latex_display(mx::Mxpr{:PlainForm}) = length(mx) > 0 ? mx[1] : Null
+## Strip the wrapper.... hmmm print InputForm// or something ?
+latex_display(mx::Mxpr{:InputForm}) = length(mx) > 0 ? mx[1] : Null
 
 
 #### LaTeXString

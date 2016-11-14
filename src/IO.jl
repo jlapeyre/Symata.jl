@@ -184,6 +184,16 @@ end
 write_definition(sym) = write_definition(STDOUT,sym)
 
 function write_definition(io::IO, sym)
+    gotdef = write_definition_no_attributes(io,sym)
+    gotdef = maybeprint(io,attributes_set_string(sym)) || gotdef
+    if gotdef
+        println(io)
+    end
+    return gotdef
+end
+
+write_definition_no_attributes(sym) = write_definition_no_attributes(STDOUT,sym)
+function write_definition_no_attributes(io::IO, sym)
     gotdef = maybeprint(io,getdefinition(Symbol(sym)))
     dvdefs = jlistdownvaluedefs(sym)
     if length(dvdefs) > 0
@@ -199,12 +209,13 @@ function write_definition(io::IO, sym)
             symprintln(io,def)
         end
     end
-    gotdef = maybeprint(io,attributes_set_string(sym)) || gotdef
+#    gotdef = maybeprint(io,attributes_set_string(sym)) || gotdef
     if gotdef
         println(io)
     end
     return gotdef
 end
+
 
 ### Save
 

@@ -645,7 +645,9 @@ function match_and_replace(ex,r::Rules)
         rhs  = rhs1
     end
     rhs_copy = deepcopy(rhs)
+#    symprintln(rhs_copy)    
     rhs_copy_subst = patsubst!(rhs_copy,capt) # do replacement
+#    symprintln(rhs_copy_subst)
     return rhs_copy_subst
 end
 
@@ -743,6 +745,8 @@ function patsubst!(pat::Mxpr,cd)
     end
     if havecapt(mhead(pat),cd)
         pat = mxpr(retrievecapt(mhead(pat),cd),margs(pat))
+    elseif is_Mxpr(mhead(pat))
+        pat = mxpr(patsubst!(mhead(pat),cd),margs(pat))  ## in case the head is complex (not an atom)
     end
     return pat
 end
