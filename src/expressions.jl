@@ -238,7 +238,7 @@ return `f` applied to each element in a `expr`.
 
 @mkapprule Map
 
-function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
+@doap function Map(f::Function,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
     @inbounds for i in 1:length(args)
@@ -248,7 +248,7 @@ function do_Map(mx::Mxpr{:Map},f::Function,expr::Mxpr)
 end
 
 # Should we return an Array or a List ? We choose List now.
-function do_Map(mx::Mxpr{:Map},f::Function, a::AbstractArray)
+@doap function Map(f::Function, a::AbstractArray)
     nargs = newargs(length(a))
     @inbounds for i in 1:length(a)
         nargs[i] = f(a[i])
@@ -259,13 +259,13 @@ end
 # We create one Mxpr outside the loop. Old
 # code (commented out) created Mxpr every time.
 # This saves 30 percent of time and allocation in some tests.
-function do_Map(mx::Mxpr{:Map},f,expr::Mxpr)
+@doap function Map(f,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
-    mx = mxpr(f,0) # reserve one argument
+    mx1 = mxpr(f,0) # reserve one argument
     @inbounds for i in 1:length(args)
-        mx.args[1] = args[i]  # map f of one argument
-        nargs[i] = doeval(mx)
+        mx1.args[1] = args[i]  # map f of one argument
+        nargs[i] = doeval(mx1)
     end
     mxpr(mhead(expr),nargs)
 end

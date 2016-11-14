@@ -560,6 +560,10 @@ sort the elements of `expr`.
     Split(lst)
 
 splits `lst` into runs of identical elements.
+
+    Split(lst,test)
+
+apply `test` to determine identical elements.
 """
 @mkapprule Split
 
@@ -578,6 +582,26 @@ splits `lst` into runs of identical elements.
     push!(a0,MList(a1))
     MList(a0)
 end
+
+@doap function Split(lst::List, test)
+    length(lst) == 0 && return MList()
+    a = margs(lst)
+    a0 = newargs()
+    a1 = newargs()
+    for i in 1:length(a)
+        if length(a1) != 0
+            t = isa(doeval(mxpr(test, a[i-1], a[i])),Bool)
+            if ! t
+                push!(a0, MList(a1))
+                a1 = newargs()
+            end
+        end
+        push!(a1, a[i])
+    end
+    push!(a0,MList(a1))
+    MList(a0)
+end
+
 
 ### Partition
 
