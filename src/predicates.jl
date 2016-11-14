@@ -347,8 +347,8 @@ end
 
 @doap function Element(x::Symbol,sym::Symbol)
     if x == :Pi || x == :E
-        (sym == :Integers || sym == :Booleans || sym == :Algebraics || sym == :Primes) && return false
-        sym == :Reals && return true
+        (sym == :Integers || sym == :Rationals || sym == :Booleans || sym == :Algebraics || sym == :Primes) && return false
+        (sym == :Reals || sym == :Complexes)  && return true
     end
     if x == :GoldenRatio
         sym == :Algebraics && return true

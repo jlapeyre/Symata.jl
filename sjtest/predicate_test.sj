@@ -51,4 +51,13 @@ T VectorQ([1,2,3], IntegerQ)
 
 T VectorQ([[a,2],[a,b,c],[c]], ListQ)
 
+T Element(1,Integers)
+T ! Element(1.1,Integers)
+T Element(1.1,Reals)
+T Element(1.1,Complexes)
+T Element(E,Complexes)
+T ! Element(E,Rationals)
+T ! Element(GoldenRatio,Rationals)
+T Element(GoldenRatio,Algebraics)
+
 ClearAll(a,b,c)
