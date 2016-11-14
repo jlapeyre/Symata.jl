@@ -318,7 +318,7 @@ end
     sym == :Reals && return false
     sym == :Booleans && return false
     if sym == :Algebraics
-        T <: Intgers && return true
+        T <: Integers && return true
         return mx
     end
     sym == :Complexes && return true
@@ -349,6 +349,18 @@ end
     if x == :Pi || x == :E
         (sym == :Integers || sym == :Booleans || sym == :Algebraics || sym == :Primes) && return false
         sym == :Reals && return true
+    end
+    if x == :GoldenRatio
+        sym == :Algebraics && return true
+        sym == :Reals && return true
+        sym == :Rationals && return false
+        sym == :Integers && return false
+        sym == :Complexes && return true
+    end
+    if x == :Catalan
+        sym == :Reals && return true
+        sym == :Integers && return false
+        sym == :Complexes && return true
     end
     mx
 end

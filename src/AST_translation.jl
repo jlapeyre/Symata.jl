@@ -306,21 +306,6 @@ function rewrite_to_comparison(ex::Expr)
     return  Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
 end
 
-# These symbols are unconditionally translated on input
-# This is almost exactly the Dict unicode_translation. Maybe we can refactor.
-const INSYMTRANS = Dict( :⇒  => :(=>),
-                         :π => :Pi,
-                         :≥ => :(>=),
-                         :≤ => :(<=),
-                         :γ => :EulerGamma,
-                         :Γ => :Gamma,
-                         :𝕖 => :E,
-                         :𝕚 => :I,
-                         :∞ => :Infinity,
-                         :≠  =>  :!=,
-                         :∈  => :Element
-                         )
-
 # There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow

@@ -69,8 +69,22 @@ const JTOMSYM_ONEWAY  =
 # Other operators, such as Times are nary but Flat, so the flattening happens during the
 # evaluations sequence.
 
+# These symbols are unconditionally translated on input
+# This is almost exactly the Dict unicode_translation. Maybe we can refactor.
+const INSYMTRANS = Dict( :⇒  => :(=>),
+                         :π => :Pi,
+                         :≥ => :(>=),
+                         :≤ => :(<=),
+                         :γ => :EulerGamma,
+                         :Γ => :Gamma,
+                         :𝕖 => :E,
+                         :𝕚 => :I,
+                         :∞ => :Infinity,
+                         :≠  =>  :!=,
+                         :∈  => :Element
+                         )
 
-# Input translation
+# Input translation. Output translation if unicode is enabled
 const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :γ => :EulerGamma,
                                                 :∞ =>   :Infinity,
@@ -81,7 +95,8 @@ const unicode_translation = Dict{Symbol,Symbol}(:π => :Pi,
                                                 :≠  =>  :!=,
                                                 :𝕖  =>  :E,
                                                 :⇒  =>  :(=>),
-                                                :→ => :Function
+                                                :→ => :Function,
+                                                :∈ => :Element
 )
 
 const comparison_translation = Dict(
@@ -161,7 +176,7 @@ const OPTYPE  = Dict{Symbol,Symbol}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
            :Set, :SetDelayed, :UpSet, :(*=), :(+=), :→, :(->), :Function,
-           :TimesBy, :AddTo,
+           :TimesBy, :AddTo  # , :Element
            ) # need :Set here
     OPTYPE[op] = :binary
 end

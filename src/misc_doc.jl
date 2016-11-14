@@ -66,3 +66,46 @@ Unicode characters may be input at the Symata REPL just as they are in Julia. Eg
 """
 
 @sjseealso_group(ReturnSymPy,ToSymPy,ToSymata,ShowSymPyDocs)
+
+
+@sjdoc Reals """
+    Reals
+
+represents the real numbers.
+"""
+
+@sjdoc Integers """
+    Integers
+
+represents the integer numbers.
+"""
+
+@sjdoc Complexes """
+    Complexes
+
+represents the complex numbers.
+"""
+
+@sjdoc Rationals """
+    Rationals
+
+represents the rational numbers.
+"""
+
+@sjdoc Primes """
+    Primes
+
+represents the prime numbers.
+"""
+
+@sjdoc Booleans """
+    Booleans
+
+represents the set of boolean values, `True` and `False`.
+"""
+
+@sjdoc Algebraics """
+    Algebraics
+
+represents the algebraic numbers.
+"""

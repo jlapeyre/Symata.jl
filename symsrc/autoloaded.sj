@@ -65,6 +65,8 @@ Protect(Subdivide)
 
 ### TakeDrop
 
+## Note: this is wrong for many `seq's`
+
 Unprotect(TakeDrop)
 
 TakeDrop(x_, seq_) := [Take(x,seq), Drop(x,seq)]

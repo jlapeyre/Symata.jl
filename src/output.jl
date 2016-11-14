@@ -10,25 +10,19 @@ import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
 # A space, or maybe not.
-#opspc() = getkerneloptions(:compact_output) ? "" : " "
-
 opspc(sym) = haskey(infix_with_space,sym) ? " " : getkerneloptions(:compact_output) ? "" : " "
 
-# These are binary operators that want one space before and one after.
-# The default, e.g  Power is no space. x^y
-# This broke somehow
-# function oldbinaryopspc(ss)
-#     s = Symbol(ss)
-#     (s == :(=>) || s == :(->) || s == Symbol(":>")  || s == Symbol("^:=")) && return " "
-#     return ""
-# end
-
 const binaryops_space = collect(keys(comparison_translation) )
+
+## Some of these, at least "^:=" can't be parsed as quoted symbols, but can be
+## read as command line input.... So, we use some strings.
+const binaryops_space_strings = [ "=>",  "->" , ":>" , "^:=" , "⇒", "∈" ]
 
 function binaryopspc(ss)
     ss in binaryops_space && return " "
     s = string(ss)
-    (s == "=>" || s == "->" || s == ":>"  || s == "^:=" || s == "⇒") && return " "
+    s in binaryops_space_strings && return " "
+#    (s == "=>" || s == "->" || s == ":>"  || s == "^:=" || s == "⇒") && return " "
     return ""
 end
 
@@ -186,7 +180,7 @@ end
 # Yes, it is Base.REPLCompletions.latex_symbols
 function Base.show(io::IO, x::Mxpr{:Subscript})
     if using_unicode_output()
-        try 
+        try
             s1 = string(x[1].x) # unwrap symbol
             for i in 2:length(x)
                 y = typeof(x[i]) <: AbstractWO ? string(x[i].x) : string(x[i])
@@ -466,6 +460,14 @@ function Base.show(io::IO, mx::Mxpr{:Pattern})
         print(io,"::(")
         show(io,mx[2])
         print(io,")")
+    end
+end
+
+function Base.show(io::IO, mx::Mxpr{:Element})
+    if using_unicode_output()
+        show_binary(io,mx)
+    else
+        show_prefix_function(io,mx)
     end
 end
 

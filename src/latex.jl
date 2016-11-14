@@ -117,6 +117,10 @@ end
 # show will print this correctly
 latex_display(mx::Mxpr{:FullForm}) = mx
 
+## Strip the wrapper.... hmmm print PlainForm// or something ?
+latex_display(mx::Mxpr{:PlainForm}) = length(mx) > 0 ? mx[1] : Null
+
+
 #### LaTeXString
 
 @mkapprule LaTeXString :nargs => 1
@@ -153,6 +157,7 @@ end
 # This will not be called if FullForm is the toplevel expression.
 # Here, FullForm will be converted to a string, as in Plain style and then wrapped in math mode text macro.
 latex_string(opt, mx::Mxpr{:FullForm}) = latex_text(mx)
+
 
 latex_text(s) =  "\\text{" * string(s)  * "}"
 
@@ -205,6 +210,14 @@ function latex_string(opt, mx::Mxpr{:Plus})
         end
     end
     s
+end
+
+function latex_string(opt, mx::Mxpr{:Element})
+    buf = IOBuffer()
+    if latex_needsparen(mx)  print(buf, llparen)  end
+    print(buf, latex_string(opt, mx[1]) * " \\in " * latex_string(opt,mx[2]))
+    if latex_needsparen(mx)  print(buf, lrparen) end
+    takebuf_string(buf)
 end
 
 function latex_string(opt, mx::Mxpr{:Power})
