@@ -23,17 +23,17 @@ Protect(ExpToTrig)
 
 Unprotect(Array)
 
-## A few coded by hand. We need the general case
-Array(f_, n_Integer) := Module([i], (Null, Table(f(i), [i,n])))
-Array(f_, n_Integer, r_Integer) := Module([i ],  (Null, Table(f(i), [i,r,n+r-1])))
-Array(f_, [n_Integer, m_Integer]) := Module([i ],  (Null, Table(f(i,j), [i,n], [j,m])))
-Array(f_, [n_Integer, m_Integer, p_Integer]) := Module([i ],  (Null, Table(f(i,j,k), [i,n], [j,m], [k,p])))
-Array(f_, n_Integer, [a_,b_]) := Module([i ],  (Null, Table(f(i), [i, Range(a,b,(b-a)/n)])))
-Array(f_, [n1_Integer, n2_Integer], [r1_Integer, r2_Integer] ) := Module([i ],  (Null, Table(f(i,j), [i,r1,n1+r1-1], [j,r2,n2+r2-1])))
+Array(f_, n_Integer) := Map(f,Range(n))
+Array(f_, n_Integer, r_Integer) := Map(f,Range(r,n+r-1))
+Array(f_, lims_List) := Module([vars = Array(x -> Unique(), Length(lims))],
+                               (Null,
+                                Table(Evaluate(Apply(f,vars)), Evaluate(Splat(Transpose([vars,lims]))))))
+Array(f_, n_Integer, [a_,b_]) := Map(f, Range(a,b,(b-a)/n))
 
+## TODO: reimplement these as above.
+Array(f_, [n1_Integer, n2_Integer], [r1_Integer, r2_Integer] ) := Module([i ],  (Null, Table(f(i,j), [i,r1,n1+r1-1], [j,r2,n2+r2-1])))
 Array(f_, [n1_Integer, n2_Integer, n3_Integer], [r1_Integer, r2_Integer, r3_Integer] ) :=
     Module([i ],  (Null, Table(f(i,j,k), [i,r1,n1+r1-1], [j,r2,n2+r2-1],  [k,r3,n3+r3-1])))
-
 Array(f_, [n1_Integer, n2_Integer], [[a1_,b1_], [a2_,b2_] ] ) := Module([i ],  (Null, Table(f(i,j), [i, Range(a1,b1,(b1-a1)/n1)], [j, Range(a2,b2,(b2-a2)/n2)])))
 
 Protect(Array)

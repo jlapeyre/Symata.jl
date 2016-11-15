@@ -49,6 +49,10 @@ T Depth(m) == 6
 T Dimensions(m) == [4,2,3]
 T Dimensions(IdentityMatrix(10)) == [10,10]
 
+T Dimensions(Array(f,[1,2,3,4])) == [1,2,3,4]
+T Dimensions(Array(f,[4,3,2,1])) == [4,3,2,1]
+T Dimensions(Array(List,[4,3,2,1])) == [4,3,2,1,4]
+
 ClearAll(m,f)
 
 # Array creates these

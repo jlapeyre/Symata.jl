@@ -152,11 +152,15 @@ dimensions(x,data) = 0
 
 function dimensions(x::Mxpr,data)
     length(x) ==  0 && return 0
-    thelength = symjlength(x[1])
-    for i in 2:length(x)
-        if symjlength(x[i]) != thelength || mhead(x[i]) != data.head
-            data.done = true
-            break
+    if mhead(x[1]) !=  data.head
+        data.done = true
+    else
+        thelength = symjlength(x[1])
+        for i in 2:length(x)
+            if symjlength(x[i]) != thelength || mhead(x[i]) != data.head
+                data.done = true
+                break
+            end
         end
     end
     if length(data.dims) < data.level
