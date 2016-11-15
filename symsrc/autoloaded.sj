@@ -132,3 +132,37 @@ Unprotect(Accumulate)
 Accumulate(list_) := Rest(FoldList(Plus,0,list))
 
 Protect(Accumulate)
+
+
+### Through
+
+## FIXME: vars in Function are not localized properly
+
+Unprotect(Through)
+
+## FIXME: h_ matches even if the two instances are different.
+Through(h_(a__)(args__),h_) := h(Apply(Sequence,Map( ηηη -> Apply(ηηη,[args]), [a])))
+
+Through(h_(a__)(args__)) := h(Apply(Sequence,Map( ηηη -> Apply(ηηη,[args]), [a])))
+
+Protect(Through)
+
+### Operate
+
+Unprotect(Operate)
+
+Operate(p_, f_(x__)) := p(f)(x)
+
+Protect(Operate)
+
+### NestWhile
+
+Unprotect(NestWhile)
+NestWhile(f_,ex_,test_) := Module([res=f(ex)], (Null, While( test(res), res = f(res)), res))
+Protect(NestWhile)
+
+### NextPrime
+
+Unprotect(NextPrime)
+NextPrime(x_Integer) := NestWhile( zz -> zz + 1 , x, yy -> Not(PrimeQ(yy)))
+Protect(NextPrime)

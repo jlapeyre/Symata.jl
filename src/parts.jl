@@ -96,17 +96,31 @@ Because most heads are effectively immutable, we must replace the final subexpre
 """
 function setpart!(mx::Mxpr,val,inds...)
     if length(inds) == 0
-        mxpr(val,margs(mx))
+        return mxpr(val,margs(mx))
     elseif length(inds) == 1
-        margs(mx)[inds[1]] = val
+        if inds[1] == 0
+            mx = mxpr(val,margs(mx)...)
+            #            symprintln("new ", mx)
+            # Function application is very slow if this branch is taken.
+            return mx
+#            symerror("Can't set head to $val. Not implemented")
+#            newhead = val  ## Not working
+        else
+            margs(mx)[inds[1]] = val
+        end
     elseif inds[end] == 0
-        ex = getpart(mx, inds[1:end-2]...)
+        ninds = inds[1:end-2]
+        if length(ninds) == 0
+            symerror("Not implemented getting no part of $mx")
+        end
+        ex = getpart(mx, ninds...)
         ex1 = margs(ex)[inds[end-1]]
         margs(ex)[inds[end-1]] = mxpr(val, margs(ex1))
     else
         ex = getpart(mx, inds[1:end-1]...)
         margs(ex)[inds[end]] = val
     end
+    mx
 end
 
 Base.setindex!(mx::Mxpr, val, inds...) = setpart!(mx,val,inds...)
@@ -136,7 +150,7 @@ function localize_variable(var,expr::Mxpr)
     positions = find_positions(expr,var)
     nexpr = deepcopy(expr)
     for pos in positions
-        setpart!(nexpr, sym, pos...)
+       nexpr = setpart!(nexpr, sym, pos...)
     end
     (sym, nexpr)
 end

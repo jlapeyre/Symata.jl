@@ -80,4 +80,21 @@ T Push!(a,11) == Range(11)
 T Pop!(a) == 11
 T a == Range(10)
 
+### Through
+
+T Through((f+g+h)(x,y)) == f(x,y) + g(x,y) + h(x,y)
+T Through([f,g,h](x)) == [f(x),g(x),h(x)]
+T Through(r(a,b,c)(x,y,z)) == r((a(x,y,z)),(b(x,y,z)),c(x,y,z))
+T NestList(Through, f(a)(b)(c)(d), 3) == [f(a)(b)(c)(d),f(a)(b)(c(d)),f(a)(b(c(d))),f(a(b(c(d))))]
+
+### Operate
+
+T Operate(p, f(x,y)) == p(f)(x,y)
+T Nest(xx -> Operate(wrap,xx), f(x), 4) == wrap(wrap(wrap(wrap(f))))(x)
+T Operate( Function(x,g), f(a,b,c)) == Apply(g, f(a,b,c))
+T Through(Operate(p,f(x))) == p(f(x))
+
+## FIXME: this fails in setpart!
+## Operate((xx->xx(a)), f(x,y))
+
 ClearAll(a)

@@ -131,6 +131,12 @@ T NestList(f,x,0) == [x]
 T NestList(f,x,1) ==  [x,f(x)]
 T NestList(f,x,3) == [x,f(x),f(f(x)),f(f(f(x)))]
 
+### NestWhile
+
+T NestWhile(Log,100, Function(xx, N(xx)>0)) == Log(Log(Log(Log(100))))
+T NestWhile( x -> x/2 , 123456, EvenQ) == 1929
+
+
 ClearAll(f,x)
 
 T  Range(0) == []

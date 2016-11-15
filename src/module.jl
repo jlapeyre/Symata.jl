@@ -47,7 +47,10 @@ function localize_module!(mx::Mxpr{:Module})
     return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them
 end
 
-substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
+# substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
+#    is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el
+
+substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(substlocalvars!(mhead(el),lvtab), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
      is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el
 
 
