@@ -46,8 +46,14 @@ end
 
 if ! isdefined(:denominator)
     denominator(args...) = den(args...)
+    symdenominator(args...) = den(args...)
+else
+    symdenominator(args...) = denominator(args...)
 end
 
 if ! isdefined(:numerator)
     numerator(args...) = num(args...)
+    symnumerator(args...) = num(args...)
+else
+    symnumerator(args...) = numerator(args...)
 end

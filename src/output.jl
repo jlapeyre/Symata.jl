@@ -5,7 +5,8 @@ import Base: show
 import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
-       CurrentContext, wrapout, using_unicode_output, comparison_translation
+       CurrentContext, wrapout, using_unicode_output, comparison_translation,
+       symnumerator, symdenominator
 
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
@@ -172,9 +173,9 @@ end
 Base.show(io::IO, x::WORational) = show_rational(io,x.x)
 
 function show_rational(io::IO, x::Rational)
-    show(io, numerator(x))
+    show(io, symnumerator(x))
     print(io, "/")
-    show(io, denominator(x))
+    show(io, symdenominator(x))
 end
 
 # Yes, it is Base.REPLCompletions.latex_symbols
