@@ -17,7 +17,7 @@ end
 ### Apply
 
 @sjdoc Apply """
-    Apply(f,expr)
+    Apply(f,expr)   f .% expr
 
 replace the `Head` of `expr` with `f`.
 
@@ -30,21 +30,12 @@ m = Apply(Plus)
 m(f(a,b,c))
 ```
 """
-
-# Why mkapprule does not work ?
-#apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
-
 @mkapprule Apply :nodefault => true
 
 @curry_first Apply
 
-# This allows things like:  Apply(f)([a,b,c])
-# do_Apply(mx,f) = mx
-# do_Apply(mx,x,y) = mx
-
 @doap Apply(f,g) = mx
 
-#function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
 @doap  function Apply(head::SJSym,mxa::Mxpr)
     if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
 #        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
@@ -58,7 +49,6 @@ m(f(a,b,c))
     mx
 end
 
-#do_Apply(mx::Mxpr,h,mxa::Mxpr) = mxpr(h,margs(mxa))
 @doap Apply(h,mxa::Mxpr) = mxpr(h,margs(mxa))
 
 # Apply operation to a typed numeric array.
@@ -229,12 +219,10 @@ apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1])
 ### Level
 
 
-
-
 ### Map
 
 @sjdoc Map """
-    Map(f,expr)
+    Map(f,expr)   f % expr
 
 return `f` applied to each element in a `expr`.
 
