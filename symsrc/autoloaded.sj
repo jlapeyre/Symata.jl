@@ -122,6 +122,12 @@ Unprotect(NestWhile)
 NestWhile(f_,ex_,test_) := Module([res=f(ex)], (Null, While( test(res), res = f(res)), res))
 Protect(NestWhile)
 
+### NestWhileList
+
+Unprotect(NestWhileList)
+NestWhileList(f_,ex_,test_) := Module([res=f(ex), list], (list=[ex,res], While( test(res),( res = f(res), Push!(list,res))  ), list))
+Protect(NestWhileList)
+
 ### NextPrime
 
 Unprotect(NextPrime)

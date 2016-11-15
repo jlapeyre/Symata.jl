@@ -136,6 +136,11 @@ T NestList(f,x,3) == [x,f(x),f(f(x)),f(f(f(x)))]
 T NestWhile(Log,100, Function(xx, N(xx)>0)) == Log(Log(Log(Log(100))))
 T NestWhile( x -> x/2 , 123456, EvenQ) == 1929
 
+### NestWhileList
+
+T NestWhileList( x -> x/2 , 123456, EvenQ) == [123456,61728,30864,15432,7716,3858,1929]
+T NestWhileList(Log, 100, x -> N(x) > 0) == [100,Log(100),Log(Log(100)),Log(Log(Log(100))),Log(Log(Log(Log(100))))]
+T [res = NestWhileList( y -> Mod(2*y, 19) , 2, x -> x != 1 ), Length(res)] == [[2,4,8,16,13,7,14,9,18,17,15,11,3,6,12,5,10,1],18]
 
 ClearAll(f,x)
 
