@@ -194,6 +194,9 @@ T Map(f,a) == [1,4,9]
 T Map(g)([1,a,"cat"]) == [g(1),g(a),g("cat")]
 T Map(EvenQ)(Range(4)) == [False,True,False,True]
 
+## fix bug because Sqrt had no rule (only translated on input)
+T Map(Sqrt,[4]) == [2]
+
 ClearAll(a,f)
 
 ### Nothing

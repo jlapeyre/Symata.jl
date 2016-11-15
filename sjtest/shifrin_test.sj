@@ -29,6 +29,20 @@ T Map(Head, [f(2), f("word"), f(Pi), f(Newton)]) == [If(BigIntInput(), BigInt, I
 
 Apply(ClearAll, UserSyms())
 
+# pg 79
+
+## FIXME: I think this Shifrin's example is wrong.
+## It should be
+## movingAverage(x_List, m_Integer) := Map(listAverage, neighborLists(x,m))
+
+listAverage(x_List) := (Apply(Plus,x) / Length(x))
+neighborLists(x_List, m_Integer) := Partition(x,Length(x) - 2*m, 1)
+movingAverage(x_List, m_Integer) := listAverage(neighborLists(x,m))
+testlist = Table(Sqrt(i), [i,10])
+
+T movingAverage(testlist,2) == [(1/5)*(3 + 2^(1/2) + 3^(1/2) + 5^(1/2)),(1/5)*(2 + 2^(1/2) + (2^(1/2))*(3^(1/2)) + 3^(1/2) + 5^(1/2)),(1/5)*(2 + (2^(1/2))*(3^(1/2)) + 3^(1/2) + 5^(1/2) + 7^(1/2)),(1/5)*(2 + 2(2^(1/2)) + (2^(1/2))*(3^(1/2)) + 5^(1/2) + 7^(1/2)),(1/5)*(3 + 2(2^(1/2)) + (2^(1/2))*(3^(1/2)) + 5^(1/2) + 7^(1/2)),(1/5)*(3 + 2(2^(1/2)) + (2^(1/2))*(3^(1/2)) + (2^(1/2))*(5^(1/2)) + 7^(1/2))]
+
+
 # pg 101
 T ReplaceAll( [x, Sin(x), x^2, x*y, x+y, g(x,y), h(x,y,z), Cos(y)], f_(x) => f(10)) == [x,Sin(10),x^2,x*y,x + y,g(x,y),h(x,y,z),Cos(y)]
 

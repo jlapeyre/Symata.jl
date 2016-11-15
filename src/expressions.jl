@@ -262,7 +262,7 @@ end
         mx1.args[1] = args[i]  # map f of one argument
         nargs[i] = doeval(mx1)
     end
-    mxpr(mhead(expr),nargs)
+    mxpr(mhead(expr),nargs...)
 end
 
 @curry_first Map

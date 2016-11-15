@@ -1341,3 +1341,10 @@ _sjfactorial_inf(mx,x,v::Complex) = real(v) == 0 ? 0 : mx
     length(x) == 0 && return mx
     _sjfactorial_inf(mx,x,x[1])
 end
+
+### Sqrt
+
+## we must have square root for when this is constructed programatically. eg. Map(Sqrt,[4])
+## Sqrt is not always read and translated!
+@mkapprule Sqrt :nargs => 1
+@doap Sqrt(x) = mpow(x,1//2)
