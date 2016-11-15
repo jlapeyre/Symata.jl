@@ -41,10 +41,12 @@ const JTOMSYM  =
       :$ => :Function, #  $(1+~2) -->  Function(Plus(1,Slot(2))), but we don't do anything yet with this
       :~ => :Slot,     # we need to translate lone ~ , ie Slot into Slot(1)
       :(=>) => :Rule, # Mma uses ->. We use => because it has a higher precedence than ->, which is what we want.
-#      :(->) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this
-      :(.>) => :RuleDelayed, # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
-      :(./) => :ReplaceAll,   # Mma has /. for this !! But, /. is not legal Julia syntax
+#      :(->) => :RuleDelayed,     # Mma uses :>. Julia parser does not allow this
+      :(.>) => :RuleDelayed,      # Mma uses :>. Julia parser does not allow this.  .> has better precedence and parsing than ->
+      :(./) => :ReplaceAll,       # Mma has /. for this !! But, /. is not legal Julia syntax
       :(.//) => :ReplaceRepeated,
+      :(%) => :Map,
+      :(.%) => :Apply,
 #      :(:) => :Span, # this is done specially in extomx. colon means various things
       :(&=) => :UpSetDelayed,  # This is available, at least. Not sure we want to take it.
       :... => :... ,  # We still need to decide what to do with this. Maybe evaluate the args and Apply Sequence

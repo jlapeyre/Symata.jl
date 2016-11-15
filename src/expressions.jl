@@ -32,7 +32,9 @@ m(f(a,b,c))
 """
 
 # Why mkapprule does not work ?
-apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
+#apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
+
+@mkapprule Apply :nodefault => true
 
 @curry_first Apply
 
@@ -40,7 +42,10 @@ apprules(mx::Mxpr{:Apply}) = do_Apply(mx,margs(mx)...)
 # do_Apply(mx,f) = mx
 # do_Apply(mx,x,y) = mx
 
-function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
+@doap Apply(f,g) = mx
+
+#function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
+@doap  function Apply(head::SJSym,mxa::Mxpr)
     if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
 #        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
         mx = mxpr(head,margs(mxa))
@@ -53,13 +58,15 @@ function do_Apply(mx::Mxpr,head::SJSym,mxa::Mxpr)
     mx
 end
 
-do_Apply(mx::Mxpr,h,mxa::Mxpr) = mxpr(h,margs(mxa))
+#do_Apply(mx::Mxpr,h,mxa::Mxpr) = mxpr(h,margs(mxa))
+@doap Apply(h,mxa::Mxpr) = mxpr(h,margs(mxa))
 
 # Apply operation to a typed numeric array.
 # We can build these functions with a macro and
 # mapping from  :Times -> mmul
 # :Cos -> cos, etc.
-function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
+#function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
+@doap function Apply{T<:Number}(h::SJSym,arr::Array{T})
     if h == :Plus
         s = zero(T)
         for i in 1:length(arr)
