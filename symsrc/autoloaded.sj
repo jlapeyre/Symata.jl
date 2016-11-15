@@ -166,3 +166,36 @@ Protect(NestWhile)
 Unprotect(NextPrime)
 NextPrime(x_Integer) := NestWhile( zz -> zz + 1 , x, yy -> Not(PrimeQ(yy)))
 Protect(NextPrime)
+
+### FixedPoint
+
+Unprotect(FixedPoint)
+
+FixedPoint(f_,ex_) := Module([res = f(ex), res1],
+                             (While(
+                                    res !== res1,
+                                    (res1 = res,
+                                     res = f(res1))) , res))
+
+FixedPoint(f_,ex_, max_) := Module([res = f(ex), res1, n = 0],
+                             (While(
+                                    res !== res1,
+                                    (
+                                     n += 1,
+                                     If(n>max,Break()),
+                                     res1 = res,
+                                     res = f(res1))) , res))
+
+
+FixedPoint(f_,ex_, Rule(SameTest, test_)) := FixedPoint(f,ex,Infinity,Rule(SameTest, test_))
+
+FixedPoint(f_,ex_, max_, Rule(SameTest, test_)) := Module([res = f(ex), res1, n = 0],
+                             (While(
+                                    ! test(res,res1),
+                                    (
+                                     n += 1,
+                                     If(n>max,Break()),
+                                     res1 = res,
+                                     res = f(res1))) , res))
+
+Protect(FixedPoint)
