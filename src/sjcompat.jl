@@ -41,3 +41,13 @@ if isdefined(Base.REPL, :bytestring_beforecursor)
 else
     symata_beforecursor(args...) = Base.REPL.beforecursor(args...)
 end
+
+### denominator
+
+if ! isdefined(:denominator)
+    denominator(args...) = den(args...)
+end
+
+if ! isdefined(:numerator)
+    numerator(args...) = num(args...)
+end

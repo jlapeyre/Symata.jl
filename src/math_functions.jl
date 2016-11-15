@@ -854,7 +854,7 @@ return the numerator of `expr`.
 apprules(mx::Mxpr{:Numerator}) = do_Numerator(mx::Mxpr{:Numerator},margs(mx)...)
 do_Numerator(mx::Mxpr{:Numerator},args...) = mx
 
-do_Numerator(mx::Mxpr{:Numerator},x::Rational) = num(x)
+do_Numerator(mx::Mxpr{:Numerator},x::Rational) = numerator(x)
 do_Numerator(mx::Mxpr{:Numerator},x) = x
 function do_Numerator(mx::Mxpr{:Numerator},x::Mxpr{:Power})
     find_numerator(x)
@@ -879,7 +879,7 @@ function do_Numerator(mx::Mxpr{:Numerator},m::Mxpr{:Times})
     return mxpr(mhead(m),nargsn)
 end
 
-find_numerator(x::Rational) = num(x)
+find_numerator(x::Rational) = numerator(x)
 find_numerator(x::Mxpr{:Power}) = pow_sign(x,expt(x)) > 0 ? x : 1
 
 function pow_sign(x, texpt::Mxpr{:Times})

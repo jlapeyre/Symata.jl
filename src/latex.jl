@@ -250,8 +250,8 @@ function get_nums_dens(other, negpows, rationals)
     nums = Array(Any,0)
     dens = Array(Any,0)
     for x in rationals
-        if num(x) != 1 push!(nums, num(x)) end
-        push!(dens, den(x))
+        if numerator(x) != 1 push!(nums, numerator(x)) end
+        push!(dens, denominator(x))
     end
     for x in negpows
         e = -exponent(x)
@@ -318,7 +318,7 @@ function latex_string(opt, x::WORational)
 end
 
 function latex_string{T<:Real}(opt, z::Rational{T})
-    "\\frac{" * latex_string(opt, num(z)) * "}{" * latex_string(opt, den(z)) * "}"
+    "\\frac{" * latex_string(opt, numerator(z)) * "}{" * latex_string(opt, denominator(z)) * "}"
 end
 
 function latex_string(opt, x::WOComplexRational)

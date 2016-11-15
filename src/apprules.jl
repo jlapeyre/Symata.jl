@@ -516,7 +516,7 @@ end
 #     end
 #     res = b^exp
 #     ires = round(T,res)
-#     nrat = Rational(den(exp),num(exp))
+#     nrat = Rational(denominator(exp),numerator(exp))
 #     if ires^nrat == b
 #         if gotneg
 #             return ires == 1 ? mxprcf(:Power, -1, exp) : mxprcf(:Times, ires, mxprcf(:Power, -1, exp))

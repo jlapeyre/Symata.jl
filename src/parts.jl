@@ -12,6 +12,8 @@ return a list of part specifications (indices) of positions in
 @mkapprule Position
 @doap Position(expr,subx) = tolistoflists(find_positions(expr,subx))
 
+@curry_second Position
+
 """
     find_positions(ex,subx)
 

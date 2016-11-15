@@ -172,9 +172,9 @@ end
 Base.show(io::IO, x::WORational) = show_rational(io,x.x)
 
 function show_rational(io::IO, x::Rational)
-    show(io, num(x))
+    show(io, numerator(x))
     print(io, "/")
-    show(io, den(x))
+    show(io, denominator(x))
 end
 
 # Yes, it is Base.REPLCompletions.latex_symbols

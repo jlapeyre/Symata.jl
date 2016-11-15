@@ -756,7 +756,7 @@ end
 
 @doap Min() = Infinity
 
-_sjtopy{T<:Integer}(mx::Rational{T}) = sympy[:Rational](num(mx),den(mx))
+_sjtopy{T<:Integer}(mx::Rational{T}) = sympy[:Rational](numerator(mx),denominator(mx))
 
 #_sjtopy{T<:Number}(mx::T) = mx
 _sjtopy(mx::Number) = mx
