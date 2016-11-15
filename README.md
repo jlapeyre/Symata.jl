@@ -40,6 +40,7 @@ functions, expression manipulation, writing and reading expressions to
 and from a file etc. These are the best places for examples and help:
 
 -  snapshots of tutorial notebooks in [the example directory](examples/) directory.
+-  Symata functions written in Symata are [here](symsrc/autoloaded.sj).
 -  examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
 -  when running Symata
  * `TAB` completion

@@ -1,6 +1,6 @@
 ## NOTE: Some constants are defined in mxpr_type.jl
 
-const SYMATA_VERSION = v"0.2.0-dev.004"
+const SYMATA_VERSION = v"0.2.0"
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
