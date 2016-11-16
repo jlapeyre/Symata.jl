@@ -303,6 +303,9 @@ function latex_string(opt, mx::Mxpr{:Times}, spaceminus::Bool)
         latex_string_factors(opt, buf, factors(mx), spaceminus)
     else
         (nums,dens) = get_nums_dens(other,negpows, rationals)
+        if length(nums) == 0
+            nums = Any[1]
+        end
         print(buf,"\\frac{")
         latex_string_factors(opt, buf,nums)
         print(buf,  "}{")

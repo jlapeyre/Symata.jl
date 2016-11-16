@@ -16,3 +16,4 @@ workflowquestion
 *.cov
 jlcopy*
 mma_attributes*
+examples/
