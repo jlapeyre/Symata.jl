@@ -226,6 +226,19 @@ apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1])
 
 return `f` applied to each element in a `expr`.
 
+    Map(f,expr,levelspec)
+
+map at levels specified by `levelspec`.
+
+`levelspec` is a standard level specification.
+
+- `n`       levels `0` through `n`.
+- `[n]`     level `n` only.
+- `[n1,n2]` levels `n1` through `n2`
+
+Negative indices count backwards from the deepest level.
+`Infinity` specifies the deepest level.
+
 `expr` is copied first. `f` can be a Symata object or a Julia function.
 
 `Map` can be used in an operator form. For example `Map(f)(expr)`.
@@ -265,6 +278,29 @@ end
     mxpr(mhead(expr),nargs...)
 end
 
+type MapData
+    action
+end
+
+@doap function Map(f,expr::Mxpr, inlevspec)
+    levelspec = make_level_specification(expr, inlevspec)
+    ex = recursive_copy(expr)
+    data = MapData(nothing)
+    action = LevelAction(data,
+                         function (data,expr)
+                           p = data.action.parent
+                           if p != Null
+                             p[data.action.subind] = mxpr(f,expr)
+                           end
+                         end)
+    data.action = action
+    traverse_levels!(action, levelspec,ex)
+    if has_level_zero(levelspec)
+        ex = mxpr(f,ex)
+    end
+    ex
+end
+
 @curry_first Map
 
 ### ToExpression
@@ -276,6 +312,7 @@ apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 
 convert string `str` to an expression.
 """
+
 do_ToExpression{T<:AbstractString}(mx,s::T) = exfunc(parse(s), SimpleExFuncOptions)
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx

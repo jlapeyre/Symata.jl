@@ -197,7 +197,38 @@ T Map(EvenQ)(Range(4)) == [False,True,False,True]
 ## fix bug because Sqrt had no rule (only translated on input)
 T Map(Sqrt,[4]) == [2]
 
-ClearAll(a,f)
+ClearAll(f,a,b,c,d,e)
+
+T Map(f,[a,b,c,d,e]) == [f(a),f(b),f(c),f(d),f(e)]
+T Function(x,x^2) % [1,2,3,4] == [1,4,9,16]
+T Map(f, [[a,b],[c,d]])  == [f([a,b]),f([c,d])]
+T Map(f, [[a,b],[c,d]],[2]) == [[f(a),f(b)],[f(c),f(d)]]
+
+## Note this was wrong
+#T Map(f, [[a,b],[c,d]],2) == [f([f(a),f([f(c),f(d)])]),[f(c),f(d)]]
+
+T Map(f)([a,b,c,d,e]) == [f(a),f(b),f(c),f(d),f(e)]
+ex = [[[[[a]]]]]
+T Map(f,ex) == [f([[[[a]]]])]
+T Map(f,ex,2) == [f([f([[[a]]])])]
+T Map(f,ex,[2]) == [[f([[[a]]])]]
+T Map(f,ex,[0,2]) == f([f([f([[[a]]])])])
+T Map(f,ex,3) == [f([f([f([[a]])])])]
+T Map(f,ex,Infinity) == [f([f([f([f([f(a)])])])])]
+T Map(f,ex,[0,Infinity]) == f([f([f([f([f([f(a)])])])])])
+T Map(f,ex,-1) == [f([f([f([f([f(a)])])])])]
+T Map(f,ex,-2) == [f([f([f([f([a])])])])]
+T Map(f,ex,-3) == [f([f([f([[a]])])])]
+T Map(f,ex,[2,-3]) == [[f([f([[a]])])]]     
+T Map(f, h0(h1(h2(h3(h4(a))))), [2, -3]) == h0(h1(f(h2(f(h3(h4(a)))))))
+T Map(f, a + b + c + d) == f(a) + f(b) + f(c) + f(d)
+
+## Mapping at levels is still broken:
+# ex = [[1,2], [3,4]]
+# Map(f,ex,2)
+# [f([f(1),f([f(3),f(4)])]),[f(3),f(4)]]
+
+ClearAll(a,f,ex)
 
 ### Nothing
 
