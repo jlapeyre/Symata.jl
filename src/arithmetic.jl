@@ -40,7 +40,24 @@ function mpow(x,y)
     _mpow(x,y)
 end
 
-_mpow(x::Number, y::Number) =  x^y
+function _mpow(x::Number, y::Number)
+    try
+        x^y
+    catch e
+        println("Error computing $x^$y")
+        rethrow(e)
+    end
+end
+
+function _mpow(x::Rational,y::Integer)
+    if x > 0 && y < 0
+        my = -y
+        (denominator(x)^(my))//(numerator(x)^(my))
+    else
+        x^y  # will fail
+    end
+end
+
 
 function _mpow(x::Irrational, n::Number)
     n >= 0 && return x^n
