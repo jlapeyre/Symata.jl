@@ -100,8 +100,8 @@ end
 
 function checkbreak(action)
     if action.levelbreak
-        println("break true")
-        action.parent = Null  # this was not the problem
+        # println("break true")
+        # action.parent = Null  # Do we ever break ?? this was not the problem
         true
     else
 #        println("break false")        
@@ -115,20 +115,17 @@ macro travcode()
         if elen > 0
             action.parent = expr
             for i in 1:elen
+                action.parent = expr
                 action.levelind += 1
                 action.subind = i
+
                 traverse_levels!(action,spec,expr[i])
                 if  checkbreak(action)
-#                    action.levelind -= 1
                     return
                 end
-                # if action.levelbreak
-                #     action.parent = Null
-                #     return
-                # end
                 action.levelind -= 1
             end
-            action.parent = Null
+#            action.parent = Null
         end
     end
 end

@@ -288,7 +288,8 @@ end
     data = MapData(nothing)
     action = LevelAction(data,
                          function (data,expr)
-                           p = data.action.parent
+                         p = data.action.parent
+#                         symprintln(data.action.subind, " p:", p, ", ex:", expr)
                            if p != Null
                              p[data.action.subind] = mxpr(f,expr)
                            end

@@ -203,10 +203,7 @@ T Map(f,[a,b,c,d,e]) == [f(a),f(b),f(c),f(d),f(e)]
 T Function(x,x^2) % [1,2,3,4] == [1,4,9,16]
 T Map(f, [[a,b],[c,d]])  == [f([a,b]),f([c,d])]
 T Map(f, [[a,b],[c,d]],[2]) == [[f(a),f(b)],[f(c),f(d)]]
-
-## Note this was wrong
-#T Map(f, [[a,b],[c,d]],2) == [f([f(a),f([f(c),f(d)])]),[f(c),f(d)]]
-
+T Map(f,[[a,b],[c,d]],2) == [f([f(a),f(b)]),f([f(c),f(d)])]
 T Map(f)([a,b,c,d,e]) == [f(a),f(b),f(c),f(d),f(e)]
 ex = [[[[[a]]]]]
 T Map(f,ex) == [f([[[[a]]]])]
@@ -222,6 +219,7 @@ T Map(f,ex,-3) == [f([f([f([[a]])])])]
 T Map(f,ex,[2,-3]) == [[f([f([[a]])])]]     
 T Map(f, h0(h1(h2(h3(h4(a))))), [2, -3]) == h0(h1(f(h2(f(h3(h4(a)))))))
 T Map(f, a + b + c + d) == f(a) + f(b) + f(c) + f(d)
+T Map(f, x^2 + y^2, 2) == f(f(x)^f(2)) + f(f(y)^f(2))
 
 ## Mapping at levels is still broken:
 # ex = [[1,2], [3,4]]
