@@ -39,7 +39,8 @@ implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc. These are the best places for examples and help:
 
--  snapshots of tutorial notebooks in [the example directory](examples/) directory.
+-  [static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
+   (If you can't get to the nbviewer link, here is [the example directory](examples/) at github.
 -  Symata functions written in Symata are [here](symsrc/autoloaded.sj).
 -  examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
 -  when running Symata
