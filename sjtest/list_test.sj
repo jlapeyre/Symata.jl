@@ -221,11 +221,6 @@ T Map(f, h0(h1(h2(h3(h4(a))))), [2, -3]) == h0(h1(f(h2(f(h3(h4(a)))))))
 T Map(f, a + b + c + d) == f(a) + f(b) + f(c) + f(d)
 T Map(f, x^2 + y^2, 2) == f(f(x)^f(2)) + f(f(y)^f(2))
 
-## Mapping at levels is still broken:
-# ex = [[1,2], [3,4]]
-# Map(f,ex,2)
-# [f([f(1),f([f(3),f(4)])]),[f(3),f(4)]]
-
 ClearAll(a,f,ex)
 
 ### Nothing
