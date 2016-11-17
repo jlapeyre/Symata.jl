@@ -53,7 +53,7 @@ T  Head(g("cat")) == g
 T  g("zebra") == "Greater than 4"
 T  Head(g(4.0)) == g
 T  g(6.0) == 1
-     h(x_AbstractFloat:?(:((y)-> y < 3) )) = 1
+     h(x_AbstractFloat:?(J( y -> y < 3) )) = 1
 T  Head(h(2)) == h
 T  Head(h(4)) == h
 T  Head(h(2)) == h

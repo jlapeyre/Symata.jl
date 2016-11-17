@@ -98,7 +98,9 @@ function __init__()
     Main.eval( :( using Symata ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
-    if (! have_ijulia) && isinteractive()
+    if have_ijulia
+        isymata()
+    elseif isinteractive()
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
         else

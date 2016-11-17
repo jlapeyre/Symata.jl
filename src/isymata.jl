@@ -168,7 +168,7 @@ function symata_execute_request(socket, msg)
 
 
     if isymata_mode()
-        code = "@Symata.ex " * code
+        code = "@Symata.ex " * " begin\n" * code * "\nend"
     end
 
     try

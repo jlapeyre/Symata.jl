@@ -99,9 +99,9 @@ SetAttributes(f,NHoldFirst)
 SetAttributes(g,NHoldRest)
 SetAttributes(h,NHoldAll)
 
-T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(f(1,2,3)))) == [True,False,False]
-T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(g(1,2,3)))) == [False,True,True]
-T  Args(Map( :( (x) -> typeof(x) <: Integer ) , N(h(1,2,3)))) == [True,True,True]
+T  Args(Map( J( (x) -> typeof(x) <: Integer ) , N(f(1,2,3)))) == [True,False,False]
+T  Args(Map( J( (x) -> typeof(x) <: Integer ) , N(g(1,2,3)))) == [False,True,True]
+T  Args(Map( J( (x) -> typeof(x) <: Integer ) , N(h(1,2,3)))) == [True,True,True]
 
  ClearAll(f,g,h,x)
 

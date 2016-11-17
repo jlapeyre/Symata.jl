@@ -2,10 +2,7 @@
 
 T Limit(x, x => 0) == 0
 T Limit(Sin(x)/x, x => Infinity) == 0
-  # isdef = :( isdefined(:fff) )
-  # If(isdef, f = :(fff), f = :( fff(x) = x^10))
-  #  f = :( if ! isdefined(:fff)  fff(x) = x^10 end )
-  f  = :( x -> mpow(x,10) )
+  f = J( x -> mpow(x,10) )
 T Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
 # We need to fix this. Inf is a Float64. Convert it to SJulia
 T Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == Infinity

@@ -34,33 +34,38 @@ function apprules(mx::Mxpr{:SetJ})
     Main.eval(Expr(:(=),symname(lhs),rhs))
 end
 
-#### Jxpr
+### Jxpr
 
 @sjdoc Jxpr """
     Jxpr
 
-allows embedding Julia expressions. A Jxpr is entered like this `:( expr )`.
+allows embedding Julia expressions. A Jxpr is entered like this `J( expr )`.
 
 `expr` is interpreted as a Julia expression and it is wrapped expression with head `Jxpr`, which is then evaluated when
 `Jxpr` is evaluated. You never see the head `Jxpr`. For example,
- `m = :( [1:10] )`  creates a Julia array and binds it to the Symata symbol `m`.
+ `m = J( collect(1:10) )`  creates a Julia array and binds it to the Symata symbol `m`.
 """
 
 @sjexamp( Jxpr,
          "This creates a Julia Array{Int,1} and \"binds\" it to the Symata symbol m.",
-         ("m = :( collect(1:3) )",
+         ("m = J( collect(1:3) )",
           "3-element Array{Int64,1}:\n 1\n 2\n 3"))
 
 @sjexamp( Jxpr,
          "Call a Julia function",
-         ("tf = :( time )",""),
+         ("tf = J( time )",""),
          ("tf()","1.424287593897437e9"))
 
-# quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as
+# quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as  < -- we will remove this
 # Mxpr with head Jxpr. It is evaluated here.
-apprules(mx::Mxpr{:Jxpr}) = do_jxpr(mx,mx[1])
-do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T) = eval(ex)
-do_jxpr(mx::Mxpr{:Jxpr}, x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
+@mkapprule Jxpr
+
+@doap Jxpr{T<:Union{Expr,Symbol}}(ex::T) = eval(ex)
+@doap Jxpr(x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
+
+#apprules(mx::Mxpr{:Jxpr}) = do_jxpr(mx,mx[1])
+#do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T) = eval(ex)
+#do_jxpr(mx::Mxpr{:Jxpr}, x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
 
 #### Unpack
 
@@ -75,7 +80,7 @@ key,value pairs is returned.
 
 @sjexamp( Unpack,
          "This creates a List of three random Float64's.",
-         ("Unpack( :(rand(3)) )", "[0.5548766917324894,0.034964001133465095,0.9122052258982192]"))
+         ("Unpack( J(rand(3)) )", "[0.5548766917324894,0.034964001133465095,0.9122052258982192]"))
 
 function apprules(mx::Mxpr{:Unpack})
     obj = mx[1]

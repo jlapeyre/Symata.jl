@@ -57,6 +57,6 @@ T 27^(1/2) == 3(3^(1/2))
 T Head((a*b)^(1/2)) == Power
 
 # Check that pi --> float(pi) when needed. This is not automatic in Julia
-T  Isa(:( mpow(pi,-3) ), Real)
+T  Isa(J( mpow(pi,-3) ), Real)
 
  ClearAll(z,a,b)

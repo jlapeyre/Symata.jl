@@ -18,7 +18,7 @@ T CosPi(1/3) == 1/2
 T Abs(CosPi(1/3.0) - N(1/2)) < 10.0^(-10)
 
 T SinPi(1/3) == Sin(Pi/3)
-T Abs(SinPi(1/3.0) - :(sinpi(1/3.0))) < 10.0^(-10)
+T Abs(SinPi(1/3.0) - J(sinpi(1/3.0))) < 10.0^(-10)
 
 T Cos(0) == 1
 T Cos(I*a) == Cosh(a)

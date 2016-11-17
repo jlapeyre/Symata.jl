@@ -7,7 +7,7 @@ T [1,2,3][2] == 2
  ClearAll(f,g,x,c)
 # We use an anonymous function to avoid the redefinition warning if this test
 # is run more than once.
-       g = :( (x) -> mpow(x,2) ) # g is SJulia Symbol bound to Julia Function
+       g = J( (x) -> mpow(x,2) ) # g is SJulia Symbol bound to Julia Function
 # Creates Mxpr with head of type Function.
 # The apprule for head Function is to call it on the args
 T   g(3) == 9
@@ -99,7 +99,7 @@ T Replace( b , a => 1) == b
 
 ## Set a Julia variable
 (SetJ(a,"cat"))
-T :( Main.a == "cat" )
+T J( Main.a == "cat" )
 
 ## Test compound expression
 

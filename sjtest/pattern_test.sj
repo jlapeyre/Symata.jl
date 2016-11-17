@@ -96,7 +96,7 @@ T MatchQ( 1.0, _Integer) == false
 T MatchQ( "zebra", _AbstractString) == true
 T MatchQ( 1.0, _AbstractString) == false
 
-p = _:?(:( x ->  -1 < x < 1 ))
+p = _:?(J( x ->  -1 < x < 1 ))
 
 T MatchQ(0,p)
 T MatchQ(.5,p)
@@ -183,7 +183,7 @@ T ReplaceAll([1, x, x^2, x^3, y^2] , (x | x^_) => q) == [1,q,q,q,y^2]
 # FIXME. This is not parsed correctly. We get Span
 # (f : (a | b))(x_) => r(f, x)
 # FIXME. This is parsed as named pattern, but the rest of the parsing is wrong.
-# (f::(a | b))(x_) => r(f, x)
+# (f:J(a | b))(x_) => r(f, x)
 
 ClearAll(a,b,c,f,g,h,p,x,y)
 
@@ -415,7 +415,7 @@ ClearAll(countprimes)
 #### Cases
 
 # Use a Julia function to list the perfect squares less than 100.
-T  Cases(Range(100), _:?(:( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
+T  Cases(Range(100), _:?(J( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
 
 T Cases([1,2.0,3,"dog"], _String) == ["dog"]
 T DeleteCases([1,2.0,3,"dog"], _String) == [1,2.0,3]

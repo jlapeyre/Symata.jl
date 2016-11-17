@@ -16,6 +16,8 @@ macro h_str(s)
     :Null
 end
 
+## Julia already has some of these. We need to consolidate
+
 macro bf_str(s)
     parse(BigFloat,s)
 end
@@ -33,6 +35,9 @@ macro BF_str(s)
     parse(BigFloat,s)
 end
 
+macro jul(ex)
+    extomx(Expr(:call, :J, ex))
+end
 
 # Complicated:
 # 1. preprocess :> to .>, because :> cannot be parsed
@@ -194,7 +199,12 @@ function extomx(ex::Expr)
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if ex.head == :call
         head = extomx(a[1])
-        @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
+        if head == :J
+            head = :Jxpr
+            push!(newa,ex.args[2]) # will be interpreted as Julia code, so don't translate it.
+        else
+            @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
+        end
     elseif ex.head == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])
     elseif ex.head == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
@@ -215,7 +225,11 @@ function extomx(ex::Expr)
                 length(ptargs) != 2 && error("extomx: too many args to PatternTest")
                 pt = ptargs[2]
                 if isa(pt,Expr)  # assume it is a Function
-                    pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
+                    if pt.head == :call && length(pt.args) > 1 && pt.args[1] == :J
+                        pt = eval(eval(pt.args[2]))
+                    else
+                        pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
+                    end
                 end
                 isa(pt,Symbol) || isa(pt,Function) || typeof(pt) <: Function ||
                         error("extomx: argument to PatternTest must be a Symbol or a Function")
@@ -236,7 +250,7 @@ function extomx(ex::Expr)
         end
     elseif ex.head == :(.)  # don't need parens, but this is readable
         return parse_qualified_symbol(ex)
-    elseif ex.head == :quote   # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
+    elseif ex.head == :quote  # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
         head = :Jxpr           # This allows running Julia code from within Symata.
         push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                                # But, this is the same effect as evaling ex

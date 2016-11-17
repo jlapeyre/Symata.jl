@@ -1,11 +1,22 @@
 # These tests are taken from "Mathematica Programming: An Advanced Introduction"
 # by Leonid Shifrin.
 
+# pg 26
 T Map(AtomQ,[x,Sin(x),1+2*I,2/3]) == [True, False, True, True]
 
-ClearAll(f,g,h,x)
-# no longer differs from Mma.
-#T f(g)(h)(x) == f(g,h,x)
+ClearAll(f,g,h,x,a,b)
+
+# pg 27
+
+a = z * Sin(x+y)
+
+T Head(a) == Times
+b = f(g)(h)(x)
+T Head(b) == f(g)(h)
+T Head(f(g)(h)) == f(g)
+T Head(f(g)) == f
+
+ClearAll(f,g,h,x,a,b)
 
 # 1. Mma has Int64 -> Integer, Float64 -> Real, and only Complex and Rational.
 # 2. Complex{Int64} is not valid Symata.

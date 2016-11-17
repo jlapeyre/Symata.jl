@@ -20,11 +20,11 @@ ClearAll(f,g,b,a)
 
 T Array(f,3) == [f(1),f(2),f(3)]
 
-g = :( x -> mplus(x^2 , :a))
+g = J( x -> mplus(x^2 , :a))
 T Array(g,3) == [1 + a,4 + a,9 + a]
 
 b = 3
-g = :( x -> mplus(x^2, :b))
+g = J( x -> mplus(x^2, :b))
 T Array(g,3) == [4,7,12]
 
 T Array(a,[2,3]) == [[a(1,1),a(1,2),a(1,3)],[a(2,1),a(2,2),a(2,3)]]
@@ -32,13 +32,13 @@ T Array(a,[2,3]) == [[a(1,1),a(1,2),a(1,3)],[a(2,1),a(2,2),a(2,3)]]
 f = Compile([x,y], x^2 + 2*y)
 Array(f, [3,4]) == [[3,5,7,9],[6,8,10,12],[11,13,15,17]]
 
-T Array( :( x -> x^2 ), 5) == [1,4,9,16,25]
+T Array( J( x -> x^2 ), 5) == [1,4,9,16,25]
 
 T Array(a, 5, 0) == [a(0),a(1),a(2),a(3),a(4)]
 
 T Array(a, 5, [0,1])  == [a(0),a(1/5),a(2/5),a(3/5),a(4/5),a(1)]
 
-T Array(:((x,y)->0),[2,2]) == [[0,0],[0,0]]
+T Array(J((x,y)->0),[2,2]) == [[0,0],[0,0]]
 
 ClearAll(f)
 
@@ -120,8 +120,8 @@ ClearAll(a,b,c,f,x,p)
 T Nest(f,x,0) == x
 T Nest(f,x,1) == f(x)
 T Nest(f,x,3) == f(f(f(x)))
-T Nest(:( x -> mplus(x, 1)), x,100) == 100 + x
-T Chop(Nest( :( x -> (x + 2/x)/2 ), 1.0, 5) - Sqrt(2.0)) == 0
+T Nest(J( x -> mplus(x, 1)), x,100) == 100 + x
+T Chop(Nest( J( x -> (x + 2/x)/2 ), 1.0, 5) - Sqrt(2.0)) == 0
 
 ClearAll(f,x)
 
@@ -183,12 +183,17 @@ T a[2] == 1 + d^3
 T a[1] == 1 + d^2
 T a[3] == 1 + d^2
 
+T ConstantArray(0,[2,3,4]) == Array(x -> 0,[2,3,4])
+T ConstantArray(c,[2,3,4]) == Array(x -> c,[2,3,4])
+T ConstantArray(1+d^2,[2,3,4]) == Array(x -> 1+d^2,[2,3,4])
+T Head(ConstantArray(0,[a,b])) == ConstantArray
+
 ClearAll(a,d,i)
 
 ### Map
 
-a = :( [1,2,3] )
-f = :( x -> x^2 )
+a = J( [1,2,3] )
+f = J( x -> x^2 )
 T Map(f,a) == [1,4,9]
 
 T Map(g)([1,a,"cat"]) == [g(1),g(a),g("cat")]
