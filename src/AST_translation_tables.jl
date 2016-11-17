@@ -53,7 +53,8 @@ const JTOMSYM  =
       :! => :Not,
       :&& => :And,
       :|| => :Or,
-      :| => :Alternatives   # Not implemented well, if at all
+      :| => :Alternatives,
+      :(...) => :Repeated
 )
 
 const JTOMSYM_ONEWAY  =
@@ -168,6 +169,9 @@ mtojsym(x) = x
 # These will not be translated back to Julia expression symbol on printing
 # TODO. choose tuple or block, or both ?
 # One unusual occurance of :block is filtered before we get here
+
+# A compound expression is denoted by tuple () or by begin end.
+# We could possible used tuple for something else.
 for (k,v) = ( (:tuple,:CompoundExpression), (:block,:CompoundExpression), (:dict, :List) )
     JTOMSYM[k] = v
 end

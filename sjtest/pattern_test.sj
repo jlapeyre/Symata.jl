@@ -37,7 +37,7 @@ T f(1,[2,3,4]) == g(1,[2,3,4])
 
 ClearAll(f)
 f(x_, y__) := [x,[y]]
-f(1,[2,3,4]) = [1,[2,3,4]]
+f(1,[2,3,4]) == [1,[2,3,4]]
 
 ClearAll(f)
 f(x__) := Length([x])
@@ -575,26 +575,31 @@ T Head(f(2)) == f
 
 ClearAll(x,y,a,b,d,f)
 
-#### Repeated RepeatedNull
+### Repeated RepeatedNull
+
+## Mma has .. for Repeated and ... for RepeatedNull
+## We only use ... for Repeated
 
 T MatchQ([a,a,a], [Repeated(a)])
-T MatchQ([a], [Repeated(a)])
-T ! MatchQ([], [Repeated(a)])
-T ! MatchQ([a,a,b], [Repeated(a)])
-T ! MatchQ([a,b,a], [Repeated(a)])
-T MatchQ([a,a,b], [Repeated(a),b])
-T MatchQ([a,a,b,c,c,c], [Repeated(a),b, Repeated(c)])
+T MatchQ([a,a,a], [a...])
+T MatchQ([a], [a...])
+T ! MatchQ([], [a...])
+T ! MatchQ([a,a,b], [a...])
+T ! MatchQ([a,b,a], [a...])
+T MatchQ([a,a,b], [a...,b])
+T MatchQ([a,a,b,c,c,c], [a..., b, c...])
 
-T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ Repeated(f(_)) ] => x ) == [[],x,[f(a),f(a,b)],x]
-T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(Repeated(a)) => x ) == [x,f(a,b),x]
-T Cases([f(a), f(a, b, a), f(a, a, a)], f(Repeated(a))) == [f(a),f(a,a,a)]
-T Cases([f(a), f(a, a, b), f(a, b, a), f(a, b, b)], f(Repeated(a), Repeated(b))) == [f(a,a,b),f(a,b,b)]
-T Cases([f(a), f(a, b, a), f(a, c, a)], f(Repeated(a | b))) == [f(a),f(a,b,a)]
+T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ f(_)... ] => x ) == [[],x,[f(a),f(a,b)],x]
+T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(a...) => x ) == [x,f(a,b),x]
+T Cases([f(a), f(a, b, a), f(a, a, a)], f(a...)) == [f(a),f(a,a,a)]
+T Cases([f(a), f(a, a, b), f(a, b, a), f(a, b, b)], f(a...,b...)) == [f(a,a,b),f(a,b,b)]
+T Cases([f(a), f(a, b, a), f(a, c, a)], f((a | b)...)) == [f(a),f(a,b,a)]
 
-v(x::[Repeated([_, _])]) := Transpose(x)
+v(x::[[_, _]...]) := Transpose(x)
 T v([[a,b],[c,d],[e,f]]) == [[a,c,e],[b,d,f]]
 
-v1(x::[Repeated([_,n_])]) := Transpose(x)
+#v1(x::[Repeated([_,n_])]) := Transpose(x)
+v1(x::[[_,n_]...]) := Transpose(x)
 T  Head(v1([[a,b],[c,d],[e,f]])) == v1
 T  v1([[a,b],[c,b],[e,b]]) == [[a,c,e],[b,b,b]]
 
@@ -604,7 +609,7 @@ ClearAll(v,v1)
 # We do not have enough of Norm implemented. But the pattern does work.
 # T  f(x::[Repeated([_, _])]) := Norm(N(x))
 
-T MatchQ([a,a,b], [Repeated(_Symbol)])
+T MatchQ([a,a,b], [_Symbol...])
 T ! MatchQ([a,a,b,3], [Repeated(_Symbol)])
 T MatchQ([a,a,b,3], [Repeated(_Symbol),_ ])
 
@@ -621,7 +626,7 @@ T ! MatchQ([1,2,3], [Repeated(_Integer,[4,10])])
 T ! MatchQ([1,2,3], [Repeated(_Integer,[1,2])])
 T MatchQ([1,2,3], [Repeated(_Integer,[0,4])])
 T MatchQ([], [Repeated(_Integer,[0,4])])
-T MatchQ([a,b,c,3], [Repeated(Except(_Integer)), _Integer] )
+T MatchQ([a,b,c,3], [Except(_Integer)..., _Integer] )
 
 # Between 1 and 0, so this fails
 T ! MatchQ([], [Repeated(_Integer,0)])

@@ -187,6 +187,14 @@ function parse_qualified_symbol(ex::Expr)
     return(qsym)
 end
 
+function parse_quoted(ex::Expr,newa)
+    # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
+    head = :Jxpr           # This allows running Julia code from within Symata.
+    push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
+                           # But, this is the same effect as evaling ex
+    return head
+end
+
 ## Main translation routine
 # We use Julia for lexing/parsing. But we change the semantics:
 # sometimes a little, sometimes a lot.
@@ -250,10 +258,8 @@ function extomx(ex::Expr)
         end
     elseif ex.head == :(.)  # don't need parens, but this is readable
         return parse_qualified_symbol(ex)
-    elseif ex.head == :quote  # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
-        head = :Jxpr           # This allows running Julia code from within Symata.
-        push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
-                               # But, this is the same effect as evaling ex
+    elseif ex.head == :quote
+        head = parse_quoted(ex,newa)
     elseif ex.head == :macrocall
         return eval(ex )
     elseif ex.head == :string
