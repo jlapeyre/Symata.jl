@@ -24,8 +24,7 @@ function localize_module!(mx::Mxpr{:Module})
     (locvars,body) = (mx[1],mx[2])
     (is_Mxpr(locvars) && symname(mhead(locvars)) == :List) ||
     symerror("Module: Local variable specification $locvars is not a list")
-    (is_Mxpr(body) && symname(mhead(body)) == :CompoundExpression) ||
-     error("Module: Second argument must be a CompoundExpression")
+    body = is_Mxpr(body) && symname(mhead(body)) == :CompoundExpression ? body : mxpr(:CompoundExpression,Null,body)
     lvtab = Dict{Symbol,SJSym}()
     setlines = []
     for v in margs(locvars)
@@ -39,16 +38,13 @@ function localize_module!(mx::Mxpr{:Module})
             lvtab[vn] = get_localized_symbol(vn)
         end
     end
-    body = substlocalvars!(mx[2],lvtab)
+    body = substlocalvars!(body,lvtab)    
     for setline in setlines
         unshift!(margs(body), setline)  # These lines will set the initial values
     end
     unshift!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # first thing is clear existing local vars. Not neccessary ?
-    return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them
+    return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them    
 end
-
-# substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(mhead(el), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
-#    is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el
 
 substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(substlocalvars!(mhead(el),lvtab), [substlocalvars!(x,lvtab) for x in margs(el)]...) :
      is_SJSym(el) && haskey(lvtab, symname(el)) ? lvtab[symname(el)] : el
