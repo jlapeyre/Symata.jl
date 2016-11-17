@@ -3,15 +3,23 @@
 
 # We need to find a place to put VersionInfo
 
-@mkapprule VersionInfo :nargs => 0
+@mkapprule VersionInfo :nargs => 0:1
 
 @sjdoc VersionInfo """
     VersionInfo()
 
 return the version numbers of Symata, Julia, and Python.
+
+    VersionInfo(All)
+
+give more verbose information.
 """
 
 @doap function VersionInfo()
+    _versioninfo()
+end
+
+function _versioninfo()
     println("symata version ", SYMATA_VERSION)
     println("julia version  ", Base.VERSION)
     if isdefined(PyCall, :pyversion)
@@ -23,6 +31,16 @@ return the version numbers of Symata, Julia, and Python.
         println("sympy version  " * sympy[:__version__])
     catch
         println("sympy version unavailable")
+    end
+end
+
+
+@doap function VersionInfo(s::SJSym)
+    if s == :All
+        _versioninfo()
+        Base.versioninfo()
+    else
+        mx
     end
 end
 

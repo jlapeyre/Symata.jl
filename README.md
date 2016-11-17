@@ -140,19 +140,15 @@ branch with `Pkg.free("Symata")`.)
 
 Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
 
-<!-- Once the development branch of `Symata` is selected, start a `Jupyter` notebook session. Then do the following.
--->
 
 ```julia
 In [1]:  using Symata
 
-In [2]:  isymata()  # enter Symata mode
+In [2]:  Expand((a+b)^2)
 
-In [3]:  Expand((a+b)^2)
+Out[2]:  a^2 + 2a*b + b^2
 
-Out[3]:  a^2 + 2a*b + b^2
-
-In [4]:  Julia()   # return to Julia mode
+In [3]:  Julia()   # return to Julia mode
 ```
 
 In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells. TAB completion
