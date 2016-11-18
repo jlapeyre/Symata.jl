@@ -85,6 +85,8 @@ function symatamath()
     nothing
 end
 
+symatamath()
+
 ## Arithmetic methods involving annotated Symata types. These will never conflict with Base Julia,
 ## so they are safe to define.
 
@@ -92,6 +94,8 @@ end
 *(a::Mxpr,b) = mxpr(:Times,a,b)
 *(a,b::Mxpr) = mxpr(:Times,a,b)
 
+# Following should not be necessary.
+*(a::Number,b::Mxpr) = mxpr(:Times,a,b)
 
 +(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
 +(a::Mxpr,b) = mxpr(:Plus,a,b)
@@ -103,6 +107,12 @@ end
 ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 
 /(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+
+*(args...) = Base.:*(args...)
++(args...) = Base.:+(args...)
+-(args...) = Base.:-(args...)
+^(args...) = Base.:^(args...)
+/(args...) = Base.:/(args...)
 
 
 # Already defined elsewhere (... where ?)

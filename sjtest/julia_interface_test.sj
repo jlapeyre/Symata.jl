@@ -36,6 +36,11 @@ T J( Symata.Cos(:a) ) == Cos(a)
 func = J((x,y) -> sum(u -> u[1]^2/u[2]^3, zip(margs(x),margs(y))))
 T Abs(func(Range(10.0),Range(10.0)) - 2.9289682539682538) < 10^(-8)
 
+## Nov 2016. Add methods for * and + on symbols, etc.
+## We do not import the functions from Main.
+T Head(J( Symata.:+(:c,:d) )) == Plus
+T Head(J( Symata.:*(:c,:d) )) == Times
+
 ### Compile
 
 T  Compile( Cos(x) )(3) == Cos(3)
@@ -45,5 +50,3 @@ T  Compile( Cos(x) )(a) == Cos(a)
 T  Compile( Exp(x)*Cos(x)*x )(1.0) == J( exp(1.0) * cos(1.0) *1.0 )
 
 Apply(ClearAll, UserSyms())
-
-

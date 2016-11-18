@@ -1206,7 +1206,14 @@ function mittagleffler(mx,α,z)
     α == 0 && return mpow(mminus(1,z),-1)
     α == 1 && return Exp(z)
     α == 2 && return Cosh(Sqrt(z))
-    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
+    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + mmul(2,Exp(-mpow(z,1//3)/2)) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
+    # Following stopped working when we do not import *,+, etc. from main 2*Mxpr fails ??
+    # But, we have defined a * method for these types!
+    # MethodError(*,(2,:E^((-:z^(1//3))*2^(-1))))
+    # ERROR: MethodError: no method matching *(::Int64, ::Symata.Mxpr{:Power})
+    # Closest candidates are:
+    #   *(::Any, ::Any, ::Any, ::Any...) at operators.jl:138
+    #    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3)))    
     α == 4 && return (1//2)* ( Cosh(mpow(z,1//4)) + Cos(mpow(z,1//4)))
     if isa(α,AbstractFloat) || isa(z, FloatRC)
         return MittLeff.mittleff(float(α),float(z))

@@ -6,7 +6,11 @@ using Compat  # only used in code copied from REPL_symata.jl
 import Compat.String
 import Compat.view
 
-import Base: /, *, +, -, ^, setindex!, getindex, replace
+# We don't want to import the math functions.... If we don't import * we can write a symata version
+# that only works in Symata module.
+import Base: setindex!, getindex, replace
+
+#import Base: /, *, +, -, ^, setindex!, getindex, replace
 
 # These are of general use
 # Need to export @ex until we can track down all uses and remove them.
