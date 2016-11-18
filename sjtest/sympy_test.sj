@@ -2,8 +2,14 @@
 
 T Limit(x, x => 0) == 0
 T Limit(Sin(x)/x, x => Infinity) == 0
+
   f = J( x -> mpow(x,10) )
 T Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
+
+  f = J( x -> x^10)
+T Limit( (f(x+h) - f(x))/h, h => 0) == 10 * (x^9)
+
+
 # We need to fix this. Inf is a Float64. Convert it to SJulia
 T Limit( 1/(x^(Log(Log(Log(Log((1/x)))))-1)), x => 0) == Infinity
 # Mma 3 cannot do the following:

@@ -198,7 +198,7 @@ T a == 2
 
 ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)
 
-# ReplaceAll tries to replace at all levels, beginning with the entire expression.
+## ReplaceAll tries to replace at all levels, beginning with the entire expression.
 T ReplaceAll(c, c => y) == y
 T ReplaceAll(1, 1 => y) == y
 

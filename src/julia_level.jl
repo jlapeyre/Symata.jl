@@ -94,19 +94,32 @@ symatamath()
 *(a::Mxpr,b) = mxpr(:Times,a,b)
 *(a,b::Mxpr) = mxpr(:Times,a,b)
 
-# Following should not be necessary.
-*(a::Number,b::Mxpr) = mxpr(:Times,a,b)
+Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
+Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
+Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
 
 +(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
 +(a::Mxpr,b) = mxpr(:Plus,a,b)
 +(a,b::Mxpr) = mxpr(:Plus,a,b)
 
+Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
+Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
+Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
+
 -(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
 -(a::Mxpr) = mxpr(:Times,-1,a)
+
 ^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 ^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 
 /(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+
+Base.:-(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
+Base.:-(a::Mxpr) = mxpr(:Times,-1,a)
+Base.:^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
+Base.:^(base::Mxpr,expt) = mxpr(:Power,base,expt)
+Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+
 
 *(args...) = Base.:*(args...)
 +(args...) = Base.:+(args...)

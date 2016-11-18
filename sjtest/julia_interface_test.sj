@@ -36,6 +36,9 @@ T J( Symata.Cos(:a) ) == Cos(a)
 func = J((x,y) -> sum(u -> u[1]^2/u[2]^3, zip(margs(x),margs(y))))
 T Abs(func(Range(10.0),Range(10.0)) - 2.9289682539682538) < 10^(-8)
 
+## Test that + in sum method has a base method that works on Mxpr.
+T Head(func([a+b, c+d],[u+v,y+z])) == Plus
+
 ## Nov 2016. Add methods for * and + on symbols, etc.
 ## We do not import the functions from Main.
 T Head(J( Symata.:+(:c,:d) )) == Plus

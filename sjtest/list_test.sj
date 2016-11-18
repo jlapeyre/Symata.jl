@@ -23,6 +23,10 @@ T Array(f,3) == [f(1),f(2),f(3)]
 g = J( x -> mplus(x^2 , :a))
 T Array(g,3) == [1 + a,4 + a,9 + a]
 
+## We have reenabled + from within julia. But, + is an unexported Symata methods
+g = J( x -> x^2 + :a )
+T Array(g,3) == [1 + a,4 + a,9 + a]
+
 b = 3
 g = J( x -> mplus(x^2, :b))
 T Array(g,3) == [4,7,12]

@@ -45,11 +45,8 @@ T Infinity * -10 == -Infinity
 
 T J( mpow(1,0) == 1 )
 T J( mpow(1,1) == 1 )
-# Do we want the following ? Or better 1
-T J( mpow(1,-1) == 1//1 )
+T Isa(J(mpow(1,-1)), Integer)
 T J( mpow(2,1//2) == mxpr(:Power, 2, 1//2) )
-T J( mpow(2,1//2) == mxpr(:Power, 2, 1//2) )
-# Fix these too.
 T J( mpow(2,-1//2) == mxpr(:Power, 2, -1//2) )
 T J( mpow(4,1//2) == 2 )
 T J( mpow(4,-1//2) == 1//2 )
@@ -57,6 +54,16 @@ T J( mpow(7^3,1//2) == mxpr(:Times, 7, mxpr(:Power, 7, 1//2)) )
 T J(  mpow(8*5,1//2) == mxpr(:Times, 2, mxpr(:Power, 2, 1//2), mxpr(:Power, 5, 1//2)) )
 T J( mpow(9, 2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3)) )
 T J( mpow(-9,2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3)))
+
+# We cant change these. The user must use mpow here.
+# T J( 2^(1//2) ) == mxpr(:Power, 2, 1//2)
+# T J( 2^(-1//2)) == mxpr(:Power, 2, -1//2) )
+#T J(4^1//2) == 2
+#T J(4^-1//2) == 1//2
+# T J( 7^3^1//2) == mxpr(:Times, 7, mxpr(:Power, 7, 1//2))
+# T J(  (8*5)^1//2) == mxpr(:Times, 2, mxpr(:Power, 2, 1//2), mxpr(:Power, 5, 1//2))
+# T J( 9^2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3))
+# T J( -9^2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3))
 
 T Sqrt(-1) == I      # fixes bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 T Sqrt(-1)^2 == -1   # same bug

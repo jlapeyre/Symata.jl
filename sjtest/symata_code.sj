@@ -6,7 +6,7 @@
 #                [x,i]
 #                end)
 
-# NOTE: The versin above works in Julia 0.5 and nightly.
+# NOTE: The version above works in Julia 0.5 and nightly.
 # It fails in Julia 0.4. The [x,i] in the compound statement is not read correctly
 # from a file. Cutting and pasting, to the REPL still works.
 # It may not have been the switch from (x,x) to begin x  x end that broke this test.
