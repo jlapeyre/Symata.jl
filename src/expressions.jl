@@ -381,14 +381,6 @@ For example, `getints = Cases(_Integer)`.
 
 @mkapprule Cases
 
-function sjcopy{T<:Union{AbstractString,Symbol}}(s::T)
-    identity(s)
-end
-
-function sjcopy(x)
-    copy(x)
-end
-
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 # @doap function Casesold(expr,pat)
 #     args = margs(expr)
@@ -580,3 +572,36 @@ end
 @doap Pop!(x) = x
 
 @sjseealso_group(Pop!, Push!)
+
+## This is not how this works
+### Composition
+# @sjdoc Composition """
+#     Composition([f,g,...],arg)
+# returns f(g(...(arg)))
+# """
+# @mkapprule Composition
+# function do_GenHead(mx,head::Mxpr{:Composition})
+#     args = copy(margs(mx))
+#     mxpr(mhead(head),args[1],margs(head)...,args[2:end]...)
+# end
+
+## ComposeList
+
+@sjdoc ComposeList """
+    ComposeList([f1,f2,...],x)
+
+returns `[f1(x),f2(f1(x)),...]`.
+"""
+@mkapprule ComposeList :nargs => 2
+
+@doap function ComposeList(list::Mxpr{:List},x)
+    ops = reverse(margs(list))
+    mout = mxpr(ops[1],x)
+    nargs = newargs(1)
+    nargs[1] = mout
+    for i in 2:length(ops)
+        mout = mxpr(ops[i],mout)
+        push!(nargs,mout)
+    end
+    mxpr(:List,nargs)
+end

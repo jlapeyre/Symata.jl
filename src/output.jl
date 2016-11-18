@@ -58,7 +58,9 @@ end
 fullform(io::IO,x) = show(io,x)
 fullform(x) = fullform(STDOUT,x)
 
-needsparen(x::Mxpr) = length(x) > 1
+# This puts unecessary parens on prefix functions.
+#needsparen(x::Mxpr) = length(x) > 1
+needsparen(x::Mxpr) = (length(x) > 1  && getoptype(mhead(x)) == :infix)
 needsparen{T<:Integer}(x::Rational{T}) = true
 
 needsparen(x::Real) =  x < 0
@@ -287,8 +289,20 @@ end
 
 
 function show_prefix_function(io::IO, mx::Mxpr)
-#    is_Mxpr(mx,:List) ? nothing : print(io,outsym(mhead(mx)))
-    is_Mxpr(mx,:List) ? nothing : show(io, wrapout(mhead(mx)))
+    if ! is_Mxpr(mx,:List)
+        mh = mhead(mx)
+        wantparen::Bool = false
+        if isa(mh,Mxpr)
+            wantparen = getoptype(mhead(mh)) == :infix ? true : false
+        end
+        if wantparen
+            print(io,"(")  # refactor this! --> maybeparen(wantparen,obj) or s.t.
+        end
+        show(io, wrapout(mhead(mx)))
+        if wantparen
+            print(io,")")
+        end
+    end
     args = mx.args
     print(io,mhead(mx) == getsym(:List) ? LISTL : FUNCL)
     wantparens = true

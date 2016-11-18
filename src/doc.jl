@@ -379,7 +379,7 @@ function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
     flush(hist.history_file)
 end
 
-#### Help
+### Help
 
 @sjdoc Help """
     Help(sym), Help(\"sym\"), or ? topic 
@@ -418,3 +418,29 @@ do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
 function do_Help{T<:Regex}(mx::Mxpr{:Help},r::T)
     print_matching_topics(r)
 end
+
+### Example
+
+@sjdoc Example """
+    Example(s)
+
+run (evaluates) all examples for the symbol `s`, typically a function or variable.
+Input, output, and comments are displayed. Input strings
+for the example are pushed onto the terminal history so they can be retrieved and
+edited and re-evaluated.
+
+    Example(s,n)
+
+run the `n`th example for symbol `s`. When viewing documentation strings via `?`
+the examples are printed along with the documentation string, but are not evaluated.
+
+    Example()
+
+Returns a list of all example topics.
+"""
+
+@mkapprule Example  :nargs => 0:2
+
+@doap Example() = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
+@doap Example(topic) = do_examples(mx[1])  ## <-- mx[1] is topic ?
+@doap Example(topic, n::Int) = do_example_n(mx[1],n)

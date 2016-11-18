@@ -40,6 +40,10 @@ T Map(Head, [f(2), f("word"), f(Pi), f(Newton)]) == [If(BigIntInput(), BigInt, I
 
 Apply(ClearAll, UserSyms())
 
+# pg 66
+tl = Range(1,20,3)
+T clt =  (x -> Range(5 * x, 5 * x + 4)) % Range(5) ==  [[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[25,26,27,28,29]]
+
 # pg 79
 
 ## FIXME: I think this Shifrin's example is wrong.

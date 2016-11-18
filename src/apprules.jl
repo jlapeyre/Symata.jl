@@ -6,7 +6,7 @@
 #   These evaluate expressions with builtin (protected) heads.
 #   They are called from meval.
 
-#### Increment
+### Increment
 
 @sjdoc Increment """
     Increment(n) 
@@ -31,7 +31,7 @@ function do_increment1(mx,x,val)
     return val
 end
 
-#### Decrement
+### Decrement
 
 @sjdoc Decrement """
     Decrement(n) 
@@ -57,7 +57,7 @@ function do_decrement1(mx,x,val)
     return val
 end
 
-#### TimesBy
+### TimesBy
 
 @sjdoc TimesBy """
     TimesBy(a,b), or a *= b
@@ -135,136 +135,7 @@ representation is printed.
 # DumpHold does not evaluate args before dumping
 apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
-#### Part
-
-@sjdoc Part """
-    Part(expr,n) or expr[n]
-
-returns the `n`th element of expression `expr`.
-
-    Part(expr,n1,n2,...) or expr[n1,n2,...]
-
-return the subexpression at index `[n1,n2,...]`.
-
-The same can be achieved less efficiently with `expr[n1][n2]...`.
-
-    expr[n] = val
-
-set the `n`th part of `expr` to `val`. `n` and `val` are evaluated
-normally. `expr` is evaluated once.
-
-`n` less than zero counts backward from the end of the expression or subexpression.
-
-`expr[n]` also returns the `n`th element of instances of several
-Julia types such as `Array`, or the element with key `n` for `Dict`'s.
-"""
-
-# Get part of expression. Julia :ref is mapped to :Part
-# a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
-# a[i,j] parses to Part(a,i,j).
-
-@mkapprule Part
-
-function do_Part(mx::Mxpr{:Part},texpr,tinds...)
-    for j in 1:length(tinds)
-        texpr = get_part_one_ind(texpr,tinds[j])
-    end
-    return texpr
-end
-
-# FIXME. don't need T template
-function get_part_one_ind{T<:Integer, V<:Union{Mxpr,Array}}(texpr::V,ind::T)
-#    ind::Int = tind
-    ind = ind < 0 ? length(texpr)+ind+1 : ind
-    texpr = ind == 0 ? mhead(texpr) : texpr[ind]
-    return texpr
-end
-
-get_part_one_ind{T<:Dict}(texpr::T,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
-get_part_one_ind{T<:Tuple}(texpr::T,tind) = texpr[tind]
-
-function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
-    spanargs = margs(tind)
-    lsp = length(spanargs)
-    if lsp == 2
-        nargs = view(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
-    elseif lsp == 3
-        nargs = view(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
-    end
-    texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
-    return texpr
-end
-
-#### Span
-
-@sjdoc Span """
-    Span(a,b) or a:b
-
-represents elements `a` through `b`.
-
-    Span(a,b,c) or a:b:c 
-
-represents elements `a` through `b` in steps of `c`.
-
-`expr[a:b]` returns elements a through `b` of expr, with the same head as `expr`.
-"""
-
-#### DownValues
-
-@sjdoc DownValues """
-    DownValues(s) 
-
-return a `List` of `DownValues` associated with symbol `s`. These are values
-that are typically set with the declarative "function definition".
-
-For example `f(x_) := x` sets a `DownValue` for `f`.
-"""
-
-@sjexamp( DownValues,
-         ("ClearAll(f)",""),
-         ("f(x_) := x^2",""),
-         ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
-apprules(mx::Mxpr{:DownValues}) = sjlistdownvalues(mx[1])
-
-
-#### UpValues
-
-@sjdoc UpValues """
-    UpValues(s) 
-
-returns a List of UpValues associated with symbol `s`. These are values
-that are typically set with `UpSet`.
-"""
-
-apprules(mx::Mxpr{:UpValues}) = sjlistupvalues(mx[1])
-
-#### Example
-
-@sjdoc Example """
-    Example(s)
-
-run (evaluates) all examples for the symbol `s`, typically a function or variable.
-Input, output, and comments are displayed. Input strings
-for the example are pushed onto the terminal history so they can be retrieved and
-edited and re-evaluated.
-
-    Example(s,n)
-
-run the `n`th example for symbol `s`. When viewing documentation strings via `?`
-the examples are printed along with the documentation string, but are not evaluated.
-
-    Example()
-
-Returns a list of all example topics.
-"""
-
-@mkapprule Example  :nargs => 0:2
-
-do_Example(mx::Mxpr{:Example}) = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
-do_Example(mx::Mxpr{:Example}, topic) = do_examples(mx[1])
-do_Example(mx::Mxpr{:Example}, topic, n::Int) = do_example_n(mx[1],n)
-
-#### Replace
+### Replace
 
 @sjdoc Replace """
     Replace(expr,rule)
@@ -711,9 +582,7 @@ return the name of the current context.
 
 @doap CurrentContext() = string(get_current_context_name())
 
-
-
-#### ExpandA, only a bit is implemented. Sympy Expand is more capable.
+### ExpandA, only a bit is implemented. Sympy Expand is more capable.
 
 @sjdoc ExpandA """
     ExpandA(expr)
@@ -747,7 +616,7 @@ function do_Counts(mx::Mxpr{:Counts}, list::Mxpr{:List})
     d
 end
 
-#### Pause
+### Pause
 
 @sjdoc Pause """
     Pause(x)
@@ -758,8 +627,7 @@ pauses (i.e.sleeps) for `x` seconds.
 @mkapprule Pause  :nargs => 1
 @doap Pause{T<:Real}(x::T) = sleep(x)
 
-#### 
-
+### Julia
 
 @sjdoc Julia """
     Julia()

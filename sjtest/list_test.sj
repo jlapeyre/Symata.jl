@@ -316,4 +316,36 @@ T Dimensions(unflatten(Range(Apply(Times,[8,9,10])), [8,9,10])) == [8,9,10]
 T ListCorrelate([x,y], Range(10)) == [x + 2y,2x + 3y,3x + 4y,4x + 5y,5x + 6y,6x + 7y,7x + 8y,8x + 9y,9x + 10y]
 T ListConvolve([x,y], Range(10)) == [2x + y,3x + 2y,4x + 3y,5x + 4y,6x + 5y,7x + 6y,8x + 7y,9x + 8y,10x + 9y]
 
+### ComposeList
+
+T ComposeList([f,g,h],x) == [h(x),g(h(x)),f(g(h(x)))]
+
+### Thread
+
+T Thread(f([a, b, c], x)) == [f(a,x),f(b,x),f(c,x)]
+T Thread(f([a, b, c], [x, y, z])) == [f(a,x),f(b,y),f(c,z)]
+T Thread([a, b, c] == [x, y, z]) == [a == x,b == y,c == z]
+T Thread(Log(x == y), Equal) == (Log(x) == Log(y))
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List) == [f(a,r,u,x),f(b,s,v,y)]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, All) == [f(a,r,u,x),f(b,s,v,y)]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, None) == f(([a,b]),([r,s]),([u,v]),[x,y])
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, 2) == [f(a,r,([u,v]),[x,y]),f(b,s,([u,v]),[x,y])]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, -2) == [f(a,r,u,[x,y]),f(b,s,v,[x,y])]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, [2]) == [f(([a,b]),r,([u,v]),[x,y]),f(([a,b]),s,([u,v]),[x,y])]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, [2, 4]) == [f(([a,b]),r,u,x),f(([a,b]),s,v,y)]
+T Thread(f([a, b], [r, s], [u, v], [x, y]), List, [1, -1, 2]) == [f(a,([r,s]),u,[x,y]),f(b,([r,s]),v,[x,y])]
+T Thread(f([a, b], [c, d])) == [f(a,c),f(b,d)]
+T Thread(f([a, b], [c, d]), List) == [f(a,c),f(b,d)]
+T Thread(f(a + b, c + d)) == f((a + b),c + d)
+T Thread(f(a + b, c + d), Plus) == f(a,c) + f(b,d)
+T Thread(f([a, b, c], h, [x, y, z])) == [f(a,h,x),f(b,h,y),f(c,h,z)]
+T Thread([a, b, c] => [1, 2, 3]) == [a => 1,b => 2,c => 3]
+T Thread([[a, b, c], [x, y, z]])  == Transpose([[a, b, c], [x, y, z]])
+T Thread(Unevaluated(D([x, x * y, x * z], [x, y, z]))) == [1,x,x]
+
+### MapThread
+
+T MapThread(D, [[x, x * y, x * z], [x, y, z]]) == [1,x,x]
+
+
 Apply(ClearAll,UserSyms())

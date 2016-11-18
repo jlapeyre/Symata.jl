@@ -22,6 +22,7 @@ function runalltests()
               "julia_interface_test.sj",
               "latex_test.sj",
               "output_test.sj",
+              "input_test.sj",              
               "measurement_test.sj",
               "io_test.sj",
 #        "comparison_test.sj"

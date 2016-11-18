@@ -698,4 +698,110 @@ end
     mxpr(mhead(lists[1]),nargs...)
 end
 
-### Tally
+### Thread
+
+@sjdoc Thread """
+    Thread(f(args))
+
+threads `f` over any lists appearing in `args`.
+
+    Thread(f(args),h)
+
+threads `f` over any expressions with head `h`
+
+    Thread(f(args),h,spec)
+
+threads only over elments specified by the standard seuence specification `spec.
+"""
+@mkapprule Thread :nargs => 1:3
+
+@doap Thread(x::Mxpr) = threadlistable(x)
+@doap Thread(x::Mxpr,head) = threadlistable(x,head)
+
+## TODO: generate this with a macro or something, there is a copy in evaluation.jl with :List hardcoded
+function threadlistable(mx::Mxpr, head)
+    pos = Array(Int,0)      # should avoid this
+    lenmx = length(mx)
+    lenlist::Int = -1
+    h = mhead(mx)
+    @inbounds for i in 1:lenmx
+        if is_Mxpr(mx[i],head)
+            nlen = length(mx[i])
+            if lenlist >= 0 && nlen != lenlist
+                error("Can't thread over lists of different lengths.")
+            end
+            lenlist = nlen
+            push!(pos,i)
+        end
+    end
+    lenp = length(pos)
+    lenp == 0 && return mx      # Nothing to do. return input array
+    largs = newargs(lenlist)
+    @inbounds for i in 1:lenlist
+        nargs = newargs(lenmx)
+        p = 1
+        @inbounds for j in 1:lenmx
+            if p <= lenp && pos[p] == j
+                nargs[j] = mx[j][i]
+                p += 1
+            else
+                nargs[j] = mx[j]
+            end
+        end
+        largs[i] = mxpr(h,nargs)
+    end
+    nmx = mxpr(head,largs)
+    return nmx
+end
+
+@doap function Thread(x::Mxpr,head,inspec)
+    seqspec = sequencespec(inspec,length(x))
+    threadlistable(x,head,seqspec)
+end
+
+threadlistable(x,head,s::SequenceAll) = threadlistable(x,head)
+threadlistable(x,head,s::SequenceNone) = x  # copy ?
+
+function threadlistable(mx, head, seqspec::SequenceSpec)
+    pos = Array(Int,0)      # should avoid this
+    lenmx = length(mx)
+    lenlist::Int = -1  # length of lists that we will thread over
+    h = mhead(mx)
+    (n1,n2,di) = seqiter(seqspec,lenmx)
+    @inbounds for i in n1:di:n2
+        if is_Mxpr(mx[i],head)
+            nlen = length(mx[i])
+            if lenlist >= 0 && nlen != lenlist
+                error("Can't thread over lists of different lengths.")
+            end
+            lenlist = nlen
+            push!(pos,i)
+        end
+    end
+    lenp = length(pos)
+    lenp == 0 && return mx      # Nothing to do. return input array
+    largs = newargs(lenlist)
+    @inbounds for i in 1:lenlist
+        nargs = newargs(lenmx)
+        p = 1
+        @inbounds for j in 1:lenmx
+            if p <= lenp && pos[p] == j
+                nargs[j] = mx[j][i]
+                p += 1
+            else
+                nargs[j] = mx[j]
+            end
+        end
+        largs[i] = mxpr(h,nargs)
+    end
+    nmx = mxpr(head,largs)
+    return nmx
+end
+
+@sjdoc MapThread """
+    MapThread(f,list)
+
+threads `f` over lists in `list` and evaluates the result.
+"""
+@mkapprule MapThread :nargs => 2
+@doap MapThread(f,x) = threadlistable(mxpr(f,margs(x)))

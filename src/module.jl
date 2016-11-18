@@ -24,7 +24,8 @@ function localize_module!(mx::Mxpr{:Module})
     (locvars,body) = (mx[1],mx[2])
     (is_Mxpr(locvars) && symname(mhead(locvars)) == :List) ||
     symerror("Module: Local variable specification $locvars is not a list")
-    body = is_Mxpr(body) && symname(mhead(body)) == :CompoundExpression ? body : mxpr(:CompoundExpression,Null,body)
+#    body = is_Mxpr(body) && symname(mhead(body)) == :CompoundExpression ? body : mxpr(:CompoundExpression,Null,body)
+    body = isa(body,Mxpr{:CompoundExpression}) ? body : mxpr(:CompoundExpression,Null,body)
     lvtab = Dict{Symbol,SJSym}()
     setlines = []
     for v in margs(locvars)

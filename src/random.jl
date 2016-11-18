@@ -1,10 +1,10 @@
-#### RandomReal
+### RandomReal
 
 @mkapprule RandomReal
 
-do_RandomReal(mx::Mxpr{:RandomReal}) = return rand()
+@doap RandomReal() = return rand()
 
-#### Random
+### Random
 
 @sjdoc Random """
     Random(Integer)
@@ -45,3 +45,40 @@ end
         rand(UnitRange(margs(lst)...))
     end
 end
+
+### RandomInteger
+
+@sjdoc RandomInteger """
+    Random([nmin,nmax])
+
+return a random integer between `nmin` and `nmax`.
+
+    RandomInteger(nmax)
+
+return a random integer between 0 and `nmax`.
+
+    RandomInteger()
+
+return 0 or 1 with equal probablility.
+
+    RandomInteger(range, n)
+
+return an array of `n` random integers
+"""
+
+@mkapprule RandomInteger
+
+@doap RandomInteger() = rand(0:1)
+@doap RandomInteger(n::Integer) = rand(0:n)
+
+@doap RandomInteger(x::Mxpr{:List}) = _randintrange(margs(x)...)
+
+_randintrange(n::Integer,m::Integer) = rand(n:m)
+
+@doap function RandomInteger(x::Mxpr{:List},n::Integer)
+    lims = x[1]:x[2]
+    nargs = newargs(n)
+    for i=1:n  nargs[i] = rand(lims) end
+    mxpr(:List,nargs)
+end 
+

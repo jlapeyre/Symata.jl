@@ -71,7 +71,7 @@ rotheadargs(f_(args__)) := (Last([args])(f,Splat(Most([args]))))
 T rotheadargs( a + b + c + d) == d(Plus,a,b,c)
 
 ## localize variable in heads in module
-rotheadargs1(f_(args__)) := Module([ls = [args]], (Null,(Last(ls)(f,Splat(Most(ls))))))
+rotheadargs1(f_(args__)) := Module([ls = [args]], Last(ls)(f,Splat(Most(ls))))
 T rotheadargs1( a + b + c + d) == d(Plus,a,b,c)
 
 ####
@@ -202,8 +202,11 @@ ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)
 T ReplaceAll(c, c => y) == y
 T ReplaceAll(1, 1 => y) == y
 
-# The Head of an expression is replaced
+## The Head of an expression is replaced
 T ReplaceAll(c(1), c => y) == y(1)
+
+## Replacement within a compoud head
+T ((1 + a)*(1 + b))(x) ./ ( a => 1) == (2(1 + b))(x)
 
 ClearAll(c,y)
 

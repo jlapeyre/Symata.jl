@@ -75,9 +75,9 @@ function process_blank_head(head)
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 
-patterntoBlank(blank::Mxpr{:Blank}) = symjlength(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
-patterntoBlank(blank::Mxpr{:BlankSequence}) = symjlength(blank) == 0 ? BlankSequenceT(:All) : BlankSequenceT(process_blank_head(blank[1]))
-patterntoBlank(blank::Mxpr{:BlankNullSequence}) = symjlength(blank) == 0 ? BlankNullSequenceT(:All) : BlankNullSequenceT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:Blank}) = symlength(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankSequence}) = symlength(blank) == 0 ? BlankSequenceT(:All) : BlankSequenceT(process_blank_head(blank[1]))
+patterntoBlank(blank::Mxpr{:BlankNullSequence}) = symlength(blank) == 0 ? BlankNullSequenceT(:All) : BlankNullSequenceT(process_blank_head(blank[1]))
 
 # Try a downvalue
 # hmmm, is it possible is is Rule rather than RuleDelayed ?
@@ -194,7 +194,7 @@ ematch(pat::Mxpr{:HoldPattern}, m::Match) = ematch(pat[1],m)
 function ematch(pat::Mxpr{:Pattern}, m::Match)
     ex = m.ex
     captures = m.capt
-    if symjlength(pat) == 2
+    if symlength(pat) == 2
         (name,pattern) = (margs(pat)...)
         success_flag::Bool = ematch(pattern,m)
         local capture_success_flag::Bool
@@ -231,7 +231,7 @@ end
 function ematch(pat::Mxpr{:PatternTest}, m::Match)
     ex = m.ex
     captures = m.capt
-    if symjlength(pat) == 2
+    if symlength(pat) == 2
         (pattern,test) = (pat[1],pat[2])
         success_flag::Bool = ematch(pattern, m)
         success_flag == false && return false
@@ -258,10 +258,10 @@ ematch(pat::BlankT, m::Match) = matchBlank(pat,m.ex)
 ### BlankSequenceT
 
 function ematch(pat::BlankSequenceT, m::Match)
-    m.parent == NullMxpr && error("BlankSequence with no parent expression")
+    m.parent == NullMxpr && error("Unimplemented: BlankSequence with no parent expression")
     imx = m.imx
     args = newargs()  # TODO: move allocation
-    len = symjlength(m.parent)
+    len = symlength(m.parent)
     while imx <= len
         if matchBlank(pat,(m.parent)[imx])
             push!(args,(m.parent)[imx])
@@ -278,10 +278,10 @@ function ematch(pat::BlankSequenceT, m::Match)
 end
 
 function ematch(pat::BlankNullSequenceT, m::Match)
-    m.parent == NullMxpr && error("BlankNullSequence with no parent expression")
+    m.parent == NullMxpr && error("Unimplemented: BlankNullSequence with no parent expression")
     imx = m.imx
     args = newargs()
-    len = symjlength(m.parent)
+    len = symlength(m.parent)
     while imx <= len
         if matchBlank(pat,(m.parent)[imx])
             push!(args,(m.parent)[imx])
@@ -414,7 +414,7 @@ end
 #### General Mxpr
 
 # It is starting to look like we should iterate over the patterns and not the expression parts.
-# ie, iterarate over pat. As it is, not much of BlankNullSequence works
+# ie, iterate over pat. As it is, not much of BlankNullSequence works
 # eg, BlankNullSequence can match even if there is no expression to iterate over.
 function match_and_capt_no_optional_no_repeated(pat,m)
     mx = m.ex
@@ -425,7 +425,7 @@ function match_and_capt_no_optional_no_repeated(pat,m)
     saveparent = m.parent
     m.parent = m.ex
 
-    if symjlength(mx) < symjlength(pat)  # This is not a robust solution.
+    if symlength(mx) < symlength(pat)
         for i in 1:length(pat)
             if isa(pat[i],BlankNullSequenceT)
                 m.special = mxpr(:Sequence)
@@ -511,13 +511,13 @@ function doRepeated(p,m,imx,default_min)
     end
     repeat_count = 0
 
-    while imx <= symjlength(mx)
+    while imx <= symlength(mx)
         m.ex = mx[imx]
         res = ematch(repeat_pattern, m)
         if ! res break end
         repeat_count += 1
         imx += 1
-        imx > symjlength(mx) && break
+        imx > symlength(mx) && break
         repeat_count >= rmax && break
     end
 
@@ -571,8 +571,8 @@ function ematch(pat::Mxpr, m)
 #    (mhead(pat) == mhead(mx)) || return false
     nopt = mxpr_count_heads(pat, :Optional)
     have_repeated::Bool = ! (mxpr_head_freeq(pat,:Repeated) && mxpr_head_freeq(pat,:RepeatedNull))
-    lp = symjlength(pat)
-    lm = symjlength(mx)
+    lp = symlength(pat)
+    lm = symlength(mx)
     # TODO: Optimize the line below
     # FIXME: handle repeated and optional
     have_repeated  && return match_and_capt_no_optional_yes_repeated(pat,m)

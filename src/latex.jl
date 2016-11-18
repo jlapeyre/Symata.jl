@@ -41,7 +41,7 @@ end
 bytestring(s::MyLaTeXString) = bytestring(s.s)
 endof(s::MyLaTeXString) = endof(s.s)
 next(s::MyLaTeXString, i::Int) = next(s.s, i)
-length(s::MyLaTeXString) = symjlength(s.s)
+length(s::MyLaTeXString) = symlength(s.s)
 getindex(s::MyLaTeXString, i::Int) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Integer) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Real) = getindex(s.s, i)
@@ -80,7 +80,7 @@ const LLISTR = " \\right] "
 latex_needsparen(x) = needsparen(x)
 
 latex_needsparen(mx::Mxpr{:Power}) = _latex_needsparen_power(base(mx),expt(mx))
-_latex_needsparen_power(base,expt) =  symjlength(base) > 1
+_latex_needsparen_power(base,expt) =  symlength(base) > 1
 _latex_needsparen_power(base::Number,expt) =  base < 0
 
 Ilatexstring() = "\\mathbb{i}"

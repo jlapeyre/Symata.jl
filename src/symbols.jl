@@ -499,3 +499,33 @@ returns the name of `symbol` as a string.
 """
 @mkapprule SymbolName :nargs => 1
 @doap SymbolName(x::SJSym) = string(x)
+
+### DownValues
+
+@sjdoc DownValues """
+    DownValues(s) 
+
+return a `List` of `DownValues` associated with symbol `s`. These are values
+that are typically set with the declarative "function definition".
+
+For example `f(x_) := x` sets a `DownValue` for `f`.
+"""
+
+@sjexamp( DownValues,
+         ("ClearAll(f)",""),
+         ("f(x_) := x^2",""),
+         ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
+
+@mkapprule DownValues
+@doap DownValues(x) = sjlistdownvalues(x)
+
+### UpValues
+
+@sjdoc UpValues """
+    UpValues(s) 
+
+returns a List of UpValues associated with symbol `s`. These are values
+that are typically set with `UpSet`.
+"""
+@mkapprule UpValues
+@doap UpValues(x) = sjlistupvalues(x)

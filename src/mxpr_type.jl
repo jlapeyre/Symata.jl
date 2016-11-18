@@ -819,3 +819,11 @@ typealias List Mxpr{:List}
 ## For many jula functions that take real or complex floating point args.
 ## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
 typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
+
+### Iterator
+
+## This can be used, of course, for many things.
+## For instance, the user can easily iterate over Julia expressions.
+Base.start(mx::Mxpr) = start(margs(mx))
+Base.next(mx::Mxpr,state) = next(margs(mx),state)
+Base.done(mx::Mxpr,state) = done(margs(mx),state)

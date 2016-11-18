@@ -250,15 +250,15 @@ return `True` if `test` applied to each element of the matrix `m`.
 function matrixq(x::Mxpr{:List})
     a = margs(x)
     length(a) < 1 && return false
-    len = symjlength(a[1])
-    all(t -> ( symjlength(t) == len && vectorq(t) ), a)
+    len = symlength(a[1])
+    all(t -> ( symlength(t) == len && vectorq(t) ), a)
 end
 
 function matrixq(x::Mxpr{:List},test)
     a = margs(x)
     length(a) < 1 && return false
-    len = symjlength(a[1])
-    all(t -> ( symjlength(t) == len && vectorq(t,test) ), a)
+    len = symlength(a[1])
+    all(t -> ( symlength(t) == len && vectorq(t,test) ), a)
 end
 matrixq(x) = false
 matrixq(x,test) = false

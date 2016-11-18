@@ -10,14 +10,14 @@ types, the length is zero. For `Array`'s and `Dict`'s the length is the same as
 Julia `length`.
 """
 @mkapprule Length :nargs => 1
-@doap Length(x) = symjlength(x)
+@doap Length(x) = symlength(x)
 
 Base.length(mx::Mxpr) = length(margs(mx))
-symjlength(mx::Mxpr) = length(mx)
-symjlength(s::String) = 1
-symjlength(s::Symbol) = 0
-symjlength(s::Number) = 0
-function symjlength(x)
+symlength(mx::Mxpr) = length(mx)
+symlength(s::String) = 1
+symlength(s::Symbol) = 0
+symlength(s::Number) = 0
+function symlength(x)
     try
         length(x)
     catch
@@ -155,20 +155,20 @@ function dimensions(x::Mxpr,data)
     if mhead(x[1]) !=  data.head
         data.done = true
     else
-        thelength = symjlength(x[1])
+        thelength = symlength(x[1])
         for i in 2:length(x)
-            if symjlength(x[i]) != thelength || mhead(x[i]) != data.head
+            if symlength(x[i]) != thelength || mhead(x[i]) != data.head
                 data.done = true
                 break
             end
         end
     end
     if length(data.dims) < data.level
-        push!(data.dims, symjlength(x))
+        push!(data.dims, symlength(x))
     end
     data.done && return
     data.level +=1
-    for i in 1:symjlength(x)
+    for i in 1:symlength(x)
         dimensions(x[i],data)
         data.done && return
     end

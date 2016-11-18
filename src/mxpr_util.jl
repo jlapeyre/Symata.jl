@@ -22,6 +22,8 @@ just calls `deepcopy`.
 """
 recursive_copy(x) = deepcopy(x)
 
+sjcopy{T<:Union{AbstractString,Symbol}}(s::T) = identity(s)
+sjcopy(x) = copy(x)
 
 """
     mxpr_count_heads(mx::Mxpr, head)

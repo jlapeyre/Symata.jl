@@ -58,7 +58,10 @@ set_pattributes(["Max", "Min"],
                 [:Flat,:NumericFunction,:OneIdentity,:Orderless])
 
 set_pattributes(["LCM", "GCD"],
-            [:Flat,:Listable,:OneIdentity,:Orderless])
+                [:Flat,:Listable,:OneIdentity,:Orderless])
+
+set_pattributes(["Composition"],
+            [:Flat,:OneIdentity,])
 
 set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 

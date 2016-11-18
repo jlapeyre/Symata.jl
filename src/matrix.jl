@@ -49,7 +49,7 @@ The complex conjugate is applied to neither `a` nor `b`.
 The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `TAB`
 """
 @doap function Dot(u::List,v::List)
-    symjlength(u) == 0 || symjlength(v) == 0 && return mx
+    symlength(u) == 0 || symlength(v) == 0 && return mx
     vv = vectorq(v)
     if vectorq(u) && vv
         # Using MPlus is much faster than mplus. This means mplus should be implemented differently
@@ -57,7 +57,7 @@ The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `
 #        return  mplus( [mmul(x[1], x[2]) for x in zip(margs(u), (margs(v)))]...)
     end
     mqu = matrixq(u)
-    if mqu && vv && symjlength(u[1]) == symjlength(v)
+    if mqu && vv && symlength(u[1]) == symlength(v)
        return matmulvec(u,v)
     end
     mqv = matrixq(v)
@@ -76,8 +76,8 @@ end
 Matrix multiply matrix `m` and vector `v`.
 """
 function matmulvec(m,v)
-    n1 = symjlength(m)
-    n2 = symjlength(m[1])
+    n1 = symlength(m)
+    n2 = symlength(m[1])
     a = newargs(n1)
     for i=1:n1
         c = 0
@@ -167,7 +167,7 @@ return the transpose of the matrix `m`.
     matrixq(x) || return mx
     a = margs(x)
     n = length(a)
-    m = symjlength(a[1])
+    m = symlength(a[1])
     a0 = newargs(m)
     for i in 1:m
         a1 = newargs(n)

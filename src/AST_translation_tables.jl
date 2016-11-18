@@ -172,7 +172,7 @@ mtojsym(x) = x
 
 # A compound expression is denoted by tuple () or by begin end.
 # We could possible used tuple for something else.
-for (k,v) = ( (:tuple,:CompoundExpression), (:block,:CompoundExpression), (:dict, :List) )
+for (k,v) = ( (:tuple,:CompoundExpression), (:block,:CompoundExpression), (:dict, :List), (:parameters, :TestExpression) )
     JTOMSYM[k] = v
 end
 
@@ -198,12 +198,21 @@ end
 # Nonsymbolic Heads, Integer, etc. assume they are prefix ops
 getoptype(x) = :prefix
 
+# function getoptype(x::Mxpr)
+#     println("getting opt type for ", mhead(x), " args ", margs(x))
+#     res = getoptype(mhead(x))
+#     println("Resutt is $res")
+#     res
+# end
+
 function getoptype(x::Symbol)
     if haskey(OPTYPE,x)
         return OPTYPE[x]
     end
     return :prefix
 end
+
+
 
 #### Comparison symbols
 

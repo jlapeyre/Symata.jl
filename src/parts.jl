@@ -1,5 +1,80 @@
-## The code in this file should replace other similar code.
+## The code below `Part` this file should be used to replace the guts of Part
 ## For setting and getting with Part, in Table, ...
+
+## In other words: Part uses older part setting code. Other functions that get and
+## set parts use newer code.
+
+### Part
+
+@sjdoc Part """
+    Part(expr,n) or expr[n]
+
+returns the `n`th element of expression `expr`.
+
+    Part(expr,n1,n2,...) or expr[n1,n2,...]
+
+return the subexpression at index `[n1,n2,...]`.
+
+The same can be achieved less efficiently with `expr[n1][n2]...`.
+
+    expr[n] = val
+
+set the `n`th part of `expr` to `val`. `n` and `val` are evaluated
+normally. `expr` is evaluated once.
+
+`n` less than zero counts backward from the end of the expression or subexpression.
+
+`expr[n]` also returns the `n`th element of instances of several
+Julia types such as `Array`, or the element with key `n` for `Dict`'s.
+"""
+
+# Get part of expression. Julia :ref is mapped to :Part
+# a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
+# a[i,j] parses to Part(a,i,j).
+
+@mkapprule Part
+
+@doap function Part(texpr,tinds...)
+    for j in 1:length(tinds)
+        texpr = get_part_one_ind(texpr,tinds[j])
+    end
+    return texpr
+end
+
+function get_part_one_ind{V<:Union{Mxpr,Array}}(texpr::V,ind::Integer)
+    ind = ind < 0 ? length(texpr)+ind+1 : ind
+    texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+    return texpr
+end
+
+get_part_one_ind(texpr::Dict,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
+get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
+
+
+### Span
+
+@sjdoc Span """
+    Span(a,b) or a:b
+
+represents elements `a` through `b`.
+
+    Span(a,b,c) or a:b:c 
+
+represents elements `a` through `b` in steps of `c`.
+
+`expr[a:b]` returns elements a through `b` of expr, with the same head as `expr`.
+"""
+function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
+    spanargs = margs(tind)
+    lsp = length(spanargs)
+    if lsp == 2
+        nargs = view(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
+    elseif lsp == 3
+        nargs = view(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
+    end
+    texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
+    return texpr
+end
 
 ### Position
 
@@ -163,10 +238,7 @@ function localize_variable(var,expr::SJSym)
     return (sym, expr)
 end
 
-function localize_variable(var,expr)
-    sym = get_localized_symbol(var)
-    return (sym, expr)
-end
+localize_variable(var,expr) = (get_localized_symbol(var), expr)
 
 function localize_variables(vars::Array,expr::Mxpr)
     syms = map(get_localized_symbol, vars)
@@ -183,17 +255,12 @@ end
 function localize_variables(vars::Array,expr::SJSym)
     syms = map(get_localized_symbol, vars)
     for (sym,var) in zip(syms,vars)
-        if var == expr
-            return (syms,sym)
-        end
+        var == expr && return (syms,sym)
     end
     return (syms, expr)
 end
 
-function localize_variables(vars::Array,expr)
-    syms = map(get_localized_symbol, vars)
-    return (syms, expr)
-end
+localize_variables(vars::Array,expr) = (map(get_localized_symbol, vars), expr)
 
 ### Take
 
@@ -232,8 +299,6 @@ take(x,spec::SequenceMN)    = mxpr(mhead(x), margs(x)[posnegi(x,spec.m):posnegi(
 take(x,spec::SequenceMNS)   = mxpr(mhead(x), margs(x)[posnegi(x,spec.m):spec.s:posnegi(x,spec.n)]...)
 take(x,spec::SequenceNone)  = mxpr(mhead(x))
 take(x,spec::SequenceAll)   = mxpr(mhead(x), margs(x)...)
-
-posnegi(x::Mxpr,n::Integer) = n > 0 ? n : length(x) + n + 1
 
 ### Drop
 
@@ -314,6 +379,3 @@ end
 end
 
 @curry_last Extract
-
-# Currying
-#do_GenHead(mx,head::Mxpr{:Extract}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)

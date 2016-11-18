@@ -8,12 +8,10 @@ and returns to Julia mode.
 function isymata()
     if isymata_inited()
         isymata_mode(true)
-#        eval(Main, :(insymata = true))
     else
         init_isymata()
         if isymata_inited()
             isymata_mode(true)
-#            eval(Main, :(insymata = true))
         else
             error("Unable to initialize isymata in IJulia")
         end
@@ -71,11 +69,10 @@ function symata_complete_request(socket, msg)
     end
 
     codestart = find_parsestart(code, cursorpos)
-#    insymata = (isdefined(Main, :insymata) && insymata)
 
     local comps
     local positions
-#    if insymata
+
     if isymata_mode()
         comps, positions = symata_completions(code[codestart:end], cursorpos-codestart+1)
     else
@@ -104,10 +101,8 @@ function symata_inspect_request(socket, msg)
         if isempty(s)
             content = Dict("status" => "ok", "found" => false)
         else
-
-#            insymata = (isdefined(Main, :insymata) && Main.insymata)
             local d
-#            if insymata
+
             if isymata_mode()                
                 d = display_dict(retrieve_doc(s))
             else
@@ -148,8 +143,6 @@ function symata_execute_request(socket, msg)
         In[n] = code
     end
 
-#    insymata = (isdefined(Main, :insymata) && Main.insymata)
-
     # "; ..." cells are interpreted as shell commands for run
     code = replace(code, r"^\s*;.*$",
                    m -> string(replace(m, r"^\s*;", "Base.repl_cmd(`"),
@@ -166,9 +159,8 @@ function symata_execute_request(socket, msg)
         end
     end
 
-
     if isymata_mode()
-        code = "@Symata.ex " * " begin\n" * code * "\nend"
+        code = "@Symata.ex " * " begin\n" * code * "\nend"  # begin end to wrap multi-expression input
     end
 
     try
@@ -213,7 +205,6 @@ function symata_execute_request(socket, msg)
                                  Dict("execution_count" => n,
                                       "metadata" => result_metadata,
                                       "data" => display_dict(isymata_mode() ? using_ijulia_output() ? latex_display(wrapout(result)) : wrapout(result) : result))))
-#                                      "data" => display_dict(insymata ? Main.wrapout(result) : result))))
 
         end
         send_ipython(requests[],

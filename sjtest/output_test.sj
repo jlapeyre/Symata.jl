@@ -1,7 +1,7 @@
 # Test printing of expressions
  savestate = CompactOutput(True)
 
-T ToString((-27/64)^(2/3)) == "(9/16)*((-1)^(2/3))"
+T ToString((-27/64)^(2/3)) == "(9/16)*(-1)^(2/3)"
 
 T ToString( (a+b)*x ) == "(a + b)*x"
 T ToString( -2 * a) == "-2a"
@@ -19,7 +19,7 @@ T ToString(-1 * I) == "-I"
 T ToString(-2 * I) == "-2I"
 T ToString("1/5 * I") == "1/5 * I"
 T ToString( (-1)^n ) == "(-1)^n"
-T ToString( -1^n ) == "-(1^n)"
+T ToString( -1^n ) == "-1^n"
 # FIXME
 T If(BigIntInput(), True, ToString( - 1.0 * I ) == "-0.0 + -1.0I")
 #T ToString( - 1.0 * I ) == "-0.0 + -1.0I"
@@ -30,11 +30,15 @@ T ToString(-Infinity) == "-Infinity"
 T ToString(1/0) == "ComplexInfinity"
 T ToString(0/0) == "Indeterminate"
 
-#### HoldForm
+### HoldForm
 
 f(x_) := HoldForm(x^2)
 T ToString(Sum(f(i), [i,1,10])) == "1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 + 7^2 + 8^2 + 9^2 + 10^2"
 T Map(ReleaseHold, Sum(f(i), [i,1,10])) == 385
+
+### Compound head
+
+T ToString((f+g)(x)) == "(f + g)(x)"
 
 CompactOutput(savestate)
 
