@@ -41,6 +41,9 @@ T MittagLefflerE(2,1,5) == Cosh(5^(1/2))
 T MittagLefflerE(3,1,5) == (1/3)*(E^(5^(1/3)) + 2(E^((-1/2)*(5^(1/3))))*Cos((1/2)*(3^(1/2))*(5^(1/3))))
 T MittagLefflerE(4,1,5) == (1/2)*(Cos(5^(1/4)) + Cosh(5^(1/4)))
 
+T Head(MittagLefflerE(.6,x)) == MittagLefflerE
+T Head(MittagLefflerE(.6,.2,x)) == MittagLefflerE
+
 ## Limit of special forms
 
 T Map(Function(a, Limit(MittagLefflerE(a,1,z), z => 0)), [0,1,2,3,4]) == [1,1,1,1,1]

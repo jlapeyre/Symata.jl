@@ -95,7 +95,6 @@ function extomx{T<:AbstractFloat}(x::T)
     getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
 end
 
-
 extomx(x) = x
 # This system needs to be rationalized.
 # Comment out lines are no longer needed
@@ -224,7 +223,7 @@ function extomx(ex::Expr)
     ohead = ex.head
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
-    if is_call(ex) return parse_call(ex,newa)
+    if iscall(ex) return parse_call(ex,newa)
     elseif ohead == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])
     elseif ohead == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
@@ -284,36 +283,53 @@ function extomx(ex::Expr)
     mx = mxpr(nhead,newa)  # Create the Mxpr
 end
 
-is_call(ex::Expr) = ex.head == :call
+"""
+    iscall(ex::Expr)
+
+true if `ex` has head `:call`
+
+    iscall(ex::Expr, op::Symbol)
+
+true if the first argument, the operator is `op`.
+
+    iscall(ex::Expr, op::Symbol, len::Int)
+
+true if number of args (including op) is `len`
+
+    iscall(ex::Expr, len::Int)
+
+true if number of args (including op) is `len` for any `op`.
+"""
+iscall(ex::Expr) = ex.head == :call
 # is ex a call with operator op ?
-is_call(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
+iscall(ex::Expr, op::Symbol) = ex.head == :call && ex.args[1] == op
 # is ex a call with operator op and len args (including the op) ?
-is_call(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
+iscall(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op && length(ex.args) == len
 # is ex a call with len args (including the op) ?
-is_call(ex::Expr, len::Int) = is_call(ex) && length(ex.args) == len
+iscall(ex::Expr, len::Int) = iscall(ex) && length(ex.args) == len
 
 # is of the form    a op b , where op is <,>, etc.  i.e. this is  not a chained comparison
 is_single_comparison(ex::Expr, op::Symbol) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
 
 # We check for :call repeatedly. We can optimize this later.
-is_binary_minus(ex::Expr) = is_call(ex, :-, 3)
-is_unary_minus(ex::Expr) = is_call(ex, :-, 2)
+is_binary_minus(ex::Expr) = iscall(ex, :-, 3)
+is_unary_minus(ex::Expr) = iscall(ex, :-, 2)
 # number of args != 3 will pass through. But probably can't be used
-is_division(ex::Expr) = is_call(ex, :/,3)
-is_power(ex::Expr) = is_call(ex, :^)
+is_division(ex::Expr) = iscall(ex, :/,3)
+is_power(ex::Expr) = iscall(ex, :^)
 
-is_sqrt(ex::Expr) = is_call(ex,:Sqrt)
+is_sqrt(ex::Expr) = iscall(ex,:Sqrt)
 
 # save time, don't make Symata meval convert //(a,b) to rational
 # we should also detect sums/products of like numbers, etc. and
 # combine them. No* Sometimes we want to Hold expressions involving numbers.
 function is_rational(ex::Expr)
-    is_call(ex, :(//), 3) && is_Number(ex.args[2]) &&
+    iscall(ex, :(//), 3) && is_Number(ex.args[2]) &&
         is_Number(ex.args[3])
 end
 
 function is_complex(ex::Expr)
-    is_call(ex, :Complex, 3) && is_Number(ex.args[2]) &&
+    iscall(ex, :Complex, 3) && is_Number(ex.args[2]) &&
         is_Number(ex.args[3])
 end
 
@@ -352,7 +368,7 @@ function rewrite_expr(ex::Expr)
             ex.args[i] = INSYMTRANS[x]
         end
     end
-    if is_call(ex) && length(ex.args) > 0 && is_comparison_symbol(ex.args[1])
+    if iscall(ex) && length(ex.args) > 0 && is_comparison_symbol(ex.args[1])
         ex = rewrite_to_comparison(ex)
     elseif is_single_comparison(ex, :(.>))    # julia 0.4 parser does this. In 0.5, this is already a call
         return Expr(:call, :(.>), ex.args[1], ex.args[3])
@@ -362,11 +378,9 @@ function rewrite_expr(ex::Expr)
         ex = rewrite_binary_minus(ex)
     elseif is_division(ex) # a / b --> a + b^(-1)
         ex = rewrite_division(ex)
-    # elseif is_call(ex, :^,3) && ex.args[2] == :E
-    #     ex = Expr(:call, :Exp, ex.args[3])
-    elseif is_call(ex, :Exp, 2)  # Exp(x) --> E^x
+    elseif iscall(ex, :Exp, 2)  # Exp(x) --> E^x
         ex = Expr(:call, :^, :E, ex.args[2])
-    elseif is_call(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
+    elseif iscall(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
     elseif is_rational(ex)
         return eval(ex)  # TODO: don't do eval, use //

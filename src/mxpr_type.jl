@@ -671,6 +671,16 @@ function deepsetfixed{T<:Mxpr}(mx::T)
     return mxprcf(mhead(mx), nargs)
 end
 
+deepunsetfixed(x) = x
+function deepunsetfixed{T<:Mxpr}(mx::T)
+    nargs = newargs(mx)
+    for i in 1:length(nargs)
+        nargs[i] = deepunsetfixed(mx[i])
+    end
+    unsetfixed(mx)
+end
+
+
 @inline is_canon(x) = false
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false

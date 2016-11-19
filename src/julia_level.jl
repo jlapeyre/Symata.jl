@@ -50,16 +50,18 @@ export E
 # SJSym is an alias of Symbol
 
 """
-    symatamath()
+    _symatamath()
 
-define math methods that operate on symbols. This allows Julia expressions such as
+define math methods in the Symata module that operate on symbols. This allows Julia expressions such as
 ```
 :a + :b
 :a - 3
 :c^2
 ```
 
-These methods are disabled by default because they extend `Base` methods for `Base` types. These methods are
+Note: we now call syamtamath() after its definition. It defines these operators in the Symata module scope.
+
+obsolete: These methods are disabled by default because they extend `Base` methods for `Base` types. These methods are
 in general reserved for definition in future versions of Julia. There is some chance that these will be given conflicting
 definitions in the Julia base language in the future. However, we know of no such plans at present.
 
@@ -68,7 +70,7 @@ These are all binary methods between Julia `Number`s and `Symbol`s extending `*`
 There are similar methods for arithmetic operators between numbers or symbols and Symata expressions, but
 these are defined by default.
 """
-function symatamath()
+function _symatamath()
     @eval begin
         *(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ?
         *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
@@ -85,7 +87,32 @@ function symatamath()
     nothing
 end
 
-symatamath()
+_symatamath()
+
+"""
+    symatamath()
+
+define Base methods for arithmetic operators between `Symbols` and `Numbers. `symatamath()` is *not*
+necessary when running Symata and using J(expr) to evaluate Julia code. `J()` evaluates in the Symata
+module where these methods are already defined. `symatamath()` is useful in Julia mode where expressions
+are evaluated in `Main`.
+"""
+function symatamath()
+    @eval begin
+        Base.:*(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ?
+        Base.:*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+        Base.:*(a::SJSym,b::Number) = mxpr(:Times,b,a)
+        Base.:+(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+        Base.:+(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
+        Base.:+(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+        Base.:-(a::Number,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
+        Base.:-(a::SJSym,b::Number) = mplus(a, -b)
+        Base.:-(a::SJSym,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
+        Base.:^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+        Base.:^(base::SJSym,expt) = mxpr(:Power,base,expt)
+    end
+    nothing    
+end
 
 ## Arithmetic methods involving annotated Symata types. These will never conflict with Base Julia,
 ## so they are safe to define.

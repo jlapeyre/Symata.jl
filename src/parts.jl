@@ -227,7 +227,7 @@ function localize_variable(var,expr::Mxpr)
     positions = find_positions(expr,var)
     nexpr = deepcopy(expr)
     for pos in positions
-       nexpr = setpart!(nexpr, sym, pos...)
+        nexpr = setpart!(nexpr, sym, pos...)
     end
     (sym, nexpr)
 end

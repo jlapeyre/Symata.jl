@@ -1,28 +1,26 @@
 VERSION >= v"0.4.0-dev+6521" && __precompile__()
-
 module Symata
 
-using Compat  # only used in code copied from REPL_symata.jl
+using Compat
 import Compat.String
 import Compat.view
 
-# We don't want to import the math functions.... If we don't import * we can write a symata version
-# that only works in Symata module.
 import Base: setindex!, getindex, replace
 
-#import Base: /, *, +, -, ^, setindex!, getindex, replace
-
-# These are of general use
-# Need to export @ex until we can track down all uses and remove them.
-# Prefer @sym
+# These are of general use.
+# Prefer @sym now. But we, need to export @ex until we can track down all uses and remove them.
 export @sym, doeval, @ex
 export mmul, mplus, mpow, mabs, mminus, symatamath
 
-# For development
+"""
+    devimport()
+
+import some symbols from `Symata` into `Main` that are useful for development.
+"""
 function devimport()
     eval(Main, parse("""
 import Symata: @ex, @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
-       sympy, pytypeof, mxpr, canonexpr!
+       sympy, pytypeof, mxpr, canonexpr!, wrap_symata
 """))
 end
 

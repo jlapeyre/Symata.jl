@@ -40,5 +40,5 @@ quadgklist(f,args) = mxprcf(:List, quadgk(f, map( x -> float(doeval(x)), args)..
     (sym,x0,x1) = length(r) == 3 ? (r...) : length(r) == 2 ? (:x,r...) : symerror(range, " is not a valid integration ranges")
     f = doeval(expr)
     isa(f,Function) && return quadgklist(f,(x0,x1))
-    quadgklist(expression_to_julia_function(sym,expr), (x0,x1))
+    quadgklist(wrap_symata(expr,sym), (x0,x1))
 end

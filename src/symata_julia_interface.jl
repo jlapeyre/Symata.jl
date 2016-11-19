@@ -250,38 +250,66 @@ end
 ####  ToJulia
 
 type Jexpr
-    ex::Expr
+     ex::Expr
 end
 
-@mkapprule ToJulia
+@mkapprule ToJuliaExpression
+@doap ToJuliaExpression(x) = Jexpr(mxpr_to_expr(x))
 
-@doap ToJulia(x) = Jexpr(mxpr_to_expr(x))
+## Better name for this ?
+@mkapprule SymataCall
+@doap SymataCall(ex::Mxpr, var::Symbol) = wrap_symata(doeval(ex),var)
+@doap SymataCall(ex::Mxpr, vars...) = wrap_symata(doeval(ex),vars...)
 
 """
-    f = expression_to_julia_function(var,expr::Mxpr)
+    f = wrap_symata(expr::Mxpr,var)
 
-return a Julia function corresponding to `f(var) = expr`.
+return a Julia function that Symata-evaluates an expression when called.
 
+
+The function corresponds to `f(var) = expr`.
 This wraps `expr` in a single-argument Julia function.
 
 First creates a lexical scope, that is a new gensym symbol `nvar` is generated and is substituted
 everywhere in `expr` for `var`. Calling `f(x)`  Symata-binds `x` to `nvar` and `expr` is
 Symata-evaluated and the result is returned.
+
+`wrap_symata` is used by `NIntegrate` and `Plot`.
 """
-function expression_to_julia_function(var0,expr0::Mxpr)
+function wrap_symata(var0,expr0::Mxpr)
     (var,expr) = localize_variable(var0,expr0)
+    deepunsetfixed(expr)
     function (x)
         setsymval(var,x)
+        deepunsetfixed(expr) # this seems wasteful. When called from NIntegrate, it is not needed. Don't know why.
         doeval(expr)
     end
 end
 
-function expression_to_julia_function(var0,expr0::SJSym)
+function wrap_symata(expr0::Mxpr,vars0...)
+    vars = Array(Symbol,length(vars0))
+    expr = expr0
+    for i in 1:length(vars0)
+        (vars[i],expr) = localize_variable(vars0[i],expr)
+    end
+    deepunsetfixed(expr)
+    function (args...)
+        for i in 1:length(args)
+            setsymval(vars[i],args[i])
+        end
+        deepunsetfixed(expr)
+        doeval(expr)
+    end
+end
+
+function wrap_symata(expr0::SJSym,var0)
     sym = get_localized_symbol(var0)    
     var0 == expr0 && return (sym,sym)
     return (sym,expr0)
 end
-    
+
+
+
 #### CodeNative
 
 # This does not yet work. Symata evaluates the symbol `f` to

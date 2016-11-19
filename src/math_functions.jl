@@ -1211,15 +1211,18 @@ function mittagleffler(mx,α,z)
     #    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + mmul(2,Exp(-mpow(z,1//3)/2)) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
     α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
     α == 4 && return (1//2)* ( Cosh(mpow(z,1//4)) + Cos(mpow(z,1//4)))
-    if isa(α,AbstractFloat) || isa(z, FloatRC)
+    if (isa(α,Number) && isa(z, Number)) &&
+        (isa(α,AbstractFloat) || isa(z, FloatRC))
         return MittLeff.mittleff(float(α),float(z))
     end
     z == 0 && return mpow(Gamma(β),-1)
     mx
 end
 
+## ... or, maybe MacroTools.jl ?
 function mittagleffler(mx,α,β,z)
-    if isa(α,AbstractFloat) || isa(β,AbstractFloat) || isa(z, FloatRC)
+    if (isa(α,AbstractFloat) || isa(β,AbstractFloat) || isa(z, FloatRC)) &&
+        (isa(α,Number) && isa(β,Number) && isa(z, Number))
        return MittLeff.mittleff(float(α),float(β),float(z))
     end
     z == 0 && return mpow(Gamma(β),-1)
