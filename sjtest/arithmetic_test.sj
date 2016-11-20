@@ -55,6 +55,8 @@ T J(  mpow(8*5,1//2) == mxpr(:Times, 2, mxpr(:Power, 2, 1//2), mxpr(:Power, 5, 1
 T J( mpow(9, 2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3)) )
 T J( mpow(-9,2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3)))
 
+T J(mmul(2 + 2*im, 1//2) == Complex(1,1))
+
 # We cant change these. The user must use mpow here.
 # T J( 2^(1//2) ) == mxpr(:Power, 2, 1//2)
 # T J( 2^(-1//2)) == mxpr(:Power, 2, -1//2) )

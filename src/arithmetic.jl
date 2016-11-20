@@ -9,7 +9,10 @@ using Primes
 #  13/6 --> 13//6
 #  (13//6) * 6 --> 13
 rat_to_int{T<:Integer}(r::Rational{T}) = r.den == 1 ? r.num : r
+
 mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? res.num : res )
+mmul{T<:Integer,V<:Integer}(x::Complex{V}, y::Rational{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
+
 mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
 
 # Oct 2016. Added generic mxpr(:Times,x,y). Does not break tests.
