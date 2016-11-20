@@ -456,6 +456,9 @@ function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
         end
         checkprotect(a)
 #        setsymval(a,symname(a))
+        clear_downvalues(a)
+        clear_upvalues(a)
+        clear_ownvalue_definition(a)
         setsymval(a,a)        # May 2016. This works ?
     end
     Null

@@ -3,8 +3,11 @@
  fib(2) := 1
  fib(n_) := fib(n-1) + fib(n-2)
 T fib(10) == 55
- Clear(fib)   # does not remove definition
-T fib(11) == fib(10) + fib(9)
+ Clear(fib)   # removes definition
+T Head(fib(11)) == fib
+ fib(1) := 1
+ fib(2) := 1
+ fib(n_) := fib(n-1) + fib(n-2)
  ClearAll(fib)  # removes definition
 T Head(fib(11)) == fib  # does not evaluate to number
 

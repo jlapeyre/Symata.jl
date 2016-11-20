@@ -114,6 +114,8 @@ end
 
 getdefinition(sym::SJSymbol) = getdefinition(getssym(sym))
 
+clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
+
 #############################################################################
 # All direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
@@ -180,7 +182,7 @@ function clear_downvalue_definitions(sym::SJSymbol)
     dvs = s.downvalues
     for i in 1:length(dvs)
         lhs = dvs[i][1]
-        delete_downvaluedf(lhs)
+        delete_downvalue_def(lhs)
     end
 end
 
