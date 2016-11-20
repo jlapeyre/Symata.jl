@@ -252,6 +252,7 @@ sums over `x` from `a` to `b`.
 apprules(mx::Mxpr{:Sum}) = do_Sum(mx,margs(mx)...)
 
 function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
+    ## FIXME: only evaluate expr here if the range of the sum is infinite.
     pymx = sjtopy(doeval(expr))
     pyvarspecs = varspecs_to_tuples_of_sympy(reverse(collect(varspecs))) # Symata and Mma use the same convention for position of inner loop
     pysum = sympy[:summation](pymx,pyvarspecs...)

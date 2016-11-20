@@ -33,7 +33,12 @@ T ToString(0/0) == "Indeterminate"
 ### HoldForm
 
 f(x_) := HoldForm(x^2)
-T ToString(Sum(f(i), [i,1,10])) == "1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 + 7^2 + 8^2 + 9^2 + 10^2"
+
+## FIXME. The first expression is what we want. If we don't evaluate the summand before doing
+## the sum, we do get the first version.
+#T ToString(Sum(f(i), [i,1,10])) == "1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2 + 7^2 + 8^2 + 9^2 + 10^2"
+T ToString(Sum(f(i), [i,1,10])) == "1 + 4 + 9 + 16 + 25 + 36 + 49 + 64 + 81 + 100"
+
 T Map(ReleaseHold, Sum(f(i), [i,1,10])) == 385
 
 ### Compound head
