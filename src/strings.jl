@@ -34,7 +34,7 @@ apprules(mx::Mxpr{:ToString}) = symstring(mx[1])
 return the concatenated strings.
 """
 @mkapprule StringJoin
-@doap StringJoin(s::List) = join(margs(s))
+@doap StringJoin(s::ListT) = join(margs(s))
 @doap StringJoin(args::String...) = join(args)
 
 ### Characters

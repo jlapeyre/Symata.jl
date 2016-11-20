@@ -39,32 +39,22 @@ m(f(a,b,c))
 @doap  function Apply(head::SJSym,mxa::Mxpr)
     if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
 #        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
-        mx = mxpr(head,margs(mxa))
+        mx = mxpra(head,margs(mxa))
         mx = canonexpr!(mx)            # this is ok
         setcanon(mx)
     else
-        mx = mxpr(head,margs(mxa))
+        mx = mxpra(head,margs(mxa))
     end
-    is_Mxpr(mx) && length(mx) == 0 && return 0   # do this instead. fixes bug Apply(Times, [DirectedInfinity(),0]) --> 0
+    isa(mx,Mxpr) && isempty(mx) && return 0   # do this instead. fixes bug Apply(Times, [DirectedInfinity(),0]) --> 0
     mx
 end
 
-@doap Apply(h,mxa::Mxpr) = mxpr(h,margs(mxa))
+@doap Apply(h,mxa::Mxpr) = mxpra(h,margs(mxa))
 
-# Apply operation to a typed numeric array.
-# We can build these functions with a macro and
-# mapping from  :Times -> mmul
-# :Cos -> cos, etc.
-#function do_Apply{T<:Number}(mx::Mxpr,h::SJSym,arr::Array{T})
-@doap function Apply{T<:Number}(h::SJSym,arr::Array{T})
-    if h == :Plus
-        s = zero(T)
-        for i in 1:length(arr)
-            s += arr[i]
-        end
-        return s
-    end
-    return mx
+@doap function Apply{T<:Number}(h::SJSym,arr::AbstractArray{T})
+    h == :Plus && return convert(T,sum(arr))
+    h == :Times && return convert(T,prod(arr))
+    mx
 end
 
 ### Hash
@@ -126,18 +116,11 @@ return `True` if `x` is of type `type`.
 """
 @mkapprule Isa
 
-@doap function Isa(x,T::DataType)
-    isa(x,T)
-end
-
-const Float = AbstractFloat
-
-@doap function Isa(x,T::Symbol)
-    t = eval(T)
-    isa(x,t)
-end
-
+@doap Isa(x,T::DataType) = isa(x,T)
+@doap Isa(x,T::Symbol) = isa(x,eval(T))
 @doap Isa(x,T) = mx
+    
+#const Float = AbstractFloat
 
 ### ReleaseHold
 
@@ -152,13 +135,14 @@ removes the outer layer of `Hold`, `HoldForm`, `HoldPattern`, and `HoldComplete`
 """
 
 @doap function ReleaseHold(mxa::Holds)
-    length(margs(mxa)) == 0 && return mxpr(:Sequence)
-    length(margs(mxa)) > 1 && return  mxpr(:Sequence,margs(mxa)...)
+#    length(margs(mxa)) == 0 && return mxpr(:Sequence)  ## delete theses lines after a while
+    isempty(mxa) && return mxpr(:Sequence)    
+    length(mxa) > 1 && return  mxpra(:Sequence,margs(mxa))
+#    length(margs(mxa)) > 1 && return  mxpra(:Sequence,margs(mxa))    
     return mxa[1]
 end
 
 @doap ReleaseHold(ex) = ex
-
 
 ### Reverse
 
@@ -174,20 +158,20 @@ end
 reverse the order of the arguments in `expr`.
 """
 
-function apprules(mx::Mxpr{:Reverse})
-    do_reverse(mx[1])
+@mkapprule Reverse :nargs => 1
+@doap function Reverse(ex::Mxpr)
+    get_attribute(ex,:Orderless) && return ex
+    setfixed(mxpra(mhead(ex),reverse(margs(ex))))
 end
+@doap Reverse(ex::AbstractArray) = reverse(ex)
 
-# Builtin Orderless
-# they would only be resorted
-do_reverse(mx::Orderless) = mx
-
-function do_reverse(mx::Mxpr)
-    if get_attribute(mx,:Orderless)
-        return mx
+@mkapprule Reverse! :nargs => 1
+@doap function Reverse!(ex::Mxpr)
+    get_attribute(ex,:Orderless) && return ex    
+    reverse!(margs(ex))
+    ex
     end
-    setfixed(mxpr(mhead(mx),reverse(margs(mx))))
-end
+@doap Reverse!(ex::AbstractArray) = reverse!(ex)
 
 ### Permutations
 
@@ -205,7 +189,7 @@ function apprules(mx::Mxpr{:Permutations})
     @inbounds for i in 1:len
         nargs[i] = setfixed(mxpr(:List,perms[i]))
     end
-    setfixed(mxpr(:List,nargs))
+    setfixed(mxpra(:List,nargs))
 end
 
 @sjdoc FactorInteger """
@@ -214,7 +198,7 @@ end
 give a list of prime factors of `n` and their multiplicities.
 """
 
-apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpr(:List,do_unpack(factor(mx[1]))))
+apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpra(:List,do_unpack(factor(mx[1]))))
 
 ### Level
 
@@ -252,7 +236,7 @@ Negative indices count backwards from the deepest level.
     @inbounds for i in 1:length(args)
         nargs[i] = f(args[i]) # Probably need more evaluation
     end
-    mxpr(mhead(expr),nargs)
+    mxpra(mhead(expr),nargs)
 end
 
 # Should we return an Array or a List ? We choose List now.
@@ -261,7 +245,7 @@ end
     @inbounds for i in 1:length(a)
         nargs[i] = f(a[i])
     end
-    mxpr(:List,nargs)
+    mxpra(:List,nargs)
 end
 
 # We create one Mxpr outside the loop. Old
@@ -275,13 +259,15 @@ end
         mx1.args[1] = args[i]  # map f of one argument
         nargs[i] = doeval(mx1)
     end
-    mxpr(mhead(expr),nargs...)
+    mxpra(mhead(expr),nargs)
 end
 
 type MapData
     action
 end
 
+## A bug in meaning of level spec of `2` is not caught because we check if p is Null below.
+## level spec 2 should mean  from 1 to 2, but the level spec code interpreted it as 0 through 2.
 @doap function Map(f,expr::Mxpr, inlevspec)
     levelspec = make_level_specification(expr, inlevspec)
     ex = recursive_copy(expr)
@@ -289,13 +275,12 @@ end
     action = LevelAction(data,
                          function (data,expr)
                          p = data.action.parent
-#                         symprintln(data.action.subind, " p:", p, ", ex:", expr)
                            if p != Null
                              p[data.action.subind] = mxpr(f,expr)
                            end
                          end)
     data.action = action
-    traverse_levels!(action, levelspec,ex)
+    traverse_levels!(action, levelspec, ex)
     if has_level_zero(levelspec)
         ex = mxpr(f,ex)
     end
@@ -410,7 +395,7 @@ end
     capt = capturealloc()
     data = CasesData(new_args,jp,capt)
     local action
-    if is_Mxpr(pat,:Rule)
+    if isa(pat,RuleT)
         action = LevelAction(data, function (data, expr)
                              (gotmatch,res) = replace(expr,data.jp)
                              gotmatch ? push!(data.new_args,res) : nothing
@@ -422,7 +407,7 @@ end
                              end)
     end
     traverse_levels!(action,LevelSpecAtDepth(1),expr)
-    mxpr(:List,new_args)
+    mxpra(:List,new_args)
 end
 
 function _doCases(levelspec::LevelSpec, expr ,pat)
@@ -434,7 +419,7 @@ function _doCases(levelspec::LevelSpec, expr ,pat)
     #                         (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
     #                         gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
     #                      end)
-    if is_Mxpr(pat,:Rule)
+    if isa(pat,RuleT)
         action = LevelAction(data, function (data, expr)
                              (gotmatch,res) = replace(expr,data.jp)
                              gotmatch ? push!(data.new_args,res) : nothing
@@ -446,7 +431,7 @@ function _doCases(levelspec::LevelSpec, expr ,pat)
                              end)
     end
     traverse_levels!(action,levelspec,expr)
-    mxpr(:List,new_args)
+    mxpra(:List,new_args)
 end
 
 @doap function Cases(expr,pat,inlevelspec)
@@ -486,7 +471,7 @@ For example `noints = DeleteCases(_Integer)`.
         (gotmatch,capt) = match_and_capt(args[i],jp,capt)
         gotmatch ? nothing : push!(new_args,sjcopy(args[i])) # The difference from Cases
     end
-    rmx = mxpr(mhead(expr),new_args)
+    rmx = mxpra(mhead(expr),new_args)
     return rmx
 end
 
@@ -518,7 +503,7 @@ return `True` if no subexpression of `expr` matches `pattern`.
 
 return `True` if `expr` does not match `pattern` on levels specified by `levelspec`.
 
-- `n`       levels `0` through `n`.
+- `n`       levels `1` through `n`.
 - `[n]`     level `n` only.
 - `[n1,n2]` levels `n1` through `n2`
 
@@ -585,7 +570,7 @@ end
 #     mxpr(mhead(head),args[1],margs(head)...,args[2:end]...)
 # end
 
-## ComposeList
+### ComposeList
 
 @sjdoc ComposeList """
     ComposeList([f1,f2,...],x)
@@ -594,7 +579,7 @@ returns `[f1(x),f2(f1(x)),...]`.
 """
 @mkapprule ComposeList :nargs => 2
 
-@doap function ComposeList(list::Mxpr{:List},x)
+@doap function ComposeList(list::ListT,x)
     ops = reverse(margs(list))
     mout = mxpr(ops[1],x)
     nargs = newargs(1)
@@ -603,5 +588,118 @@ returns `[f1(x),f2(f1(x)),...]`.
         mout = mxpr(ops[i],mout)
         push!(nargs,mout)
     end
-    mxpr(:List,nargs)
+    mxpra(:List,nargs)
+end
+
+evalifdelayed(r::Mxpr{:Rule}) = rhs(r)
+evalifdelayed(r::Mxpr{:RuleDelayed}) = doeval(rhs(r))
+
+### ReplacePart
+
+@mkapprule ReplacePart """
+    ReplacePart(expr, i => repl)
+
+returns a copy of `expr` with the `i`th part replaced by `repl`
+"""  :nargs => 1:2
+
+@doap ReplacePart{T<:Union{RulesT,ListT}}(expr::Mxpr,arg::T) = replacepart1(mx,expr,arg)
+
+@curry_second ReplacePart
+
+function replacepart1(mx,expr,arg)
+    nexpr = deepunsetfixed(recursive_copy(expr)) ## Mma must use some kind of lazy copying
+    replacepart(mx,nexpr,arg)
+end
+
+function replacepart(mx,expr,rule::RulesT)
+    _rhs = evalifdelayed(rule)
+    if listofpredq(lhs(rule), integerq)
+       expr = replaceonepart(mx,expr,lhs(rule),evalifdelayed(rule))
+    elseif listq(lhs(rule)) # lhs is a List
+        foreach( x -> (expr = replaceonepart(mx,expr,x,_rhs)), lhs(rule))
+    else
+       expr = replaceonepart(mx,expr,lhs(rule),_rhs)
+    end
+    expr
+end
+
+function replacepart(mx,expr,arg::ListT)
+    if listofpredq(arg,ruleq)
+        foreach( r -> (expr = replaceonepart(mx,expr,lhs(r),evalifdelayed(r))), arg)
+    end
+    expr
+end
+
+function replaceonepart(mx,expr,_lhs::Integer,_rhs)
+    if _lhs == 0
+        expr = mxprnewhead(expr,_rhs)
+    else
+        expr[posnegi(expr,_lhs)] = _rhs
+    end
+    expr
+end
+
+function replaceonepart(mx,expr,_lhs::ListT,_rhs)
+    if ! listofpredq(_lhs,integerq)
+        symwarn("$_lhs is not a part specification")
+        return mx
+    end
+    setpart2!(expr,_rhs,margs(_lhs)...)
+#    expr[margs(_lhs)...] = _rhs
+    expr
+end
+
+### Level
+
+@mkapprule Level :nargs => 2:3
+
+@sjdoc Level """
+    Level(expr,levelspec)
+
+returns a list of all parts at `levelspec`.
+
+    Level(expr,levelspec,f)
+
+applies `f` to each part in the returned list.
+
+`Level` traverses the expression breadth first. Negative indices count from the
+depth of the entire expression, rather than from each leaf.
+"""
+
+
+type LevelData
+    levellist
+    action
+end
+
+
+
+@doap function Level(expr, inlevelspec)
+    levelspec = make_level_specification(expr,inlevelspec)
+    nargs = newargs()
+    data = LevelData(nargs,nothing)
+    action = LevelAction(data,
+                         function(data,expr)
+#                         act = data.action
+#                         println(act.levelind, " ", act.subind)
+                           push!(data.levellist,expr)
+                         end)
+    data.action = action
+    traverse_levels!(action, levelspec,expr)
+    ## todo level zero
+    mxpra(:List,nargs)
+end
+
+@doap function Level(expr, inlevelspec, f)
+    levelspec = make_level_specification(expr,inlevelspec)
+    nargs = newargs()
+    data = LevelData(nargs,nothing)
+    action = LevelAction(data,
+                         function(data,expr)
+                           push!(data.levellist,mxpr(f,expr))
+                         end)
+    data.action = action
+    traverse_levels!(action, levelspec,expr)
+    ## todo level zero
+    mxpra(:List,nargs)
 end

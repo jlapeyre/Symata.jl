@@ -202,9 +202,7 @@ end
 freesyms!(s::Symbol, syms) = (if ! isdefined(s) syms[s] = 1 end)
 freesyms!(x,syms) = nothing
 
-@mkapprule Compile
-
-@sjdoc Compile """
+@mkapprule Compile """
     f = Compile(expr)
 
 convert `expr` to a compiled function.
@@ -256,10 +254,17 @@ end
 @mkapprule ToJuliaExpression
 @doap ToJuliaExpression(x) = Jexpr(mxpr_to_expr(x))
 
-## Better name for this ?
-@mkapprule SymataCall
-@doap SymataCall(ex::Mxpr, var::Symbol) = wrap_symata(doeval(ex),var)
-@doap SymataCall(ex::Mxpr, vars...) = wrap_symata(doeval(ex),vars...)
+@mkapprule SymataCall  """
+    SymataCall(var, body)
+    SymataCall(varlist, body)
+
+return a Julia function that substitues `var` or variable in `varlist` into `body` and
+submits the result to the Symata evaluation sequence.
+
+The variables are localized before writing the Julia function.
+"""
+@doap SymataCall(var::Symbol, ex::Mxpr) = wrap_symata(doeval(ex),var)
+@doap SymataCall(vars::Mxpr{:List}, ex::Mxpr) = wrap_symata(doeval(ex),vars...)
 
 """
     f = wrap_symata(expr::Mxpr,var)
@@ -278,10 +283,11 @@ Symata-evaluated and the result is returned.
 """
 function wrap_symata(var0,expr0::Mxpr)
     (var,expr) = localize_variable(var0,expr0)
-    deepunsetfixed(expr)
+#    deepunsetfixed(expr)
     function (x)
         setsymval(var,x)
-        deepunsetfixed(expr) # this seems wasteful. When called from NIntegrate, it is not needed. Don't know why.
+        #        deepunsetfixed(expr) # this seems wasteful. When called from NIntegrate, it is not needed. Don't know why.
+        # because we needed HoldAll
         doeval(expr)
     end
 end

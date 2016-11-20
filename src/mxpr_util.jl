@@ -93,7 +93,7 @@ using Symata
 
 # For use in ../test/
 macro testex(expr)
-    mx = Expr(:macrocall, Symbol("@ex"), expr)
+    mx = Expr(:macrocall, Symbol("@sym"), expr)
     result = eval(mx)
     retresult::Bool = true
     if typeof(result) <: Bool

@@ -50,7 +50,7 @@ end
 _mklexorder()
 
 # returns ordering precedence of Type, typ
-function mxtypeorder{T<:DataType}(typ::T)
+function mxtypeorder(typ::DataType)
     ! haskey(_jstypeorder,typ)  && return 5  # Any
     return _jstypeorder[typ]
 end
@@ -134,7 +134,7 @@ jslexless(x::Mxpr{:Power}, y::Mxpr{:Times}) = jslexless(x,y[end])
 
 function jslexless(x::Mxpr{:Power}, y::Mxpr)
     if y == base(x)
-        return (typeof(expt(x)) <: Real) && expt(x) < 0
+        return isa(expt(x),Real) && expt(x) < 0
     end
     jslexless(base(x),y)
 end
@@ -188,9 +188,9 @@ casecmp(a::Symbol, b::Symbol) = round(Int,sign(ccall(istrcmp, Int32, (Ptr{UInt8}
 # *and* we invert order of upper to lower case.  we want  a < A.
 jsisless(a::Symbol, b::Symbol) = (r = casecmp(a,b); r == 0 ? cmp(a,b) > 0 : r < 0)
 jslexless(x::SJSym, y::SJSym) = jsisless(x,y)
-jslexless{T<:Number}(x::T, y::SJSym) = true
-jslexless{T<:Number}(x::T, y::Mxpr) = true
-jslexless{T<:Number}(x::Mxpr, y::T) = false
+jslexless(x::Number, y::SJSym) = true
+jslexless(x::Number, y::Mxpr) = true
+jslexless(x::Mxpr, y::Number) = false
 jslexless(x::SJSym, y::Mxpr) = true
 jslexless(x::Mxpr, y::SJSym) = false
 
@@ -249,7 +249,7 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             len = length(args)
             n = 0
             @inbounds for i in n0:len
-                if is_Number(args[i])
+                if isa(args[i],Number)
                     n = i
                     break
                 end
@@ -259,7 +259,7 @@ for (op,name,id) in  ((:Plus,:plusfirst!,0),(:Times,:mulfirst!,1))
             m = 0
             @inbounds for i in n:len
                 x = args[i]
-                if is_Number(x)
+                if isa(x,Number)
                     s = $(op == :Plus ? :(mplus(s,x)) : :(mmul(s,x)) )
                 else
                     m = i
@@ -279,12 +279,12 @@ end
 # for large sums with many (or all) numbers.
 # Singleton sequences may remain and they are sorted and removed with
 # compactsumlike!. Probably could analyze sum and choose a strategy.
-function loopnumsfirst!{T<:Orderless}(mx::T)
+function loopnumsfirst!(mx::Orderless)
     len = length(mx)
     m = 1
     while true
         (mx,m) =  numsfirst!(mx,m)
-        (is_Number(mx) || m >= len) && return mx
+        (isa(mx,Number) || m >= len) && return mx
         nlen = length(mx)
         p = len - m
         m = nlen - p
@@ -314,7 +314,7 @@ function distribute_minus_one_b(n,terms)
     end
     return newterms
 end
-function distribute_minus_one_a{T<:Integer}(mx, n::T, sum0::Mxpr{:Plus})
+function distribute_minus_one_a(mx, n::Integer, sum0::Mxpr{:Plus})
     n == -1 || return mx
     return mxpr(:Plus,distribute_minus_one_b(n,margs(sum0)))
 end
@@ -338,7 +338,7 @@ immutable Times_analysis
 end
 
 # For Plus we don't need to search for zero. Fix this.
-function analyze_operands{T<:Orderless}(mx::T)
+function analyze_operands(mx::Orderless)
     ma = margs(mx)
     gotFloat::Bool = false
     gotZero::Bool = false
@@ -353,7 +353,7 @@ function analyze_operands{T<:Orderless}(mx::T)
         end
         if ! gotInfinity && is_Infintity(a) gotInfinity = true
         elseif ! gotComplexInfinity && is_ComplexInfinity(a) gotComplexInfinity = true
-        elseif ! gotFloat && is_Float(a) gotFloat = true
+        elseif ! gotFloat && isa(a,AbstractFloat) gotFloat = true
         elseif ! gotZero && a == 0 gotZero = true
         end
     end
@@ -388,7 +388,7 @@ function whichinfinity(mx::Mxpr{:Times})
     nonum = newargs()
     for i in 1:length(ma)
         x = ma[i]
-        if is_Number(x)
+        if isa(x,Number)
             prod *= x
         elseif mhead(x) != :DirectedInfinity
             push!(nonum,x)
@@ -438,7 +438,7 @@ function orderless_convert_to_float!(mx)
     ma = margs(mx)
     for i in 1:length(ma)
         x = ma[i]
-        if (! is_Number(x)) && is_Numeric(x)
+        if (! isa(x,Number)) && is_Numeric(x)
             ma[i] = do_N(x)
         end
     end
@@ -451,7 +451,7 @@ end
 function _canonexpr_orderless!(mx)
     @mdebug(2,"entering: _canonexpr_orderless! ", mx)
     mx = loopnumsfirst!(mx)  # remove sequences of numbers
-    is_Number(mx) && return mx
+    isa(mx,Number) && return mx
     mx = distribute_minus_one(mx)
     orderexpr!(mx)  # sort terms
     if isa(mx,Mxpr)
@@ -461,7 +461,7 @@ function _canonexpr_orderless!(mx)
             mx = collectordered!(mx)  # collect terms differing by numeric coefficients
             @mdebug(2,"_canonexpr_orderless!, returned from collectordered!: ", mx)
             # following is rarely if ever used.
-            if is_Mxpr(mx,:Power)
+            if isa(mx,PowerT)
                 mx = mulpowers(mx)
             end  # add numeric exponents when base is same
         end
@@ -471,9 +471,9 @@ function _canonexpr_orderless!(mx)
     mx
 end
 
-canonexpr!{T<:Orderless}(mx::T) = canonexpr_orderless!(mx)
+canonexpr!(mx::Orderless) = canonexpr_orderless!(mx)
 
-function canonexpr!{T<:Mxpr}(mx::T)
+function canonexpr!(mx::Mxpr)
     if get_attribute(mx,:Orderless)
         orderexpr!(mx)
     end
@@ -483,13 +483,13 @@ end
 # We set fixed here, but not for orderless above. Which one is correct ?
 function canonexpr!(mx::Mxpr{:Power})
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
-    if is_Mxpr(mx,:Times)
+    if isa(mx,TimesT)
         mx = canonexpr!(mx)
     end
     setcanon(mx)
     # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do setfixed below
     # But, we can't do this: ex = 102^(1/2); ex^2 does not return 102 if we setfixed.
-    if ! is_Mxpr(mx,:Power)
+    if ! isa(mx,PowerT)
 #        setfixed(mx)
     end
     return mx
@@ -500,11 +500,11 @@ end
 # Assume the product prod has already been sorted;
 # the number, if present is first.
 # Input is power of a product
-function do_canon_power!{T<:Integer}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::T)
+function do_canon_power!(mx::PowerT,prod::TimesT, expt::Integer)
     len = length(prod)
     args = margs(prod)
     nargs = newargs(len) # we must use new args.
-    if is_Number(args[1])  # No more than the first item will be a number
+    if isa(args[1],Number)  # No more than the first item will be a number
         nargs[1] = mpow(args[1],expt)
     else
         nargs[1] = mxpr(:Power,args[1],expt)
@@ -515,7 +515,7 @@ function do_canon_power!{T<:Integer}(mx::Mxpr{:Power},prod::Mxpr{:Times}, expt::
     @inbounds for i in 1:len
         setcanon(nargs[i])
     end
-    mx = mxpr(:Times,nargs)
+    mx = mxpra(:Times,nargs)
     return mx
 end
 
@@ -552,11 +552,11 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             @mdebug(3, $name, ": length(mx)>1 ", mx)
             a = margs(mx)
             @mdebug(3, $name, ": got margs: ", mx)
-            typeof(a[1]) <: Number || return mx
+            isa(a[1],Number) || return mx
             sum0 = a[1]
             while length(a) > 1
                 shift!(a)
-                typeof(a[1]) <: Number || break
+                isa(a[1],Number) || break
                 sum0 = ($fop)(sum0,a[1])
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
@@ -580,14 +580,14 @@ end
 function numeric_coefficient(x::Mxpr{:Times})
     c = isa(x[1],Number) ? x[1] : 1
 end
-numeric_coefficient{T<:Number}(x::T) = x
+numeric_coefficient(x::Number) = x
 numeric_coefficient(x) = 1
 
 # Get numeric exponent; may be 1 (zero never encountered, I hope)
 function numeric_expt(x::Mxpr{:Power})
     c = isa(expt(x),Number) ? expt(x) : 1
 end
-numeric_expt{T<:Number}(x::T) = 1
+numeric_expt(x::Number) = 1
 numeric_expt(x) = 1
 
 # TODO: Tests fail unless we copy. But, there may be a way around this

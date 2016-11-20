@@ -40,7 +40,7 @@ return a random complex floating-point number with parts between 0 and 1.
     end
 end
 
-@doap function Random(sym::SJSym, lst::List)
+@doap function Random(sym::SJSym, lst::ListT)
     if sym == :Integer
         rand(UnitRange(margs(lst)...))
     end

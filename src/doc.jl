@@ -27,12 +27,17 @@ const SJDOCS = Dict{Symbol,Any}()
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 
+function sjdocfun(sym,str)
+    SJDOCS[sym] = Markdown.parse(str)
+    nothing
+end
+
 macro sjdoc(sym,str)
     SJDOCS[sym] = Markdown.parse(str)
     nothing
 end
 
-# Called from the macro @ex which parses cli input to see if we have a help query
+# Called from the macro @sym which parses cli input to see if we have a help query
 # or an expression.
 # no io stream specified when printing here
 function check_doc_query(ex)
@@ -304,7 +309,7 @@ function do_example(lines)
             end
             println("symata> ", ins)
             ex = parse(ins)
-            res = (eval(Expr(:macrocall,Symbol("@ex"), ex)))
+            res = (eval(Expr(:macrocall,Symbol("@sym"), ex)))
             if res != nothing println(res) end
             sj_add_history(ins)
             if i < len

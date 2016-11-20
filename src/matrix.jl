@@ -48,7 +48,7 @@ The complex conjugate is applied to neither `a` nor `b`.
 
 The infix operator `⋅` can usually be entered by typing `\\cdot` followed by `TAB`
 """
-@doap function Dot(u::List,v::List)
+@doap function Dot(u::ListT,v::ListT)
     symlength(u) == 0 || symlength(v) == 0 && return mx
     vv = vectorq(v)
     if vectorq(u) && vv
@@ -185,7 +185,7 @@ end
 ### Tr
 
 # assumes we have a matrix
-matrixdims(m::List) = (length(m), length(m[1]))
+matrixdims(m::ListT) = (length(m), length(m[1]))
 
 @mkapprule Tr
 
@@ -194,7 +194,7 @@ matrixdims(m::List) = (length(m), length(m[1]))
 
 Compute the trace of matrix `m`.
 """
-@doap function Tr(m::List)
+@doap function Tr(m::ListT)
     matrixq(m) || return mx
     n = min(matrixdims(m)...)
     a = newargs(n)

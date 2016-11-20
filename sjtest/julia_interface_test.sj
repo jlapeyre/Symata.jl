@@ -49,7 +49,15 @@ T Head(J( Symata.:*(:c,:d) )) == Times
 T  Compile( Cos(x) )(3) == Cos(3)
 T  Compile( Cos(x) )(0.0) == 1.0
 T  Compile( Cos(x) )(a) == Cos(a)
-
 T  Compile( Exp(x)*Cos(x)*x )(1.0) == J( exp(1.0) * cos(1.0) *1.0 )
+
+### SymataCall
+
+Apply(ClearAll, UserSyms())
+
+  f = SymataCall([x,y], y*x^2/m)
+T f(p,z) == m^(-1)*p^2*z
+  f = SymataCall(x, x^2)
+T f(a) == a^2
 
 Apply(ClearAll, UserSyms())

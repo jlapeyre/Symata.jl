@@ -551,7 +551,7 @@ symata> f(a,b, Splat([c,d]))
 """
 
 @doap Splat(x::Mxpr) = mxprcf(:Sequence, margs(x))
-
+@doap Splat(x) = x
 
 ### Sort
 
@@ -579,7 +579,7 @@ apply `test` to determine identical elements.
 """
 @mkapprule Split
 
-@doap function Split(lst::List)
+@doap function Split(lst::ListT)
     length(lst) == 0 && return MList()
     a = margs(lst)
     a0 = newargs()
@@ -595,7 +595,7 @@ apply `test` to determine identical elements.
     MList(a0)
 end
 
-@doap function Split(lst::List, test)
+@doap function Split(lst::ListT, test)
     length(lst) == 0 && return MList()
     a = margs(lst)
     a0 = newargs()
@@ -798,10 +798,18 @@ function threadlistable(mx, head, seqspec::SequenceSpec)
     return nmx
 end
 
-@sjdoc MapThread """
+# @sjdoc MapThread """
+#     MapThread(f,list)
+
+# threads `f` over lists in `list` and evaluates the result.
+# """
+# @mkapprule MapThread :nargs => 2
+# @doap MapThread(f,x) = threadlistable(mxpr(f,margs(x)))
+
+@mkapprule MapThread """
     MapThread(f,list)
 
 threads `f` over lists in `list` and evaluates the result.
-"""
-@mkapprule MapThread :nargs => 2
+""" :nargs => 2
+
 @doap MapThread(f,x) = threadlistable(mxpr(f,margs(x)))

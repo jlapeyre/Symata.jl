@@ -1,8 +1,33 @@
-## The code below `Part` this file should be used to replace the guts of Part
-## For setting and getting with Part, in Table, ...
+## TODO consolidate low-level part code. I thought newer code was better. Now, it seems the older code is useful
 
-## In other words: Part uses older part setting code. Other functions that get and
-## set parts use newer code.
+posnegi(x::Mxpr,n::Integer) = n >= 0 ? n : length(x) + n + 1
+## WARNING: The following method is not the same as the others, it won't work in the general case (not for sequence specs)
+## we may need to do something about this.
+## In posnegi(obj,n) in general, obj is the object a part of which we want to get
+## In posnegi below nmax is not this object
+posnegi(nmax::Integer,n::Integer) = n >= 0 ? n : nmax + n + 1
+posnegi(x,n::Integer) = n
+posnegi(x,a) = a
+
+function get_part_one_ind{V<:Union{Mxpr,Array}}(texpr::V,ind::Integer)
+#    ind = ind < 0 ? length(texpr)+ind+1 : ind
+    ind = posnegi(texpr,ind)
+    texpr = ind == 0 ? mhead(texpr) : texpr[ind]
+    return texpr
+end
+get_part_one_ind(texpr::Dict,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
+get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
+function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
+    spanargs = margs(tind)
+    lsp = length(spanargs)
+    if lsp == 2
+        nargs = view(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
+    elseif lsp == 3
+        nargs = view(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
+    end
+    texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
+    return texpr
+end
 
 ### Part
 
@@ -41,16 +66,6 @@ Julia types such as `Array`, or the element with key `n` for `Dict`'s.
     return texpr
 end
 
-function get_part_one_ind{V<:Union{Mxpr,Array}}(texpr::V,ind::Integer)
-    ind = ind < 0 ? length(texpr)+ind+1 : ind
-    texpr = ind == 0 ? mhead(texpr) : texpr[ind]
-    return texpr
-end
-
-get_part_one_ind(texpr::Dict,tind) = texpr[tind]  # Part 0 can't return "Dict" because it could be a key.
-get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
-
-
 ### Span
 
 @sjdoc Span """
@@ -58,23 +73,12 @@ get_part_one_ind(texpr::Tuple,tind) = texpr[tind]
 
 represents elements `a` through `b`.
 
-    Span(a,b,c) or a:b:c 
+    Span(a,b,c) or a:b:c
 
 represents elements `a` through `b` in steps of `c`.
 
 `expr[a:b]` returns elements a through `b` of expr, with the same head as `expr`.
 """
-function get_part_one_ind(texpr::Mxpr,tind::Mxpr{:Span})
-    spanargs = margs(tind)
-    lsp = length(spanargs)
-    if lsp == 2
-        nargs = view(margs(texpr),spanargs[1]:spanargs[2]) # need function to do this translation
-    elseif lsp == 3
-        nargs = view(margs(texpr),spanargs[1]:spanargs[3]:spanargs[2])
-    end
-    texpr = mxpr(mhead(texpr),nargs...) # we need splice to copy Int Array to Any Array
-    return texpr
-end
 
 ### Position
 
@@ -107,6 +111,7 @@ end
 
 # TODO: split out literal pattern code: This routine will be the main routine for
 # finding positions, inlcuding when we know that the pattern is literal.
+# The literal pattern code is commented out below
 function _find_positions(ex::Mxpr,psubx,lev,posns,clev,capt)
     if clev > length(lev) push!(lev,0) end
     args = margs(ex)
@@ -138,30 +143,9 @@ function _find_positions(ex,psubx,lev,posns,clev,capt)
     end
 end
 
-
-#### getpart
-
-# TODO: implement :All in expressions like a[All,2]
-
-"""
-     getpart(mx::Mxpr,ind1::Integer,ind2::Integer,...)
-
-return part of expression `mx`. `ind1,...` indices into `mx`.
-An index value `0` refers to the head of `mx` or a subexpression, that is the part returned by `mhead`.
-Index values greater than `0` refer to elements.
-
-Note that `0` only makes sense as the last index.
-
-Negative indices are not supported here.
-"""
-getpart(mx::Mxpr,ind) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
-getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
-getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
-
-# This gives error with a single index. Why ?
-Base.getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
-
 #### setpart
+
+## setpart2! does the same, but I think it  is better and simpler and doesnt seem to be broken
 
 """
     setpart!(mx::Mxpr,val,inds...)
@@ -177,11 +161,8 @@ function setpart!(mx::Mxpr,val,inds...)
     elseif length(inds) == 1
         if inds[1] == 0
             mx = mxpr(val,margs(mx)...)
-            #            symprintln("new ", mx)
             # Function application is very slow if this branch is taken.
             return mx
-#            symerror("Can't set head to $val. Not implemented")
-#            newhead = val  ## Not working
         else
             margs(mx)[inds[1]] = val
         end
@@ -200,7 +181,36 @@ function setpart!(mx::Mxpr,val,inds...)
     mx
 end
 
-Base.setindex!(mx::Mxpr, val, inds...) = setpart!(mx,val,inds...)
+## This is older, but seems better.
+## This checks for negative indices. If calling setpart!, this checking must be done before calling
+## setpart! is intended for dev code where negative indices won't appear. But, it is probably not
+## necessary to have setpart!
+##
+## A complication arises because the head (Head) of an Mxpr cannot be changed because the head is
+## also in the type Mxpr{sym}. If the head needs to be changed, a copy must be made. The exception
+## is if the head is not a symbol. In this case, the type is Mxpr{GenHead}. The head is always stored
+## in a field as well. It is possible, but undesirable for the type and field disagree.
+## This is why the previous level expression is stored in setpart2!
+function setpart2!(mx::Mxpr,val,inds...)
+    ex = mx
+    exlast = ex
+    ninds = length(inds)
+    for j in 1:ninds-1
+        exlast = ex
+        ex = get_part_one_ind(ex,inds[j])
+    end
+    ind = posnegi(ex,inds[ninds])
+#    ind = posnegi(ex,ind)
+    if  ind == 0
+        exlast[inds[ninds-1]] = mxprnewhead(ex,val)
+    else
+        ex[ind] = val
+    end
+    val
+end
+
+## either setpart! or setpart2! works here.
+Base.setindex!(mx::Mxpr, val, inds...) = setpart2!(mx,val,inds...)
 
 #### localize variable
 
@@ -358,7 +368,7 @@ operator form of `Extract`.
 """
 @mkapprule Extract
 
-@doap function Extract(expr, p::List)
+@doap function Extract(expr, p::ListT)
     isa(p[1],Integer) && return expr[margs(p)...]
     ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
     nargs = newargs(length(p))
@@ -368,7 +378,7 @@ operator form of `Extract`.
     return MList(nargs)
 end
 
-@doap function Extract(expr, p::List, h)
+@doap function Extract(expr, p::ListT, h)
     isa(p[1],Integer) && return mxpr(h,expr[margs(p)...])
     ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
     nargs = newargs(length(p))

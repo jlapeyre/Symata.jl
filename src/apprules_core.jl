@@ -35,8 +35,14 @@ macro mkapprule(args...)
     apprulecall = :(apprules($mxarg) = $fns(mx, margs(mx)...))
     defmx = :( mx )
     specs = Dict()
+    local rargs
     if n > 1
-        rargs = args[2:end]
+        if isa(args[2],String)
+            sjdocfun(head,args[2])
+            rargs = args[3:end]
+        else
+            rargs = args[2:end]
+        end
         specs = get_arg_dict(rargs)
     end
     if haskey(specs, :options)

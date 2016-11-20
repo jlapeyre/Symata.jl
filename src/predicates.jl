@@ -3,12 +3,18 @@
 is_SSJSym(x) = isa(x,SSJSym)
 is_SJSym(x) = isa(x,SJSym)
 
-#is_Mxpr{T<:Mxpr}(mx::T) = true
-#is_Mxpr(x) = false
 is_Mxpr(x) = isa(x,Mxpr)
 
+## I think we should prefer isa(Mxpr{:Sym}) here
 is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
 is_Mxpr(x,s::Symbol) = false
+
+## Ruleq or ruleq ? need lc somewhere to signify it is lower level
+ruleq(x::Mxpr{:Rule}) = true
+ruleq(x) = false
+
+# we could generate some of these with a loop and eval
+Base.isempty(mx::Mxpr) = isempty(margs(mx))
 
 """
     mxpr_head_freeq(mx::Mxpr)
@@ -17,11 +23,19 @@ return true if any element at level 1 of mx is an Mxpr with head `head`.
 """
 mxpr_head_freeq(mx::Mxpr, head) = ! any(t -> isa(t,Mxpr{head}), margs(mx))
 
+## probably should not use these. isa signals that we are interested in Julia type rather
+## than a paraphyletic class of numbers.
 is_Number(x) = isa(x,Number)
 is_Real(x) = isa(x,Real)
 is_Complex(x) = isa(x,Complex)
 is_Float(x) = isa(x,AbstractFloat)
 
+## TODO julia has some function like this. We should use, if possible:
+## isinteger
+## isapprox
+## isassigned, for arrays
+## isequal
+## isempty (instead of length == 0)
 is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
 is_imaginary_integer(x) = false
 
@@ -31,20 +45,61 @@ is_Indeterminate(x::Symbol) = x == Indeterminate
 is_Indeterminate(x) = false
 
 is_Infintity(x) = false
-is_Infintity(mx::Mxpr{:DirectedInfinity}) = length(mx) > 0 && mx[1] == 1 ? true : false
+is_Infintity(mx::Mxpr{:DirectedInfinity}) = ! isempty(mx) && mx[1] == 1 ? true : false
 
 is_ComplexInfinity(x) = false
-is_ComplexInfinity(mx::Mxpr{:DirectedInfinity}) = length(mx) == 0 ? true : false
+is_ComplexInfinity(mx::Mxpr{:DirectedInfinity}) =  isempty(mx) ? true : false
 
 # This attribute checking should be encapsulated !
 is_Constant(x::SSJSym) = haskey(x.atrr,:Constant)
 is_Constant(x::Symbol) = haskey(getssym(x).attr, :Constant)
 is_Constant(x) = false
 
-# encapsulate!
+# FIXME: more encapsulation. No getting of dicts here!
 is_protected(sj::SJSym) = get(getssym(sj).attr,:Protected,false)
 
 is_blankxxx(x) = isa(x,BlankXXX)
+
+## question: shold we do isxxx, is_xxx, or xxxq ?
+## Julia does isxxx (or is_xxx in a few cases). Mma uses XxxQ uniformly (almost)
+## Answer:
+## Base.isinteger(1.0) -> true
+## So we should do xxxq consistently because we want a clear distinction from Julia
+## Julia's isinteger makes perfect sense within Julia. But, the name would collide
+## isinteger for us.
+
+## These are equivalent to a single isa, but they can be used directly as predicate functions to
+## supply as arguments
+listq(x::Mxpr{:List}) = true
+listq(x) = false
+integerq(x::Integer) = true
+integerq(x) = false
+
+listofpredq(x::Mxpr{:List},pred) = isempty(x) ? false : all(pred,x)
+listofpredq(x,pred) = false
+listoflistsq(x::Mxpr{:List}) = listofpredq(x,listq)
+
+function listoflistsofsamelengthq(x::Mxpr{:List})
+    listoflistsq(x) || return false
+    n = symlength(x[1])
+    all( a -> symlength(a) == n, x)
+end
+listoflistsofsamelengthq(x) = false
+
+listofintegersq(x::Mxpr{:List}) = listofpredq(x,integerq)
+
+listoflistsofpredq(x::Mxpr{:List},pred) = all(a -> listofpredq(a,pred), x)
+listoflistsofpredq(x) = false # maybe not necessary, but maybe the compiler needs help ?
+
+"""
+    listoflistsofsamelengthpredq(x,pred)
+
+true if x is List of Lists of same length with predq giving true on all elements.
+"""
+function listoflistsofsamelengthpredq(x::Mxpr{:List},pred)
+    listoflistsofsamelengthq(x) && listoflistsofpredq(x,pred)
+end
+listoflistsofsamelengthpredq(x) = false
 
 ####  Symata Predicates
 
@@ -280,8 +335,10 @@ matrixq(x,test) = false
 @doap BooleanQ(x::Bool) = true
 @doap BooleanQ(x...) = false
 
-
 ### Element
+
+## We may want to do this with a dictionary. As it is the Julia compiler
+## may have a chance to reason.
 
 @mkapprule Element :nargs => 2
 

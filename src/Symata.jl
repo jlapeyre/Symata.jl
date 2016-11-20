@@ -8,9 +8,12 @@ import Compat.view
 import Base: setindex!, getindex, replace
 
 # These are of general use.
-# Prefer @sym now. But we, need to export @ex until we can track down all uses and remove them.
-export @sym, doeval, @ex
+# We prefer @sym now. But, we need to export @ex until we can track down all uses and remove them.
+#export @ex
+export @sym, doeval
 export mmul, mplus, mpow, mabs, mminus, symatamath
+
+export debugmxpr
 
 """
     devimport()
@@ -19,14 +22,14 @@ import some symbols from `Symata` into `Main` that are useful for development.
 """
 function devimport()
     eval(Main, parse("""
-import Symata: @ex, @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
+import Symata: @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
        sympy, pytypeof, mxpr, canonexpr!, wrap_symata
 """))
 end
 
 export devimport
 
-# For IJulia. We could probably import insymata in the interface code instead.
+# These are for IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
 include("sjcompat.jl")

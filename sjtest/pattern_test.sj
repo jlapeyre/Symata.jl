@@ -317,6 +317,12 @@ T Replace(1 + a + f(a) + g(f(a)), a => b, [1]) == 1 + b + f(a) + g(f(a))
 T Replace(1 + a + f(a) + g(f(a)), a => b, [2]) == 1 + a + f(b) + g(f(a))
 T Replace(1 + a + f(a) + g(f(a)), a => b, [3]) == 1 + a + f(a) + g(f(b))
 
+  C = [a,[[a1,[a12,b12,c12]],[b2,[a22,b22,c22]],[c3,[a32,b32,c32,d32]]]]
+
+## FIXME. We need to use Unfix, or else the sequences are not flattened.
+T Unfix(Replace(C , [x_,[y__]] => [x,y], [2]), Deep => True) == [a,[[a1,a12,b12,c12],[b2,a22,b22,c22],[c3,a32,b32,c32,d32]]]
+
+
 ClearAll(a,b,f,)
 
 # Try replacement at each level. Once, we descend to a level, replacement is attempted on all elements at

@@ -324,13 +324,13 @@ is_sqrt(ex::Expr) = iscall(ex,:Sqrt)
 # we should also detect sums/products of like numbers, etc. and
 # combine them. No* Sometimes we want to Hold expressions involving numbers.
 function is_rational(ex::Expr)
-    iscall(ex, :(//), 3) && is_Number(ex.args[2]) &&
-        is_Number(ex.args[3])
+    iscall(ex, :(//), 3) && isa(ex.args[2],Number) &&
+        isa(ex.args[3],Number)
 end
 
 function is_complex(ex::Expr)
-    iscall(ex, :Complex, 3) && is_Number(ex.args[2]) &&
-        is_Number(ex.args[3])
+    iscall(ex, :Complex, 3) && isa(ex.args[2],Number) &&
+        isa(ex.args[3],Number)
 end
 
 # In extomx, we first rewrite some Math to canonical forms
@@ -386,7 +386,7 @@ function rewrite_expr(ex::Expr)
         return eval(ex)  # TODO: don't do eval, use //
     elseif is_complex(ex)
         (real,imag) = (ex.args[2],ex.args[3])
-        if is_Real(real) && is_Real(imag)
+        if isa(real,Real) && isa(imag,Real)
             return complex(real,imag)
         else
             return ex

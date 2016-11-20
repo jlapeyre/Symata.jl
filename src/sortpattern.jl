@@ -6,11 +6,11 @@
 ## associating Julia data structues with downvalues would be
 # more efficient.
 
-# @ex ClearAll(g)
-# @ex g(x_^2) := x
-# @ex g(x_Integer^2) := x
-# @ex g(z^2) := x
-# dvs = @ex DownValues(g)
+# @sym ClearAll(g)
+# @sym g(x_^2) := x
+# @sym g(x_Integer^2) := x
+# @sym g(z^2) := x
+# dvs = @sym DownValues(g)
 
 #
 function has_pattern{T}(mx::Mxpr{T})

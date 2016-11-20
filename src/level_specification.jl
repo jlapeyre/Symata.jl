@@ -25,6 +25,15 @@ LevelSpecAll() = LevelSpecAll(false)
 
 #### Create LevelSpec instances from Mxpr expressions
 
+## Interpretation of negative index is different here than from Mma
+## In Mma, a negative index counts up from each leaf.
+## TODO: or FIXME
+## 1. Implement both depth-first and breadth-first traversal. Only
+## breadth-first is implmented now.
+## 2. For negative indicies. Traverse the whole tree and build a flat
+## Array of of the depth of each leaf. Then count negative levels from
+## each leaf.
+
 # Form n.  levels 1 through n
 function make_level_specification(expr,n::Integer)
     if n < 0 n += depth(expr) end
@@ -100,15 +109,13 @@ end
 
 function checkbreak(action)
     if action.levelbreak
-        # println("break true")
-        # action.parent = Null  # Do we ever break ?? this was not the problem
         true
     else
-#        println("break false")        
         false
     end
 end
 
+## breadth first traverse
 macro travcode()
     return quote
         elen = length_for_level(expr)
@@ -140,10 +147,9 @@ function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
 end
 
 function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
-    if action.levelind <= spec.level
+    if action.levelind <= spec.level && action.levelind > 0
         action.doaction(action.data, expr)
         checkbreak(action) && return
-#        action.levelbreak && return
     end
     if action.levelind < spec.level
         @travcode

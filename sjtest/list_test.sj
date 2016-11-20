@@ -101,6 +101,19 @@ T Flatten(f(g(u, v), f(x, y)), Infinity, f) == f((g(u,v)),x,y)
 ex = Range(5)
 T Flatten([ex,x,ex,x]) == [1,2,3,4,5,x,1,2,3,4,5,x]
 
+### FlattenAt
+
+ex = [[1,2],[3,4], [a,b,c,[d,1]]]
+T FlattenAt(ex,1) == [1,2,[3,4],[a,b,c,[d,1]]]
+T FlattenAt(ex,[[1],[2]]) == [1,2,3,4,[a,b,c,[d,1]]]
+T FlattenAt(ex,3) == [[1,2],[3,4],a,b,c,d,1]
+T FlattenAt(ex,[3,4]) == [[1,2],[3,4],[a,b,c,d,1]]
+T FlattenAt(ex,[3,3]) == ex
+T FlattenAt([[1],[3,4]])(ex) == [1,2,[3,4],[a,b,c,d,1]]
+T ex == [[1,2],[3,4], [a,b,c,[d,1]]]
+
+T Table(FlattenAt(f([a],[b],[c],[d]),i), [i,4]) == [f(a,[b],[c],[d]),f([a],b,[c],[d]),f([a],[b],c,[d]),f([a],[b],[c],d)]
+
 ClearAll(a,b,c,d,e,f,g,h,x,ex,n)
 
 ### Fold
@@ -278,6 +291,7 @@ T Take(expr,[2,4]) == b + c + d
 T Take(expr,[1,6,2]) == a + c + e
 T Take(Range(3), UpTo(4)) == Range(3)
 T Take(Range(10), [-1,1,-1]) == Reverse(Range(10))
+T Args(Reverse(a+b+c)) == [a,b,c]
 expr = Array(f,[3,3,3])
 Take(r,[2],[2],[2]) == [[[f(2,2,2)]]]
 
@@ -350,6 +364,5 @@ T Thread(Unevaluated(D([x, x * y, x * z], [x, y, z]))) == [1,x,x]
 ### MapThread
 
 T MapThread(D, [[x, x * y, x * z], [x, y, z]]) == [1,x,x]
-
 
 Apply(ClearAll,UserSyms())

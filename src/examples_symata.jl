@@ -20,20 +20,20 @@ unset_attribute(:Csc,:Protected)
 # The multiplication rules won't work generally until AC matching is implemened
 # Some are not evaled far enough.
 # Unfix is a workaround for bugs that prevent evaluation
-@ex  Sin(-1*x_) := -1 * Sin(x)
-@ex  Tan(-1*x_) := -1 * Tan(x)
-@ex  Tan(ArcCos(x_)) := Unfix(Sqrt(1-x^2)/x)
-@ex  Tan(ArcSin(x_)) := Unfix(x/Sqrt(1-x^2))
-@ex  Sin(ArcSin(x_)) := x
-@ex  Sin(ArcCos(x_)) := Unfix((1-x^2)^(1/2))
-@ex  Cos(-1*x_) := Cos(x)
+@sym  Sin(-1*x_) := -1 * Sin(x)
+@sym  Tan(-1*x_) := -1 * Tan(x)
+@sym  Tan(ArcCos(x_)) := Unfix(Sqrt(1-x^2)/x)
+@sym  Tan(ArcSin(x_)) := Unfix(x/Sqrt(1-x^2))
+@sym  Sin(ArcSin(x_)) := x
+@sym  Sin(ArcCos(x_)) := Unfix((1-x^2)^(1/2))
+@sym  Cos(-1*x_) := Cos(x)
 
-@ex  Power(Cos(x_),-1) ^= Sec(x)
-@ex  Power(Sec(x_),-1) ^= Unfix(Cos(x)) # need to fix bug that requires Unfix!
-@ex  Power(Sin(x_),-1) ^= Csc(x)
-@ex  Power(Csc(x_),-1) ^= Sin(x)
-@ex  Power(Tan(x_),-1) ^= Cot(x)
-@ex  Power(Cot(x_),-1) ^= Tan(x)
+@sym  Power(Cos(x_),-1) ^= Sec(x)
+@sym  Power(Sec(x_),-1) ^= Unfix(Cos(x)) # need to fix bug that requires Unfix!
+@sym  Power(Sin(x_),-1) ^= Csc(x)
+@sym  Power(Csc(x_),-1) ^= Sin(x)
+@sym  Power(Tan(x_),-1) ^= Cot(x)
+@sym  Power(Cot(x_),-1) ^= Tan(x)
 
 set_attribute(:Sin,:Protected)
 set_attribute(:Cos,:Protected)
@@ -43,29 +43,14 @@ set_attribute(:Sec,:Protected)
 set_attribute(:Csc,:Protected)
 
 # the symbol x should be local, anyway.
-@ex ClearAll(x)
-
-# We just put this here because there was some problem with load order.
-
-unprotect(:ExpToTrig)
-
-@ex ( ExpToTrig(ex_) := ReplaceRepeated( ex , E^(x_) => Cosh(x) + Sinh(x)) )
-
-protect(:ExpToTrig)
-
-@sjdoc ExpToTrig """
-    ExpToTrig(expr)
-
-replace exponentials with trigonometric functions in expr.
-But, the transformation from Cosh to Cos is not implemented.
-"""
+@sym ClearAll(x)
 
 # These are only for testing downrules.
 const directed_infinitym1 = setfixed(mxpr(:DirectedInfinity,-1))
 unprotect(:Log)
-@ex Log(1) := 0
+@sym Log(1) := 0
 # This is slow because the julia expression is parsed every time
-@ex Log(0) := DirectedInfinity(-1)
+@sym Log(0) := DirectedInfinity(-1)
 protect(:Log)
 
 @sjdoc Log "
@@ -74,7 +59,7 @@ Log(b,x) represents the base \"b\" logarithm of x.
 "
 
 unprotect(:Zeta)
-@ex Zeta(1) := ComplexInfinity
+@sym Zeta(1) := ComplexInfinity
 protect(:Zeta)
 
 ### These would work for symata system code, but they
@@ -83,9 +68,9 @@ protect(:Zeta)
 ### TODO: find a way to autoload this code
 
 unprotect(:StringQ)
-@ex StringQ = MatchQ(_AbstractString)
+@sym StringQ = MatchQ(_AbstractString)
 protect(:StringQ)
 
 unprotect(:ListQ)
-@ex ListQ = MatchQ(_List)
+@sym ListQ = MatchQ(_List)
 protect(:ListQ)

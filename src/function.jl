@@ -29,7 +29,7 @@ function dogenhead(var0,body, mx)
     doeval(f)
 end
 
-function dogenhead(vars0::List, body, mx)
+function dogenhead(vars0::ListT, body, mx)
     (vars,f) = localize_variables(margs(vars0),body)
     for (var,arg) in zip(vars,margs(mx))
         setsymval(var,arg)

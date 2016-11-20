@@ -155,3 +155,8 @@ end
     i[1] != 1 && return x
     flatten_recursive!(x)
 end
+
+@doap function Flatten(x::Mxpr,spec::ListT)
+    warn("Flatten: unimplemented feature")
+    mx
+end

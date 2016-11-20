@@ -22,9 +22,9 @@ symname(s::SJSym) = s
 symname(s::Qsym) = s.name
 
 ## Typed SJ Symbols. Only experimental
-# Don't need T<:DataType here
 
-@inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
+#@inline ssjsym{T<:DataType}(s::Symbol,dT::T) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
+@inline ssjsym(s::Symbol,dT::DataType) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]
@@ -146,7 +146,8 @@ import Base:  ==
 # The best solution  is probably to make a hash key of the lhs's
 # We need to use a type like DownValueT above
 downvalue_lhs_equal(x,y) = x == y
-downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
+#downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
+downvalue_lhs_equal(x::Number,y::Number) = x === y  #  f(1.0) is not f(1)
 
 # Sets a downvalue associated with symbol
 
@@ -198,7 +199,6 @@ function jlistdownvaluedefs(sym::SJSymbol)
     for i in 1:length(dvs)
         lhs = dvs[i][1]
         mx = get_downvalue_def(lhs)
-#        mx != NullMxpr && push!(dvlist, get_downvalue_def(lhs))  # delete this prbly
         mx != NullMxpr && push!(dvlist, mx)
     end
     dvlist
@@ -206,7 +206,6 @@ end
 
 # FIXME: storing and printing definition is partly broken here.
 function set_upvalue(mx, ins::SJSym,val)
-#    println("set upvalue ", mx, " ins $ins , val ", val)
     s = getssym(ins)
     uv = s.upvalues
     isnewrule = true
@@ -218,9 +217,7 @@ function set_upvalue(mx, ins::SJSym,val)
         end
     end
     isnewrule && push!(s.upvalues,val)
-#    println("Setting val[1] ", val[1], ", and mx ",mx)
     set_upvalue_def(val[1], mx)
-#    set_upvalue_def(ins, mx)
     # How to sort upvalues ?
     s.age = increvalage()
 end
@@ -315,7 +312,8 @@ end
 # The lines commented out make sense to me.
 # But, tests fail when they are used
 #function =={T<:Mxpr}(ax::T, bx::T)
-function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)
+#function =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V)
+function ==(ax::Mxpr, bx::Mxpr)
     mhead(ax) != mhead(bx)  && return false
     a = margs(ax)
     b = margs(bx)
@@ -339,13 +337,12 @@ currently `Array{Any,1}`.
 """
 @inline newargs() = Array(Any,0)
 
-
 """
     newargs(n::Integer)
 
 return a container with n elements to hold arguments for an `Mxpr`.
 """
-@inline newargs{T<:Integer}(n::T) = Array(Any,n)
+@inline newargs(n::Integer) = Array(Any,n)
 
 """
     newargs(m::Mxpr)
@@ -375,14 +372,14 @@ end
 
 return the `Head` of `mx.
 """
-mhead{T<:Mxpr}(mx::T) = mx.head
+mhead(mx::Mxpr) = mx.head
 
 """
     margs(mx::Mxpr)
 
 return the `Array` of arguments `mx`.
 """
-margs{T<:Mxpr}(mx::T) = mx.args
+margs(mx::Mxpr) = mx.args
 
 # Everything that is not an Mxpr
 mhead(x) = typeof(x)
@@ -390,7 +387,7 @@ mhead(x) = typeof(x)
 # Eg, it works with Count.
 # If we always access via iterators, then we don't need to 'collect' the values
 # Probably not slower, either.
-margs{T<:Dict}(d::T) = collect(values(d))
+margs(d::Dict) = collect(values(d))
 
 # The following makes sense for Mxpr{:GenHead}. It might be useful in this case. But, probably not.
 # """
@@ -406,20 +403,51 @@ getfreesyms(mx::Mxpr) = mx.syms
 setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
 # These should be fast: In the Symata language, mx[0] gets the head, but not here.
-# Oct 2016, Not sure about the statement above. It depends on where the convenient notation is used more
-# TODO: iterator for mx that iterates over args would be useful
-setindex!{T<:Integer}(mx::Mxpr, val, k::T) = (margs(mx)[k] = val)
-@inline getindex{T<:Integer}(mx::Mxpr, k::T) = margs(mx)[k]
+setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
+@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
 
+# We need to think about copying in the following. Support both refs and copies ?
+
+@inline function getindex(mx::Mxpr, r::UnitRange)
+    if r.start == 0
+        return mxpr(mhead(mx),margs(mx)[1:r.stop]...)
+    else
+        return margs(mx)[r]
+    end
+end
+
+@inline function getindex(mx::Mxpr, r::StepRange)
+    if r.start == 0
+        return mxpr(mhead(mx),margs(mx)[0+r.step:r.step:r.stop]...)
+    elseif r.stop == 0 && r.step < 0
+        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mhead(mx))
+    else
+        return margs(mx)[r]
+    end
+end
+
+"""
+     getpart(mx::Mxpr,ind1::Integer,ind2::Integer,...)
+
+return part of expression `mx`. `ind1,...` indices into `mx`.
+An index value `0` refers to the head of `mx` or a subexpression, that is the part returned by `mhead`.
+Index values greater than `0` refer to elements.
+
+Note that `0` only makes sense as the last index.
+
+Negative indices are not supported here. That is, we assume they have already been converted to positive
+"""
+getpart(mx::Mxpr,ind) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
+getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
+getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
+## getindex(mx::Mxpr,ind) with single index does not check for index 0 for efficiency.
+## Also the iterator over mx relies on this behavior.
+## But, with more than one index, getindex checks for index of zero (heads)
+getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
 
 @inline Base.endof(mx::Mxpr) = length(mx)
 
-#mxprtype{T}(mx::Mxpr{T}) = T
-
-@inline function Base.copy(mx::Mxpr)
-    args = copy(mx.args)
-    mxpr(mhead(mx),args)
-end
+@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
 
 function Base.push!(mx::Mxpr,item)
     push!(margs(mx),item)
@@ -488,19 +516,65 @@ checkhash(x) = x
 ##### Create Mxpr
 
 # Create a new Mxpr from list of args
+## We create Mxpr in two different ways.
+## One is to supply the array of args.
+## Two is to supply arguments one by one on the command line
+## All the code (Nov 2016) uses one function mxpr for both of these
+## methods. We want to change this and use mxpra for case one
+## and mxpr for case two.
 
 function mxpr(s::SJSym,iargs...)
-    n = length(iargs)
-    args = newargs(n)
-    for i in 1:n
-        args[i] = iargs[i]
-    end
+    args = newargs(length(iargs))
+    copy!(args,iargs)
     return mxpr(s,args)
 end
 
+## MxprArgs is just an alias to array of Any
+## we should call have different functions mxpr and mxpra for the two cases
+## 1) we supply a list of args as arguments 2) we supply the entire array
 # Create a new Mxpr from Array of args
 @inline function mxpr(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
+    setage(mx)
+    mx
+end
+
+## Prefer this one. We may want to use an array of type Any as an mxpr argument.
+## Not possible if we dispatch on type to distinguis from mxpr() above
+@inline function mxpra(s::SJSym,args::MxprArgs)
+    mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
+    setage(mx)
+    mx
+end
+
+function mxpra(s,args::MxprArgs)
+    mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
+    setage(mx)
+    mx
+end
+
+## We can't change the head of an expression (except for genhead). The head is also the type.
+## Next best thing is create a new Mxpr and use the fields from the old Mxpr without copying
+function mxprnewhead(mx::Mxpr,head::SJSym)
+    mx = Mxpr{head}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
+end
+
+# nonsymbolic head
+function mxprnewhead(mx::Mxpr,head)
+    mx = Mxpr{GenHead}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
+    setage(mx)
+    mx
+end
+
+function mxprnewhead(mx::Mxpr{GenHead},head::SJSym)
+    mx = Mxpr{head}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
+    setage(mx)
+    mx
+end
+
+## For GenHead to GenHead we don't need to copy
+function mxprnewhead(mx::Mxpr{GenHead},head)
+    mx.head = head
     setage(mx)
     mx
 end
@@ -536,16 +610,17 @@ end
 function mxpr(s,iargs...)
     len = length(iargs)
     args = newargs(len)
-    for i in 1:len
-        args[i] = iargs[i]
-    end
-    mxpr(s,args)
+    copy!(args,iargs)
+    # for i in 1:len
+    #     args[i] = iargs[i]
+    # end
+    mxpra(s,args)
 end
 
 # set fixed point and clean bits
 @inline function mxprcf(s::SJSym,iargs...)
-    args = newargs()
-    for x in iargs push!(args,x) end
+    args = newargs(length(iargs))
+    copy!(args,iargs)
     mxprcf(s,args)
 end
 
@@ -615,9 +690,10 @@ function mergeargs(mx::Mxpr)
     if is_sym_mergeable(h)
         mergesyms(mx,h)
     end
-    @inbounds for i in 1:length(mx)
-        mergesyms(mx,mx[i])
-    end
+    foreach(x -> mergesyms(mx,x), mx)
+    # @inbounds for i in 1:length(mx)
+    #     mergesyms(mx,mx[i])
+    # end
 end
 
 @inline mergeargs(x) = nothing
@@ -630,7 +706,8 @@ end
 
 # return true if a free symbol in mx has a more recent timestamp than mx
 @inline function checkdirtysyms(mx::Mxpr)
-    length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
+#    length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
+    isempty(mx.syms) && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
     for sym in keys(mx.syms) # is there a better data structure for this ?
         symage(sym) > mxage && return true
@@ -674,12 +751,12 @@ end
 deepunsetfixed(x) = x
 function deepunsetfixed{T<:Mxpr}(mx::T)
     nargs = newargs(mx)
-    for i in 1:length(nargs)
-        nargs[i] = deepunsetfixed(mx[i])
-    end
+    map!(deepunsetfixed,nargs,margs(mx))
+    # for i in 1:length(nargs)
+    #     nargs[i] = deepunsetfixed(mx[i])
+    # end
     unsetfixed(mx)
 end
-
 
 @inline is_canon(x) = false
 @inline setcanon(x) = false
@@ -687,25 +764,6 @@ end
 #unsetfixed(x) = false  # sometimes we have a Julia object
 unsetfixed(x) = x  # This behavior is more useful
 
-# We need to think about copying in the following. Support both refs and copies ?
-# where is this used ?
-@inline function getindex(mx::Mxpr, r::UnitRange)
-    if r.start == 0
-        return mxpr(mhead(mx),margs(mx)[1:r.stop]...)
-    else
-        return margs(mx)[r]
-    end
-end
-
-@inline function getindex(mx::Mxpr, r::StepRange)
-    if r.start == 0
-        return mxpr(mhead(mx),margs(mx)[0+r.step:r.step:r.stop]...)
-    elseif r.stop == 0 && r.step < 0
-        return mxpr(mx[r.start],margs(mx)[r.start-1:r.step:1]...,mhead(mx))
-    else
-        return margs(mx)[r]
-    end
-end
 
 function protectedsymbols_strings()
     symstrings = Array(Compat.String,0)
@@ -722,7 +780,7 @@ function protectedsymbols()
         if get_attribute(s,:Protected) && s != :ans
             push!(args,getsym(s)) end
     end
-    mx = mxpr(:List, sort!(args))
+    mx = mxpra(:List, sort!(args))
 end
 
 function usersymbols()
@@ -738,32 +796,32 @@ end
 # This is the new version used by UserSyms()
 # Experiment with namespaces
 function usersymbolsList()
-        mxpr(:List, usersymbols())
+        mxpra(:List, usersymbols())
 end
 
 # This is the old versions
 # For now, we exclude Temporary symbols
 # We return symbols as strings to avoid infinite eval loops
-function usersymbolsListold()
-    args = newargs()
-    for s in keys(CurrentContext.symtab)
-        if  get_attribute(s,:Temporary) continue end
-        if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
-    end
-    mx = mxpr(:List, sort!(args)...)
-    setcanon(mx)
-    setfixed(mx)
-    mx
-end
+# function usersymbolsListold()
+#     args = newargs()
+#     for s in keys(CurrentContext.symtab)
+#         if  get_attribute(s,:Temporary) continue end
+#         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
+#     end
+#     mx = mxpr(:List, sort!(args)...)
+#     setcanon(mx)
+#     setfixed(mx)
+#     mx
+# end
 
-function usersymbolsold()
-    args = newargs()
-    for s in keys(CurrentContext.symtab)
-        if  get_attribute(s,:Temporary) continue end  # This does not help.
-        if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
-    end
-    return args
-end
+# function usersymbolsold()
+#     args = newargs()
+#     for s in keys(CurrentContext.symtab)
+#         if  get_attribute(s,:Temporary) continue end  # This does not help.
+#         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
+#     end
+#     return args
+# end
 
 # For Heads that are not symbols
 get_attribute(args...) = false
@@ -812,7 +870,8 @@ typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signe
 typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 
 # used in apprules.jl
-typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
+typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}  ## find uses of this and remove them
+typealias RulesT Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 
 # used in expressions.jl
 typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
@@ -823,8 +882,13 @@ typealias ExpNoCanon Union{SJSym,Number}
 # used in flatten.jl
 typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
 
-# TODO: change this so we can define julia function List
-typealias List Mxpr{:List}
+for s in (:List, :Power, :Times, :Plus, :Rule)
+    @eval typealias $(Symbol(s,"T")) Mxpr{$(QuoteNode(s))}
+end
+
+# typealias RuleT Mxpr{:Rule}
+# typealias ListT Mxpr{:List}
+# typealias PowerT Mxpr{:Power}
 
 ## For many jula functions that take real or complex floating point args.
 ## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
@@ -832,8 +896,6 @@ typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
 ### Iterator
 
-## This can be used, of course, for many things.
-## For instance, the user can easily iterate over Julia expressions.
 Base.start(mx::Mxpr) = start(margs(mx))
 Base.next(mx::Mxpr,state) = next(margs(mx),state)
 Base.done(mx::Mxpr,state) = done(margs(mx),state)

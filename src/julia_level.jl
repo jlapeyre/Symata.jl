@@ -174,7 +174,7 @@ Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
 # Assigns x to 1 in symata, and x to :x in main
 macro aex(e)
     quote
-        @ex $(esc(e))
+        @sym $(esc(e))
     end
     sym = e.args[1]
     symstr = string(sym)

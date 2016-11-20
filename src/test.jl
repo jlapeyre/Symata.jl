@@ -89,6 +89,4 @@ runs the tests in `filename` in the directory `sjtest`.
 """
 
 @doap Tests() = run_testsuite()
-
-#@doap Tests(s::String) = ( eval(Expr(:macrocall,Symbol("@ex"), :(testUserSyms = True))); runtest(Symata_Plain_Test(), s))
 @doap Tests(s::String) = ( setsymval(:testUserSyms,true); runtest(Symata_Plain_Test(), s))

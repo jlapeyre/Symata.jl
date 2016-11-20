@@ -136,6 +136,16 @@ macro exsimple(ex)   # use this macro from the julia prompt
     :(($(esc(mx))))
 end
 
+"""
+    debugmxpr(s::String)
+
+parse and evaluate `s` as a Symata expression. From Julia, this prints the stack trace when an error is raised.
+If the same expression entered at the Symata command line, the stack trace will not be printed.
+"""
+function debugmxpr(s::String)
+    exfunc(parse(s))
+end
+
 const number_of_Os = 10
 
 const Os = Array(SJSym,0)

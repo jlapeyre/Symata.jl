@@ -303,24 +303,29 @@ end
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
 # We check is_Number several times, because we may have a Dict.
-function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
+#function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
+@doap function Set(lhs::Mxpr{:Part}, rhs)
     ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
-    tinds = inds(lhs)
-    ex = ex0
-    for j in 1:length(tinds)-1
-        ind = doeval(tinds[j])
-        ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
-        ex = is_Number(ind) && ind == 0 ? mhead(ex) : ex[ind]
+    tinds = indices(lhs)
+    if isa(tinds[1],Mxpr{:Sequence}) ## is this the correct place to unwrap the Sequence ?
+        tinds[1] = margs(tinds[1])
     end
+    inds = map(doeval,tinds)
     val = doeval(rhs)
-    ind = doeval(tinds[end])
-    ind = is_Number(ind) && ind < 0 ? length(ex)+ind+1 : ind
-    if is_Number(ind) && ind == 0
-        ex.head = val  #  TODO violation of abstraction
+    ex = ex0
+    exlast = ex0
+    for j in 1:length(inds)-1
+        exlast = ex
+        ex = get_part_one_ind(ex,inds[j])
+    end
+    ind = inds[end] # doeval(tinds[end])
+    ind = posnegi(ex,ind)
+    if isa(ind,Number) && ind == 0
+        exlast[tinds[length(inds)-1]] = mxprnewhead(ex,val)
     else
         ex[ind] = val
     end
-    unsetfixed(ex0) # maybe we can optimize this
+    unsetfixed(ex0)
     val
 end
 
@@ -362,7 +367,7 @@ end
 ### UpSet
 
 @sjdoc UpSet """
-    UpSet(a(g(x_)),b),  a(g(x_)) ^= b 
+    UpSet(a(g(x_)),b),  a(g(x_)) ^= b
 
 associate the transformation rule with `g`.
 """
@@ -373,9 +378,9 @@ function upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     for i in 1:length(lhs)
         m = lhs[i]
-        if is_Mxpr(m) && warncheckprotect(m)
+        if isa(m,Mxpr) && warncheckprotect(m)
             set_upvalue(mx,mhead(m),rule)
-        elseif is_SJSym(m) && warncheckprotect(m)
+        elseif isa(m,SJSym) && warncheckprotect(m)
             set_upvalue(mx, m,rule)
         end
     end
@@ -390,9 +395,9 @@ function upsetdelayed(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     for i in 1:length(lhs)
         m = lhs[i]
-        if is_Mxpr(m) && warncheckprotect(m)
+        if isa(m,Mxpr) && warncheckprotect(m)
             set_upvalue(mx,mhead(m),rule)
-        elseif is_SJSym(m) && warncheckprotect(m)
+        elseif isa(m,SJSym) && warncheckprotect(m)
             set_upvalue(mx, m,rule)
         end
     end
@@ -503,7 +508,7 @@ returns the name of `symbol` as a string.
 ### DownValues
 
 @sjdoc DownValues """
-    DownValues(s) 
+    DownValues(s)
 
 return a `List` of `DownValues` associated with symbol `s`. These are values
 that are typically set with the declarative "function definition".
@@ -522,7 +527,7 @@ For example `f(x_) := x` sets a `DownValue` for `f`.
 ### UpValues
 
 @sjdoc UpValues """
-    UpValues(s) 
+    UpValues(s)
 
 returns a List of UpValues associated with symbol `s`. These are values
 that are typically set with `UpSet`.

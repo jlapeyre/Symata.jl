@@ -523,11 +523,22 @@ unsets the fixed flag on `expr`, causing it to be evaluated.
 This is a workaround for bugs that cause an expression to be marked fixed
 before it is completely evaluated.
 """
+@mkapprule Unfix  :nodefault => true  :options => Dict( :Deep => false )
 
-function apprules(mx::Mxpr{:Unfix})
-    unsetfixed(mx[1])
-    mx[1]
+function do_Unfix(mx,expr::Mxpr; kws...)
+    (deep,val) = kws[1]
+    val ? deepunsetfixed(expr) : unsetfixed(expr)
+    unsetfixed(expr)
+    expr
 end
+
+#do_Unfix(mx,args...) = mx
+do_Unfix(mx,args...;kws...) = mx
+
+# function apprules(mx::Mxpr{:Unfix})
+#     unsetfixed(mx[1])
+#     mx[1]
+# end
 
 #### Syms
 

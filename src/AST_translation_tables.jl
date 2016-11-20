@@ -23,6 +23,9 @@
 
 # We can use $ for (Symata) Function, but the translation to compound expression is broken
 # We can use -> for (Symata) Function. This seems to work
+
+## Symbols not yet in use
+## .\
 const JTOMSYM  =
  Dict(
       :(=) => :Set,

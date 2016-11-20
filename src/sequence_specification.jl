@@ -55,9 +55,6 @@ seqspecdi(s::SequenceMNS) = s.s
 
 seqiter(s::SequenceSpec,n) = (seqspecstart(s),seqspecend(s,n),seqspecdi(s))
 
-posnegi(x::Mxpr,n::Integer) = n > 0 ? n : length(x) + n + 1
-posnegi(nmax::Integer,n::Integer) = n > 0 ? n : nmax + n + 1
-
 seqspecerr(x) = symerror(x, " is not a valid sequence specification")
 
 sequencespec(n::Integer) = SequenceN(n)
@@ -68,7 +65,7 @@ sequencespec(n::Integer,nmax) = SequenceN(posnegi(nmax,n))
 sequencespec(x::Mxpr{:UpTo},nmax) = SequenceUpToN(posnegi(nmax,n))
 sequencespec(x::Symbol,nmax) = x == :None ? SequenceNone() : x == :All ? SequenceAll() : seqspecerr(x)  # hmm maybe we should use nmax here
 
-function sequencespec(x::List)
+function sequencespec(x::ListT)
     len = length(x)
     len == 1 && return SequenceNOnly(x[1])
     len == 2 && return SequenceMN(x[1],x[2])
@@ -76,7 +73,7 @@ function sequencespec(x::List)
     seqspecerr(x)
 end
 
-function sequencespec(x::List,nmax)
+function sequencespec(x::ListT,nmax)
     len = length(x)
     len == 1 && return SequenceNOnly(posnegi(nmax,x[1]))
     len == 2 && return SequenceMN(posnegi(nmax,x[1]),posnegi(nmax,x[2]))

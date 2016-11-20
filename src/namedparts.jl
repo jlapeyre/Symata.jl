@@ -17,8 +17,12 @@ expt(p::Mxpr{:Power}) = p[2]
 exponent(p::Mxpr{:Power}) = p[2]
 
 expr(p::Mxpr{:Part}) = p[1]
-inds(p::Mxpr{:Part}) = (a = margs(p); view(a,2:length(a)))
+indices(p::Mxpr{:Part}) = (a = margs(p); view(a,2:length(a)))
 
 # We used these a bit
 terms(s::Mxpr{:Plus}) = margs(s)
 factors(p::Mxpr{:Times}) = margs(p)
+
+lhs(r::RulesT) = r[1]
+rhs(r::RulesT) = r[2]
+

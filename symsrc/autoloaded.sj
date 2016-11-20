@@ -1,5 +1,7 @@
 #### This code is autoloaded when trigger symbols are encountered when reading input.
 
+### Some of these could easily be written in Julia. But, it is a good idea for Symatat to eat its own dogfood.
+
 ### Through
 
 Unprotect(Through)
@@ -166,3 +168,27 @@ FixedPoint(f_,ex_, max_, Rule(SameTest, test_)) := Module([res = f(ex), res1, n 
                                      res = f(res1))) , res))
 
 Protect(FixedPoint)
+
+Unprotect(FlattenAt)
+@sjdoc FlattenAt """
+    FlattenAt(list,n)
+    
+flattens a sublist at position `n` in `list`.
+
+    FlattenAt(list,[i,j,..]).
+    
+flatten part at position `[i,j,...]`.
+
+    FlattenAt(list,[[i,j,..],[k,l,...]])
+    
+flatten part at multiple positions.
+
+    FlattenAt(positions)
+
+returns an operator that flattens at `positions`.
+"""
+FlattenAt(list_, [pos__Integer]) := ReplacePart(list, [pos] => Splat(Flatten(list[pos])))
+FlattenAt(list_, pos_Integer) := ReplacePart(list, pos => Splat(Flatten(list[pos])))
+FlattenAt(list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => Splat(Flatten(list[Splat(p)]))), [posns]))    
+@curry_second FlattenAt
+Protect(FlattenAt)

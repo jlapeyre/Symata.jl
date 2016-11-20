@@ -109,3 +109,23 @@ represents the set of boolean values, `True` and `False`.
 
 represents the algebraic numbers.
 """
+
+@sjdoc Repeated """
+    Repeated
+"""
+
+@sjdoc RepeatedNull """
+    RepeatedNull
+"""
+
+@sjdoc Condition """
+    Condition(cond,expr)
+
+a pattern that matches only if `cond` is true.
+"""
+
+@sjdoc Except """
+    Except(expr)
+
+a pattern than fails to match if `expr` matches.
+"""

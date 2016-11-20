@@ -79,8 +79,10 @@ function populate_builtins()
     nothing
 end
 
+const _temporary_symbol_regex = r"#"
 function add_completion_symbols(syms...)
     for sym in syms
+        (match(_temporary_symbol_regex,string(sym)) == nothing) || continue
         if ! (sym in sorted_builtins)
             push!(sorted_builtins,sym)
         end
