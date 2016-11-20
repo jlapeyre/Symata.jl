@@ -11,7 +11,7 @@ T Sum(1/n^2, [n,1,Infinity]) == Pi^2/6
 T Sum( x^n/Factorial(n)^2 , [n,0,Infinity])  == BesselI(0,2(x^(1/2)))
 
 expr = i^2
-T Sum(expr, [i,1,n]) == (i^2)*n
+T Sum(expr, [i,1,n]) == (1/6)*n + (1/2)*(n^2) + (1/3)*(n^3)  # This is the behavior we want.
 T Sum(Evaluate(expr), [i,1,n]) == (1/6)*n + (1/2)*(n^2) + (1/3)*(n^3)
 
 # FIXME: infinite loop. Bug is in Symata, not sympy
