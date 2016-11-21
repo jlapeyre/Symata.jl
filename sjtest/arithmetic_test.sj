@@ -57,6 +57,15 @@ T J( mpow(-9,2//3) == mxpr(:Times, 3, mxpr(:Power, 3, 1//3), mxpr(:Power,-1,2//3
 
 T J(mmul(2 + 2*im, 1//2) == Complex(1,1))
 
+## FIXME: this behavior is strange and wrong.
+n1 = 1/(2+2I)
+n2 = (2+2I)
+r = n1 * n2
+T (Isa(r,Integer) && r == 1)
+T (r === (n2 * n1))
+T Isa(n2 * n1, Integer)
+T Not( n2 * n1 === n1 * n2)
+T Not(Isa(n1 * n2, Integer))
 # We cant change these. The user must use mpow here.
 # T J( 2^(1//2) ) == mxpr(:Power, 2, 1//2)
 # T J( 2^(-1//2)) == mxpr(:Power, 2, -1//2) )
@@ -70,4 +79,4 @@ T J(mmul(2 + 2*im, 1//2) == Complex(1,1))
 T Sqrt(-1) == I      # fixes bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 T Sqrt(-1)^2 == -1   # same bug
 
- ClearAll(a,b)
+ ClearAll(a,b,n1,n2)

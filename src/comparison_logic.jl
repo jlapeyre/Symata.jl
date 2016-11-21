@@ -8,10 +8,12 @@
 @mkapprule UnsameQ :nargs => 2
 @doap UnsameQ(x,y) = ! sameq(x,y)
 
-sameq(x,y) = x === y
-sameq(x::BigInt,y::BigInt) = x == y
-sameq(x::BigFloat,y::BigFloat) = x == y
-sameq(x::String,y::String) = x == y
+function sameq(x,y)
+    x === y
+end
+sameq(x::BigInt,y::BigInt) = (x == y)
+sameq(x::BigFloat,y::BigFloat) = (x == y)
+sameq(x::String,y::String) = (x == y)
 
 immutable Compare
     result::Bool

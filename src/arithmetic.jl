@@ -11,7 +11,29 @@ using Primes
 rat_to_int{T<:Integer}(r::Rational{T}) = r.den == 1 ? r.num : r
 
 mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? res.num : res )
+
 mmul{T<:Integer,V<:Integer}(x::Complex{V}, y::Rational{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
+mmul{T<:Integer,V<:Integer}(x::Rational{V}, y::Complex{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
+
+## ???
+## mmul{T<:Integer,U<:Rational}(x::Complex{T}, y::Complex{U}) = mmul(y,x)
+
+function mmul{T<:Integer,U<:Rational}(x::Complex{U}, y::Complex{T})
+    res = x * y
+    isa(res,Complex) && return res
+    res.den == 1 && return res.num
+    res
+end
+
+## Julia returns different types depending on the order of x and y
+function mmul{T<:Integer,U<:Rational}(x::Complex{T}, y::Complex{U})
+    res = x * y
+    if isa(res,Complex)
+        imag(res).num != 0 && return res
+        real(res).den == 1 && return real(res).num
+    end
+    res
+end
 
 mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
 

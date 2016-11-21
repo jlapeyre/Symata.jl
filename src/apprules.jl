@@ -173,8 +173,8 @@ function doreplace(mx,expr,r::Rules,inlevelspec)
     result
 end
 
+# no need for this
 doreplace(mx,a,b) = mx
-
 doreplace(mx,args...) = mx
 
 #### ReplaceAll
