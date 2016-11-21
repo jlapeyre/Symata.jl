@@ -249,3 +249,16 @@ macro curry_last(fname)
         end
     end)
 end
+
+macro curry_split(fname)
+    doname = Symbol("do_", string(fname))
+    qname = QuoteNode(fname)
+    esc(quote
+        function ($(doname))(mx,arg1)
+            mx
+        end
+        function do_GenHead(mx,head::Mxpr{$(qname)})
+            mxpr(mhead(head),margs(head)[1],copy(margs(mx))...,margs(head)[2])
+        end
+    end)
+end
