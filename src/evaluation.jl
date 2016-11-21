@@ -4,6 +4,11 @@
 # The test suite assumes infseval is used.
 #doeval(x) = infseval(x)  # infinite evaluation
 
+"""
+    doeval(expr::Any)
+
+is the main entry point to the Symata evaluation sequence.
+"""
 function doeval(x)
     if is_throw()
         return x
@@ -286,6 +291,12 @@ recursion_limit() =  1024
 # Diagnostic. Count number of exits from points in infseval
 global const exitcounts = Int[0,0,0,0]
 
+"""
+    infseval(mxin::Mxpr)
+
+apply the evaluation `meval` to `mxin` repeatedly to either a fixed point,
+or the recursion limit.
+"""
 function infseval(mxin::Mxpr)
     if is_throw()
         println("Caught throw at toplevel infseval() for Mxpr")
@@ -404,6 +415,7 @@ function meval_apply_all_rules(nmx::Mxpr)
     # if get_attribute(res,:OneIdentity) && length(res) == 1
     #     res = res[1]
     # end
+
     @mdebug(2, "meval_apply_all_rules: entering apprules: ", res)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
@@ -642,22 +654,3 @@ function splice_sequences!(args)
         i > length(args) && break
     end
 end
-
-
-## moved the following to apprules_core.jl
-# apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
-# do_GenHead(mx,h) = mx
-
-# # Head is a Julia function. Apply it to the arguments
-# do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
-
-#### Currying
-
-# This feature was added to Mma in 2014
-# Assume operator version of an Symata "function". Eg, Map
-# Map(q)([1,2,3])
-# But, not all functions use the first operator. Eg for MatchQ it is the second.
-
-# function do_GenHead(mx,head::Mxpr)
-#     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
-# end
