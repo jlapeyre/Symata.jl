@@ -10,7 +10,6 @@ posnegi(x,n::Integer) = n
 posnegi(x,a) = a
 
 function get_part_one_ind{V<:Union{Mxpr,Array}}(texpr::V,ind::Integer)
-#    ind = ind < 0 ? length(texpr)+ind+1 : ind
     ind = posnegi(texpr,ind)
     texpr = ind == 0 ? mhead(texpr) : texpr[ind]
     return texpr
@@ -370,7 +369,7 @@ operator form of `Extract`.
 
 @doap function Extract(expr, p::ListT)
     isa(p[1],Integer) && return expr[margs(p)...]
-    ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
+    ! isa(p[1],ListT) && symerror("Exract: Bad part specification ", p)
     nargs = newargs(length(p))
     for i in 1:length(p)
         nargs[i] = expr[margs(p[i])...]
@@ -380,7 +379,7 @@ end
 
 @doap function Extract(expr, p::ListT, h)
     isa(p[1],Integer) && return mxpr(h,expr[margs(p)...])
-    ! isa(p[1],List) && symerror("Exract: Bad part specification ", p)
+    ! isa(p[1],ListT) && symerror("Exract: Bad part specification ", p)
     nargs = newargs(length(p))
     for i in 1:length(p)
         nargs[i] = mxpr(h,expr[margs(p[i])...])
