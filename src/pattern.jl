@@ -274,6 +274,7 @@ function ematch(pat::BlankSequenceT, m::Match)
     end
     m.imx = imx
     m.special = mxpr(:Sequence, args...)
+#    unsetfixed(m.parent)
     true
 end
 
@@ -689,7 +690,7 @@ function replace(levelspec::LevelSpec, ex, r::Rules)
     traverse_levels!(action,levelspec,exnew)
     # FIXME: We always report success, i.e. there was a replacement, even if there was not.
     # But, we don't need this yet.
-    (true, unsetfixed(exnew))
+    (true, deepunsetfixed(exnew))
 end
 
 #### ReplaceAll
