@@ -35,4 +35,4 @@ end
 ####
 
 addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :Divide, :ListCorrelate, :ListConvolve,
-            :Accumulate, :Through, :Operate, :NestWhile, :NestWhileList, :NextPrime, :FixedPoint, :FlattenAt)
+            :Accumulate, :Through, :Operate, :NestWhile, :NestWhileList, :NextPrime, :FixedPoint, :FlattenAt, :MapAt)

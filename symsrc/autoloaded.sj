@@ -169,6 +169,8 @@ FixedPoint(f_,ex_, max_, Rule(SameTest, test_)) := Module([res = f(ex), res1, n 
 
 Protect(FixedPoint)
 
+### FlattenAt
+
 Unprotect(FlattenAt)
 @sjdoc FlattenAt """
     FlattenAt(list,n)
@@ -181,7 +183,7 @@ flatten part at position `[i,j,...]`.
 
     FlattenAt(list,[[i,j,..],[k,l,...]])
     
-flatten part at multiple positions.
+flatten parts at multiple positions.
 
     FlattenAt(positions)
 
@@ -192,3 +194,30 @@ FlattenAt(list_, pos_Integer) := ReplacePart(list, pos => Splat(Flatten(list[pos
 FlattenAt(list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => Splat(Flatten(list[Splat(p)]))), [posns]))    
 @curry_second FlattenAt
 Protect(FlattenAt)
+
+### MapAt
+
+@sjdoc MapAt """
+    MapAt(f,expr,n)
+    
+apply `f` to the part at position `n` in `expr`.
+
+    MapAt(f,expr,[i,j,..]).
+    
+apply `f` to the part at position `[i,j,...]`.
+
+    MapAt(f,expr,[[i,j,..],[k,l,...]])
+    
+apply `f` to parts at multiple positions.
+
+    MapAt(f,positions)
+
+returns an operator that applies `f` at `positions`.
+"""
+Unprotect(MapAt)
+MapAt(f_, list_, [pos__Integer]) := ReplacePart(list, [pos] => f(list[pos]))
+MapAt(f_, list_, pos_Integer) := ReplacePart(list, pos => f(list[pos]))
+MapAt(f_, list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => f(list[Splat(p)])), [posns]))
+Protect(MapAt)
+
+@curry_split MapAt
