@@ -4,7 +4,11 @@ const KeywordDict = Dict( :Complex => :complex,
                           :Modulus => :modulus,
                           :Gaussian => :gaussian,
                           :Force => :force,
-                          :Deep => :deep)
+                          :Deep => :deep,
+                          :None => :none)
+
+
+translate_keyword(s) = get(KeywordDict,s,s)
 
 @sjdoc Deep """
    Deep
@@ -33,6 +37,7 @@ an option specifiying that solutions including Gaussian integers should be retur
 # Convert Mxpr to sympy, pulling out Rule(a,b) to dict of keyword args.
 # That is, we separate keyword args from positional argss
 function sjtopy_kw{T<:Mxpr}(mx::T, kws)
+#    println("Looking for kw $kws")
     args = margs(mx)
     nargs = newargs()
     for i in 1:length(args)
@@ -62,7 +67,10 @@ function separate_rules{T<:Mxpr}(mx::T, kws)
     for i in 1:length(args)
         if is_Mxpr(args[i], :Rule)
             length(args[i]) != 2 && error("Rule requires two arguments. " * length(args[i]) * " found.")
-            kws[args[i][1]] = args[i][2]
+            k = translate_keyword(args[i][1])
+            v = translate_keyword(args[i][2])            
+            kws[k] = v
+#            kws[args[i][1]] = args[i][2]            
         else
             push!(nargs, args[i])
         end

@@ -1,3 +1,5 @@
+Apply(ClearAll, UserSyms())
+
 ### Sum
 
 T Sum(i^3,[i,1,5]) == Apply(Plus,Table(i^3, [i,5]))
@@ -14,8 +16,7 @@ expr = i^2
 T Sum(expr, [i,1,n]) == (1/6)*n + (1/2)*(n^2) + (1/3)*(n^3)  # This is the behavior we want.
 T Sum(Evaluate(expr), [i,1,n]) == (1/6)*n + (1/2)*(n^2) + (1/3)*(n^3)
 
-# FIXME: infinite loop. Bug is in Symata, not sympy
-# Map(Function(n, Sum(1/i^n,[i,1,Infinity])), [2])
+Map(Function(n, Sum(1/i^n,[i,1,Infinity])), [2])
 
 g(n_) := Sum(1/i^n,[i,1,Infinity])
 T Map(g, [2,3,4,5,6]) == [(1/6)*(Pi^2),Zeta(3),(1/90)*(Pi^4),Zeta(5),(1/945)*(Pi^6)]
@@ -25,7 +26,7 @@ T Sum((j + i)^(1), [i,1,3], [j,1,i]) == 24
 # T Sum((j + i)^(-1), [j,1,i], [i,1,3])
 
 r = Sum(x^n, [n,0,Infinity])
-T r == ConditionalExpression(((1 - x)^(-1)),Abs(x) < 1)
+T Sum(x^n, [n,0,Infinity]) == ConditionalExpression((1 - x)^(-1),Abs(x) < 1)
 x = 7
 T r == Undefined
 x = 1/2
@@ -39,8 +40,7 @@ T Integrate(x,x) == 1//2 * x^2
 T Integrate(x,[x,0,1]) == 1//2
 T Integrate(x,[x,0,1],y) == 1//2 * y
 
-     r = Integrate(1/Cos(x + a), x)
-# T r == Log(Sec(a + x) + Tan(a + x))  # if not loading code_in_jl
+r = Integrate(1/Cos(x + a), x)
 
 T r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x)) # are loading code_in_jl
 
@@ -53,8 +53,7 @@ T Integrate( Exp(-t)*t^(a-1),[t,0,Infinity], conds => "none") == Gamma(a)
 # SymPy examples
 T Integrate(x^2 + x + 1 ,x) == x + 1/2 * (x ^ 2) + 1/3 * (x ^ 3)
 T Integrate( x/(x^2 + 2*x + 1), x) == Log(1 + x) + (1 + x) ^ (-1)
-T Integrate( x^2 * Exp(x) * Cos(x), x) ==
-        -1/2 * (E ^ x) * Cos(x) + 1/2 * (E ^ x) * (x ^ 2) * Cos(x) + 1/2 * (E ^ x) * Sin(x) + 1/2 * (E ^ x) * (x ^ 2) * Sin(x) + -(E ^ x) * x * Sin(x)
+T Integrate( x^2 * Exp(x) * Cos(x), x) == -1/2 * (E ^ x) * Cos(x) + 1/2 * (E ^ x) * (x ^ 2) * Cos(x) + 1/2 * (E ^ x) * Sin(x) + 1/2 * (E ^ x) * (x ^ 2) * Sin(x) + -(E ^ x) * x * Sin(x)
 T Integrate( Exp(-x^2)*Erf(x), x) == 1/4 * (π ^ (1/2)) * (Erf(x) ^ 2)
 
 
@@ -64,6 +63,9 @@ T Integrate(Log(x), [x, 1, a])  == 1 + -a + a * Log(a)
 T Integrate(x) == 1//2 * (x ^ 2)    # Should we disallow this ?
 T Integrate(Sqrt(1+x), [x,0,x]) == -2/3 + 2/3 * ((1 + x) ^ (3/2))
 T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
+
+ClearAll(res,a,x)
+
 res = Integrate(x^a * Exp(-x), [x,0,Infinity])
 T res == ConditionalExpression(Γ(1 + a),-Re(a) < 1)
 
@@ -77,11 +79,6 @@ T res == ConditionalExpression(Gamma(1 + a),-Re(a) < 1)
 
 T Integrate(Exp(-x^2),  [x,0,Infinity]) == (1/2)*(Pi^(1/2))
 
-# Following works if 1/cos does not go to sec
-# T r == -1 * Log(-1 + Tan((1//2) * a + (1//2) * x)) + Log(1 + Tan((1//2) * a + (1//2) * x))
-
-# Following works if 1/cos does not go to sec
-#T Simplify(D(r,x)) == 1/Cos(x+a)
  ClearAll(r,y,x,res,a)
 
 ####  MellinTransform
@@ -162,6 +159,4 @@ T Product(m, [i,1,k]) == m^k
 T Product(i, [i,1,k], [k,1,n]) == Product(Factorial(k),[k,1,n])
 T Product(1/(1+i), [i,1,n]) == (Pochhammer(2,n))^(-1)
 
-
-#ClearAll(x,s,t,conds,f,i,m,k)
-Map(ClearAll, UserSyms())
+Apply(ClearAll, UserSyms())

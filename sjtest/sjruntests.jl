@@ -2,10 +2,11 @@
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
-import Symata: runtest, @ex, @exsimple, setkerneloptions, Symata_Plain_Test, print_test_results
+import Symata: runtest, @sym, @ex, @exsimple, setkerneloptions, SymataPlainTest, print_test_results
 
 # Standard test type
-test = Symata_Plain_Test()
+## TODO: set this in test.jl so printing test results is an option
+symatatest = SymataPlainTest()
 
 #@exsimple testUserSyms = True
 
@@ -51,11 +52,10 @@ function runalltests()
         "spec_fun_test.sj",
         "simple_expression_test.sj"
         )
-        runtest(test,f)
+        runtest(symatatest,f)
+#        runtest(Symata.symatatest,f)
         println(STDERR, "Done testing $f")
         Symata.exfunc(parse("Apply(ClearAll, UserSyms())"), Symata.SimpleExFuncOptions)
-        # Symata.exfunc(parse("SetJ(symatausersyms, ToString(UserSyms()))"))
-        # println(STDERR, " ", Main.symatausersyms)
     end
 end
 
@@ -86,4 +86,4 @@ finally
 end
 
 @exsimple ClearAll(testUserSyms)
-print_test_results(test)
+print_test_results(symatatest)

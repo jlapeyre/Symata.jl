@@ -116,9 +116,10 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy[:integrate](pymx,pyvarspecs...)
     sjres = pytosj(pyintegral)
-    if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
-        deepsetfixed(sjres)  # we need this to avoid infinite eval
-    end
+    # This is done in sympy.jl now
+    # if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
+    #     deepsetfixed(sjres)  # we need this to avoid infinite eval
+    # end
     sjres
 end
 
@@ -134,9 +135,9 @@ function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs.
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy[:integrate](pymx,pyvarspecs...; kws...)
     sjres = pytosj(pyintegral)
-    if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
-        deepsetfixed(sjres)  # we need this to avoid infinite eval
-    end
+    # if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
+    #     deepsetfixed(sjres)  # we need this to avoid infinite eval
+    # end
     sjres
 end
 
@@ -147,21 +148,31 @@ function apprules(mx::Mxpr{:Integrate})
     nargs = separate_rules(mx,kws)
     # Two reasons for following. 1. We prefer 'separate' as default. 2. works around inf eval loop
     # in case no conds are given
-    if ! haskey(kws, :conds)
-        kws[:conds] = "separate"
-    end
-    if length(kws) == 0
-        res = do_Integrate(mx,margs(mx)...)
-    else
-        res = do_Integrate_kws(mx,kws,nargs...)
-    end
-    if is_Mxpr(res,:List)
-        return mxpr(:ConditionalExpression, margs(res)...)
-    end
-    res
+    # if ! haskey(kws, :conds)
+    #     kws[:conds] = "separate"
+    # end
+    res = isempty(kws) ? do_Integrate(mx,margs(mx)...) : do_Integrate_kws(mx,kws,nargs...)
+    res = isa(res,ListT) ? mxpr(:ConditionalExpression, margs(res)...) : res  ## TODO refactor this line. it is in other integral functions.
+    fix_integrate_piecewise(typeof(mx),res)
 end
 
 register_sjfunc_pyfunc("Integrate", "integrate")
+
+## Sympy returns the unevaluated form as the last member of Piecewise. Mma does not do this.
+## In Symata it causes an infinite evaluation loop. So we remove these final forms for Integrate and Sum
+fix_integrate_piecewise(y,x) = x
+function fix_integrate_piecewise(mxprtype, mx::Mxpr{:Piecewise})
+    isempty(mx) && return mx
+    length(mx) < 2 && return mx
+    last = mx[end]
+    isempty(last) && return mx
+    if isa(last,Mxpr{:ConditionalExpression})
+        isa(last[1], mxprtype) && return mx[1]
+    end
+#    isa(mx[1],mxprtype) && pop!(mx)
+    return length(mx) == 1 ? mx[1] : mx
+end
+
 
 #### LaplaceTransform
 
@@ -183,7 +194,7 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     if is_Mxpr(res,:List)
         return mxpr(:ConditionalExpression, margs(res)...)
     end
-    res
+    fix_integrate_piecewise(typeof(mx),res)  #
 end
 
 #### InverseLaplaceTransform
@@ -206,7 +217,7 @@ function apprules(mx::Mxpr{:InverseLaplaceTransform})
     if is_Mxpr(sjresult,:List)
         return mxpr(:ConditionalExpression, margs(sjresult)...)
     end
-    sjresult
+    fix_integrate_piecewise(typeof(mx),sjresult)
 end
 
 #### FourierTransform
@@ -262,7 +273,8 @@ function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
         specs = margs(res)[2:end]
         return mxpr(:Sum,summand,reverse(specs)...)
     end
-    return is_Mxpr(res,:Piecewise) ? res[1] : res
+    fix_integrate_piecewise(typeof(mx),res)
+#    return is_Mxpr(res,:Piecewise) ? res[1] : res
 end
 
 #### Product

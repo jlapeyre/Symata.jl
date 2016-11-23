@@ -33,14 +33,22 @@ of the file to be read as ordinary Symata code, with no test syntax.
 type Symata_NullTest <: Symata_Test
 end
 
-type Symata_Plain_Test <: Symata_Test
+abstract AbstractSymataPlainTest <: Symata_Test
+
+type SymataPlainTest <: AbstractSymataPlainTest
     total::Int
     pass::Int
 end
 
-Symata_Plain_Test() = Symata_Plain_Test(0,0)
+type SymataPlainPrintTest <: AbstractSymataPlainTest
+    total::Int
+    pass::Int
+end
 
-function print_test_results(test::Symata_Plain_Test)
+SymataPlainTest() = SymataPlainTest(0,0)
+SymataPlainPrintTest() = SymataPlainPrintTest(0,0)
+
+function print_test_results(test::AbstractSymataPlainTest)
     print_with_color(:green, string(test.pass), " passed.\n")
     failed = test.total - test.pass
     if failed == 0
@@ -50,7 +58,7 @@ function print_test_results(test::Symata_Plain_Test)
     end
 end
 
-function record_SJTest(test::Symata_Plain_Test, fname, linenumber, res)
+function record_SJTest(test::AbstractSymataPlainTest, fname, linenumber, res)
     test.total += 1
     if res == true
         test.pass += 1
@@ -75,7 +83,8 @@ function run_testsuite()
 end
 
 ## FIXME. Sometimes errors silently cut the testing short, reporting only successes
-@mkapprule Tests :nargs => 0:1
+## FIXME  can't give both :nargs => 0:1 and :options
+@mkapprule Tests :options => Dict( :PrintTests => false )
 
 @sjdoc Tests """
     Tests()
@@ -88,5 +97,14 @@ be newer and better maintained than the code in the `test` directory.
 runs the tests in `filename` in the directory `sjtest`.
 """
 
-@doap Tests() = run_testsuite()
-@doap Tests(s::String) = ( setsymval(:testUserSyms,true); runtest(Symata_Plain_Test(), s))
+# kws not yet implemented here
+#@doap Tests(;kws...) = run_testsuite(kws...)
+
+do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
+
+function do_Tests(mx::Mxpr{:Tests}, s::String; kws...)
+#    setsymval(:testUserSyms,true)
+    (prtest,printtest) = kws[1]
+    test = isa(printtest,Bool) && printtest ? SymataPlainPrintTest() : SymataPlainTest()
+    runtest(test, s)
+end

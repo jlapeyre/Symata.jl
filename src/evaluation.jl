@@ -383,8 +383,11 @@ end
 function meval(mx::Mxpr)
     increment_meval_count()
     if get_meval_count() > recursion_limit()
-        setfixed(mx)
         res = mxprcf(:Hold,mx)
+        deepsetfixed(res)
+        reset_meval_count()
+        reset_try_downvalue_count()
+        reset_try_upvalue_count()        
         throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
     local ind::Compat.String = ""  # some places get complaint that its not defined. other places no !?

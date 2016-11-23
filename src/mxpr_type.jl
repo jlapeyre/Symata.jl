@@ -404,10 +404,6 @@ margs(d::Dict) = collect(values(d))
 getfreesyms(mx::Mxpr) = mx.syms
 setfreesyms(mx::Mxpr, syms::FreeSyms) = (mx.syms = syms)
 
-# These should be fast: In the Symata language, mx[0] gets the head, but not here.
-setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
-@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
-
 # We need to think about copying in the following. Support both refs and copies ?
 
 @inline function getindex(mx::Mxpr, r::UnitRange)
@@ -442,19 +438,7 @@ Negative indices are not supported here. That is, we assume they have already be
 getpart(mx::Mxpr,ind) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
 getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
 getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
-## getindex(mx::Mxpr,ind) with single index does not check for index 0 for efficiency.
-## Also the iterator over mx relies on this behavior.
-## But, with more than one index, getindex checks for index of zero (heads)
-getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
 
-@inline Base.endof(mx::Mxpr) = length(mx)
-
-@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
-
-function Base.push!(mx::Mxpr,item)
-    push!(margs(mx),item)
-    mx
-end
 
 ## This belongs more with SSJsym above, but Mxpr is not yet defined
 @inline upvalues(m::Mxpr) = upvalues(mhead(m))
@@ -754,9 +738,6 @@ deepunsetfixed(x) = x
 function deepunsetfixed{T<:Mxpr}(mx::T)
     nargs = newargs(mx)
     map!(deepunsetfixed,nargs,margs(mx))
-    # for i in 1:length(nargs)
-    #     nargs[i] = deepunsetfixed(mx[i])
-    # end
     unsetfixed(mx)
 end
 
@@ -884,13 +865,10 @@ typealias ExpNoCanon Union{SJSym,Number}
 # used in flatten.jl
 typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
 
+## Alias types for convenience and clarity.
 for s in (:List, :Power, :Times, :Plus, :Rule)
     @eval typealias $(Symbol(s,"T")) Mxpr{$(QuoteNode(s))}
 end
-
-# typealias RuleT Mxpr{:Rule}
-# typealias ListT Mxpr{:List}
-# typealias PowerT Mxpr{:Power}
 
 ## For many jula functions that take real or complex floating point args.
 ## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
@@ -898,6 +876,26 @@ typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
 ### Iterator
 
-Base.start(mx::Mxpr) = start(margs(mx))
-Base.next(mx::Mxpr,state) = next(margs(mx),state)
-Base.done(mx::Mxpr,state) = done(margs(mx),state)
+# moved these into the loop below
+# Base.start(mx::Mxpr) = start(margs(mx))
+# Base.next(mx::Mxpr,state) = next(margs(mx),state)
+# Base.done(mx::Mxpr,state) = done(margs(mx),state)
+
+####
+
+for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
+    @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
+end
+
+
+# These should be fast: In the Symata language, mx[0] gets the head, but not here.
+setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
+## getindex(mx::Mxpr,ind) with single index does not check for index 0 for efficiency.
+## Also the iterator over mx relies on this behavior.
+## But, with more than one index, getindex checks for index of zero (heads)
+@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
+getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
+
+#@inline Base.endof(mx::Mxpr) = length(mx)
+@inline Base.endof(mx::Mxpr) = endof(margs(mx))
+@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))

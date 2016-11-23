@@ -70,6 +70,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
     for (line_number,line) = enumerate(eachline(f))
         pline = sjpreprocess_string(line)
         if typeof(test) != Symata_NullTest && length(pline) > 1 && pline[1:2] == "T "
+            if isa(test, SymataPlainPrintTest) println(pline) end
             reading_test = true
             if length(pline) > 2
                 eline = eline * pline[3:end]

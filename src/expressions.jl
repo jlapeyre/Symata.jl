@@ -479,6 +479,8 @@ end
 
 ### FreeQ
 
+## FIXME: Need Heads => True
+
 # don't know how to put this in the macro string
 # const levelstring = """
 # - `n`       levels `0` through `n`.
