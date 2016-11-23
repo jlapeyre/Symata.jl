@@ -600,9 +600,7 @@ apprules(mx::Mxpr{:PossibleClosedForm}) = do_PossibleClosedForm(mx,margs(mx)...)
 attempts to find an exact formula for the floating point number `x`.
 """
 
-function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat)
-   x |>  mpmath.identify |> sympy[:sympify] |> pytosj
-end
+do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat) =  x |>  mpmath.identify |> sympy[:sympify] |> pytosj
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     kws = Dict()

@@ -45,6 +45,8 @@ T JacobiP(1,2,3,x)  == -1//2 + (7//2) * x
 ## Trig
 T Sin(Pi/4) == (1//2) * (2 ^ (1//2))
 
+### DiracDelta
+
 T Integrate(DiracDelta(x-1), [x,-Infinity, Infinity]) == 1
 T Integrate(DiracDelta(x-1), [x,2, Infinity]) == 0
 T Integrate(DiracDelta(x-1), [x,-1000, 1000]) == 1
