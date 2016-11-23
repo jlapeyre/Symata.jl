@@ -152,7 +152,7 @@ function apprules(mx::Mxpr{:Integrate})
     #     kws[:conds] = "separate"
     # end
     res = isempty(kws) ? do_Integrate(mx,margs(mx)...) : do_Integrate_kws(mx,kws,nargs...)
-    res = isa(res,ListT) ? mxpr(:ConditionalExpression, margs(res)...) : res  ## TODO refactor this line. it is in other integral functions.
+    res = list_to_conditional_expression(res)
     fix_integrate_piecewise(typeof(mx),res)
 end
 
@@ -173,6 +173,8 @@ function fix_integrate_piecewise(mxprtype, mx::Mxpr{:Piecewise})
     return length(mx) == 1 ? mx[1] : mx
 end
 
+list_to_conditional_expression(mx::ListT) = mxpra(:ConditionalExpression, margs(mx))
+list_to_conditional_expression(mx) = mx
 
 #### LaplaceTransform
 
@@ -191,9 +193,7 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     nargs = sjtopy_kw(mx,kws)
     pyres = @try_sympyfunc sympy[:laplace_transform](nargs...; kws...)  "LaplaceTransform: unknown error."  mx
     res = pyres |> pytosj
-    if is_Mxpr(res,:List)
-        return mxpr(:ConditionalExpression, margs(res)...)
-    end
+    res = list_to_conditional_expression(res)
     fix_integrate_piecewise(typeof(mx),res)  #
 end
 
@@ -214,9 +214,7 @@ function apprules(mx::Mxpr{:InverseLaplaceTransform})
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
     end
-    if is_Mxpr(sjresult,:List)
-        return mxpr(:ConditionalExpression, margs(sjresult)...)
-    end
+    sjresult = list_to_conditional_expression(sjresult)
     fix_integrate_piecewise(typeof(mx),sjresult)
 end
 
@@ -246,9 +244,7 @@ function apprules(mx::Mxpr{:InverseFourierTransform})
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
         end
     end
-    if is_Mxpr(sjresult,:List)
-        return mxpr(:ConditionalExpression, margs(sjresult)...)
-    end
+    sjresult = list_to_conditional_expression(sjresult)
     sjresult
 end
 
