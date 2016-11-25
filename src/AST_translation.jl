@@ -39,6 +39,28 @@ macro jul(ex)
     extomx(Expr(:call, :J, ex))
 end
 
+function symparsestring(s)
+    mxprs = Array(Any,0)
+    s = sjpreprocess_string(s)
+    i = 1
+    local sjretval
+    local expr
+    while !done(s,i)
+        Base.syntax_deprecation_warnings(false) do
+            expr, i = parse(s,i)
+        end
+        sjretval =
+            try
+                mx = extomx(expr)
+                push!(mxprs, mx)
+            catch e
+                symprintln("Reading string: got error ", e)
+            end
+    end
+    return mxprs
+end
+
+
 # Complicated:
 # 1. preprocess :> to .>, because :> cannot be parsed
 #  on output write .> as :>, so that it can be read again. But, .> also works as input

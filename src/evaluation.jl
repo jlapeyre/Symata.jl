@@ -6,12 +6,15 @@
 
 ## export this for users
 """
-    symevalseq(expr::Any)
+    symeval(expr::Any)
 
-send `expr` through the Symata evaluation sequence.  In most
-cases, this gives the same result as `symeval`.
+send `expr` through the Symata evaluation sequence. `expr` is
+an `Mxpr` or number, symbol, etc.
+
+In particular, an `Expr` is not translated by will be evaluated (i.e. returned unchanged) by the Symata
+evaluation sequence.
 """
-symevalseq(args...) = doeval(args...)
+symeval(args...) = doeval(args...)
 
 """
     doeval(expr::Any)
@@ -141,13 +144,23 @@ end
 # Simply evaluate. Do not print "Out", or count things, etc.
 
 """
-    symeval(expr::Any)
+    symtranseval(expr::Any)
 
-send `expr` through the top level of the Symata evaluation sequence. In most
-cases, this gives the same result as `symevalseq`.
+translate `expr` from `Expr` to `Mxpr` and send to the top level of the Symata evaluation sequence. `expr`
+may also be a number, symbol, string, etc.
 """
-function symeval(expr)
+function symtranseval(expr)
     exfunc(expr, SimpleExFuncOptions)
+end
+
+
+function symparseeval(s::String)
+    mxprs = symparsestring(s)
+    local res
+    for mx in mxprs
+        res = doeval(mx)
+    end
+    res
 end
 
 """

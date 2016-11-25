@@ -31,3 +31,11 @@ m = unpacktoList(linspace(0,1,10))
 @test mhead(m) == :List
 @test Length(m) == 10
 
+symparseeval("""
+             zz = 3
+             yy = q + r
+             """)
+
+@test getsymata(:zz) == 3
+@test getsymata(:yy) == @sym q + r
+
