@@ -10,6 +10,24 @@ using Primes
 #  (13//6) * 6 --> 13
 rat_to_int{T<:Integer}(r::Rational{T}) = r.den == 1 ? r.num : r
 
+@doc """
+    mmul(x,y), mpow(x,y), mplus(x,y), mminus(x), mminus(x,y)
+arithmetic funtions for Symata. These are similar to `*`, `^`, `+`, etc. n Julia. But there are important differences.
+
+- rational numbers with denominator equal to `1` are converted to an integer type on return.
+- complex numbers with imaginary part equal to zero are converted to a real type on return.
+- for symbolic arguments, or mixed symbolic-numeric arguments a symata expression of type `Mxpr` is constructed.
+- integer factors are extracted from roots. (overzealously at the moment)
+""" arithmetic
+
+
+@doc (@doc arithmetic) mmul
+@doc (@doc arithmetic) mplus
+@doc (@doc arithmetic) mpow
+@doc (@doc arithmetic) mdiv
+@doc (@doc arithmetic) mminus
+
+
 mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? res.num : res )
 
 mmul{T<:Integer,V<:Integer}(x::Complex{V}, y::Rational{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
