@@ -7,10 +7,8 @@ import Compat.view
 
 import Base: setindex!, getindex, replace
 
-# These are of general use.
-# We prefer @sym now. But, we need to export @ex until we can track down all uses and remove them.
-#export @ex
-export @sym, doeval
+export @sym, symevalseq, symeval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln, unpacktoList, mhead, margs, newargs
+
 export mmul, mplus, mpow, mabs, mminus, symatamath
 
 export debugmxpr

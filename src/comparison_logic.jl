@@ -8,15 +8,14 @@
 @mkapprule UnsameQ :nargs => 2
 @doap UnsameQ(x,y) = ! sameq(x,y)
 
-function sameq(x,y)
-    x === y
-end
+sameq(x,y) = x === y
+
 sameq(x::BigInt,y::BigInt) = (x == y)
 sameq(x::BigFloat,y::BigFloat) = (x == y)
 sameq(x::String,y::String) = (x == y)
 
 immutable Compare
-    result::Bool
+    result
     known::Bool
 end
 
@@ -31,11 +30,30 @@ end
     res.result
 end
 
+function sjequal(x::Symbol,y)
+    x == :Undefined && return Compare(:Undefined,true)
+    x == y  && return Compare(true,true)
+    Compare(false,false)    
+end
+
+function sjequal(x,y::Symbol)
+    y == :Undefined && return Compare(:Undefined,true)
+    x == y  && return Compare(true,true)
+    Compare(false,false)    
+end
+
+function sjequal(x::Symbol,y::Symbol)
+    (y == :Undefined || x == :Undefined) && return Compare(:Undefined,true)
+    x == y  && return Compare(true,true)
+    Compare(false,false)    
+end
+
+
 sjequal(x::Real,y::Real) = Compare(x == y, true)
 sjequal(x::String,y::String) = Compare(x == y, true)
 
 function sjequal(x,y)
-    if x == y return Compare(true,true) end
+    x == y  && return Compare(true,true)
     Compare(false,false)
 end
 
@@ -45,10 +63,13 @@ end
 @doap function Unequal(x,y)
     res = sjequal(x,y)
     res.known == false && return mx
+    res.result == :Undefined && return :Undefined
     !(res.result)
 end
 
 ### Less
+
+## TODO: generate methods for Undefined using eval. Or find a better, more general solution
 
 ## In Mma, Less is nary
 @mkapprule Less

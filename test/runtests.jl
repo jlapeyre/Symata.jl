@@ -12,4 +12,5 @@ function runtests()
     eval(parse("@sym Tests()"))
 end
 
+include("juliainterface_test.jl")
 @test (runtests() ; true)

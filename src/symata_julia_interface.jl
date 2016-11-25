@@ -82,15 +82,23 @@ key,value pairs is returned.
          "This creates a List of three random Float64's.",
          ("Unpack( J(rand(3)) )", "[0.5548766917324894,0.034964001133465095,0.9122052258982192]"))
 
-function apprules(mx::Mxpr{:Unpack})
-    obj = mx[1]
-    mx = unpack_to_List(obj)
+
+@mkapprule Unpack :nargs => 1
+
+@doap Unpack(a::AbstractArray) = unpacktoList(a)
+
+"""
+    unpacktoList(obj::AbstractArray{T,1})
+
+Converts a Julia array to a Symata list of type `ListT`. Only one-dimensional
+arrays are supported.
+"""
+function unpacktoList(obj)
+    mx = mxpr(:List, do_unpack(obj))
     setfixed(mx)
     setcanon(mx)
-    return mx
+    return mx    
 end
-
-unpack_to_List(obj) = mxpr(:List, do_unpack(obj))
 do_unpack(obj) = copy!(newargs(length(obj)),obj)
 
 function do_unpack(dict::Dict)

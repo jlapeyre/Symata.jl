@@ -8,7 +8,7 @@
 ## FIXME:  We can't use :List here, because we have defined it as a type as a (useful) convenience for the developer.
 ## We defined it so because Mxpr{:List} is the most common type of Mxpr. We need to resolve this somehow,
 ## probably in favor of using :List here.
-for f in (:Expand, :Factor, :Head, :Take, :Simplify, :Integrate, :DirichletEta)
+for f in (:Expand, :Factor, :Head, :Take, :Simplify, :Integrate, :DirichletEta, :Times, :List, :Plus, :Exp, :Power, :Length)
     @eval ($f)(mx...) = apprules(mxpr($(QuoteNode(f)),mx...))
     @eval export $f
 end
@@ -92,10 +92,13 @@ _symatamath()
 """
     symatamath()
 
-define Base methods for arithmetic operators between `Symbols` and `Numbers. `symatamath()` is *not*
-necessary when running Symata and using J(expr) to evaluate Julia code. `J()` evaluates in the Symata
-module where these methods are already defined. `symatamath()` is useful in Julia mode where expressions
-are evaluated in `Main`.
+define Base methods for arithmetic operators between `Symbols` and between `Symbols` and `Numbers`. `symatamath()` is *not*
+necessary when running Symata and using J(expr) to evaluate Julia code.  `J()` evaluates in the Symata
+module where these methods are already defined.  `symatamath()` is useful in Julia mode where expressions
+are evaluated in  `Main`.
+
+These methods are not defined in `Main` by default because defining `Base` methods between core Julia objects could
+conflict with future versions of Julia.
 """
 function symatamath()
     @eval begin

@@ -17,8 +17,14 @@ typealias FreeSyms Dict{Symbol,Bool}
 # abstract AbstractMxpr
 # type Mxpr{T} <: AbstractMxpr
 
+"""
+    Mxpr{T}
+
+is the type representing Symata expressions. If `T` is a symbol it is also the head of the Symata
+expression.
+"""
 type Mxpr{T}
-    head::Any  # making this Any instead of Symbol slows things a bit
+    head::Any  # making this Any instead of Symbol slows things a bit. hmmm. we should subtype
     args::MxprArgs
     fixed::Bool
     canon::Bool

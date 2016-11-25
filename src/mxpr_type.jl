@@ -29,6 +29,13 @@ symname(s::Qsym) = s.name
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
 @inline sjval(s::SJSym) = getssym(s).val[1]
 
+"""
+   getsymata(s::Symbol)
+
+gets the value that `s` is bound to in Symata.
+"""
+getsymata(args...) = symval(args...)
+
 # Don't make these one-line defintions. They are easier to search for this way.
 
 """
@@ -61,6 +68,12 @@ end
 symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
 
 ## Sets an already existing Symata symbol
+"""
+   setsymata(s::Symbol, val)
+
+binds `val` to `s` in Symata.
+"""
+setsymata(args...) = setsymval(args...)
 
 """
     setsymval(s::SSJSym,val)
@@ -372,14 +385,18 @@ end
 """
     mhead(mx::Mxpr)
 
-return the `Head` of `mx.
+return the `Head` of `mx`.
 """
 mhead(mx::Mxpr) = mx.head
 
 """
-    margs(mx::Mxpr)
+   a = margs(mx::Mxpr)
 
-return the `Array` of arguments `mx`.
+return the arguments `mx`. The arguments `a` are of type `MxprArgType`,
+which is an alias for `Array{Any,1}`.
+Many methods for `Mxpr` simply call the same method on `a`. For instance the
+iterator for `Mxpr` wraps the iterator for `Array{Any,1}`. Thus, iterating over
+`mx` iterates over the arguments only, not the head.
 """
 margs(mx::Mxpr) = mx.args
 
@@ -509,6 +526,13 @@ checkhash(x) = x
 ## methods. We want to change this and use mxpra for case one
 ## and mxpr for case two.
 
+"""
+    mxpr(head,iargs...)
+
+create a Symata expression with head `head` and arguments `iargs`.
+The arguments are copied. An object of type `Mxpr{head}` is returned
+if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise.
+"""
 function mxpr(s::SJSym,iargs...)
     args = newargs(length(iargs))
     copy!(args,iargs)
@@ -527,6 +551,17 @@ end
 
 ## Prefer this one. We may want to use an array of type Any as an mxpr argument.
 ## Not possible if we dispatch on type to distinguis from mxpr() above
+
+"""
+    mxpra(head,args::MxprArgs)
+
+create a Symata expression with head `head` and arguments `args`
+The arguments are not copied. An object of type `Mxpr{head}` is returned
+if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise. The type `MxprArgs`
+is currently an alias for `Array{Any,1}` and can be instantiated with the function
+`newargs()`. This alias is unlikely to change, but til now, this abstraction has been
+maintained.
+"""
 @inline function mxpra(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
@@ -597,9 +632,6 @@ function mxpr(s,iargs...)
     len = length(iargs)
     args = newargs(len)
     copy!(args,iargs)
-    # for i in 1:len
-    #     args[i] = iargs[i]
-    # end
     mxpra(s,args)
 end
 

@@ -1,3 +1,5 @@
+## Example provided by Rob Godeman
+
 ClearAll(f, y0, a, l, x)
 
 y0(x_) := (e*x)*(l^3 - 2*l*x^2 + x^3)

@@ -4,6 +4,15 @@
 # The test suite assumes infseval is used.
 #doeval(x) = infseval(x)  # infinite evaluation
 
+## export this for users
+"""
+    symevalseq(expr::Any)
+
+send `expr` through the Symata evaluation sequence.  In most
+cases, this gives the same result as `symeval`.
+"""
+symevalseq(args...) = doeval(args...)
+
 """
     doeval(expr::Any)
 
@@ -130,6 +139,16 @@ macro sym(ex)   # use this macro from the julia prompt
 end
 
 # Simply evaluate. Do not print "Out", or count things, etc.
+
+"""
+    symeval(expr::Any)
+
+send `expr` through the top level of the Symata evaluation sequence. In most
+cases, this gives the same result as `symevalseq`.
+"""
+function symeval(expr)
+    exfunc(expr, SimpleExFuncOptions)
+end
 
 """
     macro exsimple(ex)

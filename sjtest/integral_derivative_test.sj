@@ -28,7 +28,7 @@ T Sum((j + i)^(1), [i,1,3], [j,1,i]) == 24
 r = Sum(x^n, [n,0,Infinity])
 T Sum(x^n, [n,0,Infinity]) == ConditionalExpression((1 - x)^(-1),Abs(x) < 1)
 x = 7
-T r == Undefined
+T r === Undefined
 x = 1/2
 T r == 2
 ClearAll(r,x)
@@ -73,7 +73,7 @@ T Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
 a = 1/2
 T res == (1/2)*(Pi^(1/2))
 a = -3/2
-T res == Undefined
+T res === Undefined
 ClearAll(a)
 T res == ConditionalExpression(Gamma(1 + a),-Re(a) < 1)
 

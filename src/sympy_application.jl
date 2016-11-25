@@ -548,7 +548,7 @@ solves for the roots of `expr`.
 returns a `List` of `Lists`. The two elements of each sublist give the root and its multiplicity.
 """
 
-apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Symata.unpack_to_List
+apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Symata.unpacktoList
 
 register_sjfunc_pyfunc("Roots", "roots")
 

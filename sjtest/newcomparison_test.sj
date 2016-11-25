@@ -170,5 +170,17 @@ T Not(Unequal(3,3.0))
 T Not(Unequal(y,y))
 T Head(Unequal(x,y)) == Unequal
 
+T (Undefined == 3) === Undefined
+T (3 == Undefined) === Undefined
+T (Undefined == a) === Undefined
+T (a == Undefined) === Undefined
+T (a + b == Undefined) === Undefined
+T ( Undefined == a + b) === Undefined
+T (Undefined != 3) === Undefined
+T (3 != Undefined) === Undefined
+T (Undefined != a) === Undefined
+T (a != Undefined) === Undefined
+T (a + b != Undefined) === Undefined
+
 ClearAll(f,x)
 Apply(ClearAll,UserSyms())

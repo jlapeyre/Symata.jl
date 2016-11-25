@@ -159,15 +159,9 @@ T Gamma(-2,x) == x ^ (-2) * (ExpIntegralE(3,x))
 
 T CombSimp(Gamma(x)*Gamma(1-x)) == Pi*(Sin(Pi*x)^(-1))
 
-## FIXME!
-## this is from sympy and it is completely wrong. maybe the translation is wrong.
-## Gamma(3,5) --> 37*Exp(-5)
+T Gamma(3,5) == 37*Exp(-5)
 
-# FIXME.
-# Cutting and pasting the output of the Series
-# is not equal to the output. The ordering of terms is different.
-# No idea why.
-T Series(Gamma(x), [x, 0, 3])[1] == -EulerGamma
+T Series(Gamma(x), [x,0,3]) == -EulerGamma + x^(-1) + ((1/2)*EulerGamma^2 + (1/12)*Pi^2)*x + Order(x^3,[x,0]) + x^2*((-1/6)*EulerGamma^3 + (-1/12)*EulerGamma*Pi^2 + (1/6)*PolyGamma(2,1))
 
 T Conjugate(Gamma(x)) == Gamma(Conjugate(x))
 
