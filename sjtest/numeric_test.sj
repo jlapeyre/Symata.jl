@@ -23,7 +23,7 @@ T  approxeq(NIntegrate(x^2, [x,0,2])[1], 8.0/3)
 
 # Use Function compiled from Julia code
    f1 = J( x -> x^2)
-T  approxeq(NIntegrate(f1, [0,2])[1], 8.0/3)   
+T  approxeq(NIntegrate(f1, [0,2])[1], 8.0/3)
 
 # Test evaluation succeeds with deep expression.
 # We forgot Attribute HoldAll
@@ -55,7 +55,10 @@ f = Compile(Cos(Pi*x))
 
 T approxeq(f(1), -1)
 
+ClearAll(x)
+
+T ToJuliaString( x^2 + Cos(x), NoSymata => False) == "mplus(mpow(x,2),Cos(x))"
+T ToJuliaString( x^2 + Cos(x), NoSymata => True) == "x ^ 2 + cos(x)"
 
 ClearAll(approxeq, f, f1, x, a, mygamma, ex)
 ClearTemporary()
-

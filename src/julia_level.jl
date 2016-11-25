@@ -92,7 +92,7 @@ _symatamath()
 """
     symatamath()
 
-define Base methods for arithmetic operators between `Symbols` and between `Symbols` and `Numbers`. `symatamath()` is *not*
+defines Base methods for arithmetic operators `*`, `+`, `-`, `^` between `Symbols` and between `Symbols` and `Numbers`. `symatamath()` is *not*
 necessary when running Symata and using J(expr) to evaluate Julia code.  `J()` evaluates in the Symata
 module where these methods are already defined.  `symatamath()` is useful in Julia mode where expressions
 are evaluated in  `Main`.
@@ -150,7 +150,8 @@ Base.:^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 Base.:^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
 
-
+## Symata uses module-local functions * + - ^ /
+## For anything not defined in Symata, the Base methods are called.
 *(args...) = Base.:*(args...)
 +(args...) = Base.:+(args...)
 -(args...) = Base.:-(args...)

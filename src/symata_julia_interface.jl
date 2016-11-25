@@ -153,17 +153,23 @@ do_pack(T,sjobj) = copy!(Array(T,length(sjobj)), sjobj)
 
 #### Translate Symata to Julia
 
+##
 # Wrap Expr to prevent Symata from evaluating it.
 
-mxpr_to_expr(x) = x
-
-# Don't really want to do this with everything !
-function mxpr_to_expr(s::Symbol)
-    Symbol(lowercase(string(s)))
+type MtoECompile
 end
 
-# This is (no longer not( necessary for Times. Maybe for other things.
-# Also, if we can remove unwanted methods for *, we will need this.
+type MtoEPlain
+end
+
+mxpr_to_expr(x,aux) = x
+
+# Don't really want to do this with everything !
+function mxpr_to_expr(s::Symbol,aux)
+    s
+#    Symbol(lowercase(string(s)))
+end
+
 const MTOJSYM_COMPILE = Dict(
                              :Times => :mmul,
                              :Plus => :mplus,
@@ -171,20 +177,37 @@ const MTOJSYM_COMPILE = Dict(
                              :Abs => :mabs
                              )
 
-function mtojsym_compile(s::Symbol)
-    if haskey(MTOJSYM_COMPILE, s) return MTOJSYM_COMPILE[s] end
-    mtojsym(s)
+mtojsym_compile(s::Symbol) =  get(MTOJSYM_COMPILE, s, mtojsym(s))
+
+const MTOJSYM_PLAIN = Dict(
+                             :Times => :(*),
+                             :Plus => :(+),
+                             :Power => :(^),
+                             :Abs => :abs
+                             )
+
+function mtojsym_plain(s::Symbol)
+    Symbol(lowercase(string(get(MTOJSYM_PLAIN, s, mtojsym(s)))))
 end
 
-function mxpr_to_expr(mx::Mxpr)
+function mxpr_to_expr(mx::Mxpr,aux::MtoECompile)
     head = mtojsym_compile(mhead(mx))
-    length(mx) == 0 && return :(  $(head)() )
+    mxpr_to_expr_body(head,mx,aux)
+end
+
+function mxpr_to_expr(mx::Mxpr,aux::MtoEPlain)
+    head = mtojsym_plain(mhead(mx))
+    mxpr_to_expr_body(head,mx,aux)
+end
+
+function mxpr_to_expr_body(head,mx::Mxpr,aux)
+    isempty(mx) && return :( $(head)() )
     a = margs(mx)
-    a1 = mxpr_to_expr(a[1])
+    a1 = mxpr_to_expr(a[1],aux)
     ex = :( $(head)($(a1)) )
     length(mx) == 1 && return ex
     for i in 2:length(a)
-        push!(ex.args, mxpr_to_expr(a[i]))
+        push!(ex.args, mxpr_to_expr(a[i],aux))
     end
     ex
 end
@@ -246,10 +269,14 @@ symata 3> f(2,3)
 Out(3) = 31
 ```
 """
-@doap Compile(a::Mxpr{:List}, body ) = eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x) for x in margs(a)]...) , mxpr_to_expr(body)))
+@doap function Compile(a::Mxpr{:List}, body )
+    aux = MtoECompile()
+    eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x,aux) for x in margs(a)]...) , mxpr_to_expr(body,aux)))
+end
 
 @doap function Compile(body)
-    jbody = mxpr_to_expr(body)
+    aux = MtoECompile()
+    jbody = mxpr_to_expr(body,aux)
     eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
 end
 
@@ -260,7 +287,29 @@ type Jexpr
 end
 
 @mkapprule ToJuliaExpression
-@doap ToJuliaExpression(x) = Jexpr(mxpr_to_expr(x))
+@doap function ToJuliaExpression(x)
+    Jexpr(mxpr_to_expr(x), MtoECompile())
+end
+
+###
+
+@sjdoc ToJuliaString """
+    ToJuliaString(expr)
+
+translate `expr` to Julia, returning a string.
+If the option `NoSymata => False` is given, then translated code requires `using Symata`.
+Currently, only arithemetic, trigonometric functions, and a few other things are translated.
+"""
+@mkapprule ToJuliaString :nodefault => true  :options => Dict( :NoSymata => true )
+
+protect(:NoSymata)
+
+function do_ToJuliaString(mx, x; kws...)
+    #    string(mxpr_to_expr(x, MtoEPlain()))
+    (nosymata,val) = kws[1]
+    aux = val ? MtoEPlain() : MtoECompile()
+    string(mxpr_to_expr(x, aux))
+end
 
 @mkapprule SymataCall  """
     SymataCall(var, body)
@@ -278,7 +327,6 @@ The variables are localized before writing the Julia function.
     f = wrap_symata(expr::Mxpr,var)
 
 return a Julia function that Symata-evaluates an expression when called.
-
 
 The function corresponds to `f(var) = expr`.
 This wraps `expr` in a single-argument Julia function.
