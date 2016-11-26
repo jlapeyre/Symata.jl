@@ -2,10 +2,13 @@
 
 set_pattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
 
+## Piecewise is also read protected in Mma
 set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
-                 "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall"],
+                 "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall",
+                 "Piecewise"],
                 :HoldAll)
+
 
 set_pattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])
 

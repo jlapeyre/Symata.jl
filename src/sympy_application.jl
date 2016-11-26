@@ -322,6 +322,7 @@ register_sjfunc_pyfunc("Series", "series")
 
 #### D  (derivative)
 
+## TODO: Implement D and Derivative in Symata. This will still fall through to SymPy
 ## TODO: In Mma the derivative of a function returns a pure function.
 
 @sjdoc D """

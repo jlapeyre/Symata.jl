@@ -1,19 +1,10 @@
 ## Translations for both the key and value
-const KeywordDict = Dict( :Complex => :complex,
-                          :Basic => :basic,
-                          :Conditions => :conds,
-                          :Modulus => :modulus,
-                          :Gaussian => :gaussian,
-                          :Force => :force,
-                          :Deep => :deep,
-                          :None => :none,
-                          :Method => :method,
-                          :Fu => :fu,
-:Combined => :combined,
-:Default => :default,
-:Groebner => :groebner,
-:Measure => :measure)
-
+const KeywordDict = Dict{Symbol,Symbol}()
+for s in ( :complex, :basic, :modulus, :gaussian, :force, :deep, :none, :method,
+           :fu, :combined, :default, :groebner, :measure, :double, :trig, :log, :denom, :numer)
+    KeywordDict[Symbol(ucfirst(string(s)))] = s
+end
+KeywordDict[:Conditions] = :conds
 
 translate_keyword(s) = get(KeywordDict,s,s)
 
