@@ -249,7 +249,7 @@ T Table(i*j*k, [i, 3], [j, 3], [k, Max(i,j), 3]) == [[[1,2,3],[4,6],[9]],[[4,6],
 T Rest(FoldList(Max, 0, [4, 2, 8, 3, 9, 12, 11, 18, 10])) == [4,4,8,8,9,12,12,18,18]
 
 
-#### Min
+### Min
 
 T Min(1,2,3) == 1
 T Min(Pi,E,Sqrt(2)) == Sqrt(2)
@@ -269,5 +269,14 @@ T Times() == 1
 
 T Plus(a) == a
 T Times(a) == a
+
+### Singularities
+
+T Singularities(x^2,x) == []
+T Singularities(x/(x^2+3*x +2),x) == [x => (-2),x => (-1)]
+T Singularities(1/(y^2 + 1),y) == [y => I,y => -I]
+T Singularities(y/(y^3 + 1),y) == [y => (-1),y => (1/2 + (I * -1/2)*3^(1/2)),y => (1/2 + (I * 1/2)*3^(1/2))]
+T Singularities(1/(y^2 + 2I*y + 1),y) == [y => (-I + I*2^(1/2)),y => (-I + -I*2^(1/2))]
+
 
 Apply(ClearAll, UserSyms())

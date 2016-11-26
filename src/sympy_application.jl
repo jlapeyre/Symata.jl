@@ -552,7 +552,7 @@ apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Syma
 
 register_sjfunc_pyfunc("Roots", "roots")
 
-#### RealRoots
+### RealRoots
 @sjdoc RealRoots """
     RealRoots(expr)
 
@@ -562,6 +562,24 @@ solves for the real roots of `expr`.
 apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy[:real_roots] |> pytosj
 
 register_sjfunc_pyfunc("RealRoots", "real_roots")
+
+
+### Singularities
+
+@mkapprule Singularities :nargs => 2
+
+@doap function Singularities(expr,var)
+    res = pytosj(sympy[:singularities](sjtopy(expr),sjtopy(var)))
+    if isa(res,Mxpr{:EmptySet})
+        return List()
+    elseif isa(res,Mxpr{:FiniteSet})
+        mxpr(:List, map( x -> mxpr(:Rule, var, x), margs(res))...)
+    else
+        return res
+    end
+end
+
+### TODO: IsIncreasing, etc.
 
 #### ToSymPy
 
