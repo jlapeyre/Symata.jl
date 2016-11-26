@@ -79,4 +79,7 @@ T Not(Isa(n1 * n2, Integer))
 T Sqrt(-1) == I      # fixes bug in mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 T Sqrt(-1)^2 == -1   # same bug
 
- ClearAll(a,b,n1,n2)
+## Fix domain error bug in _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+T (2^(1/3))^(-4)
+
+ClearAll(a,b,n1,n2)

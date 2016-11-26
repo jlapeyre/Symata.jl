@@ -527,15 +527,18 @@ function infinitessimal_string(opt, varrange)
     return " \\mathbb{d}" * latex_string(opt, varrange[1])
 end
 
+## FIXME, print the conditions somehow
 function latex_string(opt, mx::Mxpr{:Integrate})
     buf = IOBuffer()
     integrand = latex_string(opt, mx[1])
-    if length(mx) == 2  # single integration
+    nconds = mxpr_count_heads(mx,:Rule)  # won't catch RuleDelayed
+    nn = length(mx) - nconds
+    if nn == 2  # single integration
         varrange = mx[2]
         print(buf, integral_limits_string(opt, varrange))
         print(buf, integrand * " \\, " * infinitessimal_string(opt, varrange))
     else
-        for i in 2:length(mx)
+        for i in 2:nn
             varrange = mx[i]
             print(buf, integral_limits_string(opt, varrange))
             print(buf, " " * infinitessimal_string(opt, varrange))

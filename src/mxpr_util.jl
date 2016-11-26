@@ -32,8 +32,8 @@ Count the number of first-level elements of mx that are of type Mxpr{head}.
 """
 function mxpr_count_heads(mx::Mxpr, head)
     cnt = 0
-    for i in 1:length(mx)
-        if is_Mxpr(mx[i],head) cnt += 1  end
+    for x in mx
+        if isa(x,Mxpr{head}) cnt += 1  end
     end
     cnt
 end
