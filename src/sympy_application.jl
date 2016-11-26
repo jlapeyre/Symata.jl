@@ -322,6 +322,7 @@ register_sjfunc_pyfunc("Series", "series")
 
 #### D  (derivative)
 
+## TODO: In Mma the derivative of a function returns a pure function.
 
 @sjdoc D """
     D(expr, x)
@@ -387,6 +388,7 @@ rewrites `expr` in a simpler form using keyword options `kw1, ...`.
 
 @make_simplify_func :Simplify simplify
 @make_simplify_func :TrigSimp trigsimp
+@make_simplify_func :ExpTrigSimp exptrigsimp
 @make_simplify_func :RatSimp ratsimp
 @make_simplify_func :RadSimp radsimp
 @make_simplify_func :PowSimp powsimp

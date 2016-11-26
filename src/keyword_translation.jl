@@ -1,3 +1,4 @@
+## Translations for both the key and value
 const KeywordDict = Dict( :Complex => :complex,
                           :Basic => :basic,
                           :Conditions => :conds,
@@ -5,7 +6,13 @@ const KeywordDict = Dict( :Complex => :complex,
                           :Gaussian => :gaussian,
                           :Force => :force,
                           :Deep => :deep,
-                          :None => :none)
+                          :None => :none,
+                          :Method => :method,
+                          :Fu => :fu,
+:Combined => :combined,
+:Default => :default,
+:Groebner => :groebner,
+:Measure => :measure)
 
 
 translate_keyword(s) = get(KeywordDict,s,s)
@@ -42,8 +49,10 @@ function sjtopy_kw{T<:Mxpr}(mx::T, kws)
     nargs = newargs()
     for i in 1:length(args)
         if is_Mxpr(args[i], :Rule)
-            lhs = get(KeywordDict, args[i][1], args[i][1])
-            rhs = args[i][2]
+            lhs = translate_keyword(args[i][1])
+            rhs = translate_keyword(args[i][2])
+            # lhs = get(KeywordDict, args[i][1], args[i][1])
+            # rhs = args[i][2]
             kws[lhs] = rhs
         else
             push!(nargs, sjtopy(args[i]))
@@ -68,9 +77,9 @@ function separate_rules{T<:Mxpr}(mx::T, kws)
         if is_Mxpr(args[i], :Rule)
             length(args[i]) != 2 && error("Rule requires two arguments. " * length(args[i]) * " found.")
             k = translate_keyword(args[i][1])
-            v = translate_keyword(args[i][2])            
+            v = translate_keyword(args[i][2])
             kws[k] = v
-#            kws[args[i][1]] = args[i][2]            
+#            kws[args[i][1]] = args[i][2]
         else
             push!(nargs, args[i])
         end

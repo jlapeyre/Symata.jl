@@ -123,13 +123,19 @@ T PowDenest( (x^a)^b, Force => True  ) ==  x^(a*b)
 
 T RatSimp(1/x + 1/y) == (x^(-1))*(y^(-1))*(x + y)
 
-#### TrigSimp
+### TrigSimp
 
 T TrigSimp(2*Sin(x)^2 + 2* Cos(x)^2) == 2
 T TrigSimp(f(2*Sin(x)^2 + 2* Cos(x)^2)) == f(2)
 T TrigSimp( 3*Tanh(x)^7 - 2/Coth(x)^7) == Tanh(x)^7
 
-#### Simplify
+### ExpTrigSimp
+
+T  ExpTrigSimp(Exp(x) + Exp(-x)) == 2Cosh(x)
+T  ExpTrigSimp(Exp(x) - Exp(-x)) == 2Sinh(x)
+T  Map(ExpTrigSimp, [Cos(x) + I*Sin(x), Cos(x) - I * Sin(x), Cosh(x) - Sinh(x), Cosh(x) + Sinh(x)]) == [E^(I*x),E^(-I*x),E^(-x),E^x]
+
+### Simplify
 
 T Simplify( Cos(x)^2 + Sin(x)^2) == 1
 T Simplify( (x + x^2)/(x*Sin(y)^2 + x*Cos(y)^2) ) == 1 + x
@@ -146,5 +152,11 @@ ClearAll(nu,z,p,a)
 T Rewrite(Tan(x), Sin)  ==  2(Sin(2x)^(-1))*(Sin(x)^2)
 # T Rewrite(ExpIntegralE(nu,z), gamma) == (z^(-1/2 + -a*(p^(-1))))*(Gamma((1/2 + a*(p^(-1))),z))
 
+### HyperExpand
+
+T HyperExpand(HypergeometricPFQ([],[], z)) == E^z
+T HyperExpand(HypergeometricPFQ([-1/3,1/2],[2/3,3/2], -z)) == (1/5)*Pi^(1/2)*z^(-1/2)*Erf(z^(1/2)) + (-1/5)*z^(1/3)*(Gamma(-1/3) - Gamma((-1/3),z))
+T HyperExpand(MeijerG([[],[]], [[0],[]], -z)) == E^z
+T HyperExpand(MeijerG([[1,1],[]], [[1],[0]], z)) == Log(1+z)
 
  ClearAll(x,y,z,f,deep,gaussian,modulus)
