@@ -156,8 +156,8 @@ function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
         end
         (nf1,r1) = divrem(r*y.num,y.den)
         if nf1 != 0
-#            newfac = mpow(fac,nf1)
-            newfac = fac^nf1
+            newfac = mpow(fac,nf1)
+#            newfac = fac^nf1
             push!(newfacs,newfac)
         end
         if r1 != 0
