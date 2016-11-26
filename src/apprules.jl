@@ -9,7 +9,7 @@
 ### Increment
 
 @sjdoc Increment """
-    Increment(n) 
+    Increment(n)
 
 increments the value of `n` by `1` and returns the old value.
 """
@@ -34,7 +34,7 @@ end
 ### Decrement
 
 @sjdoc Decrement """
-    Decrement(n) 
+    Decrement(n)
 
 decrements the value of `n` by `1` and returns the old value.
 """
@@ -114,7 +114,7 @@ end
 #### Dump and DumpHold
 
 @sjdoc Dump """
-    Dump(expr) 
+    Dump(expr)
 
 print an internal representation of `expr`.
 
@@ -122,9 +122,9 @@ print an internal representation of `expr`.
 """
 
 @sjdoc DumpHold """
-    DumpHold(expr) 
+    DumpHold(expr)
 
-print an internal representation of `expr`. 
+print an internal representation of `expr`.
 
 `DumpHold` is similar to Julia `dump`. In contrast to `Dump`, `expr` is not evaluated before its internal
 representation is printed.
@@ -180,7 +180,7 @@ doreplace(mx,args...) = mx
 #### ReplaceAll
 
 @sjdoc ReplaceAll """
-    ReplaceAll(expr,rule) 
+    ReplaceAll(expr,rule)
 
 replace parts at all levels in expr according to `rule`. This includes
 the `Head` of `expr`, and the entire `expr`.
@@ -267,7 +267,7 @@ do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
 return `True` if `expr` matches `pattern`.
 
     op = MatchQ(pattern)
-    
+
 Define a function `op(expr)` that returns `MatchQ(expr,pattern)`.
 For example, `myintq = MatchQ(_Integer)`.
 """
@@ -649,4 +649,7 @@ Use `isymata()` from Julia to enter Symata mode again.
 
 @mkapprule Julia :nargs => 0
 
-@doap Julia() = isymata_mode(false)
+@doap function Julia()
+    isymata_mode(false)
+    set_jupyter_input_prompt_color("green")
+end

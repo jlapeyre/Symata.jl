@@ -1,3 +1,7 @@
+function set_jupyter_input_prompt_color(c)
+    display("text/javascript","\$(\"div.input_prompt\").css({\"color\": \"" * c * "\"})")
+end
+
 """
     isymata()
 
@@ -16,6 +20,7 @@ function isymata()
             error("Unable to initialize isymata in IJulia")
         end
     end
+    set_jupyter_input_prompt_color("blue")
     nothing
 end
 
@@ -52,7 +57,7 @@ function _init_isymata_v1_3_2()
     eval( Main.IJulia, quote
 
 import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, using_ijulia_output
-          
+
 populate_builtins()
 
 function symata_complete_request(socket, msg)
@@ -103,7 +108,7 @@ function symata_inspect_request(socket, msg)
         else
             local d
 
-            if isymata_mode()                
+            if isymata_mode()
                 d = display_dict(retrieve_doc(s))
             else
                 d = docdict(s)
