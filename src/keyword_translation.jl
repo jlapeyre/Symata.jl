@@ -42,8 +42,6 @@ function sjtopy_kw{T<:Mxpr}(mx::T, kws)
         if is_Mxpr(args[i], :Rule)
             lhs = translate_keyword(args[i][1])
             rhs = translate_keyword(args[i][2])
-            # lhs = get(KeywordDict, args[i][1], args[i][1])
-            # rhs = args[i][2]
             kws[lhs] = rhs
         else
             push!(nargs, sjtopy(args[i]))
@@ -70,7 +68,6 @@ function separate_rules{T<:Mxpr}(mx::T, kws)
             k = translate_keyword(args[i][1])
             v = translate_keyword(args[i][2])
             kws[k] = v
-#            kws[args[i][1]] = args[i][2]
         else
             push!(nargs, args[i])
         end
