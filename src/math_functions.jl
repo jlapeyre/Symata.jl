@@ -198,14 +198,6 @@ function make_math()
 # Note: in Mma and Julia, catalan and Catalan are Catalan's constant. In sympy catalan is the catalan number
 # can't find :stirling in sympy
 
-## sympy apparently does not implement k = -1 branch. We really need to use the Julia version.
-    for x in [(:ProductLog, :LambertW)]  # second arg restricted
-        sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf)))
-        write_sympy_apprule(x[1],x[2],1)
-        write_sympy_apprule(x[1],x[2],2)
-    end
-
     for x in no_julia_function_one_arg
         sjf = x[1]
         eval(macroexpand( :( @mkapprule $sjf)))
@@ -1252,6 +1244,28 @@ function mittagleffler(mx,α,β,z)
     α == 2 && β == 2 && return mmul(Sinh(mpow(z,1//2)), mpow(mpow(z,1//2),-1))
     mx
 end
+
+
+### ProductLog
+
+@mkapprule ProductLog :nargs => 1:2
+
+@doap function ProductLog(z::FloatRC)
+    LambertW.lambertw(z)
+end
+
+@doap function ProductLog(z)
+    pytosj(sympy[:LambertW](sjtopy(z)))
+end
+
+@doap function ProductLog(z::FloatRC, k::Number)
+    LambertW.lambertw(z,k)
+end
+
+@doap function ProductLog(z,k)
+    pytosj(sympy[:LambertW](sjtopy(z), sjtopy(k)))
+end
+
 
 ### DirichletEta
 

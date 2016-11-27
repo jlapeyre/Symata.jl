@@ -278,5 +278,4 @@ T Singularities(1/(y^2 + 1),y) == [y => I,y => -I]
 T Singularities(y/(y^3 + 1),y) == [y => (-1),y => (1/2 + (I * -1/2)*3^(1/2)),y => (1/2 + (I * 1/2)*3^(1/2))]
 T Singularities(1/(y^2 + 2I*y + 1),y) == [y => (-I + I*2^(1/2)),y => (-I + -I*2^(1/2))]
 
-
 Apply(ClearAll, UserSyms())
