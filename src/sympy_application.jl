@@ -653,7 +653,7 @@ return `Undefined`.
 @doap ConditionalExpression(expr, cond::Bool) = cond ? expr : Undefined
 @doap ConditionalExpression(expr, cond) = mx
 
-#### Refine
+### Refine
 
 @mkapprule Refine  :nodefault => true
 
@@ -666,6 +666,35 @@ simplifies expr using assumptions. For instance, `Assume(x,positive)`.
 @doap function Refine(args...)
     result = sympy[:refine](map(sjtopy, args)...)
     result |> pytosj
+end
+
+### CoefficientList
+
+@mkapprule CoefficientList
+
+@doap function CoefficientList(expr,var)
+    (spexpr,spvar) = (sjtopy(expr),sjtopy(var))
+    p = sympy[:Poly](spexpr,spvar)
+#    cs = p[:coeffs]()  # lists only non-zero coefficients
+    cs = reverse!(p[:all_coeffs]())
+    List(map(pytosj,cs))
+end
+
+
+### Coefficient
+
+@mkapprule Coefficient
+
+@doap function Coefficient(expr,subexpr)
+    (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(subexpr))
+    cs = spexpr[:coeff](spsubexpr)
+    pytosj(cs)
+end
+
+@doap function Coefficient(expr,subexpr,pow)
+    (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(mpow(subexpr,pow)))
+    cs = spexpr[:coeff](spsubexpr)
+    pytosj(cs)
 end
 
 ## utility

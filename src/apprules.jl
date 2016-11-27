@@ -525,9 +525,9 @@ before it is completely evaluated.
 """
 @mkapprule Unfix  :nodefault => true  :options => Dict( :Deep => false )
 
-function do_Unfix(mx,expr::Mxpr; kws...)
-    (deep,val) = kws[1]
-    val ? deepunsetfixed(expr) : unsetfixed(expr)
+function do_Unfix(mx,expr::Mxpr; Deep=false)
+#    (deep,val) = kws[1]
+    Deep ? deepunsetfixed(expr) : unsetfixed(expr)
     unsetfixed(expr)
     expr
 end

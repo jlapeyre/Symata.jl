@@ -81,6 +81,6 @@ T Sqrt(-1)^2 == -1   # same bug
 
 ## Fix domain error bug in _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
 ## d02b2a74cc6a1ee99597486c23a6d85de292cce9
-T (2^(1/3))^(-4)
+T (2^(1/3))^(-4) == (1/2)*2^(-1/3)
 
 ClearAll(a,b,n1,n2)

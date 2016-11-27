@@ -304,10 +304,8 @@ Currently, only arithemetic, trigonometric functions, and a few other things are
 
 protect(:NoSymata)
 
-function do_ToJuliaString(mx, x; kws...)
-    #    string(mxpr_to_expr(x, MtoEPlain()))
-    (nosymata,val) = kws[1]
-    aux = val ? MtoEPlain() : MtoECompile()
+function do_ToJuliaString(mx, x; NoSymata=true)
+    aux = NoSymata ? MtoEPlain() : MtoECompile()
     string(mxpr_to_expr(x, aux))
 end
 

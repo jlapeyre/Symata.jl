@@ -22,7 +22,7 @@ import Base: isless
 
 function import_sympy()
     copy!(sympy, PyCall.pyimport_conda("sympy", "sympy"))
-    copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))    
+    copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))
 end
 
 const PYDEBUGLEVEL = -1
@@ -840,3 +840,26 @@ end
 
 prints the documentation for the symbol `sym`, if available.
 """
+
+#### Arithmetic
+
+## Define methods for Sympy objects.
+
+## These break the ability to include sympy objects in Symata expressions with
+## heads such as :Times, via `*`. It's not clear which, if either is more useful
+
+for sympair in ( (:*, :Mul), (:+, :Add), (:^, :Pow) )
+    jop = sympair[1]
+    qj = QuoteNode(sympair[1])
+    qsp = QuoteNode(sympair[2])
+    @eval Base.$(jop)(a::PyCall.PyObject, b::PyCall.PyObject) = sympy[$qsp](a,b)
+    @eval Base.$(jop)(a::PyCall.PyObject, b) = sympy[$qsp](a,b)
+    @eval Base.$(jop)(a, b::PyCall.PyObject) = sympy[$qsp](a,b)
+    @eval Base.$(jop)(a::PyCall.PyObject, b::Number) = sympy[$qsp](a,b)
+    @eval Base.$(jop)(a::PyCall.PyObject, b::Integer) = sympy[$qsp](a,b)    
+end
+
+Base.:-(a::PyCall.PyObject) = -1 * a
+Base.:-(a::PyCall.PyObject, b::PyCall.PyObject) = a + (-b)
+Base.:-(a, b::PyCall.PyObject) = a + (-b)
+Base.:-(a::PyCall.PyObject, b) = a + (-b)

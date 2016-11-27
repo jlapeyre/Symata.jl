@@ -705,14 +705,33 @@ end
 @sjdoc Precision """
     Precision(x)
 
-get the precision of a floating point number `x`, as defined by the
-effective number of bits in the mantissa.
+get the precision of a floating point number `x` in decimal digits
+
+    Precision()
+
+get the current precision of `BigFloat` arithmetic
+
+    Precision(Binary => True)
+    Precision(x, Binary => True)
+
+give precision as defined by the effective number of bits in the mantissa.
 """
 
+@mkapprule Precision :nodefault => true, :options => Dict( :Binary => false )
 
-apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
-do_Precision(mx::Mxpr{:Precision},args...) = mx
-do_Precision(mx::Mxpr{:Precision},x::AbstractFloat) = precision(x)
+#apprules(mx::Mxpr{:Precision}) = do_Precision(mx,margs(mx)...)
+
+# TODO: mkapprule should write the correct default rule if keywords are present
+do_Precision(mx::Mxpr{:Precision},args...; kws...) = mx
+
+function do_Precision(mx::Mxpr{:Precision},x::AbstractFloat; Binary=false)
+    Binary ? precision(x) : round(Int,precision(x) * log10(2))
+end
+
+function do_Precision(mx::Mxpr{:Precision}; Binary=false)
+    pr = precision(BigFloat)
+    Binary ? pr : round(Int,pr * log10(2))
+end
 
 @sjdoc Re """
     Re(z)

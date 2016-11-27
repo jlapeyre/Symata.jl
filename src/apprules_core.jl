@@ -12,8 +12,12 @@
 # :nargs =  ur::UnitRange  The number of arguments must lie within the range.
 # :options = Dict( :opt1 => default1, ... )  The expression takes keyword arguments, "Options". These are translated
 #                                            to rules, which is how we implement keyword argumentss.
-# TODO :nargs =>  one or more, etc.
-# TODO use this syntax :options = (:opt1 => default1, ...)
+
+## TODO :nargs =>  one or more, etc.
+## TODO use this syntax :options = (:opt1 => default1, ...)
+## TODO: default rule is not correct if keyword arguments are taken
+## TODO: Can't use @doap with keyword arguments
+## TODO: assert type or ranges for keyword arguments (and positional arguments)
 
 # get_arg_dict constructs a Dict from the macro aguments.
 function get_arg_dict(args)

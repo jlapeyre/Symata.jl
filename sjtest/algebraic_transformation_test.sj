@@ -159,4 +159,14 @@ T HyperExpand(HypergeometricPFQ([-1/3,1/2],[2/3,3/2], -z)) == (1/5)*Pi^(1/2)*z^(
 T HyperExpand(MeijerG([[],[]], [[0],[]], -z)) == E^z
 T HyperExpand(MeijerG([[1,1],[]], [[1],[0]], z)) == Log(1+z)
 
+### Coefficient
+
+## This differs from Mma. Expand is not needed to get the coefficient
+T Coefficient((x+y)^4, x*y^3) == 0
+T Coefficient(Expand((x+y)^4), x*y^3) == 4
+
+### CoefficientList
+
+T CoefficientList(x^3 + 2*x^2 + zz *x^5, x) == [0,0,2,1,0,zz]
+
  ClearAll(x,y,z,f,deep,gaussian,modulus)

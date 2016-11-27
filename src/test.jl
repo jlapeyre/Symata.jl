@@ -102,9 +102,8 @@ runs the tests in `filename` in the directory `sjtest`.
 
 do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
 
-function do_Tests(mx::Mxpr{:Tests}, s::String; kws...)
-#    setsymval(:testUserSyms,true)
-    (prtest,printtest) = kws[1]
-    test = isa(printtest,Bool) && printtest ? SymataPlainPrintTest() : SymataPlainTest()
+## TODO: need a way to assert type Bool
+function do_Tests(mx::Mxpr{:Tests}, s::String; PrintTests=false)
+    test = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()    
     runtest(test, s)
 end
