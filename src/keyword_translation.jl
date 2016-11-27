@@ -1,6 +1,6 @@
 ## Translations for both the key and value
 const KeywordDict = Dict{Symbol,Symbol}()
-for s in ( :complex, :basic, :modulus, :gaussian, :force, :deep, :none, :method,
+for s in (:complex, :basic, :modulus, :gaussian, :force, :deep, :none, :method,
            :fu, :combined, :default, :groebner, :measure, :double, :trig, :log, :denom, :numer)
     KeywordDict[Symbol(ucfirst(string(s)))] = s
 end
@@ -53,6 +53,38 @@ end
 function sjtopy_kw{T<:Mxpr}(mx::T)
     kws = Dict()  # type ? probably symbols
     nargs  = sjtopy_kw(mx, kws)
+    return (nargs, kws)
+end
+
+## Called manually, not by mkapprules
+## Not very efficient
+function _separate_rules(args, kws; keylowercase=false)
+    nargs = newargs()
+    for i in 1:length(args)
+        if isa(args[i], Mxpr{:Rule})
+            length(args[i]) != 2 && error("Rule requires two arguments. " * length(args[i]) * " found.")
+            k = translate_keyword(args[i][1])
+            v = translate_keyword(args[i][2])
+            if keylowercase
+                if isa(k,Symbol)
+                    k = Symbol(lowercase(string(k)))
+                end
+                if isa(v,Symbol)
+                    v = Symbol(lowercase(string(v)))
+                end
+            end
+            kws[k] = v
+        else
+            push!(nargs, args[i])
+        end
+    end
+    nargs
+end
+
+## Called manually, not by mkapprules
+function separate_rules1(args...; inkws...)
+    kws = Dict()
+    nargs  = _separate_rules(args, kws; inkws...)
     return (nargs, kws)
 end
 

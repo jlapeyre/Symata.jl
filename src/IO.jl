@@ -301,7 +301,7 @@ is bound to Julia output stream `DevNull`.
 
 return the `n`th line of output. The value returned is evaluated in the current environment.
 
-`O` 
+`O`
 
 return the last output.
 
@@ -309,7 +309,7 @@ return the last output.
 
 returns the second to last output.
 
-`OO..O` 
+`OO..O`
 
 `k` times gives the `k`th previous output, for `k <= 10`.
 
@@ -384,3 +384,27 @@ delete `filename`.
 @mkapprule Now :nargs => 0
 
 @doap Now() = now()
+
+
+### Format
+
+## Note: This is *not* Mma's format
+
+@sjdoc Format """
+    Format(n, options)
+
+formats `n` using the Julia `format` function from `Formatting.jl`.
+Optional arguments to `format` are given in Symata format.
+For example `precision=3` becomes `Precision => 3`.
+
+Options are `Precision`, `Commas`, `Stripzeros`, `Conversion`,
+`Width`, `Zeropadding`,  `Alternative`, `Mixedfraction`, `Tryden`,
+`Parens`,`Autoscale`, `Suffix`.
+"""
+
+@mkapprule Format :nodefault => true
+
+function do_Format(mx, args...)
+    (nargs,kws) = separate_rules1(args...; keylowercase=true)
+    Formatting.format(nargs...; kws...)
+end
