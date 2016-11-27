@@ -198,7 +198,7 @@ function make_math()
 # Note: in Mma and Julia, catalan and Catalan are Catalan's constant. In sympy catalan is the catalan number
 # can't find :stirling in sympy
 
-
+## sympy apparently does not implement k = -1 branch. We really need to use the Julia version.
     for x in [(:ProductLog, :LambertW)]  # second arg restricted
         sjf = x[1]
         eval(macroexpand( :( @mkapprule $sjf)))
