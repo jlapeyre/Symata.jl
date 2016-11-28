@@ -404,7 +404,7 @@ Options are `Precision`, `Commas`, `Stripzeros`, `Conversion`,
 
 @mkapprule Format :nodefault => true
 
-Formatting.format(ws::SymataIO.WOAbstractFloat; kws...) = Formatting.format(ws.x; kws...)
+Formatting.format(ws::SymataIO.AbstractWO; kws...) = Formatting.format(ws.x; kws...)
 
 function do_Format(mx, args...)
     (nargs,kws) = separate_rules1(args...; keylowercase=true)
