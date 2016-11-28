@@ -123,7 +123,6 @@ Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
 needsparen(x::WORational) = true
 needsparen(x::WOComplexRational) = true
 
-
 immutable WOAbstractFloat{T}  <: AbstractWO
     x::T
 end
