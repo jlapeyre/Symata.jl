@@ -138,7 +138,7 @@ do_If(mxpr::Mxpr{:If}, test, tbranch) =  doeval(test) == true ? doeval(tbranch) 
 
 function do_If(mxpr::Mxpr{:If}, test, tbranch, fbranch)
     tres = doeval(test)
-    tres == true ? doeval(tbranch) : tres == false ? doeval(fbranch) : Null
+    tres == true ? doeval(tbranch) : tres == false ? doeval(fbranch) : mxpr
 end
 
 function do_If(mxpr::Mxpr{:If}, test, tbranch, fbranch, ubranch)

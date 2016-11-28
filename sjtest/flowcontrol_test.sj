@@ -32,7 +32,7 @@ T  a == 15*q
 T a == 6
  ClearAll(a,i,x,q)
 
-#### For
+### For
 
  m = [0,0,0]
  For(i=1, i <= 3, i = i + 1, m[i] = i + 1)
@@ -50,8 +50,7 @@ T Head(For(1,2,3,4,5)) == For
 
 ClearAll(m,i,res)
 
-
-#### While
+### While
 
  ClearAll(i)
  i = 0
@@ -85,14 +84,15 @@ T While( (n += 1) < 10, ( If(n>3, Continue()); m += n) ) == Null
 T n == 10
 T m == 6
 
-
-#### If
+### If
 
 T If(True,1) == 1
 T If(False,1,True)
 T If("cat",1,2,True)
 T If(False,1) == Null
- ClearAll(retv)
+T Head(If(a == b, 1, 2)) == If
+
+ClearAll(retv)
 
 #### Break, Continue, Return
 
