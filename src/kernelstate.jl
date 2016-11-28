@@ -283,7 +283,9 @@ const Kerneloptions = Dict{Any,Any}(
     :bigfloat_input => false,
     :isymata_inited => false,
                                     :isymata_mode => false,
-                                    :output_style => :InputForm
+                                    :output_style => :InputForm,
+:float_format => "",
+ :bigfloat_format => ""
 )
 
 function getkerneloptions(sym::Symbol)
@@ -423,7 +425,6 @@ You can always specify that a float should be a BigFloat by using BF(n).
 
 for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_sympy),
                  (:CompactOutput, :compact_output), (:BigIntInput, :bigint_input),(:BigFloatInput, :bigfloat_input))
-
     fnf = Symbol("do_",fn)
     fns = string(fn)
     ssym = string(sym)
@@ -468,6 +469,45 @@ end
 end
 
 @doap HistoryLength() = getkerneloptions(:history_length)
+
+
+@sjdoc FloatFormat """
+    FloatFormat()
+
+get the floating point output format
+
+    FloatFormat(fmt::String)
+
+set the floating point output format to `fmt`.
+
+If `fmt=""`, then default output format is used
+
+`fmt="%.6g"` is a common choice.
+"""
+@mkapprule FloatFormat
+@doap FloatFormat() = getkerneloptions(:float_format)
+@doap FloatFormat(s::String) = setkerneloptions(:float_format,s)
+
+@sjdoc BigFloatFormat """
+    BigFloatFormat()
+
+get the output format for arbitrary-precision, floating-point numbers.
+
+    BigFloatFormat(fmt::String)
+
+set the output format for arbitrary-precision, floating-point numbers to `fmt`.
+
+If `fmt=""`, then default output format is used
+
+`fmt="%.6g"` is a common choice.
+"""
+@mkapprule BigFloatFormat
+@doap BigFloatFormat() = getkerneloptions(:bigfloat_format)
+@doap BigFloatFormat(s::String) = setkerneloptions(:bigfloat_format,s)
+
+#(:FloatFormat,:float_format), (:BigFloatFormat, :bigfloat_format))
+
+
 
 #### isymata_inited
 
