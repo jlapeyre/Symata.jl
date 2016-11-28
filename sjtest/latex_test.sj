@@ -12,6 +12,8 @@ T LaTeXString((a+b)/(c+d)) == "\\frac{a + b}{c + d}"
 T LaTeXString(x*(a+b)/(c+d)) == "\\frac{ \\left( a + b \\right)  \\ x}{c + d}"
 T LaTeXString(f(x)) == "f \\!  \\left( x \\right) "
 T LaTeXString((a+b)*x^2 ) == " \\left( a + b \\right)  \\ x^{2}"
-T LaTeXString(((1 + x)^(-1))*y - ((2 + x)^(-1))*y) == "\\frac{y}{1 + x} + \\frac{- \\ y}{2 + x}"
+#T LaTeXString(((1 + x)^(-1))*y - ((2 + x)^(-1))*y) == "\\frac{y}{1 + x} + \\frac{- \\ y}{2 + x}"
+## Print + before a fraction with leading - in numerator. (better than printing nothing)
+T LaTeXString(((1 + x)^(-1))*y - ((2 + x)^(-1))*y) == "\\frac{y}{1 + x} \\  + \\frac{- \\ y}{2 + x}"
 
 ClearAll(a,b,c,d,x,y,f)

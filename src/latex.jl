@@ -192,10 +192,17 @@ function latex_string_prefix_function(opt, mx::Mxpr)
     takebuf_string(buf)
 end
 
+will_print_minus(x::Number) = x < 0
+will_print_minus(x) = false
+function will_print_minus(mx::TimesT)
+    isempty(mx) && return false
+    isa(mx[1],Number) && return mx[1] < 0
+end
+
 
 function latex_string(opt, mx::Mxpr{:Plus})
     terms = margs(mx) # why does terms(mx) not work ?
-    if length(terms) < 1
+    if isempty(terms)
         error("show: can't display Plus with no terms.")
     end
     s = latex_string(opt, terms[1])
@@ -206,7 +213,12 @@ function latex_string(opt, mx::Mxpr{:Plus})
         # elseif  is_Mxpr(terms[i], :Times) && typeof(terms[i][1])  <:Union{AbstractFloat,Integer} && terms[i][1] < 0
         #     s *= latex_string(opt, terms[i], true)
         else
-            s *= " + " * latex_string(opt, terms[i])
+            if will_print_minus(terms[i])
+                opt = Dict( :needsign => true ) ## Signal that we have not yet printed plus or minus. If terms[i] is a fraction, we need to print a sign
+                s *= " \\ " * latex_string(opt, terms[i])
+            else
+                s *= " + " * latex_string(opt, terms[i])
+            end
         end
     end
     s
@@ -305,6 +317,10 @@ function latex_string(opt, mx::Mxpr{:Times}, spaceminus::Bool)
         (nums,dens) = get_nums_dens(other,negpows, rationals)
         if length(nums) == 0
             nums = Any[1]
+        end
+        if isa(opt,Dict) && get(opt,:needsign, false)  ## TODO: detect leading minus sign in numerator and pull it out. At least it is correct now
+            print(buf," + ")
+            delete!(opt,:needsign)
         end
         print(buf,"\\frac{")
         latex_string_factors(opt, buf,nums)
