@@ -406,5 +406,5 @@ Options are `Precision`, `Commas`, `Stripzeros`, `Conversion`,
 
 function do_Format(mx, args...)
     (nargs,kws) = separate_rules1(args...; keylowercase=true)
-    Formatting.format(nargs...; kws...)
+    Formatting.format(map(wrapout,nargs)...; kws...)
 end

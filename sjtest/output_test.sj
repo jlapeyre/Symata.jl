@@ -45,6 +45,10 @@ T Map(ReleaseHold, Sum(f(i), [i,1,10])) == 385
 
 T ToString((f+g)(x)) == "(f + g)(x)"
 
+### Format
+T Format("{1}, {2}, {1}", (a+b)^3, 10) == "(a + b)^3, 10, (a + b)^3"
+T Format("{1:04d} {2:*>10}",10,f+g) == "0010 *****f + g"
+
 CompactOutput(savestate)
 
 ClearAll(a,b,x,savestate,f,x,ex,n)
