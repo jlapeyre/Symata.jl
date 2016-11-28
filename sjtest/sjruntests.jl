@@ -31,7 +31,7 @@ function runalltests()
         "newcomparison_test.sj",
         "math_function_test.sj",
         "flowcontrol_test.sj",
-        "evaluation_# TODO: est.sj",
+        "evaluation_test.sj",
         "list_test.sj",
         "ntable_test.sj",
         "predicate_test.sj",
