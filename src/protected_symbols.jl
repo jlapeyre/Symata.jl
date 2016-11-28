@@ -93,7 +93,10 @@ set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc", "Modulus","Force", "Deep
 
 set_pattributes(["And", "Or"], [:Flat, :HoldAll, :OneIdentity])
 
-set_pattributes(["UnicodeOutput"], :Protected)
+set_pattributes(["UnicodeForm", "JupyterForm", "InputForm"], :Protected)
+
+## Do we still need these ?
+#set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
 
 set_pattributes(["Return","Break","Continue"], :Protected)
 
@@ -113,8 +116,6 @@ set_pattributes(["System", "Main"], :Protected)
 set_pattributes(["True", "False"], :Protected)
 
 set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
-
-set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
 
 set_pattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","ArrayDepth","AtomQ",
@@ -136,6 +137,6 @@ set_pattributes([
                   "ToString","ToSymPy","TraceDownValues","TraceUpValues",
                   "Trace","TrigSimp","Undefined","Unfix","Unpack",
                   "UserSyms","Values", "ans","nothing",
-                  "Algebraics", "Booleans", "InputForm", "Binary", "PrintTests"
+                  "Algebraics", "Booleans",  "Binary", "PrintTests"
 
 ], :Protected)
