@@ -21,6 +21,7 @@ T  Abs(GammaRegularized(2,1.5) - 0.5578254003710745) < 10^(-8)
 ### MittagLeffler
 
 T MittagLefflerE(1/2,z) == (E^(z^2))*(2 - Erfc(z))
+T MittagLefflerE(-1/2,z) == (E^(z^2))*Erfc(z)
 T MittagLefflerE(0,z) == (1 - z)^(-1)
 T MittagLefflerE(1,z) == E^z
 T MittagLefflerE(3,z) == (1/3)*(E^(z^(1/3)) + 2(E^((-1/2)*(z^(1/3))))*Cos((1/2)*(3^(1/2))*(z^(1/3))))

@@ -1214,6 +1214,7 @@ end
 
 function mittagleffler(mx,α,z)
     α == 1//2 && return Exp(mpow(z,2)) * Erfc(mminus(z))
+    α == -1//2 && return Exp(mpow(z,2)) * Erfc(z)
     α == 0 && return mpow(mminus(1,z),-1)
     α == 1 && return Exp(z)
     α == 2 && return Cosh(Sqrt(z))
