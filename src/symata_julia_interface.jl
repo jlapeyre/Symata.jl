@@ -156,16 +156,18 @@ do_pack(T,sjobj) = copy!(Array(T,length(sjobj)), sjobj)
 ##
 # Wrap Expr to prevent Symata from evaluating it.
 
-type MtoECompile
+abstract AbstractMtoE
+
+type MtoECompile <: AbstractMtoE
 end
 
-type MtoEPlain
+type MtoEPlain <: AbstractMtoE
 end
 
-mxpr_to_expr(x,aux) = x
+mxpr_to_expr(x,aux::AbstractMtoE) = x
 
 # Don't really want to do this with everything !
-function mxpr_to_expr(s::Symbol,aux)
+function mxpr_to_expr(s::Symbol,aux::AbstractMtoE)
     s
 #    Symbol(lowercase(string(s)))
 end
@@ -200,7 +202,7 @@ function mxpr_to_expr(mx::Mxpr,aux::MtoEPlain)
     mxpr_to_expr_body(head,mx,aux)
 end
 
-function mxpr_to_expr_body(head,mx::Mxpr,aux)
+function mxpr_to_expr_body(head,mx::Mxpr,aux::AbstractMtoE)
     isempty(mx) && return :( $(head)() )
     a = margs(mx)
     a1 = mxpr_to_expr(a[1],aux)
