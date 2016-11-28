@@ -13,7 +13,7 @@ symatatest = SymataPlainTest()
 # "context_test.sj",
 function runalltests()
     for f in (
-              "part_test.sj",              
+              "part_test.sj",
               "shifrin_test.sj",
               "function_test.sj",
               "pattern_test.sj",
@@ -24,25 +24,24 @@ function runalltests()
               "julia_interface_test.sj",
               "latex_test.sj",
               "output_test.sj",
-              "input_test.sj",              
-              "measurement_test.sj",
-              "io_test.sj",
-#        "comparison_test.sj"
-        "newcomparison_test.sj",  # No idea why emacs indents like this.
+              "input_test.sj",
+        "measurement_test.sj", # No idea why emacs indents like this.
+        "io_test.sj",
+        #        "comparison_test.sj"
+        "newcomparison_test.sj",
         "math_function_test.sj",
-        "mittleff_test.sj",
-              "flowcontrol_test.sj",
-              "evaluation_test.sj",
-              "list_test.sj",
-              "ntable_test.sj",
-              "predicate_test.sj",
-              "trig_test.sj",
+        "flowcontrol_test.sj",
+        "evaluation_# TODO: est.sj",
+        "list_test.sj",
+        "ntable_test.sj",
+        "predicate_test.sj",
+        "trig_test.sj",
         ## FIXME! reimplement the following after change in comparison code
         #              "context_test.sj",
-              "mxpr_test.sj",
-              "integral_derivative_test.sj",
-              "algebraic_transformation_test.sj",
-              "sympy_test.sj",
+        "mxpr_test.sj",
+        "integral_derivative_test.sj",
+        "algebraic_transformation_test.sj",
+        "sympy_test.sj",
         "attribute_test.sj",
         "module_test.sj",
         "orderless_test.sj",
@@ -53,7 +52,7 @@ function runalltests()
         "simple_expression_test.sj"
         )
         runtest(symatatest,f)
-#        runtest(Symata.symatatest,f)
+        #        runtest(Symata.symatatest,f)
         println(STDERR, "Done testing $f")
         Symata.exfunc(parse("Apply(ClearAll, UserSyms())"), Symata.SimpleExFuncOptions)
     end
