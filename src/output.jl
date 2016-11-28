@@ -131,20 +131,20 @@ wrapout(x::AbstractFloat) = WOAbstractFloat(x)
 Base.show(io::IO, ws::WOAbstractFloat) = show_float(io,ws.x)
 ## Not performant. We do a dictionary lookup every time we print a float.
 function show_float(io,x::Float64)
-    fmt = getkerneloptions(:float_format)
-    if fmt == ""
-        show(io,x)
-    else
-        print(io,Formatting.sprintf1(fmt,x))
-    end
+    _show_float(io,x,getkerneloptions(:float_format))    
 end
 
 function show_float(io,x::BigFloat)
-    fmt = getkerneloptions(:bigfloat_format)
+    _show_float(io,x,getkerneloptions(:bigfloat_format))
+end
+
+function _show_float(io,x,fmt)
     if fmt == ""
         show(io,x)
     else
-        print(io,Formatting.sprintf1(fmt,x))
+        s = Formatting.sprintf1(fmt,x)   # always print a `.` for floating point numbers
+        s = ismatch(r"\.",s) ? s : s * "."
+        print(io,s)
     end
 end
 

@@ -476,17 +476,35 @@ end
 
 get the floating point output format
 
-    FloatFormat(fmt::String)
+    FloatFormat(fmt)
 
 set the floating point output format to `fmt`.
 
-If `fmt=""`, then default output format is used
+If `fmt` is `Full` or `""`, then default output format is used.
 
-`fmt="%.6g"` is a common choice.
+If `fmt` is `Short` or `"%.6g"`, then fewer digits are printed.
+
+If `fmt` is `n` or `"%.ng"`, then `n` digits after the decimal are printed.
 """
 @mkapprule FloatFormat
 @doap FloatFormat() = getkerneloptions(:float_format)
-@doap FloatFormat(s::String) = setkerneloptions(:float_format,s)
+@doap FloatFormat(s) = setkerneloptions(:float_format,_float_format(s))
+
+_float_format(s::String) = s
+
+function _float_format(s::Symbol)
+    if s == :Full
+        return ""
+    elseif s == :Short
+        return "%g"
+    else
+        symerror("Unrecognized number format")
+    end
+end
+
+function _float_format(s::Integer)
+    "%.$(s)g"
+end
 
 @sjdoc BigFloatFormat """
     BigFloatFormat()
@@ -503,11 +521,7 @@ If `fmt=""`, then default output format is used
 """
 @mkapprule BigFloatFormat
 @doap BigFloatFormat() = getkerneloptions(:bigfloat_format)
-@doap BigFloatFormat(s::String) = setkerneloptions(:bigfloat_format,s)
-
-#(:FloatFormat,:float_format), (:BigFloatFormat, :bigfloat_format))
-
-
+@doap BigFloatFormat(s) = setkerneloptions(:bigfloat_format,_float_format(s))
 
 #### isymata_inited
 
