@@ -6,7 +6,9 @@ import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
-       symnumerator, symdenominator
+       symnumerator, symdenominator, Formatting
+
+#import Symata.Formatting: format
 
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
@@ -122,6 +124,19 @@ Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
 
 needsparen(x::WORational) = true
 needsparen(x::WOComplexRational) = true
+
+## TODO: We can set the floating point printing precision like this.
+## fmts = "%.3g"
+## sprintf1(fmts, x)
+# immutable WOAbstractFloat{T}  <: AbstractWO
+#     x::T
+# end
+# wrapout(x::AbstractFloat) = WOAbstractFloat(x)
+# Base.show(io::IO, ws::WOAbstractFloat) = show_float(io,ws.x)
+# function show_float(io,x)
+#     print(io,Formatting.format("{1:.4f}",x))
+# end
+
 
 # This breaks printing
 #Base.string{T<:AbstractWO}(y::T) = string(y.x)
