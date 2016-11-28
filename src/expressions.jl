@@ -37,7 +37,8 @@ m(f(a,b,c))
 @doap Apply(f,g) = mx
 
 @doap  function Apply(head::SJSym,mxa::Mxpr)
-    if (head == :Plus || head == :Times ) # 4 or 5 times faster for plus on numbers, don't evaluate
+    head == :Plus && return _apply_plus(mxa)
+    if head == :Times # 4 or 5 times faster for plus on numbers, don't evaluate
 #        mx = mxpr(head,copy(margs(mxa))) # we may find that we need to copy
         mx = mxpra(head,margs(mxa))
         mx = canonexpr!(mx)            # this is ok
@@ -48,6 +49,14 @@ m(f(a,b,c))
     isa(mx,Mxpr) && isempty(mx) && return 0   # do this instead. fixes bug Apply(Times, [DirectedInfinity(),0]) --> 0
     mx
 end
+
+function _apply_plus(mxa::Mxpr)
+    mx = mxpra(:Plus,margs(mxa))
+    mx = canonexpr!(mx)
+    setcanon(mx)
+    return isa(mx,Mxpr) && isempty(mx) ? 0 : mx
+end
+
 
 @doap Apply(h,mxa::Mxpr) = mxpra(h,margs(mxa))
 

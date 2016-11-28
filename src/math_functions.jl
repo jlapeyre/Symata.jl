@@ -1157,8 +1157,10 @@ give the sum of elements in `list`
 
 @doap Total(x::AbstractArray) = sum(x)
 
-# We could try some things to speed this up... check that all elements are numbers ?
-@doap Total(x::Mxpr{:List}) = mxpr(:Plus,margs(x))
+## We could try some things to speed this up... check that all elements are numbers ?
+## with all() it takes about as much time to check as it does to sum. Maybe use try/catch
+#@doap Total(x::Mxpr{:List}) = mxpr(:Plus,margs(x))
+@doap Total(x::Mxpr{:List}) = _apply_plus(x)
 
 ### CosPi, SinPi
 
