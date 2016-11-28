@@ -378,14 +378,6 @@ delete `filename`.
 """
 @doap DeleteFile(file::AbstractString) = rm(file)
 
-### Now
-
-## TODO take 1 arg as well
-@mkapprule Now :nargs => 0
-
-@doap Now() = now()
-
-
 ### Format
 
 ## Note: This is *not* Mma's format

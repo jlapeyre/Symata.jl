@@ -445,25 +445,6 @@ do_Big{T<:Number}(mx,x::T) = big(x)
 
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : mmul(-1, mx[1])
 
-#### Timing evaluation
-
-@sjdoc Timing """
-    Timing(expr)
-
-evaluate `expr` and return a `List` of the elapsed CPU time
-and the result.
-"""
-
-@sjseealso_group(Timing,Allocated,Time,Trace)
-function apprules(mxt::Mxpr{:Timing})
-    t = @elapsed begin
-        reset_meval_count()
-        mx = doeval(mxt[1])
-        setsymval(:ans,mx)
-    end
-    mxpr(:List,t,mx)
-end
-
 #### Allocated
 
 @sjdoc Allocated """
