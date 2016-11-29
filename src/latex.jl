@@ -1,6 +1,6 @@
 # Is import file-scoped ? If not, we need to do something else
 import Symata.SymataIO: WORational, WOComplexRational, Istring, outsym, FUNCR, FUNCL, LISTR, LISTL, needsparen
-import Symata.SymataIO: WOComplexReal, WOComplexInteger, WOSymbol, WOBool
+import Symata.SymataIO: WOComplexReal, WOComplexInteger, WOSymbol, WOBool, show_float
 
 #######################################################################
 
@@ -142,6 +142,9 @@ end
 # than s *= "new text". Some functions below already use takebuf_string
 
 latex_string(opt, x) = string(x)
+
+## Hmm. real floats print 'Short' without this line. But, complex floats need this.
+latex_string(opt, x::AbstractFloat) = string(wrapout(x))
 
 latex_string(opt, s::String) =  latex_text("\"" * s * "\"")
 
