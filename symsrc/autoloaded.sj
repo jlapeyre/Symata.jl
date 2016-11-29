@@ -1,6 +1,6 @@
 #### This code is autoloaded when trigger symbols are encountered when reading input.
 
-### Some of these could easily be written in Julia. But, it is a good idea for Symatat to eat its own dogfood.
+### Some of these could easily be written in Julia. But, it is a good idea for Symata to eat its own dogfood.
 
 ### Through
 
