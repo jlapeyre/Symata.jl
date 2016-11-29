@@ -2,7 +2,7 @@ module SymataIO
 
 import Base: show
 
-import Symata: Mxpr, SJSym, SSJSym, is_Mxpr, is_Number, is_SJSym,
+import Symata: Mxpr, SJSym, SSJSym,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
@@ -319,7 +319,7 @@ end
 
 
 function show_prefix_function(io::IO, mx::Mxpr)
-    if ! is_Mxpr(mx,:List)
+    if ! isa(mx,ListT)
         mh = mhead(mx)
         wantparen::Bool = false
         if isa(mh,Mxpr)
@@ -391,7 +391,7 @@ end
 # unary minus
 function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
-    if is_Number(arg) || is_SJSym(arg)
+    if isa(arg,Number) || isa(arg,SJSym)
         print(io,"-")
         show(io,arg)
     else
@@ -412,7 +412,7 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
             print(io, " - ")
             show(io,(args[i]).args[1])
         else
-            if is_Mxpr(args[i], :Times) && typeof(args[i][1])  <:Union{AbstractFloat,Integer} && args[i][1] < 0
+            if isa(args[i], TimesT) && typeof(args[i][1])  <:Union{AbstractFloat,Integer} && args[i][1] < 0
                 show_infix(io, args[i], true)
             else
                 print(io, " + ")
@@ -433,7 +433,7 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
     startind = 1
-    if is_Mxpr(mx,:Times) && length(args) > 0
+    if isa(mx,TimesT) && ! isempty(args)
         a1 = args[1]
         if a1 == -1
             print(io, spaceminus ? " - " : "-")
@@ -499,7 +499,7 @@ end
 
 function Base.show(io::IO, mx::Mxpr{:Pattern})
     show(io,mx[1])
-    if is_Mxpr(mx[2],:Blank)
+    if isa(mx[2],Mxpr{:Blank})
         show(io,mx[2])
     else
         print(io,"::(")
