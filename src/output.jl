@@ -228,9 +228,11 @@ end
 
 # We display real part if it is 0.0
 function show_complexreal{T<:Real}(io::IO, z::Complex{T})
-    show(io,real(z))
+#    show(io,real(z))
+    show_float(io,real(z))    
     print(io," + ")
-    show(io,imag(z))
+    show_float(io,imag(z))
+#    show(io,imag(z))    
     print(io,Istring())
 end
 
