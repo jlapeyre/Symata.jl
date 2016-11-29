@@ -16,7 +16,7 @@ macro make_simplify_func(mxprsym, sympyfunc)
         function apprules(mx::Mxpr{$mxprsym})
               kws = Dict()                         # To hold keywords
               nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
-             if (length(kws) > 0 )
+              if ! isempty(kws)
                  sres = sympy[$qsympyfunc](nargs...; kws...) |> pytosj
               else
                  sres = sympy[$qsympyfunc](nargs...) |> pytosj
