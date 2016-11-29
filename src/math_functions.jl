@@ -1430,3 +1430,104 @@ function _surd(mx,x::TimesT,n)
     isa(x[1],Real) && return mxpr(:Surd,x[1],n) * mxpr(:Surd, mxpr(:Times, x[2:end]...),n)
     mx
 end
+
+### Power
+
+@mkapprule Power :nargs => 2
+
+do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+
+@doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
+dopowerE{T<:AbstractFloat}(mx, expt::T) = exp(expt)
+dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
+
+function dopowerE(mx, expt)
+    syexpt = sjtopy(expt)
+    syres = sympy[:exp](syexpt)
+    res = pytosj(syres)
+    if is_Mxpr(res, :Exp)
+        res[1] == expt && return mx
+        return mxpr(:Power, :E, margs(res)...)
+    end
+    res
+end
+
+# Don't handle this yet.
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Rational{V}) = mx
+do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{Rational{V}}) = mx
+
+do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
+
+# For some reason, we need this integer rule. For instance for (a^2)^2 --> a^4
+do_Power{T<:Integer}(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power{T<:Real}(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
+
+do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power}, exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
+
+do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+
+do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+do_Power{T<:Number}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+
+function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,expt::V)
+    mpow(b,expt)
+end
+
+do_Power(mx,b,e) = mx
+
+
+### // (Rational)
+
+apprules(mx::Mxpr{://}) = makerat(mx,mx[1],mx[2])
+makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
+makerat(mx,n,d) = mx
+
+### BI
+
+@sjdoc BI """
+    BI(n)
+
+convert the number `n` to type `BigInt`. Symata neither
+detects integer overflow, nor automatically promote integers to `BigInt`.
+But, a literal integer will automatically be given a large enough storage type without using
+`BI`.
+"""
+
+@sjseealso_group(BI,BF,Big,BigIntInput)
+
+### BF
+
+@sjdoc BF """
+    BF(n), or BF"n"
+
+convert the number, or string `n` to a BigFloat. Symata neither
+detects overflow, nor automatically promotes types from fixed to arbitrary precision. The form
+`BF"n"` is more efficient, being a julia macro that converts the string "n" upon parsing.
+"""
+
+@sjdoc Big """
+    Big(n)
+
+convert `n` a maximum precision representation, typically
+`BigInt` or `BigFloat`.
+"""
+
+apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
+dobigint(mx,x) = mx
+dobigint{T<:Number}(mx,x::T) = BigInt(x)
+dobigint{T<:AbstractString}(mx,x::T) = parse(BigInt,x)
+
+apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
+dobigfloat(mx,x) = mx
+dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
+dobigfloat{T<:AbstractString}(mx,x::T) = parse(BigFloat,x)
+
+### Big
+
+apprules(mx::Mxpr{:Big}) = do_Big(mx,mx[1])
+do_Big(mx,x) = mx
+do_Big{T<:Number}(mx,x::T) = big(x)
+
+### Minus
+
+apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : mmul(-1, mx[1])

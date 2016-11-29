@@ -52,7 +52,6 @@ the attribute `Protected`, and may have others, including `HoldFirst`, `Sequence
 
 apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 
-#get_attributes(sj::SJSym) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
 get_attributes(sj::SJSymbol) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
 
 
@@ -336,6 +335,135 @@ setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module
 
 @doap Set(lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
+### Increment
+
+@sjdoc Increment """
+    Increment(n)
+
+increments the value of `n` by `1` and returns the old value.
+"""
+
+@mkapprule Increment :nargs => 1
+
+@doap function Increment(x::SJSym)
+    @checkunbound(mx,x,xval)
+    do_increment1(mx,x,xval)
+end
+
+function do_increment1{T<:Number}(mx,x,xval::T)
+    setsymval(x,mplus(xval,1))  # maybe + is ok here.
+    return xval
+end
+
+function do_increment1(mx,x,val)
+    setsymval(x,doeval(mxpr(:Plus,val,1)))
+    return val
+end
+
+### Decrement
+
+@sjdoc Decrement """
+    Decrement(n)
+
+decrements the value of `n` by `1` and returns the old value.
+"""
+
+@mkapprule Decrement :nargs => 1
+
+#function do_Decrement(mx, x::SJSym)
+@doap function Decrement(x::SJSym)
+    @checkunbound(mx,x,xval)
+    do_decrement1(mx,x,xval)
+end
+
+function do_decrement1{T<:Number}(mx,x,xval::T)
+    setsymval(x,mplus(xval,-1))  # maybe + is ok here.
+    return xval
+end
+
+function do_decrement1(mx,x,val)
+    setsymval(x,doeval(mxpr(:Plus,val,-1)))
+    return val
+end
+
+### TimesBy
+
+@sjdoc TimesBy """
+    TimesBy(a,b), or a *= b
+
+set `a` to `a * b` and returns the new value. This is currently
+faster than `a = a * b` for numbers.
+"""
+
+@mkapprule TimesBy :nargs => 2
+
+function do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val)
+    @checkunbound(mx,x,xval)
+    do_TimesBy1(mx,x,xval,val)
+end
+
+function do_TimesBy1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
+    r = mmul(xval,val)
+    setsymval(x,r)
+    return r
+end
+function do_TimesBy1(mx,x,xval,val)
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Times,xval,val))))
+    return symval(x)
+end
+
+
+#### AddTo
+
+@sjdoc AddTo """
+    AddTo(a,b), or a += b,
+
+sets `a` to `a + b` and returns the new value. This is currently
+faster than `a = a + b` for numbers.
+"""
+
+@mkapprule AddTo :nargs => 2
+
+function do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val)
+    @checkunbound(mx,x,xval)
+    do_AddTo1(mx,x,xval,val)
+end
+
+function do_AddTo1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
+    r = mplus(xval,val)
+    setsymval(x,r)
+    return r
+end
+function do_AddTo1(mx,x,xval,val)
+    setsymval(x,doeval(mxpr(:Set,x, mxpr(:Plus,xval,val))))
+    return symval(x)
+end
+
+
+#### Dump and DumpHold
+
+@sjdoc Dump """
+    Dump(expr)
+
+print an internal representation of `expr`.
+
+`Dump` is similar to Julia `dump`.
+"""
+
+@sjdoc DumpHold """
+    DumpHold(expr)
+
+print an internal representation of `expr`.
+
+`DumpHold` is similar to Julia `dump`. In contrast to `Dump`, `expr` is not evaluated before its internal
+representation is printed.
+"""
+
+@sjseealso_group(Dump,DumpHold)
+
+# DumpHold does not evaluate args before dumping
+apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
+
 ### Contexts
 
 @mkapprule Contexts  :nargs => 0:1
@@ -537,3 +665,114 @@ that are typically set with `UpSet`.
 """
 @mkapprule UpValues
 @doap UpValues(x) = sjlistupvalues(x)
+
+
+#### HAge, FixedQ and UnFix
+
+@sjdoc HAge """
+    HAge(s)
+
+return the timestamp for the expression or symbol `s`.
+Using this timestamp to avoid unnecessary evaluation is a partially
+implemented feature.
+"""
+
+@sjseealso_group(HAge,Age,FixedQ,Syms,DirtyQ,Unfix)
+# Get the last-altered timestamp of an expression or symbol
+apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
+hdo_getage(mx,s::SJSym) = Int(symage(s))
+hdo_getage(mx,s::Mxpr) = Int(getage(s))
+hdo_getage(mx,x) = mx
+
+apprules(mx::Mxpr{:Age}) = do_getage(mx,mx[1])
+do_getage(mx,s::SJSym) = Int(symage(s))
+do_getage(mx,s::Mxpr) = Int(getage(s))
+do_getage(mx,x) = mx
+
+@sjdoc FixedQ """
+    FixedQ(expr)
+
+returns the status of the fixed point bit, which tells whether `expr`
+is expected to evaluate to itself in the current environment. This is partially
+implemented.
+"""
+
+# Get fixed-point bit. Idea is to set it if expr evaluates to itself.
+apprules(mx::Mxpr{:FixedQ}) = is_fixed(mx[1])
+
+@sjdoc Unfix """
+    Unfix(expr)
+
+unsets the fixed flag on `expr`, causing it to be evaluated.
+This is a workaround for bugs that cause an expression to be marked fixed
+before it is completely evaluated.
+"""
+@mkapprule Unfix  :nodefault => true  :options => Dict( :Deep => false )
+
+function do_Unfix(mx,expr::Mxpr; Deep=false)
+#    (deep,val) = kws[1]
+    Deep ? deepunsetfixed(expr) : unsetfixed(expr)
+    unsetfixed(expr)
+    expr
+end
+
+#do_Unfix(mx,args...) = mx
+do_Unfix(mx,args...;kws...) = mx
+
+# function apprules(mx::Mxpr{:Unfix})
+#     unsetfixed(mx[1])
+#     mx[1]
+# end
+
+#### Syms
+
+@sjdoc Syms """
+    Syms(m)
+
+return a `List` of the symbols that the expression `m` "depends" on. The
+list is wrapped in `HoldForm` in order to prevent evaluation of the symbols.
+"""
+
+# Syms has HoldAll
+function apprules(mx::Mxpr{:Syms})
+    mxpr(:HoldForm,do_syms(mx[1]))
+end
+
+@sjdoc BuiltIns """
+    BuiltIns()
+
+return a `List` of all "builtin" symbols. These are in fact all symbols that
+have the `Protected` attribute.
+"""
+
+apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+
+@sjdoc UserSyms """
+    UserSyms()
+
+return a `List` of symbols that have not been imported from the `System` namespace.
+This is all user defined symbols (unless you have imported symbols from elsewhere).
+"""
+
+@mkapprule UserSyms  :nargs => 0
+
+@doap UserSyms() = usersymbolsList()
+
+# This is the old version
+@mkapprule UserSyms2 :nargs => 0
+
+@doap UserSyms2() = usersymbolsListold()
+
+@sjdoc CurrentContext """
+    CurrentContext()
+
+return the name of the current context.
+"""
+
+@mkapprule CurrentContext :nargs => 0
+
+# This does not return a context or module type, because we need to
+# keep types out of the language as much as possible. Everything is
+# an expression! In fact, we should probably return a string.
+
+@doap CurrentContext() = string(get_current_context_name())

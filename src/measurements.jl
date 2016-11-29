@@ -174,3 +174,24 @@ function dimensions(x::Mxpr,data)
     end
     data.level -=1
 end
+
+## Maybe Allocated belongs with Time and Timing. They are all in different places.
+
+### Allocated
+
+@sjdoc Allocated """
+    Allocated(expr)
+
+evaluate `expr` and return a list of the memory allocated
+and the result of the evaluation.
+"""
+
+function apprules(mxt::Mxpr{:Allocated})
+    local mx
+    a = @allocated begin
+        reset_meval_count()
+        mx = doeval(mxt[1])
+        setsymval(:ans,mx)  ## why here ?
+    end
+    mxpr(:List,a,mx)
+end

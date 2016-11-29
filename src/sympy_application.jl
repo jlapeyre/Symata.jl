@@ -1,8 +1,6 @@
-#using Symata.JSymPy
 using PyCall
 
 # TODO: refactor code here and in math_functions.jl.
-
 # Wrap a sympy function with an Symata "function"
 # Pass keyword arguments. In Symata, these are expressions with head 'Rule'
 # We use this for more than just simplification functions.
@@ -14,15 +12,9 @@ macro make_simplify_func(mxprsym, sympyfunc)
     qsympyfunc = QuoteNode(sympyfunc)
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
-              kws = Dict()                         # To hold keywords
-              nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
-              if ! isempty(kws)
-                 sres = sympy[$qsympyfunc](nargs...; kws...) |> pytosj
-              else
-                 sres = sympy[$qsympyfunc](nargs...) |> pytosj
-              end
-              deepsetfixed(sres)                   # sometimes this seems like a good idea.
-              sres
+              kws = Dict()
+              nargs = sjtopy_kw(mx,kws) # extract keywords from args to mx into kws, return positional args
+              (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
         end
         set_pattributes( [$smxprsym], :Protected)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
@@ -35,14 +27,9 @@ macro make_simplify_func_postp(mxprsym, sympyfunc, postfunc)
     qsympyfunc = QuoteNode(sympyfunc)
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
-              kws = Dict()                         # To hold keywords
-              nargs = sjtopy_kw(mx,kws)        # extract keywords from args to mx into kws, return positional args
-             if (length(kws) > 0 )
-                 sres = sympy[$qsympyfunc](nargs...; kws...) |> pytosj
-              else
-                 sres = sympy[$qsympyfunc](nargs...) |> pytosj
-              end
-              deepsetfixed(sres)                   # sometimes this seems like a good idea.
+              kws = Dict()
+              nargs = sjtopy_kw(mx,kws)
+              sres = (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
               $postfunc(sres)
         end
         set_pattributes( [$smxprsym], :Protected)
@@ -50,8 +37,7 @@ macro make_simplify_func_postp(mxprsym, sympyfunc, postfunc)
     end)
 end
 
-
-#### Factor
+### Factor
 
 @sjdoc Factor """
     Factor(expr)
@@ -116,10 +102,6 @@ function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy[:integrate](pymx,pyvarspecs...)
     sjres = pytosj(pyintegral)
-    # This is done in sympy.jl now
-    # if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
-    #     deepsetfixed(sjres)  # we need this to avoid infinite eval
-    # end
     sjres
 end
 
@@ -135,9 +117,6 @@ function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs.
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy[:integrate](pymx,pyvarspecs...; kws...)
     sjres = pytosj(pyintegral)
-    # if mhead(sjres) == :Integrate  # probably wrong wrt false positives and negatives
-    #     deepsetfixed(sjres)  # we need this to avoid infinite eval
-    # end
     sjres
 end
 
@@ -146,11 +125,6 @@ end
 function apprules(mx::Mxpr{:Integrate})
     kws = Dict()
     nargs = separate_rules(mx,kws)
-    # Two reasons for following. 1. We prefer 'separate' as default. 2. works around inf eval loop
-    # in case no conds are given
-    # if ! haskey(kws, :conds)
-    #     kws[:conds] = "separate"
-    # end
     res = isempty(kws) ? do_Integrate(mx,margs(mx)...) : do_Integrate_kws(mx,kws,nargs...)
     res = list_to_conditional_expression(res)
     fix_integrate_piecewise(typeof(mx),res)
@@ -169,14 +143,13 @@ function fix_integrate_piecewise(mxprtype, mx::Mxpr{:Piecewise})
     if isa(last,Mxpr{:ConditionalExpression})
         isa(last[1], mxprtype) && return mx[1]
     end
-#    isa(mx[1],mxprtype) && pop!(mx)
     return length(mx) == 1 ? mx[1] : mx
 end
 
 list_to_conditional_expression(mx::ListT) = mxpra(:ConditionalExpression, margs(mx))
 list_to_conditional_expression(mx) = mx
 
-#### LaplaceTransform
+### LaplaceTransform
 
 @sjdoc LaplaceTransform """
     LaplaceTransform(expr, t, s)
@@ -194,7 +167,7 @@ function apprules(mx::Mxpr{:LaplaceTransform})
     pyres = @try_sympyfunc sympy[:laplace_transform](nargs...; kws...)  "LaplaceTransform: unknown error."  mx
     res = pyres |> pytosj
     res = list_to_conditional_expression(res)
-    fix_integrate_piecewise(typeof(mx),res)  #
+    fix_integrate_piecewise(typeof(mx),res)
 end
 
 #### InverseLaplaceTransform

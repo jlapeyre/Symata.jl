@@ -197,6 +197,11 @@ function parse_call(ex,newa)
     mxpr(nhead,newa)
 end
 
+## Translate this separately otherwise the body always inserts a CompoundExpression
+function parse_function(ex)
+    mxpr(:Function, extomx(ex.args[1]), extomx(ex.args[2].args[2]))
+end
+
 ## Main translation routine
 # We use Julia for lexing/parsing. But we change the semantics:
 # sometimes a little, sometimes a lot.
@@ -212,6 +217,7 @@ function extomx(ex::Expr)
     elseif ohead == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])
     elseif ohead == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
+    elseif ohead == :(->) return parse_function(ex)
     elseif haskey(JTOMSYM,ohead)
         nhead = JTOMSYM[ohead]
         check_autoload(nhead)

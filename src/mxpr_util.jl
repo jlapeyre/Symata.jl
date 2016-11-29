@@ -12,6 +12,14 @@ function tolistoflists(a)
     mxpr(:List,nargs)
 end
 
+function maplist(f, ls::ListT)
+    nargs = newargs()
+    for x in ls
+        push!(nargs,f(x))
+    end
+    mxpra(:List, nargs)
+end
+
 # not used yet
 #totuple(mx::Mxpr{:List}) = tuple(margs(mx)...)
 

@@ -714,3 +714,15 @@ end
     ## todo level zero
     mxpra(:List,nargs)
 end
+
+### ExpandA, only a bit is implemented. Sympy Expand is more capable.
+
+@sjdoc ExpandA """
+    ExpandA(expr)
+
+expand products in `expr`. This is only partially implemented,
+mostly to test the efficiency of evaluation and evaluation control. The
+Sympy version `Expand()` is more capable, but slower.
+"""
+
+apprules(mx::Mxpr{:ExpandA}) = _doexpand(mx[1])

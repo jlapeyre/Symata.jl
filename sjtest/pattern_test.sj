@@ -292,6 +292,10 @@ T ReplaceAll( Hold(x + x) , (x :> 2^2) ) == Hold(2 ^ 2 + 2 ^ 2)
 T ReplaceAll( Hold(x + x) , Rule(x, 2^2) ) == Hold(4 + 4)
 T ReplaceAll( Hold(x + x) , RuleDelayed(x , 2^2) ) == Hold(2 ^ 2 + 2 ^ 2)
 
+ClearAll(x)
+## Map over a list of lists of rules
+T  x ./ [ [x => 1], [x => 2], [x => 7] ] == [1,2,7]
+
 T Replace(x^2, x^2 => a + b) == a + b
 T Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
 

@@ -21,8 +21,8 @@ import some symbols from `Symata` into `Main` that are useful for development.
 """
 function devimport()
     eval(Main, parse("""
-import Symata: @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
-       sympy, pytypeof, mxpr, canonexpr!, wrap_symata
+       import Symata: @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
+                      sympy, pytypeof, mxpr, canonexpr!, wrap_symata
 """))
 end
 
@@ -33,8 +33,8 @@ export isymata, insymata
 
 include("sjcompat.jl")
 include("early_kernelstate.jl")
-include("mxpr_util.jl")
 include("mxpr_type.jl")
+include("mxpr_util.jl")
 include("exceptions.jl")
 include("level_specification.jl")
 include("sequence_specification.jl")
@@ -51,7 +51,7 @@ include("alteval.jl")
 include("doc.jl")
 include("misc_doc.jl")
 include("symbols.jl")
-include("apprules.jl")
+#include("apprules.jl")
 include("random.jl")
 include("kernelstate.jl")
 include("evaluation.jl")
@@ -59,7 +59,6 @@ include("comparison_logic.jl")
 include("test.jl")
 include("wrapout.jl")
 include("formatting/Formatting.jl")
-#include("IO.jl")
 include("predicates.jl")
 include("symata_julia_interface.jl")
 include("measurements.jl")

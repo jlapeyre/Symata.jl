@@ -13,10 +13,9 @@
 evaluate `expr` and return a `List` of the elapsed CPU time
 and the result.
 """
+@mkapprule Timing  :nodefault => true
 
 @sjseealso_group(Timing,Allocated,Time,Trace)
-
-@mkapprule Timing  :nodefault => true
 
 @doap function Timing(exprs...)
     local mxnew
@@ -30,11 +29,12 @@ and the result.
     mxpr(:List,t,mxnew)
 end
 
-# function apprules(mxt::Mxpr{:Timing})
-#     t = @elapsed begin
-#         reset_meval_count()
-#         mx = doeval(mxt[1])
-#         setsymval(:ans,mx)
-#     end
-#     mxpr(:List,t,mx)
-# end
+### Pause
+
+@sjdoc Pause """
+    Pause(x)
+
+pauses (i.e.sleeps) for `x` seconds.
+"""
+@mkapprule Pause  :nargs => 1
+@doap Pause{T<:Real}(x::T) = sleep(x)

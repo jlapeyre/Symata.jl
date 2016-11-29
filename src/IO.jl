@@ -402,3 +402,42 @@ function do_Format(mx, args...)
     (nargs,kws) = separate_rules1(args...; keylowercase=true)
     Formatting.format(map(wrapout,nargs)...; kws...)
 end
+
+### FullForm
+
+@sjdoc FullForm """
+    FullForm(expr)
+
+print the internal representation of `expr` and all sub-expressions as
+`Head(arg1,arg2,...)`. Normal output may use infix notation instead. But, expressions
+may always be entered in `FullForm`.
+"""
+
+@sjexamp( FullForm,
+          ("Clear(a,b)",""),
+          ("a+b","a+b"),
+          ("FullForm(a+b)","Plus(a,b)"))
+
+@sjexamp( FullForm,
+          ("Sqrt(2)", "Power(2,1//2)", "Internally, square roots are represented as powers."),
+          ("Sqrt(2)[2]", "1//2", "The second part of the expression is '1//2'"))
+
+# FullForm is implemented in output.jl
+
+### Julia
+
+## Julia() should be in some other file... which one ?
+
+@sjdoc Julia """
+    Julia()
+
+exit Symata mode and returns to Julia mode from within Jupyter.
+Use `isymata()` from Julia to enter Symata mode again.
+"""
+
+@mkapprule Julia :nargs => 0
+
+@doap function Julia()
+    isymata_mode(false)
+    set_jupyter_input_prompt_color("green")
+end

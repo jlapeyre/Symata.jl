@@ -388,3 +388,159 @@ end
 end
 
 @curry_last Extract
+
+
+### Replace
+
+@sjdoc Replace """
+    Replace(expr,rule)
+
+replace parts in expr according to `rule`.
+
+    Replace(expr,rule,n)
+
+replace at levels less than or equal to `n`.
+
+    Replace(expr,rule,[n])
+
+replace at level `n` only.
+"""
+
+@sjseealso_group(Replace,ReplaceAll)
+@sjexamp(Replace,
+         ("Clear(a,b,c)",""),
+         ("Replace( Cos(a+b)^2 + Sin(a+c)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
+          "Cos(a + b)^2 + Sin(a + c)^2", "This expression does not match the pattern."),
+         ("Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
+          "1", "This expression does match the pattern."))
+function apprules(mx::Mxpr{:Replace})
+    doreplace(mx,margs(mx)...)
+end
+
+function doreplace(mx,expr,r::Rules)
+    (success, result) = replace(expr,r)
+    result
+end
+
+function doreplace(mx,expr,r::Rules,inlevelspec)
+    levelspec = make_level_specification(expr,inlevelspec)
+    (success, result) = replace(levelspec,expr,r)
+    result
+end
+
+# no need for this
+doreplace(mx,a,b) = mx
+doreplace(mx,args...) = mx
+
+#### ReplaceAll
+
+@sjdoc ReplaceAll """
+    ReplaceAll(expr,rule)
+
+replace parts at all levels in expr according to `rule`. This includes
+the `Head` of `expr`, and the entire `expr`.
+
+    ReplaceAll(expr,List(rule1,rule2,...))
+
+replace parts at all levels according to the
+list of rules. If given explicitly, the rules should be given as `List(...)` rather than
+`[...]` because of a parsing error.
+
+    op = ReplaceAll(rule)
+
+Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
+"""
+
+apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,margs(mx)...)
+
+# These two rules specify Currying with the second argument
+
+doreplaceall(mx,a) = mx
+do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+
+# FIXME. level spec, if present, goes in wrong place. easy to fix.
+doreplace(mx,a) = mx
+do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+
+
+function doreplaceall(mx,expr,r::Rules)
+    replaceall(expr,r)
+end
+
+function doreplaceall(mx,expr,rs::Mxpr{:List})
+    if listoflistsq(rs)
+        maplist( r ->  _doreplaceall(mx,expr,r), rs)
+    else
+        _doreplaceall(mx,expr,rs::Mxpr{:List})
+    end
+end
+
+function _doreplaceall(mx,expr,rs::Mxpr{:List})
+    rsa = Array(Any,0)
+    for i in 1:length(rs)
+        if isa(rs[i],Rules)
+            push!(rsa, rs[i])
+        else
+            symwarn("ReplaceAll expected Rule  got ", rs[i])
+            nothing  # do something better here, like return mx
+        end
+    end
+    replaceall(expr,rsa)
+end
+doreplaceall(mx,a,b) = mx
+
+
+@sjexamp( ReplaceAll,
+         ("ClearAll(zz,b,c)",""),
+         ("zz = 10 * b^2 * (c+d)","zz = 10 * b^2 * (c+d)"),
+         ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
+
+@mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
+
+@sjdoc ReplaceRepeated """
+    ReplaceRepeated(expr,rules)
+
+perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
+"""
+
+do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,r; kws...)
+
+function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
+    rsa = Array(Any,0)
+    for i in 1:length(rs)
+        if isa(rs[i],Rules)
+            push!(rsa, rs[i])
+        else
+            symwarn("ReplaceRepeated expected Rule, got ", rs[i])
+            nothing  # do something better here, like return mx
+        end
+    end
+    replacerepeated(expr,rsa; kws...)
+end
+
+do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
+
+### MatchQ
+
+@sjdoc MatchQ """
+    MatchQ(expr,pattern)
+
+return `True` if `expr` matches `pattern`.
+
+    op = MatchQ(pattern)
+
+Define a function `op(expr)` that returns `MatchQ(expr,pattern)`.
+For example, `myintq = MatchQ(_Integer)`.
+"""
+@mkapprule MatchQ
+@doap MatchQ(expr,pat) = matchq(expr,pat)
+matchq(expr,pat) = match_no_capture(expr,patterntoBlank(pat))
+@curry_last MatchQ
+
+@sjexamp( MatchQ,
+         ("MatchQ( 1, _Integer)", "true"),
+         ("ClearAll(gg,xx,b)",""),
+         ("MatchQ( gg(xx) , _gg)", "true"),
+         ("MatchQ( b^2, _^2)","true"))
+
+

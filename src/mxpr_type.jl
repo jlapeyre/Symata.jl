@@ -1,7 +1,11 @@
 typealias SJSymbol Union{SJSym,Qsym}
 
-# This is T in Mxpr{T} for any Head that is not a Symbol
-# We have duplicate information about the Head in a field, as well.
+"""
+    GenHead
+
+"Generic" head. The parameter `x` in any `Mxpr{x}` is either a symbol or `GenHead`.
+The actual head is stored in a field of the `Mxpr`.
+"""
 type GenHead
 end
 
@@ -13,7 +17,6 @@ end
 @inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
-
 function symname{T}(s::SSJSym{T})
     s.val[1]
 end
@@ -134,9 +137,8 @@ clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
 # No other file accesses it directly.
 #############################################################################
 
-#symname(s::AbstractString) = Symbol(s)
-
 symattr(s::SJSymbol) = getssym(s).attr
+#symname(s::AbstractString) = Symbol(s)
 # symattr(s::Qsym) = getssym(s).attr
 # symattr(s::SJSym) = getssym(s).attr
 
@@ -164,8 +166,11 @@ downvalue_lhs_equal(x,y) = x == y
 #downvalue_lhs_equal{T<:Number,V<:Number}(x::T,y::V) = x === y  #  f(1.0) is not f(1)
 downvalue_lhs_equal(x::Number,y::Number) = x === y  #  f(1.0) is not f(1)
 
-# Sets a downvalue associated with symbol
+"""
+    set_downvalue(mx::Mxpr, s::SJSymbol, val)
 
+sets a downvalue associated with `s` to `val`.
+"""
 function set_downvalue(mx::Mxpr, s::SJSymbol, val)
     set_downvalue(mx, getssym(s), val)
 end
@@ -174,7 +179,6 @@ end
 #typealias SS Union{SSJSym,Mxpr{GenHead}}
 typealias SS SSJSym
 function set_downvalue(mx::Mxpr, s::SS, val)
-#    s = getssym(ins)
     dvs = s.downvalues
     isnewrule = true
     @inbounds for i in 1:length(dvs)
@@ -380,8 +384,6 @@ end
 
 @inline newsymsdict() = FreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 
-# FIXME. I don't think we need the template here
-
 """
     mhead(mx::Mxpr)
 
@@ -555,7 +557,7 @@ end
 """
     mxpra(head,args::MxprArgs)
 
-create a Symata expression with head `head` and arguments `args`
+create a Symata expression with head `head` and arguments `args`.
 The arguments are not copied. An object of type `Mxpr{head}` is returned
 if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise. The type `MxprArgs`
 is currently an alias for `Array{Any,1}` and can be instantiated with the function
@@ -687,44 +689,69 @@ end
     end
 end
 
-# Add Symbol a to list of free symbols syms
-@inline function mergesyms(syms::FreeSyms, a::SJSym)
-    syms[a] = true
-end
 
-# Add Symbol a to list of free symbols in mx
-@inline function mergesyms(mx::Mxpr, a::SJSym)
-    (mx.syms)[a] = true
-end
+"""
+    mergesyms(syms::FreeSyms, a::SJSym)
 
+adds `a` to list of free symbols `syms`
+"""
+@inline mergesyms(syms::FreeSyms, a::SJSym) =  syms[a] = true
+
+"""
+    mergesyms(mx::Mxpr, a::SJSym)
+
+adds `a` to list of free symbols in `mx`.
+"""
+@inline mergesyms(mx::Mxpr, a::SJSym) = (mx.syms)[a] = true
+
+"""
+    mergesyms(x,y)
+
+does nothing and returns `nothing` if `x` is neither a `Mxpr` nor a `FreeSyms`.
+"""
 @inline mergesyms(x,y) = nothing
 
-# Copy lists of free symbols in subexpressions of mx to
-# list of free symbols of mx. Only descend one level.
+
 # We also merge the head of mx. Maybe its better to
-# separate this function. Maybe not.
+# do merging the head  in a separate function.
+
+"""
+    mergeargs(mx::Mxpr)
+
+copies lists of free symbols in subexpressions of `mx` to
+the list of free symbols of `mx`.
+
+`mergeargs` descends only one level.
+Also merge the head of `mx`.
+"""
 function mergeargs(mx::Mxpr)
     h = mhead(mx)
-    if is_sym_mergeable(h)
-        mergesyms(mx,h)
-    end
+    if is_sym_mergeable(h)  mergesyms(mx,h)  end
     foreach(x -> mergesyms(mx,x), mx)
-    # @inbounds for i in 1:length(mx)
-    #     mergesyms(mx,mx[i])
-    # end
 end
 
+"""
+    mergeargs(x)
+
+returns `nothing` if `x` is not a `Mxpr`.
+"""
 @inline mergeargs(x) = nothing
 
 ## clear list of free symbols in mx.
-# is it cheaper to delete keys, or throw it away ?
-function clearsyms(mx::Mxpr)
-    mx.syms = newsymsdict()
-end
+"""
+    clearsyms(mx::Mxpr)
 
-# return true if a free symbol in mx has a more recent timestamp than mx
+removes all symbols from the list of free symbols in `mx`.
+"""
+clearsyms(mx::Mxpr) =  empty!(mx.syms)
+
+## TODO: we have no unit tests (or close to unit tests) for checkdirtysyms and related functions
+"""
+    checkdirtysyms(mx::Mxpr)
+
+returns `true` if any free symbol in `mx` has a more recent timestamp than `mx`, and `false` otherwise.
+"""
 @inline function checkdirtysyms(mx::Mxpr)
-#    length(mx.syms) == 0 && return true   # assume re-eval is necessary if there are no syms
     isempty(mx.syms) && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
     for sym in keys(mx.syms) # is there a better data structure for this ?
@@ -732,6 +759,12 @@ end
     end
     return false  # no symbols in mx have been set since mx age was updated
 end
+
+"""
+    checkdirtysyms(x)
+
+returns `false` if `x` is not a `Mxpr`.
+"""
 @inline checkdirtysyms(x) = false
 
 # If mx has an empty list of free symbols, put :nothing in the list.
@@ -748,17 +781,47 @@ listsyms(x) = nothing
 
 @inline is_canon(mx::Mxpr) = mx.canon
 @inline is_fixed(mx::Mxpr) = mx.fixed
-is_fixed(s::SJSym) = symval(s) == s  # unbound is a better work, maybe. Where is this used ?? see checkunbound in apprules.jl
+is_fixed(s::SJSym) = symval(s) == s  # unbound is a better word, maybe. Where is this used ?? see checkunbound in apprules.jl
 @inline setcanon(mx::Mxpr) = (mx.canon = true; mx)
-@inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx); mx)
-@inline setfixed(x) = x
+
 @inline unsetcanon(mx::Mxpr) = (mx.canon = false; mx)
+
+"""
+    setfixed(mx::Mxpr)
+
+sets the fixed bit on `mx`.
+"""
+@inline setfixed(mx::Mxpr) = (mx.fixed = true; setage(mx); mx)
+
+"""
+    setfixed(x)
+
+is the identity if `x` is not a `Mxpr`.
+"""
+@inline setfixed(x) = x
+
+"""
+    unsetfixed(mx::Mxpr)
+
+unsets the fixed bit on `mx`.
+"""
 @inline unsetfixed(mx::Mxpr) = (mx.fixed = false ; mx)
+
+"""
+    unsetfixed(x)
+
+is the identity if `x` is not a `Mxpr`.
+"""
+unsetfixed(x) = x
 
 debug_is_fixed(mx) = is_fixed(mx) ? symprintln(mx, " *is* fixed") : symprintln(mx, " is *not* fixed")
 
-deepsetfixed(x) = x
-function deepsetfixed{T<:Mxpr}(mx::T)
+"""
+    deepsetfixed(mx::Mxpr)
+
+returns a copy of `mx` with its fixed bit set, as well as the fixed bit on all `Mxpr` subexpressions.
+"""
+function deepsetfixed(mx::Mxpr)
     nargs = newargs(mx)
     for i in 1:length(nargs)
         nargs[i] = deepsetfixed(mx[i])
@@ -766,19 +829,34 @@ function deepsetfixed{T<:Mxpr}(mx::T)
     return mxprcf(mhead(mx), nargs)
 end
 
-deepunsetfixed(x) = x
-function deepunsetfixed{T<:Mxpr}(mx::T)
+"""
+    deepsetfixed(x)
+
+is the identity if `x` is not a `Mxpr`.
+"""
+deepsetfixed(x) = x
+
+"""
+    deepunsetfixed(mx::Mxpr)
+
+return `mx` with the fixed bit unset and the fixed bit of all subexpressions unset.
+"""
+function deepunsetfixed(mx::Mxpr)
     nargs = newargs(mx)
     map!(deepunsetfixed,nargs,margs(mx))
     unsetfixed(mx)
 end
 
+"""
+    deepunsetfixed(x)
+
+is the identity if `x` is not a `Mxpr`.
+"""
+deepunsetfixed(x) = x
+
 @inline is_canon(x) = false
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false
-#unsetfixed(x) = false  # sometimes we have a Julia object
-unsetfixed(x) = x  # This behavior is more useful
-
 
 function protectedsymbols_strings()
     symstrings = Array(Compat.String,0)
@@ -829,15 +907,6 @@ end
 #     mx
 # end
 
-# function usersymbolsold()
-#     args = newargs()
-#     for s in keys(CurrentContext.symtab)
-#         if  get_attribute(s,:Temporary) continue end  # This does not help.
-#         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
-#     end
-#     return args
-# end
-
 # For Heads that are not symbols
 get_attribute(args...) = false
 
@@ -859,7 +928,6 @@ for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, 
     sf = Symbol("has",s)
     @eval ($sf)(x) = get_attribute(x,$(QuoteNode(s)))
 end
-
 
 # Related code in predicates.jl and attributes.jl
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
@@ -911,7 +979,6 @@ typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
-
 
 # These should be fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)

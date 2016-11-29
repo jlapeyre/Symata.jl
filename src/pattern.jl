@@ -164,6 +164,11 @@ function match_and_capt(expr,pattern, capt)
     return (success_flag,capt)        # report whether matched, and return captures
 end
 
+function match_no_capture(expr,pattern)
+    (gotmatch, capture) = match_and_capt(expr,pattern)
+    gotmatch
+end
+
 capturealloc() = Dict{SJSym,Any}()
 
 # capturepatternname -> false means contradicts previous capture
