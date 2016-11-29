@@ -18,23 +18,23 @@ end
 
 ## Julia already has some of these. We need to consolidate
 
-macro bf_str(s)
-    parse(BigFloat,s)
-end
+# macro bf_str(s)
+#     parse(BigFloat,s)
+# end
 
-macro bi_str(s)
-    parse(BigInt,s)
-end
+# macro bi_str(s)
+#     parse(BigInt,s)
+# end
 
 macro BI_str(s)
     parse(BigInt,s)
 end
 
-
 macro BF_str(s)
     parse(BigFloat,s)
 end
 
+## eg: f = @jul x -> x^2
 macro jul(ex)
     extomx(Expr(:call, :J, ex))
 end
@@ -61,19 +61,19 @@ function symparsestring(s)
 end
 
 
-# Complicated:
-# 1. preprocess :> to .>, because :> cannot be parsed
-#  on output write .> as :>, so that it can be read again. But, .> also works as input
-# 2. We want -> for Rule. But, IIRC, the precedence required parenthesizing more than we want.
-#   So, we use =>. We would then like to preprocess -> to => on input and the reverse on output.
-#   But, we want to be able to write:
-# symata > f = :( (x) -> x^2 ), which would be rewritten f = :( (x) => x^2 ).
-# We could, when analyzing the parsed :( (x) => x^2 ), convert => back to ->, but I don't want to risk
-# messing the precedence of ->, which is asymmetric and special. Mostly because I guess this example will
-# be one of the most common uses of :( expr ), to wrap a Julia function.
-# So... what to do. Let us try simply breaking with Mma and using => for Rule.
-# Perhaps we can also allow -> for Rule as well.
-# We would have to do more than simple replacement form string preprocessing. I don't want to do that.
+## Complicated:
+## 1. preprocess :> to .>, because :> cannot be parsed
+##  on output write .> as :>, so that it can be read again. But, .> also works as input
+## 2. We want -> for Rule. But, IIRC, the precedence required parenthesizing more than we want.
+##   So, we use =>. We would then like to preprocess -> to => on input and the reverse on output.
+##   But, we want to be able to write:
+## symata > f = :( (x) -> x^2 ), which would be rewritten f = :( (x) => x^2 ).
+## We could, when analyzing the parsed :( (x) => x^2 ), convert => back to ->, but I don't want to risk
+## messing the precedence of ->, which is asymmetric and special. Mostly because I guess this example will
+## be one of the most common uses of :( expr ), to wrap a Julia function.
+## So... what to do. Let us try simply breaking with Mma and using => for Rule.
+## Perhaps we can also allow -> for Rule as well.
+## We would have to do more than simple replacement form string preprocessing. I don't want to do that.
 const PREPROCESS_SYMBOL_TRANSLATION = Dict{Any,Any}(
 #                                                    "->" => "=>",   #disable
                                                     ":>" => ".>",
@@ -93,8 +93,8 @@ const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
 # mostly done to rewrite the string into legal Julia syntax.
 # Now, we only look for the help symbol "?"
 function sjpreprocess_interactive(line::AbstractString)
-    if length(line) > 1 && line[1] == '?'             # User wants documentation
-        line = "?," * line[2:end] # We add a comma so that the julia parse will accept it.
+    if length(line) > 1 && line[1] == '?'  # User wants documentation
+        line = "?," * line[2:end]          # We add a comma so that the julia parse will accept it.
     end
     sjpreprocess_string(line)
 end
@@ -109,13 +109,9 @@ end
 
 #### extomx  translate a Julia expression ex, to an SJuia expression mx
 
-function extomx{T<:Integer}(x::T)
-    getkerneloptions(:bigint_input) ? BigInt(x) : x
-end
+extomx{T<:Integer}(x::T) = getkerneloptions(:bigint_input) ? BigInt(x) : x
 
-function extomx{T<:AbstractFloat}(x::T)
-    getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
-end
+extomx{T<:AbstractFloat}(x::T) = getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
 
 extomx(x) = x
 # This system needs to be rationalized.
@@ -136,17 +132,18 @@ function extomx(s::Symbol)
     end
 end
 
-# Underscore is not allowed in symbols. Instead,
-# they signify part of a pattern.
-# TODO. This is the only way we construct patterns at the moment.
-# But the name of the pattern, the first arg, can refer to not just a Blank,
-# but an entire pattern expression. Mma does this with a colon.
-# f:(_^_), or f:_^_  --> Pattern[x, Power[Blank[], Blank[]]].
-# We are using colon for Span. I don't know what we can do.
+## Underscore is not allowed in symbols. Instead,
+## they signify `Blank`s.
+##
+## TODO. This is the only way we construct patterns at the moment.
+## But the name of the pattern, the first arg, can refer to not just a Blank,
+## but an entire pattern expression. Mma does this with a colon.
+## f:(_^_), or f:_^_  --> Pattern[x, Power[Blank[], Blank[]]].
+## We are using colon for Span. I don't know what we can do.
 ## Nov 2016. Moved away from :( ) for Julia expressions. Will remove it soon.
 ## This frees :( ) and :s for other things
-# Mma does  Fullform[a::b] --> MessageName[a, "b"]. We could take
-# :: for Pattern
+## Mma does  Fullform[a::b] --> MessageName[a, "b"]. We could take
+## :: for Pattern
 function parseblank(s::AbstractString)
     a = split(s,['_'], keep=true)
     length(a) > 4 && error("parseblank: Illegal Pattern expression '$s'")
@@ -162,25 +159,25 @@ function parseblank(s::AbstractString)
         blanktype = :BlankNullSequence
         (blankhead,blankname) = (a[1],a[4])
     end
-    if length(blankname) == 0
-        blank = mxpr(blanktype)
-    else
-        blank = mxpr(blanktype,Symbol(blankname))
-    end
-    length(blankhead) == 0 && return blank
+    blank = isempty(blankname) ? mxpr(blanktype) : mxpr(blanktype,Symbol(blankname))
+    # if length(blankname) == 0
+    #     blank = mxpr(blanktype)
+    # else
+    #     blank = mxpr(blanktype,Symbol(blankname))
+    # end
+    isempty(blankhead) && return blank
+#    length(blankhead) == 0 && return blank
     mxpr(:Pattern,Symbol(blankhead),blank)
 end
 
 # Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
-function parsepattern(ex)
-    mxpr(:Pattern,map(extomx,ex.args))
-end
+parsepattern(ex) = mxpr(:Pattern,map(extomx,ex.args))
 
-function extomxarr!(ain,aout)
-    for x in ain
-        push!(aout,extomx(x))
-    end
-end
+extomxarr!(ain,aout) =  foreach( x -> push!(aout,extomx(x)), ain )
+#     for x in ain
+#         push!(aout,extomx(x))
+#     end
+# end
 
 
 # We currently have two kinds of symbols.
@@ -199,15 +196,15 @@ function parse_qualified_symbol(ex::Expr)
             dump(ex)
             error("extomx: error parsing second argument $a2 of ", ex, " , Expected an Expr or QuoteNode, got ", typeof(a2))
         end
-        qsym = Qsym(args[1],a2.value)
-        return qsym
+        return Qsym(args[1],a2.value)
+#        return qsym
     end
     typeof(a2.head) != Symbol && error("extomx: error parsing second argument of ", ex, ". Expected a symbol.")
     a2.head != :quote && error("extomx: error parsing second argument of ", ex, ". Expected symbol 'quote'.")
     length(a2.args) == 1 || error("extomx: error parsing second argument of ", ex, ". Expected one arg in quote node.")
     typeof(a2.args[1]) == Symbol || error("extomx: second argument of context qualification must be a symbol, got ", typeof(a2.args[1]))
-    qsym = Qsym(args[1],a2.args[1])
-    return(qsym)
+    return Qsym(args[1],a2.args[1])
+#    return(qsym)
 end
 
 function parse_quoted(ex::Expr,newa)
@@ -342,9 +339,9 @@ is_power(ex::Expr) = iscall(ex, :^)
 
 is_sqrt(ex::Expr) = iscall(ex,:Sqrt)
 
-# save time, don't make Symata meval convert //(a,b) to rational
-# we should also detect sums/products of like numbers, etc. and
-# combine them. No* Sometimes we want to Hold expressions involving numbers.
+## save time, don't make Symata meval convert //(a,b) to rational
+## we should also detect sums/products of like numbers, etc. and
+## combine them. No* Sometimes we want to Hold expressions involving numbers.
 function is_rational(ex::Expr)
     iscall(ex, :(//), 3) && isa(ex.args[2],Number) &&
         isa(ex.args[3],Number)
@@ -408,11 +405,12 @@ function rewrite_expr(ex::Expr)
         return eval(ex)  # TODO: don't do eval, use //
     elseif is_complex(ex)
         (real,imag) = (ex.args[2],ex.args[3])
-        if isa(real,Real) && isa(imag,Real)
-            return complex(real,imag)
-        else
-            return ex
-        end
+        return isa(real,Real) && isa(imag,Real) ? complex(real,imag) : ex
+        # if isa(real,Real) && isa(imag,Real)
+        #     return complex(real,imag)
+        # else
+        #     return ex
+        # end
     end
     return ex
 end

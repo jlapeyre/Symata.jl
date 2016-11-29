@@ -745,7 +745,7 @@ return `[Abs(z),Arg(z)]`.
 @doap AbsArg(z) = mxpr(:List,mxpr(:Abs,z), mxpr(:Arg,z))
 
 # Re and Im code below is disabled so it does not interfere with SymPy.
-# Mma allows complex numbers of mixed Real type. Julia does not.
+# Mma allows complex numbers of mixed Real type. So does Julia: Complex{Real}(1//3, 3.0)
 # Implementation not complete. eg  Im(a + I *b) --> Im(a) + Re(b)
 
 # do_Re{T<:Real}(mx::Mxpr{:Re}, x::Complex{T}) = real(x)

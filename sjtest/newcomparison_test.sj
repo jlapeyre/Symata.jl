@@ -160,9 +160,9 @@ T Equal(3,3)
 T Equal(3,3.0)
 T Head(Equal(x,y)) == Equal
 T Equal(x,x)
-T Equal(2,bf"2")
+#T Equal(2,bf"2")  # probably want to get rid of bf and bi
 T Equal(2,big"2")
-T Equal(2.0,bf"2")
+#T Equal(2.0,bf"2")
 T Equal(2.0,big"2")
 
 T Not(Unequal(3,3))
