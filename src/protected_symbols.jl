@@ -45,7 +45,7 @@ set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "Si
                  "Cot", "Cosh", "Conjugate", "Sinh","Minus","Abs","Re","Im", "ReIm", "Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
                  "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "GammaRegularized", "Divide",
-                 "DirichletEta", "PolyLog", "Sqrt"
+                 "DirichletEta", "PolyLog", "Sqrt", "CubeRoot", "Surd"
                  ],
                 [:Listable,:NumericFunction])
 

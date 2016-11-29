@@ -18,10 +18,7 @@ want, you can use `SetPrecision`.
     n
 end
 
-# This idea can be removed. It is not going anywhere.
-function evalmath(x)
-    Symata.eval(x)
-end
+evalmath(x) = Symata.eval(x)
 
 ## We also need to use these to convert Symata expressions to Julia
 
@@ -43,12 +40,6 @@ function mtr(sym::Symbol)
 end
 
 # We choose not to implement :cis. Julia has it. sympy and mma, not
-
-# Maybe do these
-# :Abs,:Chi, :exp, :ln, :log, :sqrt
-# ?? :laguerre
-
-# real_root vs real_roots ?
 
 # List of not yet implemented sympy functions from keys(sympy.functions)
 # :E1,:Ei,:FallingFactorial,:Heaviside, :Id,
@@ -102,13 +93,58 @@ end
 
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
+@mkapprule CubeRoot :nargs => 1
+
+@doap CubeRoot(x::AbstractFloat) = cbrt(x)
+@doap function CubeRoot{T<:Union{Integer,Rational}}(x::T)
+    x == 0 && return 0
+    x > 0 && return mpow(x,1//3)
+    -mpow(-x,1//3)
+end
+
+@doap function CubeRoot(x::Complex)
+    symwarn("CubeRoot::preal: The parameter $x should be real valued.")
+    mx
+end
+
+@doap function CubeRoot(x::Mxpr)
+    mxpr(:Surd,x,3)
+end
+
+@doap function CubeRoot(x::Symbol)
+    mxpr(:Surd,x,3)
+end
+
+@mkapprule Surd :nargs => 2
+
+@doap function Surd(x,n::Integer)
+    if iseven(n)
+        symwarn("Surd::noneg: Surd is not defined for even roots of negative values.")
+        return mx
+    end
+    _surd(mx,x,n)
+end
+
+## TODO: symbolic x
+function _surd(mx,x::Number,n)
+    x >= 0 && return mpow(x,1//n)
+    mminus(mpow(-x,1//n))
+end
+
+_surd(mx,x,n) = mx
+
+function _surd(mx,x::TimesT,n)
+    length(x) < 2 && return mx
+    isa(x[1],Number) && return mxpr(:Surd,x[1],n) * mxpr(:Surd, mxpr(:Times, x[2:end]...),n)
+    mx
+end
 
 const single_arg_float_int_complex =
         [
 #         (:conj,:Conjugate,:conjugate)
          ]
 
-    const single_arg_float = [(:cbrt,:CubeRoot,:cbrt),
+    const single_arg_float = [  ## (:cbrt,:CubeRoot,:cbrt),
                         (:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)
                         ]
 

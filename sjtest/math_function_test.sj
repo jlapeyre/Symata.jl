@@ -1,6 +1,30 @@
+### CubeRoot
+
+T CubeRoot(8) == 2
+T CubeRoot(-8) == -2
+T CubeRoot(-8.0) == -2.0
+T CubeRoot(8.0) == 2.0
+T Abs(CubeRoot(-2.0) + 1.2599210498948732) < 10^-8
+T Abs(CubeRoot(2.0) - 1.2599210498948732) < 10^-8
+T CubeRoot(2) == 2^(1/3)
+T CubeRoot(-2) == -2^(1/3)
+T Head(CubeRoot(I)) == CubeRoot
+T CubeRoot(2/3) == 2^(1/3)*3^(-1/3)
+T CubeRoot(-2/3) == -2^(1/3)*3^(-1/3)
+T CubeRoot(x) == Surd(x,3)
+T CubeRoot(-x) == -Surd(x,3)
+T CubeRoot(-x^2) == -Surd(x^2,3)
+T CubeRoot(-2x^2) == -2^(1/3)*Surd(x^2,3)
+T CubeRoot([-3, -2, -1, 0, 1, 2, 3]) == [-3^(1/3),-2^(1/3),-1,0,1,2^(1/3),3^(1/3)]
+
+### Surd
+
+T Surd(-2,5) == - 2^(1/5)
+T Surd(-2.0,5) == -(2.0^(1/5))
+
 ### DirichletEta
 
-## At present, we follow Mma with this, but may want to hold this unevaluated
+### At present, we follow Mma with this, but may want to hold this unevaluated
 
 T DirichletEta(s) == (1 - (2^(1 - s)))*Zeta(s)
 T DirichletEta(1) == Log(2)
