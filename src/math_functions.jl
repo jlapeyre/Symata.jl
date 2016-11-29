@@ -550,7 +550,10 @@ try to give `p` decimal digits of precision.
 Sometimes `N` does not give the number of digits requested. In this case, you can use `SetPrecision`.
 """
 
-# N needs to be rewritten
+## TODO: call evalf(expr,n) on sympy functions to get arbitrary precision numbers.
+## Eg. N(LogIntegral(4),30) does not give correct result.
+## ... a list of heads all of which should be converted and then passed to evalf.
+## N needs to be rewritten
 function apprules(mx::Mxpr{:N})
     outer_N(margs(mx)...)
 end
@@ -1068,18 +1071,17 @@ the lower incomplete gamma function.
 #### Norm
 
 # TODO: Implement p norm
-# TODO: improve efficiency
 @mkapprule Norm :nargs => 1
 
-@doap Norm(x::Complex) = mxpr(:Abs,x)
+@doap Norm(x::Number) = abs(x)
 
 @doap function Norm(x::Mxpr{:List})
     vectorq(x) || return mx # TODO error message
     local sum0 = 0
     for i in 1:length(x)
-        sum0 += mxpr(:Power, mxpr(:Abs, x[i]),2)
+        sum0 += mpow(Abs(x[i]),2)
     end
-    mxpr(:Sqrt,sum0)
+    mpow(sum0,1//2)
 end
 
 @sjdoc ExpandFunc """

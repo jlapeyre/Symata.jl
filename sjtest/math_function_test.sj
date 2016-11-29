@@ -361,4 +361,18 @@ T mittest(3,1,5) < 10^(-14)
 ## T mittest(4,1,5)
 ## T mittest(2,1,5)
 
+### Norm
+
+ClearAll(a,b,c)
+
+T Norm(1) == 1
+T Norm(-1) == 1
+T Norm(-I) == 1
+T Norm(2) == 2
+T Norm(-2) == 2
+T Norm(-1/2) == 1/2
+T Norm([1,2]) == 5^(1/2)
+T Norm([1,I]) == 2^(1/2)
+T Norm([a,b,c]) == (Abs(a)^2 + Abs(b)^2 + Abs(c)^2)^(1/2)
+
 Apply(ClearAll, UserSyms())
