@@ -906,14 +906,7 @@ end
 ## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
 typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
-### Iterator
-
-# moved these into the loop below
-# Base.start(mx::Mxpr) = start(margs(mx))
-# Base.next(mx::Mxpr,state) = next(margs(mx),state)
-# Base.done(mx::Mxpr,state) = done(margs(mx),state)
-
-####
+### Iterator, etc.
 
 for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)

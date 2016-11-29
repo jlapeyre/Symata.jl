@@ -2,7 +2,7 @@ module SymataIO
 
 import Base: show
 
-import Symata: Mxpr, SJSym, SSJSym,
+import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
@@ -12,7 +12,6 @@ const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
 # A space, or maybe not.
 opspc(sym) = haskey(infix_with_space,sym) ? " " : getkerneloptions(:compact_output) ? "" : " "
-
 const binaryops_space = collect(keys(comparison_translation) )
 
 ## Some of these, at least "^:=" can't be parsed as quoted symbols, but can be
@@ -23,7 +22,6 @@ function binaryopspc(ss)
     ss in binaryops_space && return " "
     s = string(ss)
     s in binaryops_space_strings && return " "
-#    (s == "=>" || s == "->" || s == ":>"  || s == "^:=" || s == "⇒") && return " "
     return ""
 end
 
@@ -79,10 +77,6 @@ de_gensym(x) = x
 #         return str
 #     end
 # end
-
-# We need a way to force using this. In the REPL, I guess
-# Hmm. Wrap all output in a type made just for that purpose.... no that won't work
-# sjshow(io::IO,x) = Base.show(io,x)
 
 #### Wrap output
 

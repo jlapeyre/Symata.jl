@@ -208,7 +208,7 @@ gives the inverse Laplace transform of `expr`.
 function apprules(mx::Mxpr{:InverseLaplaceTransform})
     result = sympy[:inverse_laplace_transform](map(sjtopy, margs(mx))...)
     sjresult = pytosj(result)
-    if is_Mxpr(sjresult) && mhead(sjresult) == :InverseLaplaceTransform
+    if isa(sjresult,Mxpr) && mhead(sjresult) == :InverseLaplaceTransform
         setfixed(sjresult)
         if mhead(margs(sjresult)[end]) == :Dummy
             pop!(margs(sjresult)) # we may also want to strip the Dummy()
@@ -270,7 +270,6 @@ function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
         return mxpr(:Sum,summand,reverse(specs)...)
     end
     fix_integrate_piecewise(typeof(mx),res)
-#    return is_Mxpr(res,:Piecewise) ? res[1] : res
 end
 
 #### Product
@@ -306,7 +305,7 @@ function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyspec = []
     for dspec in margs(mx)[2:end]    # Following is more than neccessary. Also, maybe we could use tuples instead of lists
-        if is_Mxpr(dspec,:List)
+        if isa(dspec,ListT)
             for xdspec in margs(dspec)
                 push!(pyspec,sjtopy(xdspec))
             end
@@ -343,7 +342,7 @@ function apprules(mx::Mxpr{:D})
     pymx = sjtopy(mx[1])
     pyspec = []
     for dspec in margs(mx)[2:end]  # D(expr, [x,1], y, ...) --> diff(expr,x,1,y,...)
-        if is_Mxpr(dspec,:List)
+        if isa(dspec,ListT)
             for xdspec in margs(dspec)
                 push!(pyspec,sjtopy(xdspec))
             end
@@ -705,11 +704,12 @@ end
 function varspecs_to_tuples_of_sympy(args::Array)
     oarr = []
     for x in args
-        if is_Mxpr(x,:List)
-            push!(oarr, tuple(map(sjtopy, margs(x))...))
-        else
-            push!(oarr,sjtopy(x))
-        end
+        push!(oarr, isa(x,ListT) ? tuple(map(sjtopy, margs(x))...) : sjtopy(x))
+        # if isa(x,ListT)
+        #     push!(oarr, tuple(map(sjtopy, margs(x))...))
+        # else
+        #     push!(oarr,sjtopy(x))
+        # end
     end
     return oarr
 end
