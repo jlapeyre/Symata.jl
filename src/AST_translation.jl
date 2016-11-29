@@ -18,26 +18,11 @@ end
 
 ## Julia already has some of these. We need to consolidate
 
-# macro bf_str(s)
-#     parse(BigFloat,s)
-# end
-
-# macro bi_str(s)
-#     parse(BigInt,s)
-# end
-
-macro BI_str(s)
-    parse(BigInt,s)
-end
-
-macro BF_str(s)
-    parse(BigFloat,s)
-end
+macro BI_str(s) parse(BigInt,s) end
+macro BF_str(s) parse(BigFloat,s) end
 
 ## eg: f = @jul x -> x^2
-macro jul(ex)
-    extomx(Expr(:call, :J, ex))
-end
+macro jul(ex) extomx(Expr(:call, :J, ex)) end
 
 function symparsestring(s)
     mxprs = Array(Any,0)
@@ -110,10 +95,9 @@ end
 #### extomx  translate a Julia expression ex, to an SJuia expression mx
 
 extomx{T<:Integer}(x::T) = getkerneloptions(:bigint_input) ? BigInt(x) : x
-
 extomx{T<:AbstractFloat}(x::T) = getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
-
 extomx(x) = x
+
 # This system needs to be rationalized.
 # Comment out lines are no longer needed
 # We can move the rest out of here too
@@ -123,13 +107,8 @@ function extomx(s::Symbol)
     s == :∑ && return :Sum
     s == :True && return true
     s == :False && return false
-
     ss = string(s)
-    if contains(ss,"_")  # Blanks used in patterns
-        return parseblank(ss)
-    else
-        return getsym(jtomsym(s)) # Maybe translate the symbol
-    end
+    return contains(ss,"_")  ? parseblank(ss) : getsym(jtomsym(s))
 end
 
 ## Underscore is not allowed in symbols. Instead,
@@ -160,24 +139,13 @@ function parseblank(s::AbstractString)
         (blankhead,blankname) = (a[1],a[4])
     end
     blank = isempty(blankname) ? mxpr(blanktype) : mxpr(blanktype,Symbol(blankname))
-    # if length(blankname) == 0
-    #     blank = mxpr(blanktype)
-    # else
-    #     blank = mxpr(blanktype,Symbol(blankname))
-    # end
-    isempty(blankhead) && return blank
-#    length(blankhead) == 0 && return blank
-    mxpr(:Pattern,Symbol(blankhead),blank)
+    return isempty(blankhead) ? blank : mxpr(:Pattern,Symbol(blankhead),blank)
 end
 
 # Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
 parsepattern(ex) = mxpr(:Pattern,map(extomx,ex.args))
 
 extomxarr!(ain,aout) =  foreach( x -> push!(aout,extomx(x)), ain )
-#     for x in ain
-#         push!(aout,extomx(x))
-#     end
-# end
 
 
 # We currently have two kinds of symbols.
@@ -197,14 +165,12 @@ function parse_qualified_symbol(ex::Expr)
             error("extomx: error parsing second argument $a2 of ", ex, " , Expected an Expr or QuoteNode, got ", typeof(a2))
         end
         return Qsym(args[1],a2.value)
-#        return qsym
     end
     typeof(a2.head) != Symbol && error("extomx: error parsing second argument of ", ex, ". Expected a symbol.")
     a2.head != :quote && error("extomx: error parsing second argument of ", ex, ". Expected symbol 'quote'.")
     length(a2.args) == 1 || error("extomx: error parsing second argument of ", ex, ". Expected one arg in quote node.")
     typeof(a2.args[1]) == Symbol || error("extomx: second argument of context qualification must be a symbol, got ", typeof(a2.args[1]))
     return Qsym(args[1],a2.args[1])
-#    return(qsym)
 end
 
 function parse_quoted(ex::Expr,newa)
