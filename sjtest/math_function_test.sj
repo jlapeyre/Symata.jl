@@ -368,6 +368,7 @@ ClearAll(a,b,c)
 T Norm(1) == 1
 T Norm(-1) == 1
 T Norm(-I) == 1
+T Norm(I - 2) == 5^(1/2)
 T Norm(2) == 2
 T Norm(-2) == 2
 T Norm(-1/2) == 1/2

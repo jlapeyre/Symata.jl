@@ -1073,7 +1073,7 @@ the lower incomplete gamma function.
 # TODO: Implement p norm
 @mkapprule Norm :nargs => 1
 
-@doap Norm(x::Number) = abs(x)
+@doap Norm(x::Number) = Abs(x)
 
 @doap function Norm(x::Mxpr{:List})
     vectorq(x) || return mx # TODO error message
