@@ -177,6 +177,7 @@ function parse_quoted(ex::Expr,newa)
     # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
     symwarn(":( ) for Julia code is deprecated. Use J( ) instead")
     head = :Jxpr           # This allows running Julia code from within Symata.
+#    println(ex)
     push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                            # But, this is the same effect as evaling ex
     return head
@@ -190,7 +191,13 @@ function parse_call(ex,newa)
     nhead = extomx(ex.args[1])
     if nhead == :J
         nhead = :Jxpr
-        push!(newa,a[2]) # will be interpreted as Julia code, so don't translate it.
+        for i in 2:length(a)
+            x = a[i]
+            if isa(x,Expr) && x.head == :kw  # in  J( x =  1) ,  x=1 is interpeted as keyword, value pair. But the user means to do assignment
+                x.head = :(=)                # will this break legit uses of keywords ?
+            end
+            push!(newa,a[i]) # will be interpreted as Julia code, so don't translate it.
+        end
     else
         @inbounds for i in 2:length(a) push!(newa,extomx(a[i])) end
     end

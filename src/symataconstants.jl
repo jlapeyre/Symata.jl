@@ -45,7 +45,7 @@ for s in ( :_moosq2, :_oosq2 , :Pisq, :ComplexInfinity, :Infinity, :MinusInfinit
     @eval setcanon($s)
 end
 
-for s in ( :BigInt, :BigFloat, :Float64, :Int64, :Int)
+for s in ( :BigInt, :BigFloat, :Float64, :Int64, :Int, :DateTime, :DataType)
     sq = QuoteNode(s)
     @eval setsymval($sq,$s)
 end

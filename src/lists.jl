@@ -23,12 +23,7 @@ replace the `Head` of expression `ex` with `List`.
 ### First
 
 @mkapprule First :nargs => 1
-
-@doap function First(x::Mxpr)
-    length(x) == 0 && return mx
-    return x[1]
-end
-
+@doap First(x::Mxpr) = isempty(x) ? mx : x[1]
 @doap First(x) = mx
 
 ### Join
@@ -43,9 +38,7 @@ concatenate arguments of expressions with the same `Head`, returning an expressi
 
 @doap function Join{T}(args::Mxpr{T}...)
     nargs = newargs()
-    for a in args
-        append!(nargs,margs(a))
-    end
+    foreach( x -> append!(nargs,margs(x)), args)
     mxpr(mhead(args[1]),nargs)
 end
 
@@ -54,7 +47,7 @@ end
 @mkapprule Rest :nargs => 1
 
 @doap function Rest(x::Mxpr)
-    length(x) == 0 && return mx
+    isempty(x) && return mx
     nargs = newargs(length(x)-1)
     for i in 1:length(nargs)
         nargs[i] = deepcopy(x[i+1])
@@ -69,7 +62,7 @@ end
 @mkapprule Most :nargs => 1
 
 @doap function Most(x::Mxpr)
-    length(x) == 0 && return mx
+    isempty(x) && return mx
     nargs = newargs(length(x)-1)
     for i in 1:length(nargs)
         nargs[i] = deepcopy(x[i])
@@ -87,12 +80,12 @@ end
 @doap Last(x) = mx
 
 @doap function Last(x::Mxpr)
-    length(x) == 0 && return mx  # FIXME add warning
+    isempty(x) && return mx  # FIXME add warning
     x[end]
 end
 
 @doap function Last(x::Mxpr,default)
-    length(x) == 0 && return doeval(default)  # Last has Attribute HoldRest
+    isempty(x) && return doeval(default)  # Last has Attribute HoldRest
     x[end]
 end
 
@@ -518,7 +511,7 @@ returns a list of the keys in `Dict` `d`.
 """
 
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
-do_keys{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,keys(d))...)
+do_keys(mx,d::Associative) = mxpr(:List,collect(Any,keys(d))...)
 do_keys(mx,x) = (symwarn("Can't return keys of $x"); mx)
 
 ### Values
@@ -530,7 +523,7 @@ return a list of the values in `Dict` `d`.
 """
 
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
-do_values{T<:Dict}(mx,d::T) = mxpr(:List,collect(Any,values(d))...)
+do_values(mx,d::Associative) = mxpr(:List,collect(Any,values(d))...)
 do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
 
 ### Splat

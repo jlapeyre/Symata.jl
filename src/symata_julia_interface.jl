@@ -58,14 +58,26 @@ allows embedding Julia expressions. A Jxpr is entered like this `J( expr )`.
 
 # quote, i.e. :( expr ) is parsed as a Julia expression and is wrapped as  < -- we will remove this
 # Mxpr with head Jxpr. It is evaluated here.
-@mkapprule Jxpr
+@mkapprule Jxpr :nodefault => true
 
-@doap Jxpr{T<:Union{Expr,Symbol}}(ex::T) = eval(ex)
-@doap Jxpr(x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
+@doap function Jxpr(args...)
+    local res
+    for x in args
+        res = eval(x)
+    end
+    res
+end
 
-#apprules(mx::Mxpr{:Jxpr}) = do_jxpr(mx,mx[1])
-#do_jxpr{T<:Union{Expr,Symbol}}(mx::Mxpr{:Jxpr}, ex::T) = eval(ex)
-#do_jxpr(mx::Mxpr{:Jxpr}, x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
+@sjdoc J """
+    J(expr1,expr2,...)
+
+Evaluate Julia expressions `expr1`, `expr2`, ... in Julia and return the final result.
+"""
+
+@sjseealso_group(J,Jexpr,Compile,SymataCall)
+
+# @doap Jxpr{T<:Union{Expr,Symbol,Number}}(ex::T) = eval(ex)
+# @doap Jxpr(x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
 
 #### Unpack
 
@@ -97,7 +109,7 @@ function unpacktoList(obj)
     mx = mxpr(:List, do_unpack(obj))
     setfixed(mx)
     setcanon(mx)
-    return mx    
+    return mx
 end
 do_unpack(obj) = copy!(newargs(length(obj)),obj)
 
@@ -240,7 +252,7 @@ freesyms!(x,syms) = nothing
 
 convert `expr` to a compiled function.
 
-    f = Compile( [x,y,...], expr) 
+    f = Compile( [x,y,...], expr)
 
 create an anonymous Julia function `(x,y,...) -> expr` from Symata expression `expr` and bind
 the result to `f`.
@@ -365,7 +377,7 @@ function wrap_symata(expr0::Mxpr,vars0...)
 end
 
 function wrap_symata(expr0::SJSym,var0)
-    sym = get_localized_symbol(var0)    
+    sym = get_localized_symbol(var0)
     var0 == expr0 && return (sym,sym)
     return (sym,expr0)
 end

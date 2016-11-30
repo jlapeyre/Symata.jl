@@ -44,6 +44,11 @@ T Head(func([a+b, c+d],[u+v,y+z])) == Plus
 T Head(J( Symata.:+(:c,:d) )) == Plus
 T Head(J( Symata.:*(:c,:d) )) == Times
 
+T J(3) == 3
+T J(3 + 2) == 5
+T J( x = 1 ) == 1   ## x = 1 is rewritten from call with kw, to = 
+T J( x ) == 1
+
 ### Compile
 
 T  Compile( Cos(x) )(3) == Cos(3)
