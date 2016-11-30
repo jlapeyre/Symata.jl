@@ -50,9 +50,13 @@ and from a file etc. These are the best places for examples and help:
 
 ### IJulia Notebooks
 
-A few tutorial notebooks are in [the example directory](examples/). These are snapshots, not live, so you can
-view them immediately with your browswer. The typeset math will look better
-in the IJulia notebook, which renders it with higher quality than github does.
+A few tutorial notebooks can be viewed [here](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
+Lower-quality renderings of the same notebooks are in [the example directory](examples/). These are all snapshots, not live, so you can
+view them immediately with your browswer.
+
+In order to run the examples in the notebooks, you need to use the development version of `Symata`
+Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
+branch with `Pkg.free("Symata")`.)
 
 ### Installing
 
@@ -134,11 +138,6 @@ In Symata mode, the input is not interpreted as Julia expressions, but rather Sy
 You can do tab completion to see a list of functions and symbols.
 
 ### Jupyter / IJulia
-
-<!-- You need to use the development version of `Symata` in order to use `Jupyter`, which is provided by
-`IJulia.jl`. Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
-branch with `Pkg.free("Symata")`.)
--->
 
 Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
 
