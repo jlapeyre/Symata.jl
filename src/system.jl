@@ -101,4 +101,10 @@ end
 ### Paste
 
 @mkapprule Paste :nargs => 0
-@doap Paste() = clipboard()
+@doap function Paste()
+    try
+        clipboard()
+    catch
+        Null
+    end
+end

@@ -7,6 +7,8 @@ import Compat.view
 
 import Base: setindex!, getindex, replace
 
+export @symExpr
+
 export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln, unpacktoList, mhead, margs, newargs,
         symparseeval, symparsestring
 

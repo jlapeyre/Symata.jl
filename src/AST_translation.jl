@@ -24,6 +24,14 @@ macro BF_str(s) parse(BigFloat,s) end
 ## eg: f = @jul x -> x^2
 macro jul(ex) extomx(Expr(:call, :J, ex)) end
 
+"""
+    symparsestring(s::String)
+
+parses `s` into one or more Julia expressions, translates each one to a Symata expression,
+and returns an array of the Symata expressions.
+
+Note that the phrases *Symata expression* and *Julia expression* here include numbers, symbols, etc.
+"""
 function symparsestring(s)
     mxprs = Array(Any,0)
     s = sjpreprocess_string(s)

@@ -5,7 +5,7 @@ set_pattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "TimesBy
 ## Piecewise is also read protected in Mma
 set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
-                 "Jxpr", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall",
+                 "Jxpr", "JuliaExpression", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall",
                  "Piecewise"],
                 :HoldAll)
 
@@ -81,7 +81,7 @@ set_pattributes(["BellB"],
 
 # Note: Simplify is not Listable in Mma
 set_pattributes(["Boole", "EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
-                 "ToExpression", "Simplify", "FullSimplify", "StringReverse"]
+                 "ToExpression", "Simplify", "FullSimplify", "StringReverse", "ToJExpression"]
                 ,[:Listable])
 
 set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])

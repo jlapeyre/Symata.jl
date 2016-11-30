@@ -11,7 +11,7 @@
 send `expr` through the Symata evaluation sequence. `expr` is
 an `Mxpr` or number, symbol, etc.
 
-In particular, an `Expr` is not translated by will be evaluated (i.e. returned unchanged) by the Symata
+In particular, an `Expr` (i.e. not translated to Symata) Symata-evaluated (whic in this case means returned unchanged) by the Symata
 evaluation sequence.
 """
 symeval(args...) = doeval(args...)
@@ -153,7 +153,12 @@ function symtranseval(expr)
     exfunc(expr, SimpleExFuncOptions)
 end
 
+"""
+    symparseeval(s::String)
 
+parses `s` into Julia expressions, translates them to Symata expressions, and Symata-evaluates each one,
+returning the value returned by the final evaluation.
+"""
 function symparseeval(s::String)
     mxprs = symparsestring(s)
     local res
@@ -164,9 +169,9 @@ function symparseeval(s::String)
 end
 
 """
-    macro exsimple(ex)
+    macro exsimple(ex::Expr)
 
-evalute Symata input. Most code for interactive sessions is disabled.
+translates `ex` to Symata expression and evaluates the result. Most code for interactive sessions disabled.
 """
 macro exsimple(ex)   # use this macro from the julia prompt
     mx = exfunc(ex, SimpleExFuncOptions)
@@ -183,6 +188,11 @@ function debugmxpr(s::String)
     exfunc(parse(s))
 end
 
+"""
+    number_of_Os
+
+is the number of previous outputs to bind to `O`, `OO`, etc.
+"""
 const number_of_Os = 10
 
 const Os = Array(SJSym,0)

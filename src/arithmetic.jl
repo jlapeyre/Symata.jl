@@ -268,9 +268,14 @@ for op = (:mplus, :mmul)
         # In order for this to work, we allow any combination of numbers.
         ($op)(a::Number, b::Number, c::Number)        = ($op)(($op)(a,b),c)
         ($op)(a::Number, b::Number, c::Number, xs::Number...) = ($op)(($op)(($op)(a,b),c), xs...)        
-
         # a further concern is that it's easy for a type like (Int,Int...)
         # to match many definitions, so we need to keep the number of
         # definitions down to avoid losing type information.
     end
 end
+
+## `Compile` and other functions may generate `mmul(x,y,z)` where some of the args are not numbers.
+## These catch cases where some of args are not numbers.
+## This may want to implment more logic for efficiency
+mmul(args...) = mxpr(:Times, args...)
+mplus(args...) = mxpr(:Times, args...)
