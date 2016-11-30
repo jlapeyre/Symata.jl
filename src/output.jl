@@ -2,7 +2,7 @@ module SymataIO
 
 import Base: show
 
-import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT,
+import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
        getsym, symname, mhead, margs,  getoptype, mtojsym,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
@@ -423,6 +423,7 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
     args = margs(mx)
     np = false
     sepsym = mtojsym(mhead(mx))
+    spc = opspc(sepsym)
     # uncomment following to print space for multiplication rather than *. But, I want "InputForm" for now,
     # so we can copy output to input.
 #    if mhead(mx) == :Times sepsym = " " end # not a sym. Maybe we should make them all strings
@@ -437,6 +438,9 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
                 print(io, " - ", - a1)
             else
                 print(io, a1)
+                if length(args) > 1 && isa(args[2],Union{Number,PowerT})
+                    print(io, spc, sepsym, spc)
+                end
             end
             startind = 2
         end
@@ -453,7 +457,6 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
         if np
             print(io,")")
         end
-        spc = opspc(sepsym)
         print(io, spc, sepsym, spc)
     end
     if ! isempty(args)

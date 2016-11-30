@@ -10,6 +10,8 @@ T ToString( -1 * a) == "-a"
 T ToString(a - b) == "a - b"
 T ToString(a + -3 * b) == "a - 3b"
 
+T ToString(3 * 3^(1/3)) == "3*3^(1/3)"
+
 T ToString((I+1)* a) == "(1 + I)*a"
 
 T ToExpression(ToString(Expand((a-b)^5))) == Expand((a-b)^5)
