@@ -100,3 +100,24 @@ end
 
 _fromcharactercode_list(s) = String([Char(i) for i in s])
     
+### LetterNumber
+
+@mkapprule LetterNumber :nargs => 1
+
+@doap LetterNumber(x::String) = length(x) > 1 ? mx : letternumber(x[1])
+
+function letternumber(c::Char)
+    Int(uppercase(c)) - 64
+end
+
+### DigitQ
+
+@mkapprule DigitQ :nargs =>1
+@doap DigitQ(s::Union{Char,AbstractString}) = isdigit(s)
+
+
+### StringSplit
+
+@mkapprule StringSplit
+@doap StringSplit(s::String) = MList(split(s)...)
+@doap StringSplit(s::String, d::Union{String,Regex}) = MList(split(s,d)...)

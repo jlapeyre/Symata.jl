@@ -18,4 +18,7 @@ T FromCharacterCode(ToCharacterCode("hello")) == "hello"
 
 T FromCharacterCode([ [104,101,108,108,111], [104,101,108,108,111] ]) == ["hello","hello"]
 
+T LetterNumber(Characters("abcxyz")) == [1,2,3,24,25,26]
+T LetterNumber(Characters("AbCxYz")) == [1,2,3,24,25,26]
+
 ClearAll(a,b)
