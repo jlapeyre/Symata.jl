@@ -657,7 +657,7 @@ function match_and_replace(ex,r::Rules)
     return rhs_copy_subst
 end
 
-#### Replace
+### Replace
 
 # apply replacement rule r to expression ex
 # No level spec
@@ -761,7 +761,7 @@ patsubst!(pat::SJSym,cd) = return  havecapt(pat,cd) ? retrievecapt(pat,cd) : pat
 patsubst!(pat::BlankT,cd) = retrievecapt(pat,cd)
 patsubst!(pat,cd) = pat
 
-## ReplaceRepeated
+### ReplaceRepeated
 
 function replacerepeated(ex, rules::Array; kws...)
     too_many_iterations::Bool = true
@@ -790,31 +790,5 @@ end
 
 replacerepeated{T<:Rules}(ex, therule::T; kws...) =  replacerepeated(ex,Rules[therule]; kws...)
 
-#### FreeQ
-
-# FIXME: this should match heads, as well
-type FreeQData
-    pattern
-    gotmatch::Bool
-end
-
-function freeq(levelspec::LevelSpec, expr, pat)
-    data = FreeQData(pat,false)
-    action = LevelAction(data,
-                         function (data, expr)
-                             (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
-                             if gotmatch
-                               data.gotmatch = true
-                               action.levelbreak = true
-                             end
-                         end)
-    if has_level_zero(levelspec)  # Do level zero separately
-        (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
-        gotmatch && return false
-    end
-    traverse_levels!(action,levelspec,expr)
-    data.gotmatch && return false
-    return true
-end
 
 nothing

@@ -173,7 +173,7 @@ return true if `N(expr)` would return a number.
 """
 do_NumericQ(mx::Mxpr{:NumericQ}, x) = is_Numeric(x)
 is_Numeric(x) = false
-is_Numeric{T<:Number}(x::T) = true
+is_Numeric(x::Number) = true
 is_Numeric(x::Symbol) = is_Constant(x)
 is_Numeric(x::Mxpr) = get_attribute(x,:NumericFunction)  && all( t -> is_Numeric(t), margs(x))
 
@@ -335,12 +335,80 @@ matrixq(x,test) = false
 @doap BooleanQ(x::Bool) = true
 @doap BooleanQ(x...) = false
 
+### FreeQ
+
+## FIXME: Need Heads => True
+
+# don't know how to put this in the macro string
+# const levelstring = """
+# - `n`       levels `0` through `n`.
+# - `[n]`     level `n` only.
+# - `[n1,n2]` levels `n1` through `n2`
+# """
+
+@mkapprule FreeQ :nargs => 1:3
+
+@doap FreeQ(expr, pattern) = freeq(LevelSpecAll(),expr,pattern)
+
+@doap FreeQ(expr, pattern, inlevelspec)  = freeq(make_level_specification(expr, inlevelspec), expr, pattern)
+
+@curry_second FreeQ
+
+@sjdoc FreeQ """
+    FreeQ(expr, pattern)
+
+return `True` if no subexpression of `expr` matches `pattern`.
+
+    FreeQ(expr, pattern, levelspec)
+
+return `True` if `expr` does not match `pattern` on levels specified by `levelspec`.
+
+- `n`       levels `1` through `n`.
+- `[n]`     level `n` only.
+- `[n1,n2]` levels `n1` through `n2`
+
+    FreeQ(pattern)
+
+operator form.
+"""
+
+type FreeQData
+    pattern
+    gotmatch::Bool
+end
+
+function freeq(levelspec::LevelSpec, expr, pat)
+    data = FreeQData(pat,false)
+    action = LevelAction(data,
+                         function (data, expr)
+                             (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
+                             if gotmatch
+                               data.gotmatch = true
+                               action.levelbreak = true
+                             end
+                         end)
+    if has_level_zero(levelspec)  # Do level zero separately
+        (gotmatch,cap) = match_and_capt(expr,patterntoBlank(data.pattern))
+        gotmatch && return false
+    end
+    traverse_levels!(action,levelspec,expr)
+    data.gotmatch && return false
+    return true
+end
+
 ### Element
 
 ## We may want to do this with a dictionary. As it is the Julia compiler
 ## may have a chance to reason.
 
+@sjdoc Element """
+    Element(x,dom),  x ∈ dom
+
+asserts that `x` is an element of the domain `dom`.
+"""
+
 @mkapprule Element :nargs => 2
+
 
 @doap function Element(x::Integer,sym::Symbol)
     if sym == :Integers || sym == :Reals || sym == :Rationals || sym == :Complexes ||
@@ -375,7 +443,7 @@ end
     sym == :Reals && return false
     sym == :Booleans && return false
     if sym == :Algebraics
-        T <: Integers && return true
+        T <: Integer && return true
         return mx
     end
     sym == :Complexes && return true
@@ -418,6 +486,25 @@ end
         sym == :Reals && return true
         sym == :Integers && return false
         sym == :Complexes && return true
+    end
+    mx
+end
+
+## This will return unevaluated some inputs for which the answer is known, eg, powers involving Pi
+@doap Element(x::PowerT, sym::Symbol) = _element_power(mx,x,margs(x)...,sym)
+function _element_power(mx,x,b::Number,expt::Number,sym)
+    (sym == :Integers || sym == :Rationals || sym == :Booleans || sym == :Primes) && return false
+    (sym == :Reals || sym == :Complexes || sym == :Algebraics)  && return true
+    x
+end
+_element_power(mx,args...) = mx
+
+
+## This will probably give the wrong answer for some inputs
+@doap function Element(x::TimesT, sym::Symbol)
+    if is_Numeric(x) && freeq(LevelSpecAll(),x, mxpr(:Blank,:Symbol))
+        (sym == :Integers || sym == :Rationals || sym == :Booleans || sym == :Primes) && return false
+        (sym == :Reals || sym == :Complexes || sym == :Algebraics)  && return true
     end
     mx
 end

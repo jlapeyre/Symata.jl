@@ -15,6 +15,7 @@ T NumberQ(1 + I)
 T NumberQ(I)
 T NumberQ(1/2)
 T NumberQ(2^(1/2)) == False
+T NumericQ(2^(1/2))
 
 T AtomQ(1)
 T AtomQ(1.0)
@@ -59,5 +60,9 @@ T Element(E,Complexes)
 T ! Element(E,Rationals)
 T ! Element(GoldenRatio,Rationals)
 T Element(GoldenRatio,Algebraics)
+T Element(I,Algebraics)
+T Map( Function(x, Element(Sqrt(2), x)), [Complexes, Algebraics, Reals, Rationals, Integers, Primes]) == [True,True,True,False,False,False]
+T Element(3*Sqrt(3),Algebraics)
+T Head(Element(a*Sqrt(3),Algebraics)) == Element
 
 ClearAll(a,b,c)
