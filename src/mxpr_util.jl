@@ -68,6 +68,7 @@ is equivalent to mxpra(:List,a...)
 is equivalent to mxpr(:Plus,a...)
 """
 
+## This is not really utility, should be in mxpr.jl
 for sym in ( :List, :Plus, :Times )
     f = Symbol(:M,sym)
     fa = Symbol(:M,sym,:A)

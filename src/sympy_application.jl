@@ -653,17 +653,17 @@ end
 end
 
 
-### Coefficient
+### CoefficientSympy
 
-@mkapprule Coefficient
+@mkapprule CoefficientSympy
 
-@doap function Coefficient(expr,subexpr)
+@doap function CoefficientSympy(expr,subexpr)
     (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(subexpr))
     cs = spexpr[:coeff](spsubexpr)
     pytosj(cs)
 end
 
-@doap function Coefficient(expr,subexpr,pow)
+@doap function CoefficientSympy(expr,subexpr,pow)
     (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(mpow(subexpr,pow)))
     cs = spexpr[:coeff](spsubexpr)
     pytosj(cs)

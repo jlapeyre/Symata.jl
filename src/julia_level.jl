@@ -72,7 +72,7 @@ these are defined by default.
 """
 function _symatamath()
     @eval begin
-        *(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ?
+        *(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ? TODO: try using mmul, etc. here
         *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
         *(a::SJSym,b::Number) = mxpr(:Times,b,a)
         +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
@@ -81,6 +81,9 @@ function _symatamath()
         -(a::Number,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
         -(a::SJSym,b::Number) = mplus(a, -b)
         -(a::SJSym,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
+        /(a::SJSym,b::SJSym) = mmul(a, mmul(-1,b))
+        /(a::Number,b::SJSym) = mmul(a, mmul(-1,b))
+        /(a::SJSym,b::Number) = mmul(a, mmul(-1,b))
         ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
         ^(base::SJSym,expt) = mxpr(:Power,base,expt)
     end

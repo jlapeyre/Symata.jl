@@ -253,7 +253,7 @@ symname(s::Qsym) = s.name
 @inline ssjsym(s::Symbol,dT::DataType) = SSJSym{dT}(zero(dT),newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 
 # intended to be used from within Julia, or quoted julia. not used anywhere in code
-@inline sjval(s::SJSym) = getssym(s).val[1]
+# @inline sjval(s::SJSym) = getssym(s).val[1]
 
 """
    getsymata(s::Symbol)

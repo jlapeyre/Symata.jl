@@ -162,8 +162,40 @@ T HyperExpand(MeijerG([[1,1],[]], [[1],[0]], z)) == Log(1+z)
 ### Coefficient
 
 ## This differs from Mma. Expand is not needed to get the coefficient
-T Coefficient((x+y)^4, x*y^3) == 0
-T Coefficient(Expand((x+y)^4), x*y^3) == 4
+T CoefficientSympy((x+y)^4, x*y^3) == 0
+T CoefficientSympy(Expand((x+y)^4), x*y^3) == 4
+
+## All Julia version. The goal is to use this instead. It is faster: no python translation
+### Coefficient
+
+T Coefficient(a,a) == 1
+T Coefficient(a,b) == 0
+T Coefficient(a^2,a,2) == 1
+ex = Expand((x+y)^4)
+T Coefficient(ex,x^4) == 1
+T Coefficient(ex,x^2) == 6*y^2
+T Coefficient(ex,x*y^3) == 4
+
+T Coefficient(-x/8 + x*y, -x) == 1/8 - y
+
+T Coefficient(x+1,x+1) == 1
+T Head(Coefficient(3*x,0)) == Coefficient
+T Coefficient(z*(1 + x)*x^2, 1 + x) == z*x^2
+T Coefficient(1 + 2*x*x^(1 + x), x*x^(1 + x)) == 2
+T Coefficient(3 + 2*x + 4*x^2, x) == 2
+T Coefficient(3 + 2*x + 4*x^2, x^2) == 4
+T Coefficient(3 + 2*x + 4*x^2, x^3) == 0
+T Coefficient(-x/8 + x*y, x) == -1/8 + y
+T Coefficient(-x/8 + x*y, -x) == 1/8 - y  ## agrees with Mma, sympy gives 1/8
+T Coefficient(-x/8 + x*y, -2*x) == 1/16 - y/2
+T Coefficient(4*x,2*x) == 2
+T Coefficient(x*Infinity,-Infinity*x) == 0 ## agrees with Mma, for better or worse
+T Coefficient(x*Infinity,Infinity*x) == 1
+T Coefficient(x*Infinity,x) == Infinity
+T Coefficient(2*g(x) + 3*g(x)^2,g(x)) == 2
+T Head(Coefficient(0,0)) == Coefficient
+T Coefficient(z*(x + y)^2 + z*(2*x + 2*y)^2, z) == (x + y)^2 + (2*x + 2*y)^2
+T Coefficient(x + 2*y + 3,x,0) == 2*y + 3
 
 ### CoefficientList
 

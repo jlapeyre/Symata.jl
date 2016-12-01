@@ -374,6 +374,8 @@ type FreeQData
     gotmatch::Bool
 end
 
+freeq(expr, pat) = freeq(LevelSpecAll(), expr, pat)
+
 function freeq(levelspec::LevelSpec, expr, pat)
     data = FreeQData(pat,false)
     action = LevelAction(data,
