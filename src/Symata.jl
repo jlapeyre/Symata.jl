@@ -34,8 +34,8 @@ export devimport
 export isymata, insymata
 
 include("sjcompat.jl")
-include("early_kernelstate.jl")
-include("mxpr_type.jl")
+#include("early_kernelstate.jl")
+include("mxpr.jl")
 include("mxpr_util.jl")
 include("exceptions.jl")
 include("level_specification.jl")
