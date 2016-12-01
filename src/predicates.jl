@@ -50,13 +50,10 @@ is_Infintity(mx::Mxpr{:DirectedInfinity}) = ! isempty(mx) && mx[1] == 1 ? true :
 is_ComplexInfinity(x) = false
 is_ComplexInfinity(mx::Mxpr{:DirectedInfinity}) =  isempty(mx) ? true : false
 
-# This attribute checking should be encapsulated !
-is_Constant(x::SSJSym) = haskey(x.atrr,:Constant)
-is_Constant(x::Symbol) = haskey(getssym(x).attr, :Constant)
+is_Constant(x::Symbol) = get_attribute(x, :Constant)
 is_Constant(x) = false
 
-# FIXME: more encapsulation. No getting of dicts here!
-is_protected(sj::SJSym) = get(getssym(sj).attr,:Protected,false)
+is_protected(sj::SJSym) = get_attribute(sj,:Protected)
 
 is_blankxxx(x) = isa(x,BlankXXX)
 

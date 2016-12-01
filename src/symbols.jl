@@ -52,10 +52,6 @@ the attribute `Protected`, and may have others, including `HoldFirst`, `Sequence
 
 apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
 
-get_attributes(sj::SJSymbol) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
-
-
-get_attributes(s::AbstractString) = get_attributes(Symbol(s))
 get_attributesList(s::AbstractString) = get_attributesList(Symbol(s))
 
 function get_attributesList(sj::SJSymbol)

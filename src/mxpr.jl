@@ -18,13 +18,20 @@ typealias FreeSyms Dict{Symbol,Bool}
 # abstract AbstractMxpr
 # type Mxpr{T} <: AbstractMxpr
 
+## Help for builtin types print documentation for fields, or at least lists them.
+## How can we do this ?
+
 """
     Mxpr{T}
 
 is the type representing Symata expressions. If `T` is a symbol it is also the head of the Symata
-expression.
+expression. Otherwise, `T` is the type `GenHead`. In any case, the head is stored in the field `head`.
 """
 type Mxpr{T}
+    """
+       head
+    the `head` of the Symata expression.
+    """
     head::Any  # making this Any instead of Symbol slows things a bit. hmmm. we should subtype
     args::MxprArgs
     fixed::Bool
@@ -209,6 +216,8 @@ const EXPRDICT = Dict{UInt64,Mxpr}()
 #     end
 # end
 
+## FWIF, there is no `const` data below this line.
+
 ###################################################################
 ###################################################################
 
@@ -351,11 +360,12 @@ clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
 # No other file accesses it directly.
 #############################################################################
 
+## This is used only once. The use is later in this file.
 symattr(s::SJSymbol) = getssym(s).attr
+
 #symname(s::AbstractString) = Symbol(s)
 # symattr(s::Qsym) = getssym(s).attr
 # symattr(s::SJSym) = getssym(s).attr
-
 
 @inline getsym(s) = s  # careful, this is not getssym
 
@@ -1137,6 +1147,9 @@ end
 function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
     get_attribute(T,attr)
 end
+
+get_attributes(sj::SJSymbol) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
+get_attributes(s::AbstractString) = get_attributes(Symbol(s))
 
 for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Listable)
     sf = Symbol("has",s)
