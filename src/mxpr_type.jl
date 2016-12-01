@@ -354,7 +354,7 @@ typealias Symbolic Union{Mxpr,SJSym}
 return an empty container to hold the arguments in an `Mxpr`. This is
 currently `Array{Any,1}`.
 """
-@inline newargs() = Array(Any,0)
+@inline newargs() = Array(MxprArgType,0)
 
 """
     newargs(n::Integer)

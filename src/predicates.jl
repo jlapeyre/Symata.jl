@@ -86,7 +86,7 @@ function listoflistsofsamelengthq(x::Mxpr{:List})
 end
 listoflistsofsamelengthq(x) = false
 
-listofintegersq(x::Mxpr{:List}) = listofpredq(x,integerq)
+listofintegersq(x::Mxpr{:List}) = listofpredq(x,integerq)  ## maybe we should not define this
 
 listoflistsofpredq(x::Mxpr{:List},pred) = all(a -> listofpredq(a,pred), x)
 listoflistsofpredq(x) = false # maybe not necessary, but maybe the compiler needs help ?

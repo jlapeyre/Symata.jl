@@ -49,12 +49,35 @@ end
 
 ###
 
+
+@doc """
+    MList(a...)
+
+is equivalent to mxpr(:List,a...)
+"""
+
+@doc """
+    MListA(a...)
+
+is equivalent to mxpra(:List,a...)
+"""
+
+@doc """
+    MPlus(a...)
+
+is equivalent to mxpr(:Plus,a...)
+"""
+
 for sym in ( :List, :Plus, :Times )
     f = Symbol(:M,sym)
+    fa = Symbol(:M,sym,:A)
     s = QuoteNode(sym)
-    @eval ($f)(a) = mxpr($s,a...)
-    @eval ($f)(a...) = mxpr($s,a...)    
+    @eval ($f)(a) = mxpr($s,a...)  # Is this really what we want ?
+    @eval ($f)(a...) = mxpr($s,a...)
+    @eval ($fa)(a) = mxpra($s,a)    
 end
+
+
 
 ###
 

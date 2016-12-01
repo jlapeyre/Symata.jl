@@ -57,6 +57,8 @@ pauses (i.e.sleeps) for `x` seconds.
 
 ### DateList
 
+## Note: we can use DateParser.jl at some point.
+
 function _datelist(t)
     MList(Dates.year(t),Dates.month(t),Dates.day(t),Dates.hour(t),Dates.minute(t),Dates.second(t))
 end
@@ -65,10 +67,17 @@ end
 
 @doap DateList(x::ListT) = _datelist(DateTime(margs(x)...))
 
+@doap DateList() = _datelist(now())
+
 #@doap DateList(t::AbstractFloat) = _datelist(DateTime(t))
 
 ### Run
 
+@sjdoc Run """
+    Run(\`cmd\`)
+
+runs the symstem command `cmd`. Note the backticks around `cmd`.
+"""
 @mkapprule Run :nargs => 1
 
 # eg Run(`echo hello`)

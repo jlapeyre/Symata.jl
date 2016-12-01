@@ -58,3 +58,45 @@ return string `s` with characters in reverse order.
 @mkapprule StringReverse
 
 @doap StringReverse(s::String) = reverse(s)
+
+### ToUpperCase
+
+@mkapprule ToUpperCase :nargs => 1
+@doap ToUpperCase(s::String) = uppercase(s)
+
+### ToLowerCase
+
+@mkapprule ToLowerCase :nargs => 1
+@doap ToLowerCase(s::String) = lowercase(s)
+
+### UpperCaseQ
+
+@mkapprule UpperCaseQ :nargs => 1
+@doap UpperCaseQ(s::String) = isupper(s)
+
+
+### LowerCaseQ
+
+@mkapprule LowerCaseQ :nargs => 1
+@doap LowerCaseQ(s::String) = islower(s)
+
+### ToCharacterCode
+
+@mkapprule ToCharacterCode :nargs => 1
+@doap ToCharacterCode(s::Char) = Int(s)
+@doap ToCharacterCode(s::String) = MListA(MxprArgT[Int(c) for c in s])
+
+
+### FromCharacterCode
+
+@mkapprule FromCharacterCode
+@doap FromCharacterCode(i::Int) = Char(i)
+
+## This is where we need pattern matching for instance.
+@doap function FromCharacterCode(s::ListT)
+    listofpredq(s,integerq) ? _fromcharactercode_list(s) :
+       listoflistsofpredq(s,integerq) ? MListA(MxprArgT[ _fromcharactercode_list(x) for x in s]) : mx
+end
+
+_fromcharactercode_list(s) = String([Char(i) for i in s])
+    

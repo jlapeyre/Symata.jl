@@ -11,6 +11,7 @@
 
 typealias MxprArgs Array{Any,1}
 typealias MxprArgType Any
+typealias MxprArgT Any
 typealias FreeSyms Dict{Symbol,Bool}
 
 # AbstractMxpr is not used for anything
