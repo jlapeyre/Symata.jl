@@ -318,8 +318,11 @@ matrixq(x,test) = false
 ### TrueQ
 
 @mkapprule TrueQ :nargs => 1
-@doap TrueQ(x::Bool) = x
-@doap TrueQ(x) = false
+@doap TrueQ(x) = trueq(x)
+
+trueq(x::Bool) = x
+trueq(x) = false
+
 
 ### Boole
 
