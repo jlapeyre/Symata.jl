@@ -57,6 +57,14 @@ end
 coefficient_free(mx,expr,x::Number) = mx
 coefficient_free(mx,expr,x) = coefficient_free1(expr,x)
 
+## Very, very strange bug. The use of macro @extomx sometimes causes segfault during compiling, sometimes not,
+## even if all other code does not change.
+## Eg.
+## 1. Check out a particluar commit and compile and run all tests.
+## 2. Edit some files
+## 3. Check out same commit. Compiling causes segfault.
+## Just adding these comments caused the compliation to succeed.
+## Adding the previous line "Just..." now causes compilation to fail
 function coefficient_free1(expr,x)
 #    return (freeq(expr,x) && freeq(expr, MPower(x,MBlank())))  ? expr : 0  # this works fine, as well
     return (freeq(expr,x) && freeq(expr, @extomx( $x^_ ))) ? expr : 0
