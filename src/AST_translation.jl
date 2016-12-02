@@ -25,6 +25,18 @@ macro BF_str(s) parse(BigFloat,s) end
 macro jul(ex) extomx(Expr(:call, :J, ex)) end
 
 """
+    @extomx(ex)
+
+inserts translation of Julia expression `ex` to Symata into code. This is used
+in Symata code. For instance in `Collect` in `algebra.jl`.
+
+`@extomx` differs from `@sym` in that it does not evaluate the resulting Symata expression.
+"""
+macro extomx(ex)
+    :($(extomx(ex)))
+end
+
+"""
     symparsestring(s::String)
 
 parses `s` into one or more Julia expressions, translates each one to a Symata expression,

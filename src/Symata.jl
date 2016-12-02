@@ -7,7 +7,7 @@ import Compat.view
 
 import Base: setindex!, getindex, replace
 
-export @symExpr
+export @symExpr, @extomx
 
 export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln, unpacktoList, mhead, margs, newargs,
         symparseeval, symparsestring
@@ -47,6 +47,7 @@ include("julia_level.jl")
 include("arithmetic.jl")
 include("apprules_core.jl")
 include("symataconstants.jl")
+include("autoload.jl")
 include("namedparts.jl")
 include("AST_translation.jl")
 include("alteval.jl")
@@ -96,7 +97,7 @@ include("REPL_symata.jl")
 include("client_symata.jl")
 include("isymata.jl")
 include("plot.jl")
-include("autoload.jl")
+#include("autoload.jl")
 include("docautoloaded.jl")
 include("function.jl")
 

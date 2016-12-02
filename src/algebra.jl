@@ -36,7 +36,7 @@ function coefficient_times(expr::TimesT, coll)
     (length(posns) != length(coll)) && return 0
     nargs = deleteat!(copy(margs(expr)),posns)
     length(nargs) == 1 && return nargs[1]
-    mxpra(mhead(expr), nargs)    
+    mxpra(mhead(expr), nargs)
 end
 
 coefficient(expr,x) = x == expr ? 1 : 0
@@ -58,12 +58,9 @@ coefficient_free(mx,expr,x::Number) = mx
 coefficient_free(mx,expr,x) = coefficient_free1(expr,x)
 
 function coefficient_free1(expr,x)
-    return (freeq(expr,x) && freeq(expr, mxpr(:Power,x,mxpr(:Blank))))  ? expr : 0
+#    return (freeq(expr,x) && freeq(expr, MPower(x,MBlank())))  ? expr : 0  # this works fine, as well
+    return (freeq(expr,x) && freeq(expr, @extomx( $x^_ ))) ? expr : 0
 end
-
-# function coefficient_free1(expr::TimesT,x)
-#     return (freeq(expr,x) && freeq(expr, mxpr(:Power,x,mxpr(:Blank))))  ? expr : 0
-#end
 
 function coefficient_free1(expr::PlusT,x)
     nargs = newargs()
@@ -76,5 +73,3 @@ function coefficient_free1(expr::PlusT,x)
     isempty(nargs) && return 0
     MPlusA(nargs)
 end
-
-

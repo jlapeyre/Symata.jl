@@ -69,7 +69,7 @@ is equivalent to mxpr(:Plus,a...)
 """
 
 ## This is not really utility, should be in mxpr.jl
-for sym in ( :List, :Plus, :Times )
+for sym in ( :List, :Plus, :Times, :Power, :Blank )
     f = Symbol(:M,sym)
     fa = Symbol(:M,sym,:A)
     s = QuoteNode(sym)

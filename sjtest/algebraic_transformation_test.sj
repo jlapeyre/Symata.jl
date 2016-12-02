@@ -159,13 +159,14 @@ T HyperExpand(HypergeometricPFQ([-1/3,1/2],[2/3,3/2], -z)) == (1/5)*Pi^(1/2)*z^(
 T HyperExpand(MeijerG([[],[]], [[0],[]], -z)) == E^z
 T HyperExpand(MeijerG([[1,1],[]], [[1],[0]], z)) == Log(1+z)
 
-### Coefficient
+### CoefficientSympy
 
 ## This differs from Mma. Expand is not needed to get the coefficient
 T CoefficientSympy((x+y)^4, x*y^3) == 0
 T CoefficientSympy(Expand((x+y)^4), x*y^3) == 4
 
-## All Julia version. The goal is to use this instead. It is faster: no python translation
+## All Julia version. It much faster: no python translation
+
 ### Coefficient
 
 T Coefficient(a,a) == 1
