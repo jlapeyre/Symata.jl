@@ -828,3 +828,30 @@ function do_Counts(mx::Mxpr{:Counts}, list::ListT)
     end
     d
 end
+
+### Select
+
+@mkapprule Select :nargs => 1:3
+
+@doap function Select(x::Mxpr, crit)
+    nargs = newargs()
+    for y in x
+        if trueq(doeval(mxpr(crit,y))) push!(nargs, y) end
+    end
+    mxpra(mhead(x),nargs)
+end
+
+@doap function Select(x::Mxpr, crit, n::Integer)
+    nargs = newargs()
+    c = 1
+    for y in x
+        if trueq(doeval(mxpr(crit,y)))
+            push!(nargs, y)
+            c += 1
+            c > n && break
+        end
+    end
+    mxpra(mhead(x),nargs)
+end
+
+@curry_second Select
