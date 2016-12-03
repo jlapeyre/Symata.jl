@@ -226,7 +226,10 @@ function push_output(expr)
     nothing
 end
 
+get_output_by_line() = get_output_by_line(-1)
+
 function get_output_by_line(lineno::Integer)
+    if lineno < 0 lineno = length(Output) + lineno end
     idx = length(Output) - (get_line_number() - lineno)
     if idx <= length(Output) && idx > 0
         res = get_saved_output_by_index(idx)

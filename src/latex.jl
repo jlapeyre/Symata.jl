@@ -192,7 +192,7 @@ function latex_string_prefix_function(opt, mx::Mxpr)
     end
     if  ! isempty(args) print(buf, latex_string(opt, args[end])) end
     print(buf, mx.head == getsym(:List) ? LLISTR : lrparen)
-    takebuf_string(buf)
+    sjtakebuf_string(buf)
 end
 
 will_print_minus(x::Number) = x < 0
@@ -232,14 +232,14 @@ function latex_string(opt, mx::Mxpr{:Element})
     if latex_needsparen(mx)  print(buf, llparen)  end
     print(buf, latex_string(opt, mx[1]) * " \\in " * latex_string(opt,mx[2]))
     if latex_needsparen(mx)  print(buf, lrparen) end
-    takebuf_string(buf)
+    sjtakebuf_string(buf)
 end
 
 function latex_string(opt, mx::Mxpr{:Power})
     buf = IOBuffer()
     latex_needsparen(mx) ? print(buf, llparen, latex_string(opt, base(mx)), lrparen) : print(buf,latex_string(opt, base(mx)))
     print(buf, "^{" * latex_string(opt, exponent(mx)) * "}")
-    takebuf_string(buf)
+    sjtakebuf_string(buf)
 end
 
 function separate_negative_powers(facs)
@@ -331,7 +331,7 @@ function latex_string(opt, mx::Mxpr{:Times}, spaceminus::Bool)
         latex_string_factors(opt, buf,dens)
         print(buf,"}")
     end
-    takebuf_string(buf)
+    sjtakebuf_string(buf)
 end
 
 function latex_string(opt, x::WORational)
@@ -564,7 +564,7 @@ function latex_string(opt, mx::Mxpr{:Integrate})
         end
         print(buf, " \\, " * integrand)
     end
-    return takebuf_string(buf)
+    return sjtakebuf_string(buf)
 end
 
 function sum_limits_string(opt, varrange)
@@ -582,7 +582,7 @@ function latex_string(opt, mx::Mxpr{:Sum})
         varrange = mx[2]
         print(buf, sum_limits_string(opt, varrange))
         print(buf, summand)
-        return takebuf_string(buf)
+        return sjtakebuf_string(buf)
     else
         args = margs(mx)
         sargs = args[2:end]
@@ -595,6 +595,6 @@ function latex_string(opt, mx::Mxpr{:Sum})
             print(buf, "^{" * join([latex_string(opt, v[3]) for v in sargs], ",") * "}")
         end
         print(buf, summand)
-        return takebuf_string(buf)
+        return sjtakebuf_string(buf)
     end
 end

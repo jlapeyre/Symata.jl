@@ -306,6 +306,9 @@ T Drop(Range(10),11) == []   # Mma gives an error here
 T Drop(Range(10),UpTo(11)) == []
 T Drop(Range(10),[3,6]) == [1,2,7,8,9,10]
 
+# FIXME: overflow error
+## Drop({a, b, c, d, e, f, g, h}, {2, -4, 2})
+
 T TakeDrop(Range(10),[3,6]) == [Take(Range(10),[3,6]), Drop(Range(10),[3,6])]
 
 

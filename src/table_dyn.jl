@@ -48,6 +48,8 @@ Table( f(i), [i,10])
 
 set_attribute(:Table, :HoldAll)
 
+@doap Table(x) = mx
+
 @doap function Table(inexpr, iters...)
     if length(iters) > 1
         riters = reverse(iters)

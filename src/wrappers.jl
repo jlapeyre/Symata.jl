@@ -2,6 +2,53 @@
 ## The main idea is to try automatically promoting to big integer
 ## or complex types. Eg. we want to allow sqrt(-.5), without requiring sqrt(Complex(-.5))
 
+## FIXME: LaguerreL(3/2,x) is broken. does not agree with Mma, nor does it when evaluated. Mathics doc agrees with Mma
+## Mathics also gives wrong result for LaguerreL(3/2,x) but gives the correct floating point result
+
+## TODO. probably want to exprot sympy and mpmath
+## All of the following are in sympy[:mpmath]
+## sympy[:mpmath][:ber], bei, ker, kei  ### Kelvin functions
+## also in mpmath, struvel, struveh, angerl, webere, lommels1, lommels2
+## besseljzero, <-- can use this to test my code, besselyzero, airyaizero, airybizero,
+## socrergi, socrerhi, coulombf, coulombg, coulombc,
+## whitm, whitw, pcfd (para. cyl func), pcfu, pcfv
+## hyp1f1, hyp1f2, hyp1f0, hyp1f2, 2f0, etc. etc. hypercomb (weighted combination)
+
+## legendre, legenp, legenq  , i think these are only numeric. there is a symbolic sympy func for one of thees
+
+##  lots of stuff missing here.
+## http://docs.sympy.org/0.7.0/modules/mpmath/functions/elliptic.html
+
+## many things missing. Mertens constant, etc. etc.
+## http://docs.sympy.org/0.7.6/modules/mpmath/functions/index.html
+
+# bihyper(a_s, b_s, z, **kwargs)
+#     Evaluates the bilateral hypergeometric series
+
+ # mpmath.hyper2d(a, b, x, y, **kwargs)
+#    Sums the generalized 2D hypergeometric series
+
+# appellf1,2,3,4
+
+## TODO: remove sympy[:mpmath] in our code, use mpmath (which is bound to the same thing)
+
+## TODO:  nprod, numerical product
+## TODO:  nsum, numerical product
+
+## In fact, everything on this page! http://docs.sympy.org/0.7.0/modules/mpmath/functions/bessel.html
+## TODO: maybe we need to call functions specialized for common bessel orders ?
+
+ # mpmath.hyperu(a, b, z)
+ #    Gives the Tricomi confluent hypergeometric function U, also known
+ #    as the Kummer or confluent hypergeometric function of the second
+ #    kind. This function gives a second linearly independent solution
+ #    to the confluent hypergeometric differential equation (the first
+ #    is provided by \,_1F_1 – see hyp1f1()).
+
+### TODO: check does mpmath or sympy have more numerical int routines than quadgk ?
+
+## TODO, document the design here
+
 ### sjgamma
 
 sjgamma{T<:AbstractFloat}(x::T) = gamma(x)

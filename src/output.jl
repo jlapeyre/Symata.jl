@@ -25,13 +25,14 @@ function binaryopspc(ss)
     return ""
 end
 
+## TODO: pass formatting choices to the functions rather than hardcoding them.
+
 # Julia-like syntax
 const FUNCL = '('
 const FUNCR = ')'
 const LISTL = '['
 const LISTR = ']'
 
-# This is faster than looking in the dict for I
 Istring() =  using_unicode_output() ? "𝕚" : "I"
 
 # We could probably replace all instances of mtojsym below with this.
@@ -43,18 +44,59 @@ function outsym(s)
     os
 end
 
-function fullform(io::IO, mx::Mxpr)
+type FullFormData
+    lfunc::String
+    rfunc::String
+end
+
+const juliafullformdata = FullFormData("(",")")
+const mmafullformdata = FullFormData("[","]")
+
+fullform(io::IO, mx::Mxpr) = fullform(io,mx,juliafullformdata)
+
+function fullform(io::IO, mx::Mxpr, data::FullFormData)
     print(io,mhead(mx))
-    print(io, "(")
-    if length(mx) > 0 fullform(io,mx[1]) end
+    print(io, data.lfunc)
+    if length(mx) > 0 fullform(io,mx[1],data) end
     for i in 2:length(mx)
         print(io,",")
-        fullform(io,mx[i])
+        fullform(io,mx[i],data)
     end
-    print(io, ")")
+    print(io, data.rfunc)
 end
-fullform(io::IO,x) = show(io,x)
-fullform(x) = fullform(STDOUT,x)
+
+fullform(io::IO,x,data::FullFormData) = show(io,x)
+fullform(x,data::FullFormData) = fullform(STDOUT,x,data)
+fullform(x) = fullform(STDOUT,x,juliafullformdata)
+
+mmafullform(io::IO,x) = fullform(io,x,mmafullformdata)
+mmafullform(x) = mmafullform(STDOUT,x)
+
+Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1],juliafullformdata)
+
+symata_to_mma_fullform_string(x) = print_with_function_to_string(mmafullform, wrapout(x))
+
+## Copied from base. There is probably a trick to avoid this.
+function print_with_function_to_string(printfunc::Function, xs...; env=nothing)
+    # specialized for performance reasons
+    s = IOBuffer(Array{UInt8}(Base.tostr_sizehint(xs[1])), true, true)
+    # specialized version of truncate(s,0)
+    s.size = 0
+    s.ptr = 1
+    if env !== nothing
+        env_io = IOContext(s, env)
+        for x in xs
+            printfunc(env_io, x)
+        end
+    else
+        for x in xs
+            printfunc(s, x)
+        end
+    end
+    String(resize!(s.data, s.size))
+end
+
+
 
 # This puts unecessary parens on prefix functions.
 #needsparen(x::Mxpr) = length(x) > 1
@@ -284,8 +326,6 @@ Base.show(io::IO, v::WOBool) = show_bool(io,v.x)
 function show_bool(io::IO, v::Bool)
     v ? Base.show_unquoted(io,:True) : Base.show_unquoted(io,:False)
 end
-
-Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1])
 
 # For Holdform, arguments are not evaluated, as in Hold.
 # But, in addition, Holdform is not printed.

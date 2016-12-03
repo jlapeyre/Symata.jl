@@ -329,6 +329,8 @@ function do_Out(mx::Mxpr{:Out}, n::Integer)
     end
 end
 
+@doap Out() = doeval(get_output_by_line(-1))
+
 do_Out(mx::Mxpr{:Out}, x) = :Null
 
 ### In

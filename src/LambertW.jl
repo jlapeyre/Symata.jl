@@ -387,9 +387,9 @@ end
 
 lambertwbp{T<:Number}(x::T) = _lambertw0(x)
 
-Base.@vectorize_1arg Number lambertw
-Base.@vectorize_2arg Number lambertw
-Base.@vectorize_1arg Number lambertwbp
-Base.@vectorize_2arg Number lambertwbp
+# Base.@vectorize_1arg Number lambertw
+# Base.@vectorize_2arg Number lambertw
+# Base.@vectorize_1arg Number lambertwbp
+# Base.@vectorize_2arg Number lambertwbp
 
 end #module

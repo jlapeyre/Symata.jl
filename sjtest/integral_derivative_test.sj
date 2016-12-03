@@ -64,6 +64,10 @@ T Integrate(x) == 1//2 * (x ^ 2)    # Should we disallow this ?
 T Integrate(Sqrt(1+x), [x,0,x]) == -2/3 + 2/3 * ((1 + x) ^ (3/2))
 T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
 
+## FIXME: this returns Dummy()'s
+## Integrate((x^4 + 10*x^2 -96*x - 71)^(-1),[x])
+
+
 ClearAll(res,a,x)
 
 res = Integrate(x^a * Exp(-x), [x,0,Infinity])

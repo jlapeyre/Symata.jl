@@ -511,16 +511,6 @@ do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer) = setfixed(mxpr(:List,reve
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b)))...))
 do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer,p::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b),convert(Int,p)))...))
 
-@sjdoc Primes """
-    Primes(n)
-
-return a collection of the prime numbers `<= n`.
-"""
-
-
-apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
-do_Primes(mx,args...) = mx
-do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
 
 @mkapprule Log :nargs => 1:2
 

@@ -275,14 +275,14 @@ function mk_py_to_mx_funcs()
 end
 
 function rewrite_function_sympy_to_julia(expr)
-    func = py_to_mx_rewrite_function_dict[name(expr)]
+    func = py_to_mx_rewrite_function_dict[typename(expr)]
     func(expr)
 end
 
 
 have_function_sympy_to_symata_translation{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_dict, pytypeof(expr))
 get_function_sympy_to_symata_translation{T <: PyCall.PyObject}(expr::T) = py_to_mx_dict[pytypeof(expr)]
-have_rewrite_function_sympy_to_julia{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_rewrite_function_dict, name(expr))
+have_rewrite_function_sympy_to_julia{T <: PyCall.PyObject}(expr::T) = haskey(py_to_mx_rewrite_function_dict, typename(expr))
 
 # May 2016. Added ComplexInfinity here. We added an mxpr method for
 # using Mxpr for head. sympy.zoo had been caught by the default method
@@ -337,7 +337,7 @@ end
 _pytosj(x) = x
 
 function pytosj_Function(pyexpr)
-    head = Symbol(name(pyexpr))
+    head = Symbol(typename(pyexpr))
     targs = pyexpr[:args]
     if  head == :_context  return Qsym(pytosj(targs[1]),pytosj(targs[2])) end
     if targs[1] == dummy_arg  # sympy does not allow functions without args, so we pass a dummy arg.
@@ -798,7 +798,8 @@ end
 
 #####
 
-name{T <: PyCall.PyObject}(x::T) = pytypeof(x)[:__name__]
+typename(x::PyCall.PyObject) = pytypeof(x)[:__name__]
+name(x::PyCall.PyObject) = x[:__name__]
 
 #  Try the sympy function 'pycall'. If there is an error, give warning
 #  'errstr' and return (from surrounding function body)
