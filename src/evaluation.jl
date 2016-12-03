@@ -117,7 +117,6 @@ macro ex(ex)   # use this macro from the julia prompt
     :(($(esc(mx))))
 end
 
-
 # The same macro, but we export it for users
 
 """
@@ -245,9 +244,10 @@ options for `exfunc` that do not modify its behavior
 const NullExFuncOptions = ExFuncOptions(false)
 
 """
-    exfunc(ex::Expr, options=NullExFuncOptions)
+    exfunc(ex::Any, options=NullExFuncOptions)
 
-convert `ex` to a Symata expression of type `Mxpr` and return the result.
+Translate `ex` to Symata and evaluate the result. If `ex` is already of type `Mxpr`, then
+the translation is the identity. `ex` may be an object of any type.
 """
 function exfunc(ex, options=NullExFuncOptions)
     if ! options.simple

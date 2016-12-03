@@ -56,10 +56,17 @@ function symata_print_response(repl::AbstractREPL, val::Any, args...)
     REPL.print_response(repl, newval, args...)
 end
 
+## Don't follow this idea a.t.m.
+# function symata_parse_julia_syntax_repl_line(line)
+# end
+# const SymataParsers = Dict{Any,Any}(
+#                                     :juliasyntax => symata_parse_julia_syntax_repl_line
+#                                     )
+
 function Symata_parse_REPL_line(line)
     line = sjpreprocess_interactive(line)
     Base.syntax_deprecation_warnings(false) do
-        Base.parse_input_line("@Symata.ex " * line)
+        Base.parse_input_line("@Symata.sym " * line)
     end
 end
 
