@@ -44,6 +44,8 @@ end
 
 ### denominator
 
+## We can probably use Compat here
+
 if ! isdefined(:denominator)
     denominator(args...) = den(args...)
     symdenominator(args...) = den(args...)

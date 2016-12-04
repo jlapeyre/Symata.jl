@@ -69,9 +69,7 @@ julia> using Symata
 symata> Help()    # type '=' alone on a line to enter symata mode
 ```
 
-`Symata` can be installed on Linux, OSX, and Windows, and Julia v0.4, v0.5, and v0.6. (NB: `Symata` is
-broken on `v0.4`. It won't take much time to fix, but its not a priority. If you want to use `Symata` with v0.4,
-please open an issue. Or better yet, make a PR!)
+`Symata` can be installed on Linux, OSX, and Windows, and Julia v0.5, and v0.6.
 
 `Symata` depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
