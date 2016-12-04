@@ -48,6 +48,11 @@ and from a file etc. These are the best places for examples and help:
  * `? Topic` (with completion)
  * `h"word"` regular expression search
 
+### NEW: Mathematica syntax.
+
+You can use Symata with Mathematica syntax in addition to the usual Julia-like syntax. To use Mathematica syntax,
+install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.jl).
+
 ### IJulia Notebooks
 
 A few tutorial notebooks can be viewed [here](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
