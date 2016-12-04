@@ -57,7 +57,3 @@ if ! isdefined(:numerator)
 else
     symnumerator(args...) = numerator(args...)
 end
-
-### takebuf_string
-
-sjtakebuf_string(b) = String(take!(b))

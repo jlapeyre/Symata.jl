@@ -28,7 +28,7 @@ function symata_respond(f, repl, main; pass_empty = false)
         if !ok
             return transition(s, :abort)
         end
-        line = sjtakebuf_string(buf)
+        line = String(take!(buf))
         if !isempty(line) || pass_empty
             reset(repl)
             val, bt = send_to_backend(f(line), backend(repl))
@@ -544,7 +544,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                 return
             end
             edit_insert(sbuffer, input)
-            input = sjtakebuf_string(sbuffer)
+            input = String(take!(sbuffer))
             oldpos = start(input)
             firstline = true
             while !done(input, oldpos) # loop until all lines have been executed
