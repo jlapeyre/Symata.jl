@@ -864,3 +864,27 @@ Base.:-(a::PyCall.PyObject) = -1 * a
 Base.:-(a::PyCall.PyObject, b::PyCall.PyObject) = a + (-b)
 Base.:-(a, b::PyCall.PyObject) = a + (-b)
 Base.:-(a::PyCall.PyObject, b) = a + (-b)
+
+#### SymataSyntax
+
+global symatasyntax_inited = false
+
+function _init_symatasyntax()
+    if ! symatasyntax_inited
+        try
+            @eval using SymataSyntax
+            return true
+        catch
+            error("Unable to load 'SymataSyntax'. If the module is not installed, try `Pkg.add(\"SymataSyntax\")`")
+            return false
+        end
+    end
+    true
+end
+
+@mkapprule Mathics :nargs => 0
+
+@doap function Mathics()
+    (! _init_symatasyntax()) && return
+    SymataSyntax.mathics_REPL()
+end

@@ -320,7 +320,7 @@ f1(z) = @symExpr Together(PolyLog(-1,z),(1-z))
 ```
 """
 macro symExpr(expr)
-    mx = exfunc(expr, SimpleExFuncOptions)
+    mx = symataevaluate(expr, EvaluateJuliaSyntaxSimple())
     mx = doeval(mx)
     local ex
     if isa(mx,Mxpr{:JuliaExpression})

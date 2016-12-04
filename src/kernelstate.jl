@@ -203,7 +203,7 @@ function clear_all_output()
     end
 end
 
-const LineNumber = Int[0]
+const LineNumber = Int[1]
 get_line_number() = LineNumber[1]
 set_line_number(n::Integer) =  (LineNumber[1] = n)
 increment_line_number() = LineNumber[1] += 1

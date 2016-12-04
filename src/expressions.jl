@@ -308,7 +308,7 @@ apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 convert string `str` to an expression.
 """
 
-do_ToExpression{T<:AbstractString}(mx,s::T) = exfunc(parse(s), SimpleExFuncOptions)
+do_ToExpression{T<:AbstractString}(mx,s::T) = symataevaluate(parse(s), EvaluateJuliaSyntaxSimple())
 do_ToExpression(mx,s) = s
 do_ToExpression(mx,args...) = mx
 set_pattributes("ToExpression")

@@ -38,7 +38,7 @@ function Symata_eval_string(s)
         end
         sjretval =
             try
-                Symata.exfunc(expr)
+                Symata.symataevaluate(expr)
             catch e
                 symprintln("Reading file: got error ", e)
             end
@@ -51,7 +51,7 @@ Symata_eval_file(fname) = fname |> readstring |> Symata_eval_string
 
 # TODO. Read more than one expression from a line.
 # TODO. Use a new exception type
-# TODO. use ExFuncOptions. I think it is simpler than the try catch stuff below
+# TODO. use EvaluateJuliaSyntaxSimple() I think it is simpler than the try catch stuff below
 
 """
     read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest() )
@@ -94,7 +94,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
         sjretval =
             try
                 incomplete_flag = false
-                res = Symata.exfunc(expr, SimpleExFuncOptions)
+                res = Symata.symataevaluate(expr, EvaluateJuliaSyntaxSimple())
                 if typeof(test) != Symata_NullTest && reading_test
                     reading_test = false
                     record_SJTest(test, f, line_number, res)

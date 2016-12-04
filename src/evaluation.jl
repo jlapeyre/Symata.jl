@@ -113,7 +113,7 @@ end
 
 # This is called from the REPL
 macro ex(ex)   # use this macro from the julia prompt
-    mx = exfunc(ex)
+    mx = symataevaluate(ex)
     :(($(esc(mx))))
 end
 
@@ -136,7 +136,7 @@ julia> @sym a
 ```
 """
 macro sym(ex)   # use this macro from the julia prompt
-    mx = exfunc(ex)
+    mx = symataevaluate(ex)
     :(($(esc(mx))))
 end
 
@@ -149,7 +149,7 @@ translate `expr` from `Expr` to `Mxpr` and send to the top level of the Symata e
 may also be a number, symbol, string, etc.
 """
 function symtranseval(expr)
-    exfunc(expr, SimpleExFuncOptions)
+    symataevaluate(expr, EvaluateJuliaSyntaxSimple())
 end
 
 """
@@ -173,7 +173,7 @@ end
 translates `ex` to Symata expression and evaluates the result. Most code for interactive sessions disabled.
 """
 macro exsimple(ex)   # use this macro from the julia prompt
-    mx = exfunc(ex, SimpleExFuncOptions)
+    mx = symataevaluate(ex, EvaluateJuliaSyntaxSimple())
     :(($(esc(mx))))
 end
 
@@ -184,7 +184,7 @@ parse and evaluate `s` as a Symata expression. From Julia, this prints the stack
 If the same expression entered at the Symata command line, the stack trace will not be printed.
 """
 function debugmxpr(s::String)
-    exfunc(parse(s))
+    symataevaluate(parse(s))
 end
 
 """
@@ -225,62 +225,82 @@ macro bind_Os()
     expr
 end
 
-immutable ExFuncOptions
-    simple::Bool
+
+# immutable ExFuncOptions
+#     simple::Bool
+# end
+
+abstract AbstractEvaluateOptions
+
+type EvaluateJuliaSyntax <: AbstractEvaluateOptions
 end
 
-"""
-    NullExFuncOptions
+function prompt(opt::EvaluateJuliaSyntax)
+    # do_we_print_outstring is for IJulia
+    if (! simple(opt) ) && isinteractive() && do_we_print_outstring
+        print("Out(" * string(get_line_number()) * ") = ")
+    end
+    nothing
+end
 
-options for `exfunc` that cut out most of the code for interactive sessions.
-"""
-const SimpleExFuncOptions = ExFuncOptions(true)
+simple(opt::EvaluateJuliaSyntax) = false
+
+type EvaluateJuliaSyntaxSimple <: AbstractEvaluateOptions
+end
+
+simple(opt::EvaluateJuliaSyntaxSimple) = true
+prompt(opt::EvaluateJuliaSyntaxSimple) = nothing
+
+# """
+#     NullExFuncOptions
+
+# options for `symataevaluate` that cut out most of the code for interactive sessions.
+# """
+# const SimpleExFuncOptions = ExFuncOptions(true)
+
+# """
+#     NullExFuncOptions
+
+# options for `symataevaluate` that do not modify its behavior
+# """
+# const NullExFuncOptions = ExFuncOptions(false)
 
 """
-    NullExFuncOptions
-
-options for `exfunc` that do not modify its behavior
-"""
-const NullExFuncOptions = ExFuncOptions(false)
-
-"""
-    exfunc(ex::Any, options=NullExFuncOptions)
+    symataevaluate(ex::Any, options)
 
 Translate `ex` to Symata and evaluate the result. If `ex` is already of type `Mxpr`, then
 the translation is the identity. `ex` may be an object of any type.
 """
-function exfunc(ex, options=NullExFuncOptions)
-    if ! options.simple
+function symataevaluate(ex, options=EvaluateJuliaSyntax())
+    if ! simple(options)
         check_doc_query(ex) && return nothing  # Asking for doc? Currently this is:  ?, SomeHead
     end
     res = extomx(ex)  # Translate to Mxpr
     local mx
-    if ! options.simple
+    if ! simple(options)
         reset_meval_count()
         reset_try_downvalue_count()
         reset_try_upvalue_count()
         if is_timing()  #  && is_sjinteractive()  #  Disallow when reading  code. For now.
-            @time mx = tryexfunc(res)
+            @time mx = trysymataevaluate(res)
             println("tryrule count: downvalue ", get_try_downvalue_count(),", upvalue ", get_try_upvalue_count())
         else
-            mx = tryexfunc(res)
+            mx = trysymataevaluate(res)
         end
     else
-        mx = tryexfunc(res)
+        mx = trysymataevaluate(res)
     end
     if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
-    if (! options.simple ) && isinteractive()  # && is_sjinteractive()
+    symval(mx) == Null  && return nothing
+    prompt(options)
+
+    if (! simple(options) ) && isinteractive()  # && is_sjinteractive()
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
-        set_symata_prompt(get_line_number() + 1)
+        set_symata_prompt(get_line_number())
         if getkerneloptions(:history_length) > 0 push_output(mx) end
         @bind_Os
-    end
-    symval(mx) == Null  && return nothing
-    # do_we_print_outstring is for IJulia
-    if (! options.simple ) && isinteractive() && do_we_print_outstring
-        print("Out(" * string(get_line_number()) * ") = ")
-    end
+    end    
     if is_throw()
         if is_Mxpr(mx,:Throw)
             warn("Uncaught Throw")
@@ -294,7 +314,7 @@ function exfunc(ex, options=NullExFuncOptions)
     mx
 end
 
-function tryexfunc(mxin)
+function trysymataevaluate(mxin)
     try
         doeval(mxin)
     catch e

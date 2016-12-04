@@ -2,7 +2,7 @@
 
 # Symata evaluates to a fixed point. This signals too many iterations of infseval
 # or meval. The recursion limit is normally around 1000. We throw the exception
-# and catch it in exfunc where the evaluation starts.
+# and catch it in symataevaluate where the evaluation starts.
 
 type RecursionLimitError <: Exception
     msg::AbstractString

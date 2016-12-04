@@ -94,7 +94,7 @@ const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
 
 # Symata language expressions are first processed here (at
 # least interactvley now. The string is rewritten and then
-# parse to an AST which is the input to exfunc. This is
+# parse to an AST which is the input to symataevaluate. This is
 # mostly done to rewrite the string into legal Julia syntax.
 # Now, we only look for the help symbol "?"
 function sjpreprocess_interactive(line::AbstractString)

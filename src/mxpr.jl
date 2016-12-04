@@ -291,7 +291,7 @@ function symval(s::SSJSym)
     s.val[1]
 end
 
-symval(x) = nothing  # maybe we should make this an error instead? We are using this method in exfunc.
+symval(x) = nothing  # maybe we should make this an error instead? We are using this method in symataevaluate.
 
 ## Sets an already existing Symata symbol
 """
