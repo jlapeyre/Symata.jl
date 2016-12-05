@@ -36,5 +36,22 @@ of Mathematica and Wolfram language and all other Wolfram company products.
 
 @doap function MmaSyntax()
     (! _init_symatasyntax()) && return
+    SymataSyntax.mmasyntax_REPL()
+end
+
+
+@sjdoc Mathics """
+    Mathics()
+
+enters the mathics shell. Type `ctrl-d` to return to the Symata.
+
+The mathics process is separate from the Symata process. In particular, setting a variable in mathics
+does nothing in Symata and vice-versa.
+"""
+
+@mkapprule Mathics :nargs => 0
+
+@doap function Mathics()
+    (! _init_symatasyntax()) && return
     SymataSyntax.mathics_REPL()
 end
