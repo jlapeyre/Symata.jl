@@ -15,6 +15,8 @@ function _init_symatasyntax()
     true
 end
 
+### MmaSyntax
+
 @sjdoc MmaSyntax """
     MmaSyntax()
 
@@ -39,6 +41,7 @@ of Mathematica and Wolfram language and all other Wolfram company products.
     SymataSyntax.mmasyntax_REPL()
 end
 
+### Mathics
 
 @sjdoc Mathics """
     Mathics()
@@ -55,3 +58,20 @@ does nothing in Symata and vice-versa.
     (! _init_symatasyntax()) && return
     SymataSyntax.mathics_REPL()
 end
+
+
+### GetMma
+
+@mkapprule GetMma
+
+@sjdoc GetMma """
+    GetMma(filename)
+
+read and evaluate Mathematica-syntax expressions from file `filename`.
+"""
+
+@doap function GetMma(fname::String)
+    (! _init_symatasyntax()) && return
+    SymataSyntax.read_file(fname)
+end
+
