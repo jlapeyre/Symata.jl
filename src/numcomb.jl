@@ -21,3 +21,14 @@ return a collection of the prime numbers `<= n`.
 apprules(mx::Mxpr{:Primes}) = do_Primes(mx,margs(mx)...)
 do_Primes(mx,args...) = mx
 do_Primes(mx,n::Integer) = setfixed(mxpr(:List,primes(n)...))
+
+
+### Prime
+
+@sjdoc Prime """
+    Primes(n)
+
+returns the `n`th prime number.
+"""
+@mkapprule Prime :nargs => 1
+@doap Prime(n::Integer) = sympy[:prime](n)
