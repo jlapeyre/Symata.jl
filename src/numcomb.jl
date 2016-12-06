@@ -32,3 +32,14 @@ returns the `n`th prime number.
 """
 @mkapprule Prime :nargs => 1
 @doap Prime(n::Integer) = sympy[:prime](n)
+
+
+### PrimePi
+
+@sjdoc PrimePi """
+    PrimePi(n)
+
+returns the number of primes less than or equal to `n`.
+"""
+@mkapprule PrimePi :nargs => 1
+@doap PrimePi(n::Integer) = sympy[:primepi](n)
