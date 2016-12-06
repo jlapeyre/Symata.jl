@@ -14,7 +14,6 @@ print the expressions and a newline.
 
 apprules(mx::Mxpr{:Println}) = (symprintln(margs(mx)...) ; Null)
 
-
 ### Print
 
 @sjdoc Print """

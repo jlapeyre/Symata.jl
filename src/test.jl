@@ -82,6 +82,8 @@ function run_testsuite()
     include(startfile)
 end
 
+### Tests
+
 ## FIXME. Sometimes errors silently cut the testing short, reporting only successes
 ## FIXME  can't give both :nargs => 0:1 and :options
 @mkapprule Tests :options => Dict( :PrintTests => false )
@@ -106,4 +108,13 @@ do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
 function do_Tests(mx::Mxpr{:Tests}, s::String; PrintTests=false)
     test = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()    
     runtest(test, s)
+end
+
+
+### Test
+
+@mkapprule Test :nargs => 1
+
+@doap function Test(ex)
+    trueq(doeval(ex))
 end
