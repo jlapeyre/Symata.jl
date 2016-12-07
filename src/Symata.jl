@@ -106,7 +106,6 @@ include("REPL_symata.jl")
 include("client_symata.jl")
 include("isymata.jl")
 include("plot.jl")
-#include("autoload.jl")
 include("docautoloaded.jl")
 include("function.jl")
 

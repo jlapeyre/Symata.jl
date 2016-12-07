@@ -16,7 +16,7 @@ macro make_simplify_func(mxprsym, sympyfunc)
               nargs = sjtopy_kw(mx,kws) # extract keywords from args to mx into kws, return positional args
               (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
         end
-        set_pattributes( [$smxprsym], :Protected)
+        set_sysattributes($smxprsym)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
     end)
 end
@@ -32,7 +32,7 @@ macro make_simplify_func_postp(mxprsym, sympyfunc, postfunc)
               sres = (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
               $postfunc(sres)
         end
-        set_pattributes( [$smxprsym], :Protected)
+        set_sysattributes($smxprsym)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
     end)
 end

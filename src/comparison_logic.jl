@@ -1,11 +1,11 @@
 ### Sameq
 
-@mkapprule SameQ :nargs => 2
+@mkapprule SameQ nargs => 2
 @doap SameQ(x,y) = sameq(x,y)
 
 ### UnSameq
 
-@mkapprule UnsameQ :nargs => 2
+@mkapprule UnsameQ nargs => 2
 @doap UnsameQ(x,y) = ! sameq(x,y)
 
 sameq(x,y) = x === y
@@ -23,7 +23,7 @@ end
 
 ## TODO: Implement Equal(a,b,c), etc.
 
-@mkapprule Equal :nargs => 2
+@mkapprule Equal nargs => 2
 @doap function Equal(x,y)
     res = sjequal(x,y)
     res.known == false && return mx
@@ -33,19 +33,19 @@ end
 function sjequal(x::Symbol,y)
     x == :Undefined && return Compare(:Undefined,true)
     x == y  && return Compare(true,true)
-    Compare(false,false)    
+    Compare(false,false)
 end
 
 function sjequal(x,y::Symbol)
     y == :Undefined && return Compare(:Undefined,true)
     x == y  && return Compare(true,true)
-    Compare(false,false)    
+    Compare(false,false)
 end
 
 function sjequal(x::Symbol,y::Symbol)
     (y == :Undefined || x == :Undefined) && return Compare(:Undefined,true)
     x == y  && return Compare(true,true)
-    Compare(false,false)    
+    Compare(false,false)
 end
 
 
@@ -59,7 +59,7 @@ end
 
 ### Unequal
 
-@mkapprule Unequal :nargs => 2
+@mkapprule Unequal nargs => 2
 @doap function Unequal(x,y)
     res = sjequal(x,y)
     res.known == false && return mx
@@ -78,6 +78,11 @@ end
     res.known == false && return mx
     res.result
 end
+
+## Mma does this
+## TODO: use a macro to generate these. or otherwise organize this.
+@doap Less() = true
+@doap Less(x) = true
 
 sjless(x::Real, y::Real) = Compare(x < y, true)
 function sjless(x,y)
@@ -107,6 +112,9 @@ end
     res.known == false && return mx
     res.result
 end
+
+@doap Greater() = true
+@doap Greater(x) = true
 
 sjgreater(x::Real, y::Real) = Compare(x > y, true)
 function sjgreater(x,y)
@@ -173,7 +181,7 @@ return `False` if `expr` is `True`, and `True` if it is `False`.
 `Not` reduces some very simple logical expressions and otherwise remains unevaluated. `Not(expr)` may also be entered `! expr`.
 """
 
-@mkapprule Not :nargs => 1
+@mkapprule Not nargs => 1
 
 @doap Not(ex::Bool) = ex == true ? false : true
 
@@ -223,20 +231,15 @@ displayed using infix notation.
          ("a < b <= c","true"))
 
 
-@mkapprule Comparison  :nodefault => true
+@mkapprule Comparison  nodefault => true
 
 ## Following may be a stopgap in transition to binary comparisons
 @doap function Comparison(x,op,y)
     mxpr(comparison_translation[op],x,y)
 end
 
-# function apprules(mx::Mxpr{:Comparison})
-#     do_Comparison(mx,margs(mx)...)
-# end
-
 # Mma does this a == a != b  --->  a == a && a != b,  and  a == a  -->  True
 # Note: Mma 10, at least does this: a == a != b  ---> a != b, in disagreement with the above
-
 
 # We convert expressions that are not already numbers to floating point numbers, if possible.
 # But, not for == or ===.
@@ -531,7 +534,6 @@ end
 function _do_Comparison(args...)
     symerror("No comparison for args ", args)
 end
-
 
 ## These allow converting values returned by sympy, although we could do it differntly
 apprules(mx::Mxpr{:<}) = mxpr(:Comparison,mx[1],:< ,mx[2])

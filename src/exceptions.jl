@@ -89,7 +89,7 @@ function checkargscode(var, head, nargsspec::Int)
               end )
 end
 
-###### RangeNumArgsErr
+##### RangeNumArgsErr
 
 type RangeNumArgsErr <: ArgCheckErr
     msg::AbstractString
@@ -118,6 +118,37 @@ function checkargscode(var, head, nargsspec::UnitRange)
                end
              end )
 end
+
+
+##### RangeNumArgsInfErr
+
+type RangeNumArgsInfErr <: ArgCheckErr
+    msg::AbstractString
+end
+
+function RangeNumArgsInfErr_string(head,argrange,ngot)
+    hstr = string(head)
+    if length(hstr) > 7  && hstr[1:7] == "Symata."  # Strip the package qualification
+        hstr = hstr[8:end]
+    end
+    msg = hstr * "::argm: " * hstr * " called with " * num_args_string(ngot) * "; " *
+     string(argrange.start) * " or more are expected."
+end
+
+function RangeNumArgsInfErr(head,argrange,ngot)
+    msg = RangeNumArgsInfErr_string(head,argrange,ngot)
+    RangeNumArgsInfErr(msg)
+end
+
+function checkargscode(var, head, nargsspec::UnitRangeInf)
+    head = string(:($head))
+    return :( begin
+                if  length(margs($var))  < $(nargsspec.start)
+                  sjthrow(RangeNumArgsInfErr($head, $nargsspec, length(margs($var))))
+               end
+             end )
+end
+
 
 ###### TwoNumArgsErr
 

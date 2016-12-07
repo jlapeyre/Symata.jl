@@ -59,7 +59,7 @@ end
 
 # TODO: FIX: sympy zeta may take two args
 # two arg both float or complex : zeta(s,z)  (with domain restrictions)
-# BellB should not be "listable", maybe bell split into BellB and BellY
+# BellB should be split into BellB and BellY
 
 # TODO: Implement rewrite
 # sympy.airyai(x)[:rewrite](sympy.hyper)
@@ -139,7 +139,6 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
     ## There are no Julia functions for these (or at least we are not using them).
     ## First symbol is for  Symata, Second is SymPy
 
-# There is LambertW Julia code, but we do not use it.
 # TODO: Migrate functions out this non-specific list
     const no_julia_function = [  (:ExpIntegralE, :expint),
                            (:GegenbauerC, :gegenbauer), (:HermiteH, :hermite),
@@ -229,7 +228,8 @@ function make_math()
     # TODO: update this code
     for x in no_julia_function
         set_up_sympy_default(x...)
-        set_pattributes(string(x[1]))     # TODO: allow set_pattributes to take a symbol arg
+        clear_attributes(x[1]) ## FIXME: Listable was set in previous line. Now we unset it. We need a better system for this.
+        set_sysattributes(x[1])
     end
 
     # Ok, this works. We need to clean it up
@@ -341,7 +341,7 @@ end
 
 function only_get_sjstr(jf)
     st = string(jf)
-    sjf = ucfirst(st)
+    sjf = Symbol(ucfirst(st))
     return jf, sjf
 end
 
@@ -352,9 +352,20 @@ end
 
 function get_sjstr(jf)
     st = string(jf)
-    sjf = ucfirst(st)
+    sjf = String(ucfirst(st))
     do_common(sjf)
     return jf, sjf
+end
+
+## FIXME: This is outdated. Some of this is handled in @mkapprule
+# Handle functions that do *not* fall back on SymPy
+function do_common(sjf)
+    aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
+    aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
+    evalmath(parse(aprs))
+    evalmath(parse(aprs1))
+    set_attribute(Symbol(sjf),:Protected)
+    set_attribute(Symbol(sjf),:Listable)
 end
 
 # Handle functions that fall back on SymPy
@@ -395,16 +406,6 @@ function set_up_sympy_default(sjf, sympyf)
                    mx
                end
            end"
-    evalmath(parse(aprs))
-    evalmath(parse(aprs1))
-    set_attribute(Symbol(sjf),:Protected)
-    set_attribute(Symbol(sjf),:Listable)
-end
-
-# Handle functions that do *not* fall back on SymPy
-function do_common(sjf)
-    aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
-    aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
     evalmath(parse(aprs))
     evalmath(parse(aprs1))
     set_attribute(Symbol(sjf),:Protected)
@@ -483,7 +484,7 @@ set_pytosj(:erf, :Erf)
 set_pytosj(:erf2, :Erf)
 set_sjtopy(:Erf, :sympy_erf)
 
-#### InverseErf
+### InverseErf
 
 @mkapprule InverseErf :nargs => 1:2
 
@@ -494,7 +495,7 @@ set_sjtopy(:Erf, :sympy_erf)
 register_sjfunc_pyfunc(:InverseErf,:erfinv)
 register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
 
-#### IntegerDigits
+### IntegerDigits
 
 @sjdoc IntegerDigits """
     IntegerDigits(n,[, base][, pad])
@@ -504,13 +505,14 @@ optionally padded with zeros to `pad` characters.
 
 In contrast to Julia, more significant digits are at lower indexes.
 """
+@mkapprule IntegerDigits  :nargs => 1:3
+set_sysattributes(:IntegerDigits, :Listable)
 
-do_common("IntegerDigits")
+_intdig(args) = MList(reverse!(args)...) |> setfixed
 
-do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer) = setfixed(mxpr(:List,reverse!(digits(n))...))
-do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b)))...))
-do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer,p::Integer) = setfixed(mxpr(:List,reverse!(digits(n,convert(Int,b),convert(Int,p)))...))
-
+@doap IntegerDigits(n::Integer) = digits(n) |> _intdig
+@doap IntegerDigits(n::Integer,b::Integer) = digits(n,convert(Int,b)) |> _intdig
+@doap IntegerDigits(n::Integer,b::Integer,p::Integer) = digits(n,convert(Int,b),convert(Int,p)) |> _intdig
 
 @mkapprule Log :nargs => 1:2
 
@@ -518,15 +520,7 @@ do_IntegerDigits(mx::Mxpr{:IntegerDigits},n::Integer,b::Integer,p::Integer) = se
 @doap Log(x,y) = sjlog(x,y)
 @doap Log(x) = sjlog(x)
 
-#do_common("Log")
-# do_Log(mx::Mxpr{:Log},x::AbstractFloat) = x > 0 ? log(x) : log(complex(x))
-# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},x::Complex{T}) = log(x)
-# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::Complex{T}) = log(b,z)
-# do_Log{T<:AbstractFloat}(mx::Mxpr{:Log},b::Real,z::T) = z > 0 ? log(b,z) : log(b,complex(z))
-# @doap Log(x::Integer) = x == 0 ? MinusInfinity : mx
-# do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power}) = do_Log(mx,pow,base(pow),expt(pow))
-# do_Log(mx::Mxpr{:Log},pow::Mxpr{:Power},b::SJSym,e::Integer) = b == :E ? e : mx
-# do_Log(mx::Mxpr{:Log},b::SJSym) = b == :E ? 1 : mx
+### N
 
 @sjdoc N """
     N(expr)
@@ -640,7 +634,6 @@ make_Mxpr_N()
 equal to `(1+Sqrt(5))/2`.
 """
 
-set_attribute(:GoldenRatio, :Protected)
 
 # We need to use dispatch as well, not conditionals
 function do_N(s::SJSym)

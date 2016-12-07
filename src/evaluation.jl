@@ -55,7 +55,7 @@ function get_localized_symbol(s::Symbol)
     return gsym
 end
 
-@mkapprule ClearTemporary  :nargs => 0
+@mkapprule ClearTemporary  nargs => 0
 
 @sjdoc ClearTemporary """
     ClearTemporary()
@@ -91,14 +91,16 @@ f = Compile(Evaluate(expr))
     `Evaluate` is only implemented for `HoldAll`; not `HoldRest`, etc.
 """
 
-@mkapprule Evaluate :nargs => 1
+## Mma allows 0 or more args
+@mkapprule Evaluate  nodefault => true
 
 # This only handles trivial cases, where Evaluate is not protected by HoldXXX. The cases in which it
 # *is* protected are handled below in meval_arguments()
 @doap Evaluate(x) = x
+@doap Evaluate(args...) = mxpr(:Sequence,args...)
+@doap Evaluate() = mxpr(:Sequence)
 
 # @mkapprule Unevaluated
-
 # @doap function Unevaluated(arg)
 #     arg
 # end
@@ -217,7 +219,7 @@ macro bind_Os()
                   if (length(Output) - $i + 1) >= 1
                        oexp = mxpr(:Out, get_line_number() - $i + 1)
                        set_system_symval(parse($sym), oexp)
-                       set_pattributes($sym, :Protected)
+                       set_sysattributes($sym)
                   end
                      )
         push!(expr.args, newex)

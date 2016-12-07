@@ -503,7 +503,7 @@ doreplaceall(mx,a,b) = mx
 perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 """
 
-do_ReplaceRepeated{T<:Rules}(mx::Mxpr{:ReplaceRepeated},expr,r::T; kws...) = replacerepeated(expr,r; kws...)
+@doap ReplaceRepeated{T<:Rules}(expr,r::T; kws...) = replacerepeated(expr,r; kws...)
 
 function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
     rsa = Array(Any,0)

@@ -5,6 +5,28 @@
 #                                                          #
 ############################################################
 
+"""
+    SJDOCS
+
+is the dictionary containing documentation for Symata symbols.
+"""
+const SJDOCS = Dict{Symbol,Any}()
+
+"""
+    @sjdoc sym::Symbol str::String
+
+associate Symata langague documentation `str` with `sym`.
+"""
+macro sjdoc(sym,str)
+    SJDOCS[sym] = Markdown.parse(str)
+    nothing
+end
+
+function sjdocfun(sym,str)
+    SJDOCS[sym] = Markdown.parse(str)
+    nothing
+end
+
 ## Types SSJSym and Mxpr
 # SSJSym are Symata symbols
 # Mxpr are Symata expressions
@@ -13,6 +35,18 @@ typealias MxprArgs Array{Any,1}
 typealias MxprArgType Any
 typealias MxprArgT Any
 typealias FreeSyms Dict{Symbol,Bool}
+
+typealias SymString  Union{Symbol,String}
+
+"""
+    UnitRangeInf
+
+like `UnitRange`, but the upper limit is "infinity"
+"""
+immutable UnitRangeInf{T}  <: AbstractUnitRange
+    start::T
+end
+
 
 # AbstractMxpr is not used for anything
 # abstract AbstractMxpr
@@ -113,7 +147,7 @@ function getsymbolsincontext(s)
     sort!(map(string, collect(keys(SYMTABLES[c]))))
 end
 
-function  get_context_symtab{T<:Union{AbstractString,Symbol}}(context_name::T)
+function  get_context_symtab(context_name::SymString)
     cn = Symbol(context_name)
     if ! haskey(SYMTABLES, cn)
         SYMTABLES[cn] = newsymtable()
@@ -169,9 +203,13 @@ getevalage() = evalage.t
 
 # These are more or less the "builtin" symbols
 # After filling the Dict, its contents should be static.
+## TODO: make use of this
 const system_symbols = Dict{Symbol,Bool}()
-register_system_symbol(s::Symbol) =  system_symbols[s] = true
-register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[Symbol(s)] = true
+
+register_system_symbol(s::SymString) =  system_symbols[Symbol(s)] = true
+
+# register_system_symbol(s::Symbol) =  system_symbols[s] = true
+# register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[Symbol(s)] = true
 
 #### Down values
 
@@ -1158,16 +1196,13 @@ end
 
 # Related code in predicates.jl and attributes.jl
 unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
-protect(sj::SJSym) = set_attribute(sj,:Protected)
-set_attribute(sj::SJSymbol, attr::Symbol) = (getssym(sj).attr[attr] = true)
 
-# Better to delete the symbol
-#unset_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = false)
+protect(sj::SymString) = set_attribute(sj,:Protected)
 
-unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
+## We will get rid of Qsym
+set_attribute(sj::Qsym, attr::Symbol) = (getssym(sj).attr[attr] = true)
 
-clear_attributes(sj::SJSymbol) =  empty!(getssym(sj).attr)
-
+include("attributes.jl")
 #### typealiases
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}

@@ -61,7 +61,7 @@ end
 
 ### SetAttributes
 
-@mkapprule SetAttributes :nargs => 2
+@mkapprule SetAttributes nargs => 2
 
 @sjdoc SetAttributes """
     SetAttributes(sym,attr)
@@ -108,7 +108,7 @@ do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attrs::Mxpr{:List}) = 
 
 removes `attr` from the list of attributes of symbol `sym`.
 """
-@mkapprule ClearAttributes :nargs => 2
+@mkapprule ClearAttributes nargs => 2
 
 @doap ClearAttributes(sym,attr) = (unset_attribute(sym,attr); Null)
 
@@ -145,7 +145,7 @@ end
 
 do_unprotect(mx,a) = false
 
-### #Protect
+### Protect
 
 @sjdoc Protect """
     Protect(z1,z2,...)
@@ -153,10 +153,12 @@ do_unprotect(mx,a) = false
 add the `Protected` attribute to the lists of attributes for the symbols `z1, z2, ...`.
 """
 
-function apprules(mx::Mxpr{:Protect})
+@mkapprule Protect nargs => 1:Inf  nodefault => true
+
+@doap function Protect(args...)
     nargs = newargs()
-    for i in 1:length(mx)
-        ret = do_protect(mx,mx[i])
+    for x in args
+        ret = do_protect(x)
         if ret != false
             push!(nargs, ret)
         end
@@ -164,15 +166,11 @@ function apprules(mx::Mxpr{:Protect})
     mxprcf(:List, nargs)
 end
 
-function do_protect(mx,a::SJSym)
-    if ! is_protected(a)
-        protect(a)
-        return string(a)
-    end
-    return false
+function do_protect(a::SJSym)
+    is_protected(a) && return false
+    protect(a)
+    string(a)
 end
-
-do_protect(mx,a) = false
 
 ### Set and SetDelayed
 
@@ -210,14 +208,14 @@ rather to the current value of `b` every time `a` is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 
-@mkapprule Set
+@mkapprule Set nargs => 1:Inf
 
-# TODO: implement 1 or more in @mkapprule
-function do_Set(mx::Mxpr{:Set})
-    warn("Set called with 0 arguments; 1 or more arguments are expected.")
-    setfixed(mx)
-    mx
-end
+# function do_Set(mx::Mxpr{:Set})
+#     warn("Set called with 0 arguments; 1 or more arguments are expected.")
+#     setfixed(mx)
+#     mx
+# end
+
 
 # This is what Mma does.
 # When is this used ?
@@ -238,11 +236,13 @@ end
     rhs
 end
 
-@mkapprule SetDelayed :nodefault => true
+@mkapprule SetDelayed nargs => 1:Inf  nodefault => true
 
 @doap SetDelayed(lhs,rhs) = setdelayed(mx,lhs,rhs)
 
 @doap SetDelayed(lhs, rhs...) = mxpr(:SetDelayed, lhs, mxpr(:Sequence,rhs...))
+
+@doap SetDelayed() = mx
 
 # getsym(symname(lhs)) is because a copy of symbol is being made somewhere
 # so we look up the original in the table
@@ -339,7 +339,7 @@ setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module
 increments the value of `n` by `1` and returns the old value.
 """
 
-@mkapprule Increment :nargs => 1
+@mkapprule Increment nargs => 1
 
 @doap function Increment(x::SJSym)
     @checkunbound(mx,x,xval)
@@ -364,7 +364,7 @@ end
 decrements the value of `n` by `1` and returns the old value.
 """
 
-@mkapprule Decrement :nargs => 1
+@mkapprule Decrement nargs => 1
 
 #function do_Decrement(mx, x::SJSym)
 @doap function Decrement(x::SJSym)
@@ -391,7 +391,7 @@ set `a` to `a * b` and returns the new value. This is currently
 faster than `a = a * b` for numbers.
 """
 
-@mkapprule TimesBy :nargs => 2
+@mkapprule TimesBy nargs => 2
 
 function do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val)
     @checkunbound(mx,x,xval)
@@ -418,7 +418,7 @@ sets `a` to `a + b` and returns the new value. This is currently
 faster than `a = a + b` for numbers.
 """
 
-@mkapprule AddTo :nargs => 2
+@mkapprule AddTo nargs => 2
 
 function do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val)
     @checkunbound(mx,x,xval)
@@ -462,7 +462,7 @@ apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_S
 
 ### Contexts
 
-@mkapprule Contexts  :nargs => 0:1
+@mkapprule Contexts  nargs => 0:1
 
 @sjdoc Contexts """
     Contexts()
@@ -475,7 +475,7 @@ return a `List` of all contexts.
 end
 
 
-@mkapprule ContextSymbols  :nargs => 1
+@mkapprule ContextSymbols  nargs => 1
 
 @sjdoc ContextsSymbols """
     Contexts(context)
@@ -496,8 +496,10 @@ end
 associate the transformation rule with `g`.
 """
 
-apprules(mx::Mxpr{:UpSet}) = upset(mx,mx[1],mx[2])
+@mkapprule UpSet nargs => 1:Inf
+@doap UpSet(lhs,rhs) = upset(mx,lhs,rhs)
 
+## Note, mx is needed here because the entire expression is recorded for the definition of lhs
 function upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     for i in 1:length(lhs)
@@ -511,10 +513,10 @@ function upset(mx,lhs::Mxpr, rhs)
     return rhs
 end
 
-apprules(mx::Mxpr{:UpSetDelayed}) = upsetdelayed(mx,mx[1],mx[2])
+@mkapprule UpSetDelayed nargs => 1:Inf
+@doap UpSetDelayed(lhs,rhs) = upsetdelayed(mx,lhs,rhs)
 
-# I think the only difference with UpSet again, is we don't return the
-# rhs.
+## I think the only difference with UpSet again, is we don't return the rhs
 function upsetdelayed(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
     for i in 1:length(lhs)
@@ -527,7 +529,6 @@ function upsetdelayed(mx,lhs::Mxpr, rhs)
     end
     Null
 end
-
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     checkprotect(lhs)
@@ -548,11 +549,14 @@ converts the string `str` to a symbol. For example if `a` is `1`,
 then Symbol("a") returns `1`.
 """
 
-function apprules(mx::Mxpr{:Symbol})
-    dosymbol(mx,mx[1])
-end
-dosymbol(mx,s::AbstractString) = getsym(Symbol(s))
-dosymbol(mx,x) = (symwarn("Symbol: expected a string"); mx)
+@mkapprule Symbol nargs => 1
+
+# function apprules(mx::Mxpr{:Symbol})
+#     dosymbol(mx,mx[1])
+# end
+
+@doap Symbol(s::String) = getsym(Symbol(s))
+@doap Symbol(x) = (symwarn("Symbol: expected a string"); mx) 
 
 #### Clear
 
@@ -571,22 +575,46 @@ the value `Null`.
 @sjseealso_group(Clear, ClearAll)
 
 # 'Clear' a value. ie. set symbol's value to its name
-function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
-    @inbounds for a in margs(mx)  # no inbounds does not work here
-        a = typeof(a) <: AbstractString ?  Symbol(a) : a
-        if a == :Out
-            clear_all_output()
-            return Null
-        end
-        checkprotect(a)
-#        setsymval(a,symname(a))
-        clear_downvalues(a)
-        clear_upvalues(a)
-        clear_ownvalue_definition(a)
-        setsymval(a,a)        # May 2016. This works ?
+## NOTE: Mma 1) allows 0 or more args with no message.
+##           2) complains about non-symbols, but does not abort, ie. will clear remaining symbols
+##           3) the symbol can be given as a string
+##           4) always returns Null
+
+@mkapprule Clear  nodefault => true
+
+@doap Clear(args...) = (foreach(_clear, args); Null)
+
+_clear(x) = Null
+
+function _clear(ins::SymString)
+    s = Symbol(ins)
+    if s == :Out
+        clear_all_output()
+        return
     end
-    Null
+    checkprotect(s)
+    clear_downvalues(s)
+    clear_upvalues(s)
+    clear_ownvalue_definition(s)
+    setsymval(s,s)        # May 2016. This works ?
 end
+
+# function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
+#     @inbounds for a in margs(mx)  # no inbounds does not work here
+#         a = typeof(a) <: AbstractString ?  Symbol(a) : a
+#         if a == :Out
+#             clear_all_output()
+#             return Null
+#         end
+#         checkprotect(a)
+# #        setsymval(a,symname(a))
+#         clear_downvalues(a)
+#         clear_upvalues(a)
+#         clear_ownvalue_definition(a)
+#         setsymval(a,a)        # May 2016. This works ?
+#     end
+#     Null
+# end
 
 ### ClearAll
 
@@ -618,7 +646,7 @@ end
 creates a unique symbol.
 """
 
-@mkapprule Unique :nargs => 0:1
+@mkapprule Unique nargs => 0:1
 
 @doap Unique() = (s = gensym(); setsymval(s,s); s)
 
@@ -629,7 +657,7 @@ creates a unique symbol.
 
 returns the name of `symbol` as a string.
 """
-@mkapprule SymbolName :nargs => 1
+@mkapprule SymbolName nargs => 1
 @doap SymbolName(x::SJSym) = string(x)
 
 ### DownValues
@@ -703,7 +731,7 @@ unsets the fixed flag on `expr`, causing it to be evaluated.
 This is a workaround for bugs that cause an expression to be marked fixed
 before it is completely evaluated.
 """
-@mkapprule Unfix  :nodefault => true  :options => Dict( :Deep => false )
+@mkapprule Unfix  nodefault => true  options => Dict( :Deep => false )
 
 function do_Unfix(mx,expr::Mxpr; Deep=false)
 #    (deep,val) = kws[1]
@@ -750,12 +778,12 @@ return a `List` of symbols that have not been imported from the `System` namespa
 This is all user defined symbols (unless you have imported symbols from elsewhere).
 """
 
-@mkapprule UserSyms  :nargs => 0
+@mkapprule UserSyms  nargs => 0
 
 @doap UserSyms() = usersymbolsList()
 
 # This is the old version
-@mkapprule UserSyms2 :nargs => 0
+@mkapprule UserSyms2 nargs => 0
 
 @doap UserSyms2() = usersymbolsListold()
 
@@ -765,7 +793,7 @@ This is all user defined symbols (unless you have imported symbols from elsewher
 return the name of the current context.
 """
 
-@mkapprule CurrentContext :nargs => 0
+@mkapprule CurrentContext nargs => 0
 
 # This does not return a context or module type, because we need to
 # keep types out of the language as much as possible. Everything is

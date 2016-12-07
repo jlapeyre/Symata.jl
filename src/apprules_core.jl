@@ -8,19 +8,52 @@
 # Eg. if you don't write a function (described below) to handle an expression with head Headname(a,b,c)
 # Headname(a,b,c) is returned
 #
-# :nargs => n              The expression requires exactly n arguments.
-# :nargs =  ur::UnitRange  The number of arguments must lie within the range.
-# :options = Dict( :opt1 => default1, ... )  The expression takes keyword arguments, "Options". These are translated
+# nargs => n              The expression requires exactly n arguments.
+# nargs =>  ur::UnitRange  The number of arguments must lie within the range.
+# nargs => n:Inf    n or more arguments
+# options => Dict( :opt1 => default1, ... )  The expression takes keyword arguments, "Options". These are translated
 #                                            to rules, which is how we implement keyword argumentss.
+# nodefault => true    Don't write the default rule for any number of arguments of any type.
+# A string is assumed to be the Symata docstring and is passed to @sjdoc.
+# 
 
-## TODO :nargs =>  one or more, etc.
 ## TODO use this syntax :options = (:opt1 => default1, ...)
-## TODO: default rule is not correct if keyword arguments are taken
-## TODO: Can't use @doap with keyword arguments
 ## TODO: assert type or ranges for keyword arguments (and positional arguments)
+
+function parse_nargs(ex)
+    if isa(ex,Expr) && ex.head == :(:) && ex.args[2] == :Inf
+        return UnitRangeInf(ex.args[1])
+    end
+    return eval(ex)
+end
+
+eval_app_directive(ex) = eval(x)
+
+function eval_app_directive(ex::Expr)
+    if ex.head == :( => ) &&
+        isa(ex.args[1],Symbol)
+        return ex.args[1] => eval(ex.args[2])
+    end
+    eval(ex)
+end
 
 # get_arg_dict constructs a Dict from the macro aguments.
 function get_arg_dict(args)
+    d = Dict{Symbol,Any}()
+    local pe
+    for p in args
+        if isa(p,Expr) && p.args[1] == :nargs
+            pres = parse_nargs(p.args[2])
+            pe = :nargs => pres
+        else
+            pe = eval_app_directive(p)
+        end
+        d[pe[1]] = pe[2]
+    end
+    d
+end
+
+function get_arg_dict_options(args)
     d = Dict{Symbol,Any}()
     for p in args
         pe = eval(p)
@@ -29,9 +62,10 @@ function get_arg_dict(args)
     d
 end
 
-macro mkapprule(args...)
+macro mkapprule(inargs...)
+    head = inargs[1]   ## head is the symbol for which we are writing rules    
+    args = [inargs...]
     n = length(args)
-    head = args[1]
     headstr = string(head)
     fns = Symbol("do_" * headstr)
     mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
@@ -40,17 +74,22 @@ macro mkapprule(args...)
     defmx = :( mx )
     specs = Dict()
     local rargs
-    if n > 1
-        if isa(args[2],String)
-            sjdocfun(head,args[2])
-            rargs = args[3:end]
-        else
-            rargs = args[2:end]
+    if n > 1  ## there are some directives
+        docstringind = findfirst(x -> isa(x,String), args)
+        if docstringind > 0
+            sjdocfun(head,args[docstringind])
+            deleteat!(args,docstringind)
         end
-        specs = get_arg_dict(rargs)
+        n = length(args)
     end
+    if n > 1
+        rargs = args[2:end]
+    else
+        rargs = Any[]
+    end
+    specs = get_arg_dict(rargs)
     if haskey(specs, :options)
-        optd = get_arg_dict(specs[:options])
+        optd = get_arg_dict_options(specs[:options])
         if haskey(specs, :nargs)
             nargcode = checkargscode(:newargs,head,specs[:nargs])
         else
@@ -68,7 +107,7 @@ macro mkapprule(args...)
                         end )
     elseif haskey(specs, :nargs)
         nargcode = checkargscode(:mx,head,specs[:nargs])
-        if isa(specs[:nargs],Int) || isa(specs[:nargs],UnitRange)
+        if isa(specs[:nargs],Int) || isa(specs[:nargs],AbstractUnitRange)
             nargcode = checkargscode(:mx,head,specs[:nargs])
             apprulecall = :(function apprules($mxarg)
                             $nargcode
@@ -84,7 +123,7 @@ macro mkapprule(args...)
         defaultmethod = :($fns($mxarg, args...) = $defmx)
     end
     esc(quote
-        set_pattributes([$headstr],[:Protected])
+        set_sysattributes($headstr)
         $apprulecall
         $defaultmethod
         end)
@@ -107,10 +146,6 @@ end
 # @doap function Headname{T<:SomeType}(x,y::T) = ...
 # etc.
 
-function quotesymbol(sym)
-    QuoteNode(sym)
-end
-
 """
     @doap  method definition for function Headname
 
@@ -130,7 +165,6 @@ Examples of rules that handle Symata expressions of the form `Headname(x,y)` are
 end
 
 @doap  function Headname(x,y) = ...
-
 
 @doap function Headname{T<:SomeType}(x,y::T) = ...
 ```
@@ -156,55 +190,50 @@ macro doap(func)
     end
     local quote_sj_func_name
     if isa(sj_func_name,Symbol)
-        quote_sj_func_name = quotesymbol(sj_func_name)         # :Headname from prototype like Headname(args...)
+        quote_sj_func_name = QuoteNode(sj_func_name)         # :Headname from prototype like Headname(args...)
     elseif isa(sj_func_name,Expr)
-        quote_sj_func_name = quotesymbol(sj_func_name.args[1]) # :Headname from prototype like Headname{T,V}(args...)
+        quote_sj_func_name = QuoteNode(sj_func_name.args[1]) # :Headname from prototype like Headname{T,V}(args...)
     else
         symerror("doap: Can't interpret ", sj_func_name)
     end
     mxarg =  :( mx::Mxpr{$quote_sj_func_name}  )             # mx::Mxpr{:Headname}
-    insert!(prototype,2, mxarg)                              # insert mx::Mxpr{:Headname} as the first argument in prototype
+    nind = 2 ## kws appear last in the argument list in Julia syntax. But, they are moved to the front in the AST
+    if length(prototype) > 1   ## So, we have to detect this.
+        if isa(prototype[2],Expr) && prototype[2].head == :parameters
+            nind = 3
+        end
+    end
+    insert!(prototype,nind, mxarg)                              # insert mx::Mxpr{:Headname} as the first argument in prototype
     :(($(esc(func))))                                        # return the rewritten function
 end
 
 #### Default apprule
-#  This is for a head that is (almost always) not a "system" symbol.
-#  Usually, it is a user defined symbol
+##  This is for a head that is (almost always) not a "system" symbol, but rather user defined
 
 apprules(x) = x
 
-#### set_pattributes for internal use to set default attributes of builtin symbols.
-# This is used to set several attributes for one symbol, or give several symbols multiple
-# attributes, etc. It is used when macro mkapprule above is called, and extensively in
-# protected_symbols.jl
-
-function set_pattributes{T<:AbstractString}(syms::Array{T,1},attrs::Array{Symbol,1})
-    for s in syms
-        ssym = Symbol(s)
-        clear_attributes(ssym)
-        for a in attrs
-            set_attribute(ssym,a)
-        end
-        set_attribute(ssym,:Protected)  # They all are Protected, But, we always include this explictly, as well.
-        register_system_symbol(ssym)
-    end
-end
-
-set_pattributes{T<:AbstractString}(sym::T,attrs::Array{Symbol,1}) = set_pattributes([sym],attrs)
-set_pattributes{T<:AbstractString}(syms::Array{T,1},attr::Symbol) = set_pattributes(syms,[attr])
-set_pattributes{T<:AbstractString}(sym::T,attr::Symbol) = set_pattributes([sym],[attr])
-set_pattributes{T<:AbstractString}(sym::T) = set_pattributes([sym],Symbol[])
-set_pattributes{T<:AbstractString}(syms::Array{T,1}) = set_pattributes(syms,Symbol[])
-
 #### Currying
+
+@doc """
+For example
+
+```
+symata 1> op = Map(f)
+Out(1) = Map(f)
+symata 2> op([x,y,z])
+Out(2) = [f(x),f(y),f(z)]
+```
+
+"Currying" was added to Mma in 2014
+""" currying
 
 apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
-do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
+do_GenHead(mx,f::Function) = f(margs(mx)...)
 
-# This feature was added to Mma in 2014
+
 # Assume operator version of an Symata "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is the second.
@@ -212,7 +241,6 @@ do_GenHead{T<:Function}(mx,f::T) = f(margs(mx)...)
 # function do_GenHead(mx,head::Mxpr)
 #     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
 # end
-
 
 macro curry_first(fname)
     doname = Symbol("do_", string(fname))

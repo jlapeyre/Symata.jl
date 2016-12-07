@@ -2,7 +2,7 @@
  "string1  \$a string2" interpolates the value of `a` into the string.
 """
 
-set_pattributes(["StringInterpolation"],[:Protected])
+set_sysattributes(:StringInterpolation,:Protected)
 function apprules(mx::Mxpr{:StringInterpolation})
     symstring(margs(mx)...)
 end

@@ -144,7 +144,7 @@ do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(f
 # objects and properties.
 
 # string to set attributes of sym
-function attributes_set_string{T<:Union{AbstractString, SJSym}}(sym::T)
+function attributes_set_string(sym::SymString)
     a = get_attributes(sym)
     a = map(string,a)
     sym = string(sym)
@@ -176,7 +176,7 @@ end
 
 ## FIXME: The correct way is not this way. Instead  Definition(f) does not evaluate to anything.
 ## rather displaying the form Definition(f) prints the definitions
-function do_Definition{T<:Union{AbstractString, SJSym}}(mx::Mxpr{:Definition}, sym::T)
+function do_Definition(mx::Mxpr{:Definition}, sym::SymString)
     write_definition(STDOUT,sym)
     Null
 end

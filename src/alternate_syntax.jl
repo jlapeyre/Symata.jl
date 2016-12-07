@@ -34,7 +34,7 @@ The only relation to Mathematica is the syntax. This mode does not interact with
 of Mathematica and Wolfram language and all other Wolfram company products.
 """
 
-@mkapprule MmaSyntax :nargs => 0
+@mkapprule MmaSyntax nargs => 0
 
 @doap function MmaSyntax()
     (! _init_symatasyntax()) && return
@@ -52,7 +52,7 @@ The mathics process is separate from the Symata process. In particular, setting 
 does nothing in Symata and vice-versa.
 """
 
-@mkapprule Mathics :nargs => 0
+@mkapprule Mathics nargs => 0
 
 @doap function Mathics()
     (! _init_symatasyntax()) && return

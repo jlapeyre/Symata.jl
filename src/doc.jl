@@ -23,19 +23,20 @@
 
 # Single doc string for a symbol. Retrieved by:
 # symata>? SomeHead
-const SJDOCS = Dict{Symbol,Any}()
+
 const SJEXAMPLES = Dict{Symbol,Array{Any,1}}()
 const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 
-function sjdocfun(sym,str)
-    SJDOCS[sym] = Markdown.parse(str)
-    nothing
-end
-
-macro sjdoc(sym,str)
-    SJDOCS[sym] = Markdown.parse(str)
-    nothing
-end
+## Following moved to mxpr.jl
+#const SJDOCS = Dict{Symbol,Any}()
+# function sjdocfun(sym,str)
+#     SJDOCS[sym] = Markdown.parse(str)
+#     nothing
+# end
+# macro sjdoc(sym,str)
+#     SJDOCS[sym] = Markdown.parse(str)
+#     nothing
+# end
 
 # Called from the macro @sym which parses cli input to see if we have a help query
 # or an expression.
@@ -95,17 +96,10 @@ function retrieve_doc(qs...)
             return("No documentation for '" * string(q) * "'.")
         end
     end
-    #     as = get_attributes(q)
-    #     if length(as) > 0
-    #         symprintln("\n Attributes(", string(q), ") = ", mxpr(:List,as...))
-    #     end
-    #     if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end
-    # end
-    # Null
 end
 
 
-function print_sympy_doc{T<:Union{AbstractString,Symbol}}(sjsymin::T)
+function print_sympy_doc(sjsymin::SymString)
     sjsym = Symbol(sjsymin)
     if have_pyfunc_symbol(sjsym)
         println("\nSymPy documentation")
@@ -407,7 +401,7 @@ regular expression regex. For example `Help(r\"Set\"i)` lists all topics that
 match "Set" case-independently.
 """
 
-@mkapprule Help  :nodefault => true
+@mkapprule Help  nodefault => true
 
 @doap Help() = print_doc("Help")
 
@@ -444,7 +438,7 @@ the examples are printed along with the documentation string, but are not evalua
 Returns a list of all example topics.
 """
 
-@mkapprule Example  :nargs => 0:2
+@mkapprule Example  nargs => 0:2
 
 @doap Example() = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
 @doap Example(topic) = do_examples(mx[1])  ## <-- mx[1] is topic ?

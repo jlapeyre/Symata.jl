@@ -220,13 +220,13 @@ function make_sympy_to_symata()
     set_pytosj(:InverseLaplaceTransform,:InverseLaplaceTransform)
 end
 
-function register_sjfunc_pyfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
+function register_sjfunc_pyfunc(sj::SymString, py::SymString)
     set_pytosj(Symbol(py), Symbol(sj))
     set_sjtopy(Symbol(sj), Symbol(py))
 end
 
 # Watch the order
-function register_only_pyfunc_to_sjfunc{T<:Union{AbstractString,Symbol}, V<:Union{AbstractString,Symbol}}(sj::T, py::V)
+function register_only_pyfunc_to_sjfunc(sj::SymString, py::SymString)
     set_pytosj(py,sj)
 end
 

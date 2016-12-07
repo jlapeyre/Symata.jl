@@ -118,3 +118,5 @@ end
 @doap function Test(ex)
     trueq(doeval(ex))
 end
+
+#set_pattributes(:Test, :HoldAll)

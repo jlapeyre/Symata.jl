@@ -1,6 +1,6 @@
 ### Coefficient
 
-@mkapprule Coefficient :nargs => 2:3
+@mkapprule Coefficient nargs => 2:3
 
 @doap function Coefficient(expr, x)
     res = coefficient0(mx,expr,x)

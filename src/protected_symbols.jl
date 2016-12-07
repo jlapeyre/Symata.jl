@@ -1,47 +1,55 @@
 # Set the Attributes of some "builtin" Protected symbols
 
-set_pattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
+## NOTE!: Until the attribute setting is cleaned up, in particular in math_functions.jl,
+## This file should be loaded last or almost last in order to correct incorrectly set attributes.
+## This happens because big lists of functions are handled by macros that set default attributes,
+## but the defaults should not apply to a few of them.
+
+## TODO: The use of arrays, vs. single elements and strings vs symbols is outdated
+## set_sysattributes takes two args. either can be a string or a symbol or an array of strings or symbols.
+
+set_sysattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "TimesBy", "AddTo", "Catch"], :HoldFirst)
 
 ## Piecewise is also read protected in Mma
-set_pattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
+set_sysattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                  "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
                  "Jxpr", "JuliaExpression", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall",
                  "Piecewise"],
                 :HoldAll)
 
 
-set_pattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])
+set_sysattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])
 
-set_pattributes(["Save", "Last"], [:HoldRest] )
+set_sysattributes(["Save", "Last"], [:HoldRest] )
 
-set_pattributes("Attributes",[:HoldAll,:Listable])
+set_sysattributes("Attributes",[:HoldAll,:Listable])
 
-set_pattributes("DivisorSigma",[:NHoldAll,:Listable])
+set_sysattributes("DivisorSigma",[:NHoldAll,:Listable])
 
-set_pattributes("Rule",:SequenceHold)
+set_sysattributes("Rule",:SequenceHold)
 
-set_pattributes(["Set","UpSet"],[:HoldFirst, :SequenceHold])
+set_sysattributes(["Set","UpSet"],[:HoldFirst, :SequenceHold])
 
-set_pattributes(["Increment","Decrement"],[:HoldFirst, :ReadProtected])
+set_sysattributes(["Increment","Decrement"],[:HoldFirst, :ReadProtected])
 
-set_pattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
+set_sysattributes(["RuleDelayed","PatternTest"],[:HoldRest, :SequenceHold])
 
-set_pattributes(["Timing","Allocated","SetDelayed","UpSetDelayed"], [:HoldAll,:SequenceHold])
+set_sysattributes(["Timing","Allocated","SetDelayed","UpSetDelayed"], [:HoldAll,:SequenceHold])
 
-set_pattributes(["Pi","E"],[:ReadProtected,:Constant])
-set_pattributes(["EulerGamma", "GoldenRatio", "Catalan"],[:Constant])
+set_sysattributes(["Pi","E"],[:ReadProtected,:Constant])
+set_sysattributes(["EulerGamma", "GoldenRatio", "Catalan"],[:Constant])
 
-set_pattributes("I", [:ReadProtected,:Locked]) # Careful with this. We mostly use julia symbol :I bound to complex(0,1)
+set_sysattributes("I", [:ReadProtected,:Locked]) # Careful with this. We mostly use julia symbol :I bound to complex(0,1)
 
-set_pattributes(["CompoundExpression","Sum","Product"],[:ReadProtected,:HoldAll])
+set_sysattributes(["CompoundExpression","Sum","Product"],[:ReadProtected,:HoldAll])
 
-set_pattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
+set_sysattributes(["Part","D","LaplaceTransform","InverseLaplaceTransform",
                  "FourierTransform","InverseFourierTransform", "Integrate", "DSolve", "ReadString",
                  "STDOUT", "STDERR", "DevNull", "HoldAllComplete"
                  ],:ReadProtected)
 
 # We kinda need Exp, see the apprules.
-set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "SinPi",
+set_sysattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "SinPi",
                  "Cot", "Cosh", "Conjugate", "Sinh","Minus","Abs","Re","Im", "ReIm", "Exp", "Sqrt",
                  "PolyGamma", "EllipticE", "EllipticF", "EllipticK", "EllipticPi", "LogIntegral", "Mod", "DivRem",
                  "Sign", "SphericalHarmonicY", "SphericalBesselJ", "SphericalBesselY", "Erf", "Gamma", "GammaRegularized", "Divide",
@@ -49,75 +57,78 @@ set_pattributes(["Cos", "ArcCos", "Sin", "ArcSin", "Tan", "ArcTan", "CosPi", "Si
                  ],
                 [:Listable,:NumericFunction])
 
-set_pattributes(["MeijerG", "HypergeometricPFQ"], [:NumericFunction])
+## These were given Listable attribute in math_functions.jl
+clear_attributes(:MeijerG, :HypergeometricPFQ)
+set_sysattributes([:MeijerG, :HypergeometricPFQ], [:NumericFunction])
 
-set_pattributes(["HeavisideTheta"],
+set_sysattributes([:HeavisideTheta],
                 [:Listable, :Orderless])
 
-set_pattributes(["Plus", "Times"],
+set_sysattributes(["Plus", "Times"],
                 [:Flat,:Listable,:NumericFunction,:OneIdentity,:Orderless])
 
-set_pattributes(["Max", "Min"],
+set_sysattributes(["Max", "Min"],
                 [:Flat,:NumericFunction,:OneIdentity,:Orderless])
 
-set_pattributes(["LCM", "GCD"],
+set_sysattributes(["LCM", "GCD"],
                 [:Flat,:Listable,:OneIdentity,:Orderless])
 
-set_pattributes(["Composition"],
+set_sysattributes(["Composition"],
             [:Flat,:OneIdentity,])
 
-set_pattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
+set_sysattributes("Power",[:Listable,:NumericFunction,:OneIdentity])
 
 # This is not quite what Mma has for these. I don't understand why. Eg. CosIntegral is not a NumericFunction
 # Many are not Listable in the docs, although they are in practice.
-set_pattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS", "MittagLefflerE",
-                 "HarmonicNumber", "BellB", "InverseErf", "Log"],
+set_sysattributes(["Pochhammer", "LogIntegral", "LerchPhi", "CosIntegral", "SinIntegral", "FresnelC", "FresnelS", "MittagLefflerE",
+                 "HarmonicNumber", "InverseErf", "Log"],
                 [:Listable,:NumericFunction,:ReadProtected])
 
 # BellB should be split into BellB and BellY
-set_pattributes(["BellB"],
+clear_attributes(:BellB)  ## FIXME: set these attributes only once
+set_sysattributes(["BellB"],
                 [:NumericFunction,:ReadProtected])
 
 
 # Note: Simplify is not Listable in Mma
-set_pattributes(["Boole", "EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
+set_sysattributes(["Boole", "EvenQ","OddQ", "PrimeQ", "Range","Limit", "Together", "Apart", "Cyclotomic", "MoebiusMu", "EulerPhi", "Divisors", "DivisorCount",
                  "ToExpression", "Simplify", "FullSimplify", "StringReverse", "ToJExpression", "LetterNumber"]
                 ,[:Listable])
 
-set_pattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
+set_sysattributes(["DirectedInfinity"], [:Listable, :ReadProtected])
 
 # Some symbols that may be particular to SymPy
 # We should use GaussianIntegers instead of Gaussian
-set_pattributes(["PolarLift", "ExpPolar", "ExpandFunc", "Modulus","Force", "Deep", "Gaussian"],
+set_sysattributes(["PolarLift", "ExpPolar", "ExpandFunc", "Modulus","Force", "Deep", "Gaussian"],
                 :Protected)
 
-set_pattributes(["And", "Or"], [:Flat, :HoldAll, :OneIdentity])
+set_sysattributes(["And", "Or"], [:Flat, :HoldAll, :OneIdentity])
 
-set_pattributes(["UnicodeForm", "JupyterForm", "InputForm"], :Protected)
+set_sysattributes(["UnicodeForm", "JupyterForm", "InputForm"], :Protected)
 
 ## Do we still need these ?
-#set_pattributes(["Plain","Unicode", "IJulia" ], :Protected)
+#set_sysattributes(["Plain","Unicode", "IJulia" ], :Protected)
 
-set_pattributes(["Return","Break","Continue"], :Protected)
+set_sysattributes(["Return","Break","Continue"], :Protected)
 
-set_pattributes(["HoldFirst","HoldAll","HoldRest","NHoldFirst","NHoldAll","NHoldRest"], :Protected)
+set_sysattributes(["HoldFirst","HoldAll","HoldRest","NHoldFirst","NHoldAll","NHoldRest"], :Protected)
 
 # FIXME: Subscript cannot have Attribute 'Protected', because the user must be able to assign, e.g. Subscript(a,1) = 1.
 # But, without Protected, we do not get TAB completion.
 set_attributes(:Subscript, :NHoldRest)
 
-set_pattributes(["Int64", "Int", "Float64",  "BigFloat", "BigInt", "AbstractString", "Real", "Float"], :Protected)
+set_sysattributes(["Int64", "Int", "Float64",  "BigFloat", "BigInt", "AbstractString", "Real", "Float"], :Protected)
 
-set_pattributes(["O","OO","OOO","OOOO","OOOOO","OOOOOO","OOOOOOO","OOOOOOOO","OOOOOOOOOO"], :Protected)
+set_sysattributes(["O","OO","OOO","OOOO","OOOOO","OOOOOO","OOOOOOO","OOOOOOOO","OOOOOOOOOO"], :Protected)
 
-set_pattributes(["System", "Main"], :Protected)
+set_sysattributes(["System", "Main"], :Protected)
 
 # True and False are actually parsed as Julia true and false. But, this is a quick way to get TAB completion for them
-set_pattributes(["True", "False"], :Protected)
+set_sysattributes(["True", "False"], :Protected)
 
-set_pattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
+set_sysattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 
-set_pattributes([
+set_sysattributes([                 
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","ArrayDepth","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison", "CompiledFunction",

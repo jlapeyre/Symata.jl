@@ -16,7 +16,7 @@ end
 
 ### Apply
 
-@sjdoc Apply """
+@mkapprule Apply nodefault => true """
     Apply(f,expr)   f .% expr
 
 replace the `Head` of `expr` with `f`.
@@ -30,7 +30,6 @@ m = Apply(Plus)
 m(f(a,b,c))
 ```
 """
-@mkapprule Apply :nodefault => true
 
 @curry_first Apply
 
@@ -68,7 +67,7 @@ end
 
 ### Hash
 
-@mkapprule Hash :nargs => 1
+@mkapprule Hash nargs => 1
 @doap Hash(x) = hash(x)
 
 ### Head
@@ -86,7 +85,7 @@ return the `Head` of `expr`.
     a quoted Julia expression is evaluated so that we can embed Julia code.
 """
 
-@mkapprule Head  :nargs =>  1
+@mkapprule Head  nargs =>  1
 
 @doap Head(mx1::Mxpr) = mhead(mx1)
 @doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
@@ -123,7 +122,7 @@ f = Compile([x], x^2)
 
 return `True` if `x` is of type `type`.
 """
-@mkapprule Isa
+@mkapprule Isa  nargs => 2
 
 @doap Isa(x,T::DataType) = isa(x,T)
 @doap Isa(x,T::Symbol) = isa(x,eval(T))
@@ -135,7 +134,7 @@ return `True` if `x` is of type `type`.
 
 #typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
 
-@mkapprule ReleaseHold :nargs => 1
+@mkapprule ReleaseHold nargs => 1
 
 @sjdoc ReleaseHold """
     ReleaseHold(expr)
@@ -167,14 +166,14 @@ end
 reverse the order of the arguments in `expr`.
 """
 
-@mkapprule Reverse :nargs => 1
+@mkapprule Reverse nargs => 1
 @doap function Reverse(ex::Mxpr)
     get_attribute(ex,:Orderless) && return ex
     setfixed(mxpra(mhead(ex),reverse(margs(ex))))
 end
 @doap Reverse(ex::AbstractArray) = reverse(ex)
 
-@mkapprule Reverse! :nargs => 1
+@mkapprule Reverse! nargs => 1
 @doap function Reverse!(ex::Mxpr)
     get_attribute(ex,:Orderless) && return ex    
     reverse!(margs(ex))
@@ -190,9 +189,14 @@ end
 give a list of all permutations of elements in `expr`.
 """
 
-function apprules(mx::Mxpr{:Permutations})
-    perms = collect(permutations(margs(mx[1])))
-    h = mhead(mx[1])
+@mkapprule Permutations nargs => 1:2
+
+## TODO:
+## Permutations[list, n] gives all permutations containing at most n elements.
+## Permutations[list, {n}] gives all permutations containing exactly n elements
+@doap function Permutations(x::Mxpr)
+    perms = collect(permutations(margs(x)))
+    h = mhead(x)
     len = length(perms)
     nargs = newargs(len)
     @inbounds for i in 1:len
@@ -206,8 +210,8 @@ end
 
 give a list of prime factors of `n` and their multiplicities.
 """
-
-apprules(mx::Mxpr{:FactorInteger}) = setfixed(mxpra(:List,do_unpack(factor(mx[1]))))
+@mkapprule FactorInteger nargs => 1:2
+@doap FactorInteger(x) = setfixed(mxpra(:List,do_unpack(factor(x))))
 
 ### Level
 
@@ -237,7 +241,7 @@ Negative indices count backwards from the deepest level.
 `Map` can be used in an operator form. For example `Map(f)(expr)`.
 """
 
-@mkapprule Map
+@mkapprule Map nargs => 1:3
 
 @doap function Map(f::Function,expr::Mxpr)
     args = margs(expr)
@@ -300,7 +304,8 @@ end
 
 ### ToExpression
 
-apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
+
+#@doap apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 
 @sjdoc ToExpression """
     ToExpression(str)
@@ -308,10 +313,10 @@ apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
 convert string `str` to an expression.
 """
 
-do_ToExpression{T<:AbstractString}(mx,s::T) = symataevaluate(parse(s), EvaluateJuliaSyntaxSimple())
-do_ToExpression(mx,s) = s
-do_ToExpression(mx,args...) = mx
-set_pattributes("ToExpression")
+@mkapprule ToExpression nargs => 1:3
+@doap ToExpression(s::String) = symataevaluate(parse(s), EvaluateJuliaSyntaxSimple())
+@doap ToExpression(x) = x
+set_sysattributes("ToExpression")
 
 ### Count
 
@@ -332,14 +337,14 @@ the number of arguments that have the form of a square.
          ("Count(_Integer)(Range(10))", "10"),
          ("Count(Range(10), 2)", "1"))
 
-set_pattributes("Count")
-function apprules(mx::Mxpr{:Count})
-    do_Count(mx,margs(mx)...)
-end
+set_sysattributes(:Count)
 
+@mkapprule Count nargs => 1:3
+
+#apprules(mx::Mxpr{:Count}) = do_Count(mx,margs(mx)...)
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
-function do_Count(mx,expr,pat)
+@doap function Count(expr,pat)
     args = margs(expr)
     c = 0
     jp = patterntoBlank(pat)
@@ -373,7 +378,7 @@ For example, `getints = Cases(_Integer)`.
 @sjexamp( Cases,
          ("Cases([1,2.0,3,\"dog\"], _Integer)", "[1,3]"))
 
-@mkapprule Cases
+@mkapprule Cases nargs => 1:4
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 # @doap function Casesold(expr,pat)
@@ -468,7 +473,7 @@ For example `noints = DeleteCases(_Integer)`.
          ("DeleteCases([1,2.0,3,\"dog\"], _Integer)", "[2.0,\"dog\"]"))
 
 
-@mkapprule DeleteCases
+@mkapprule DeleteCases nargs => 1:4
 
 # Allocating outside loop and sending Dict as arg is 3x faster in one test
 @doap function DeleteCases(expr,pat)
@@ -505,7 +510,7 @@ pushes `val` onto the expression that `Symbol` `a` evaluates to.
          ("a = []",""),
          ("For(i=1, i < 1000, Increment(i), Push!(a,Symbol(\"b\$i\")))",""))
 
-set_pattributes(["Push!"],[:HoldFirst])
+set_sysattributes(["Push!"],[:HoldFirst])
 apprules(mx::Mxpr{:Push!}) = do_Push(mx,margs(mx)...)
 do_Push(mx,args...) = mx
 do_Push(mx,x::SJSym,val) = do_Push1(mx,symval(x),val)
@@ -533,17 +538,6 @@ end
 
 @sjseealso_group(Pop!, Push!)
 
-## This is not how this works
-### Composition
-# @sjdoc Composition """
-#     Composition([f,g,...],arg)
-# returns f(g(...(arg)))
-# """
-# @mkapprule Composition
-# function do_GenHead(mx,head::Mxpr{:Composition})
-#     args = copy(margs(mx))
-#     mxpr(mhead(head),args[1],margs(head)...,args[2:end]...)
-# end
 
 ### ComposeList
 
@@ -552,7 +546,7 @@ end
 
 returns `[f1(x),f2(f1(x)),...]`.
 """
-@mkapprule ComposeList :nargs => 2
+@mkapprule ComposeList nargs => 2
 
 @doap function ComposeList(list::ListT,x)
     ops = reverse(margs(list))
@@ -571,11 +565,11 @@ evalifdelayed(r::Mxpr{:RuleDelayed}) = doeval(rhs(r))
 
 ### ReplacePart
 
-@mkapprule ReplacePart """
+@mkapprule ReplacePart  nargs => 1:2  """
     ReplacePart(expr, i => repl)
 
 returns a copy of `expr` with the `i`th part replaced by `repl`
-"""  :nargs => 1:2
+"""
 
 @doap ReplacePart{T<:Union{RulesT,ListT}}(expr::Mxpr,arg::T) = replacepart1(mx,expr,arg)
 
@@ -626,7 +620,7 @@ end
 
 ### Level
 
-@mkapprule Level :nargs => 2:3
+@mkapprule Level nargs => 2:3
 
 @sjdoc Level """
     Level(expr,levelspec)
