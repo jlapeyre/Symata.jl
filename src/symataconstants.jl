@@ -13,7 +13,7 @@ const I = complex(0,1)
 const MinusI = complex(0,-1)
 
 setsymval(:True, true)
-setsymval(:False, true)
+setsymval(:False, false)  ## Took a long time for this bug to manifest. :False was true for a thousand commits.
 setsymval(:Infinity, Infinity)
 setsymval(:ComplexInfinity, ComplexInfinity)
 mergesyms(Infinity,:nothing)

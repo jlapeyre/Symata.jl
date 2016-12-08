@@ -20,10 +20,12 @@ end
 @sjdoc MmaSyntax """
     MmaSyntax()
 
-enters a Mathematica-syntax mode. Type `ctrl-d` to return to the usual Symata mode.
+enters a Mathematica-syntax mode. Type `ctrl-d` to return to the usual Symata mode in the terminal.
+In Jupyter, type `MmaSyntax[False]` to return to Symata syntax.
 
-The Mathematica-syntax mode is a modified version of the mathics REPL (terminal interface).
+In a terminal, the Mathematica-syntax mode is a modified version of the mathics REPL (terminal interface).
 Input expressions must be valid Mathematica expressions. Output is printed as Mathematica expressions.
+In Jupyter, Mathematica syntax is expected as input.
 
 This mode uses the mathics parser to read input and the mathics formatter to write output. But, all evaluation
 is done by Symata. Symata often calls the python package sympy, and builtin Julia functions.
@@ -33,12 +35,39 @@ This mode requires the Julia package `SymataSyntax`, which requires the python p
 The only relation to Mathematica is the syntax. This mode does not interact with Mathematica in any way and is independent
 of Mathematica and Wolfram language and all other Wolfram company products.
 """
-
-@mkapprule MmaSyntax nargs => 0
+@mkapprule MmaSyntax nargs => 0:1
 
 @doap function MmaSyntax()
     (! _init_symatasyntax()) && return
-    SymataSyntax.mmasyntax_REPL()
+    if isymata_inited()
+        isymata_mma_mode(true)
+    else
+        SymataSyntax.mmasyntax_REPL()
+    end
+end
+
+@doap function MmaSyntax(b::Bool)
+    (! _init_symatasyntax()) && return
+    if isymata_inited()
+        isymata_mma_mode(b)
+    else
+        if b
+            SymataSyntax.mmasyntax_REPL()
+        else
+            symprintln("Use ctrl-d to exit the Mma syntax REPL")
+        end
+    end
+end
+
+@mkapprule SymataSyntax
+
+@doap function SymataSyntax()
+    (! _init_symatasyntax()) && return
+    if isymata_inited()
+        isymata_mma_mode(false)
+    else
+        symprintln("Use ctrl-d to exit the Mma syntax REPL")
+    end
 end
 
 ### Mathics

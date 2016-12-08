@@ -25,6 +25,7 @@ function isymata()
 end
 
 
+
 """
     init_isymata()
 
@@ -56,8 +57,12 @@ end
 function _init_isymata_v1_3_2()
     eval( Main.IJulia, quote
 
-import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, using_ijulia_output
+import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, isymata_mma_mode, using_ijulia_output, doeval
+using SymataSyntax
+import SymataSyntax: mmatosymata
+          
 
+          
 populate_builtins()
 
 function symata_complete_request(socket, msg)
@@ -126,6 +131,18 @@ function symata_inspect_request(socket, msg)
     end
 end
 
+        function symata_format_outptut(ex)
+            if isymata_mode()
+                if isymata_mma_mode()
+                    SymataSyntax.MmaOutString(symata_expr_to_mma_string(ex))
+                else
+                    using_ijulia_output() ? latex_display(wrapout(ex)) : wrapout(ex)
+                end
+            else
+                ex
+            end
+        end
+        
 function symata_execute_request(socket, msg)
     code = msg.content["code"]
     @vprintln("EXECUTING ", code)
@@ -165,7 +182,11 @@ function symata_execute_request(socket, msg)
     end
 
     if isymata_mode()
-        code = "@Symata.ex " * " begin\n" * code * "\nend"  # begin end to wrap multi-expression input
+        if isymata_mma_mode()
+            code = "Symata.doeval(SymataSyntax.mmatosymata(\"\"\"" * code  * "\"\"\"))"
+        else
+            code = "@Symata.ex " * " begin\n" * code * "\nend"  # begin end to wrap multi-expression input
+        end
     end
 
     try
@@ -209,7 +230,8 @@ function symata_execute_request(socket, msg)
                          msg_pub(msg, "execute_result",
                                  Dict("execution_count" => n,
                                       "metadata" => result_metadata,
-                                      "data" => display_dict(isymata_mode() ? using_ijulia_output() ? latex_display(wrapout(result)) : wrapout(result) : result))))
+                                      "data" => display_dict(symata_format_outptut(result)))))
+#                                      "data" => display_dict(isymata_mode() ? using_ijulia_output() ? latex_display(wrapout(result)) : wrapout(result) : result))))            
 
         end
         send_ipython(requests[],
@@ -246,6 +268,7 @@ IJulia.handlers["inspect_request"] = IJulia.symata_inspect_request
     nothing
 end
 
+##################################################################################
 #### For use with IJulia master 8abf276  Tue Oct 11 18:43:25 2016 +0100
 
 # FIXME: import symbols as in version above, other bitrot

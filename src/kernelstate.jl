@@ -275,20 +275,21 @@ set_throw() = FLOWFLAGS.throwflag = true
 ##### User options and info
 
 const Kerneloptions = Dict{Any,Any}(
-    :unicode_output => false,
-    :ijulia_latex_output => false,                                    
-    :show_sympy_docs => true,
-    :return_sympy => false,
-    :sympy_error => nothing,
-    :compact_output => true,
-    :history_length => 100,
-    :bigint_input => false,
-    :bigfloat_input => false,
-    :isymata_inited => false,
-                                    :isymata_mode => false,
-                                    :output_style => :InputForm,
+                                    :unicode_output => false,
+                                    :ijulia_latex_output => false,                                    
+                                    :show_sympy_docs => true,
+                                    :return_sympy => false,
+                                    :sympy_error => nothing,
+                                    :compact_output => true,
+:history_length => 100,
+:bigint_input => false,
+:bigfloat_input => false,
+:isymata_inited => false,
+:isymata_mode => false,
+:isymata_mma_mode => false,
+:output_style => :InputForm,
 :float_format => "",
- :bigfloat_format => ""
+:bigfloat_format => ""
 )
 
 function getkerneloptions(sym::Symbol)
@@ -548,6 +549,15 @@ get or set the flag signifying that IJulia input should be interpreted as Symata
 """
 isymata_mode() = getkerneloptions(:isymata_mode)
 isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(:isymata_mode,v); ov)
+
+"""
+    isymata_mma_mode()
+    isymata_mma_mode(v::Bool)
+
+get or set the flag signifying that IJulia input should be interpreted as Symata with Mathematica syntax rather than Julia or Symata.
+"""
+isymata_mma_mode() = getkerneloptions(:isymata_mma_mode)
+isymata_mma_mode(v::Bool) = (ov = getkerneloptions(:isymata_mma_mode); setkerneloptions(:isymata_mma_mode,v); ov)
 
 
 @mkapprule OutputStyle  :nargs => 0:1
