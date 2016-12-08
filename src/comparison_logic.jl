@@ -1,7 +1,11 @@
 ### Sameq
 
-@mkapprule SameQ nargs => 2
-@doap SameQ(x,y) = sameq(x,y)
+
+@mkapprule SameQ  nodefault => true
+@doap SameQ(args...) = sameq(args...)
+## Mma does the following
+@doap SameQ(x) = true
+@doap SameQ() = true
 
 ### UnSameq
 
@@ -13,6 +17,15 @@ sameq(x,y) = x === y
 sameq(x::BigInt,y::BigInt) = (x == y)
 sameq(x::BigFloat,y::BigFloat) = (x == y)
 sameq(x::String,y::String) = (x == y)
+sameq(x) = true
+sameq() = true
+
+function sameq(args...)
+    for i in 1:length(args)-1
+        sameq(args[i],args[i+1]) || return false
+    end
+    true
+end
 
 immutable Compare
     result
@@ -23,7 +36,7 @@ end
 
 ## TODO: Implement Equal(a,b,c), etc.
 
-@mkapprule Equal nargs => 2
+@mkapprule Equal
 @doap function Equal(x,y)
     res = sjequal(x,y)
     res.known == false && return mx
@@ -83,6 +96,7 @@ end
 ## TODO: use a macro to generate these. or otherwise organize this.
 @doap Less() = true
 @doap Less(x) = true
+#@doap Less(args...) = mx
 
 sjless(x::Real, y::Real) = Compare(x < y, true)
 function sjless(x,y)

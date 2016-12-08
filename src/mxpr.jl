@@ -67,7 +67,7 @@ type Mxpr{T}
     the `head` of the Symata expression.
     """
     head::Any  # making this Any instead of Symbol slows things a bit. hmmm. we should subtype
-    args::MxprArgs
+    args::MxprArgT
     fixed::Bool
     canon::Bool
     syms::FreeSyms
@@ -75,6 +75,8 @@ type Mxpr{T}
     key::UInt64
     typ::DataType
 end
+
+#Mxpr{T}(args...) = Mxpr{T,Any}(args...)
 
 typealias SJSymAttrs Dict{Symbol,Bool}
 typealias SJSymDVs Array{Any,1}
@@ -100,7 +102,10 @@ typealias SJSymuVs Array{Any,1}
 # later. Since a := b is probably far less common than a = b, I guess
 # that it is better to store the delayed bit in a Dict, But, this
 # would have to be profiled.
-
+#
+## It will almost certainly be more efficient for most symbols to store up/downvalues, attributes, and definition
+## In an external structure. Or, to somehow leave these them unallocated till needed.
+## For symbols with downvalues, getting a field might be faster than looking up in a table.
 abstract AbstractSJSym
 type SSJSym{T}  <: AbstractSJSym
     val::Array{T,1}
@@ -204,16 +209,17 @@ getevalage() = evalage.t
 # These are more or less the "builtin" symbols
 # After filling the Dict, its contents should be static.
 ## TODO: make use of this
+## This dict is independent of the attempt at using Contexts below.
 const system_symbols = Dict{Symbol,Bool}()
 
 register_system_symbol(s::SymString) =  system_symbols[Symbol(s)] = true
+is_system_symbol(s::SymString) =  system_symbols[Symbol(s)]
 
-# register_system_symbol(s::Symbol) =  system_symbols[s] = true
-# register_system_symbol{T<:AbstractString}(s::T) =  system_symbols[Symbol(s)] = true
+get_system_symbols() = sort!(collect(keys(system_symbols)))
 
 #### Down values
 
-# We store the Mxpr used definition to define downvalues. These
+# We store the Mxpr definition to define downvalues. These
 # can be written to a file.
 const DOWNVALUEDEFDICT = Dict{Any,Any}()
 
@@ -299,8 +305,6 @@ symname(s::Qsym) = s.name
 gets the value that `s` is bound to in Symata.
 """
 getsymata(args...) = symval(args...)
-
-# Don't make these one-line defintions. They are easier to search for this way.
 
 """
     symval(s::SJSym)
@@ -397,13 +401,6 @@ clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
 # All direct access to the val field in SSJSym occurs above this line.
 # No other file accesses it directly.
 #############################################################################
-
-## This is used only once. The use is later in this file.
-symattr(s::SJSymbol) = getssym(s).attr
-
-#symname(s::AbstractString) = Symbol(s)
-# symattr(s::Qsym) = getssym(s).attr
-# symattr(s::SJSym) = getssym(s).attr
 
 @inline getsym(s) = s  # careful, this is not getssym
 
@@ -509,7 +506,7 @@ end
 
 function clear_upvalue_definitions(sym::SJSym)
     s = getssym(sym)
-    uvs = s.downvalues
+    uvs = s.upvalues
     for i in 1:length(uvs)
         lhs = uvs[i][1]
         delete_upvalue_def(lhs)
@@ -922,7 +919,7 @@ end
 ######  Manage lists of free symbols
 
 # Sometimes protected symbols need to be merged, somewhere.
-#is_sym_mergeable(s) = ! is_protected(s)
+#is_sym_mergeable(s) = ! hasProtected(s)
 
 is_sym_mergeable(s::Symbol) = true
 # Don't put GenHead into a dict of symbols. Its not a symbol.
@@ -1120,23 +1117,6 @@ deepunsetfixed(x) = x
 @inline setcanon(x) = false
 @inline unsetcanon(x) = false
 
-function protectedsymbols_strings()
-    symstrings = Array(Compat.String,0)
-    for s in keys(CurrentContext.symtab)
-        if get_attribute(s,:Protected) && s != :ans
-            push!(symstrings,string(getsym(s))) end
-    end
-    sort!(symstrings)
-end
-
-function protectedsymbols()
-    args = newargs()
-    for s in keys(CurrentContext.symtab)
-        if get_attribute(s,:Protected) && s != :ans
-            push!(args,getsym(s)) end
-    end
-    mx = mxpra(:List, sort!(args))
-end
 
 function usersymbols()
     nargs = newargs()
@@ -1154,55 +1134,6 @@ function usersymbolsList()
         mxpra(:List, usersymbols())
 end
 
-# This is the old versions
-# For now, we exclude Temporary symbols
-# We return symbols as strings to avoid infinite eval loops
-# function usersymbolsListold()
-#     args = newargs()
-#     for s in keys(CurrentContext.symtab)
-#         if  get_attribute(s,:Temporary) continue end
-#         if ! haskey(system_symbols, s) push!(args,string(getsym(s))) end
-#     end
-#     mx = mxpr(:List, sort!(args)...)
-#     setcanon(mx)
-#     setfixed(mx)
-#     mx
-# end
-
-# For Heads that are not symbols
-get_attribute(args...) = false
-
-# Return true if sj has attribute attr
-function get_attribute(sj::SJSymbol, attr::Symbol)
-    get(getssym(sj).attr,attr,false)
-end
-
-# function get_attribute(sj::Qsym, attr::Symbol)
-#     get(getssym(sj).attr,attr,false)
-# end
-
-# Return true if head of mx has attribute attr
-function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
-    get_attribute(T,attr)
-end
-
-get_attributes(sj::SJSymbol) = ( ks = sort!(collect(Any, keys(symattr(sj)))) )
-get_attributes(s::AbstractString) = get_attributes(Symbol(s))
-
-for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Listable)
-    sf = Symbol("has",s)
-    @eval ($sf)(x) = get_attribute(x,$(QuoteNode(s)))
-end
-
-# Related code in predicates.jl and attributes.jl
-unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
-
-protect(sj::SymString) = set_attribute(sj,:Protected)
-
-## We will get rid of Qsym
-set_attribute(sj::Qsym, attr::Symbol) = (getssym(sj).attr[attr] = true)
-
-include("attributes.jl")
 #### typealiases
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}

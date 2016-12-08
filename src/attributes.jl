@@ -23,11 +23,53 @@ Stub
 
 const possible_attributes = map(Symbol,split(_attributes_string))
 
+# For Heads that are not symbols
+get_attribute(args...) = false
+
+# Return true if sj has attribute attr
+function get_attribute(sj::SJSymbol, attr::Symbol)
+    get(getssym(sj).attr,attr,false)
+end
+
+_set_attribute(s,attr) = getssym(Symbol(s)).attr[Symbol(attr)] = true
+
+
+symattr(s::SJSymbol) = getssym(s).attr
+get_attributes(sj::SymString) = ( ks = sort!(collect(Any, keys(symattr(Symbol(sj))))) )
+
+## We will get rid of Qsym
+set_attribute(sj::Qsym, attr::Symbol) = (getssym(sj).attr[attr] = true)
+
+"""
+    unset_attribute(sj::SJSymbol, attr::Symbol)
+
+unset a single attribute `attr` for `sj`.
+"""
+unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
+
+"""
+    clear_attributes(sja::SymString...)
+
+clear all attributes set for the symbols `sja`.
+"""
+clear_attributes(sja::SymString...) =  foreach( x -> empty!(getssym(x).attr), sja)
+
+## to be removed
+clear_attributes(sj::Qsym) =  empty!(getssym(sj).attr)
+
+### All access to data structures is above this line, or in mxpr.jl
+### i.e. the interface is above this line
+
+# Return true if head of mx has attribute attr
+function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
+    get_attribute(T,attr)
+end
+
 ## need a version that warns for users and asserts for developing ?
-function _set_attribute(sj::SymString, attr::SymString)
+function set_attribute1(sj::SymString, attr::SymString)
     (ssj, sattr) = (Symbol(sj),Symbol(attr))
     if sattr in possible_attributes
-        getssym(Symbol(sj)).attr[Symbol(attr)] = true
+        _set_attribute(sj,attr)
         return nothing
     end
     symwarn("'$attr' is not an attribute")
@@ -39,9 +81,9 @@ end
 
 set the `attr` attribute for `s`. Arguments may be `Symbol` or `String`.
 """
-set_attribute(s::SymString,attr::SymString)= _set_attribute(Symbol(s),Symbol(attr))
-set_attribute(sa::AbstractArray, attr::SymString) = foreach( x -> _set_attribute(x,attr), sa)
-set_attribute(s::SymString, attra::AbstractArray) = foreach( x -> _set_attribute(s,x), attra)
+set_attribute(s::SymString,attr::SymString)= set_attribute1(Symbol(s),Symbol(attr))
+set_attribute(sa::AbstractArray, attr::SymString) = foreach( x -> set_attribute1(x,attr), sa)
+set_attribute(s::SymString, attra::AbstractArray) = foreach( x -> set_attribute1(s,x), attra)
 set_attribute(sa::AbstractArray, attra::AbstractArray) = foreach( x -> set_attribute(sa,x), attra)
 
 """
@@ -84,27 +126,6 @@ function set_pattribute(sa::AbstractArray, attra::AbstractArray)
     set_attribute(sa,attra)
 end
 
-
-# Better to delete the symbol
-#unset_attribute(sj::SJSym, attr::Symbol) = (getssym(sj).attr[attr] = false)
-
-"""
-    unset_attribute(sj::SJSymbol, attr::Symbol)
-
-unset a single attribute `attr` for `sj`.
-"""
-unset_attribute(sj::SJSymbol, attr::Symbol) = delete!(getssym(sj).attr, attr)
-
-"""
-    clear_attributes(sja::SymString...)
-
-clear all attributes set for the symbols `sja`.
-"""
-clear_attributes(sja::SymString...) =  foreach( x -> empty!(getssym(x).attr), sja)
-
-## to be removed
-clear_attributes(sj::Qsym) =  empty!(getssym(sj).attr)
-
 """
     set_sysattributes(sym, attr)
 
@@ -131,4 +152,33 @@ end
 function set_sysattributes(syms::AbstractArray)
     foreach(register_system_symbol, sym)
     foreach(protect,sym)
+end
+
+function protectedsymbols_strings()
+    symstrings = Array(Compat.String,0)
+    for s in keys(CurrentContext.symtab)
+        if get_attribute(s,:Protected) && s != :ans
+            push!(symstrings,string(getsym(s))) end
+    end
+    sort!(symstrings)
+end
+
+function protectedsymbols()
+    args = newargs()
+    for s in keys(CurrentContext.symtab)
+        if get_attribute(s,:Protected) && s != :ans
+            push!(args,getsym(s)) end
+    end
+    mx = mxpra(:List, sort!(args))
+end
+
+# Related code in predicates.jl and attributes.jl
+unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
+
+protect(sj::SymString) = set_attribute(sj,:Protected)
+
+## hmmm, we could do this for all attributes
+for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Listable, :Protected, :Constant)
+    sf = Symbol("is",s)
+    @eval ($sf)(x) = get_attribute(x,$(QuoteNode(s)))
 end

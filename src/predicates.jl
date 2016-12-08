@@ -50,10 +50,12 @@ is_Infintity(mx::Mxpr{:DirectedInfinity}) = ! isempty(mx) && mx[1] == 1 ? true :
 is_ComplexInfinity(x) = false
 is_ComplexInfinity(mx::Mxpr{:DirectedInfinity}) =  isempty(mx) ? true : false
 
-is_Constant(x::Symbol) = get_attribute(x, :Constant)
-is_Constant(x) = false
+# use hasConstant
+# is_Constant(x::Symbol) = get_attribute(x, :Constant)
+# is_Constant(x) = false
 
-is_protected(sj::SJSym) = get_attribute(sj,:Protected)
+# use hasProtected instead
+#is_protected(sj::SJSym) = get_attribute(sj,:Protected)
 
 is_blankxxx(x) = isa(x,BlankXXX)
 
@@ -109,7 +111,7 @@ listoflistsofsamelengthpredq(x) = false
 
 return `True` if `x` is a numerical constant.
 """
-do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = is_Constant(x)
+do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = isConstant(x)
 
 ### AtomQ
 
@@ -171,7 +173,7 @@ return true if `N(expr)` would return a number.
 do_NumericQ(mx::Mxpr{:NumericQ}, x) = is_Numeric(x)
 is_Numeric(x) = false
 is_Numeric(x::Number) = true
-is_Numeric(x::Symbol) = is_Constant(x)
+is_Numeric(x::Symbol) = isConstant(x)
 is_Numeric(x::Mxpr) = get_attribute(x,:NumericFunction)  && all( t -> is_Numeric(t), margs(x))
 
 ### NumberQ

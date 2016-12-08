@@ -474,8 +474,8 @@ end
 # ?? why the first test  ! is_canon(nmx). This must apparently always be satisfied.
 function meval_apply_all_rules(nmx::Mxpr)
     if  ! is_canon(nmx)
-        if hasFlat(nmx) nmx = flatten!(nmx) end
-        if hasListable(nmx) nmx = threadlistable(nmx) end
+        if isFlat(nmx) nmx = flatten!(nmx) end
+        if isListable(nmx) nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
     # We disable the following. Unlike Flat and Listable and Orderless, OneIdentity is only used for pattern matching.
@@ -518,22 +518,22 @@ function meval_arguments(mx::Mxpr)
     len::Int = length(mxargs)
     if len == 0
         return mxpr(nhead)
-    elseif hasHoldFirst(nhead)
+    elseif isHoldFirst(nhead)
         nargs = newargs(len)
         nargs[1] = mxargs[1]
         @inbounds for i in 2:length(mxargs)
             nargs[i] = argeval(mxargs[i])
         end
-    elseif hasHoldAll(nhead)
+    elseif isHoldAll(nhead)
         nargs = copy(mxargs)
         for i=1:length(nargs)
             if isa(nargs[i],Mxpr{:Evaluate}) && length(nargs[i]) > 0
                 nargs[i] = doeval(nargs[i][1])
             end
         end
-    elseif hasHoldAllComplete(nhead)
+    elseif isHoldAllComplete(nhead)
         nargs = copy(mxargs)
-    elseif hasHoldRest(nhead)
+    elseif isHoldRest(nhead)
         nargs = copy(mxargs)
         nargs[1] = argeval(nargs[1])
     else      # Evaluate all arguments
@@ -542,12 +542,12 @@ function meval_arguments(mx::Mxpr)
             nargs[i] = argeval(mxargs[i])
         end
     end
-    if  (! hasSequenceHold(nhead))  &&  (! hasHoldAllComplete(nhead))
+    if  (! isSequenceHold(nhead))  &&  (! isHoldAllComplete(nhead))
         splice_sequences!(nargs)
     end
     for i=1:len
         if (isa(nargs[i],Mxpr{:Unevaluated}) && length(nargs[i]) > 0) &&
-            ! (hasHoldAll(nhead) || hasHoldAllComplete(nhead))  && !( (hasHoldFirst(nhead) && i == 1) || (hasHoldRest(nhead) && i > 1))
+            ! (isHoldAll(nhead) || isHoldAllComplete(nhead))  && !( (isHoldFirst(nhead) && i == 1) || (isHoldRest(nhead) && i > 1))
             nargs[i] = nargs[i][1]
         end
     end

@@ -372,6 +372,22 @@ function rewrite_to_comparison(ex::Expr)
     return  Expr(:comparison, ex.args[2], ex.args[1], ex.args[3])
 end
 
+rewrite_comparison(ex::Expr) = ex
+## The following does what we want. e.g. we get Less(x,y,z)
+## But, we have not yet implemented the logic to reduce the expression.
+## So, we disable this function and fall back to the older Comparison, for whic
+## we do have logic
+# function rewrite_comparison(ex::Expr)
+#     args = ex.args
+#     ops = @view args[4:2:end]
+#     op1 = args[2]
+#     if all( x -> x == op1,  ops)
+#         Expr(:call,get(comparison_translation,op1,op1),args[1:2:end]...)
+#     else
+#         ex
+#     end
+# end
+
 # There is no binary minus, no division, and no sqrt in Mxpr's.
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
@@ -390,6 +406,8 @@ function rewrite_expr(ex::Expr)
         ex = rewrite_to_comparison(ex)
     elseif is_single_comparison(ex, :(.>))    # julia 0.4 parser does this. In 0.5, this is already a call
         return Expr(:call, :(.>), ex.args[1], ex.args[3])
+    elseif ex.head == :comparison
+        ex = rewrite_comparison(ex)
     elseif is_unary_minus(ex)    #  - b --> -1 * b
         ex = rewrite_unary_minus(ex)
     elseif is_binary_minus(ex)  #  a - b --> a + -b.

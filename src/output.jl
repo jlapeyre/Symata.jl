@@ -8,6 +8,8 @@ import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
        symnumerator, symdenominator, Formatting
 
+import Symata: print_with_function_to_string
+
 const infix_with_space = Dict( :&& => true , :|| => true, :| => true)
 
 # A space, or maybe not.
@@ -55,7 +57,8 @@ const mmafullformdata = FullFormData("[","]")
 fullform(io::IO, mx::Mxpr) = fullform(io,mx,juliafullformdata)
 
 function fullform(io::IO, mx::Mxpr, data::FullFormData)
-    print(io,mhead(mx))
+    # Really fucking weird. I have to do wrapout here, but not in the method of wrapout(::Mxpr)
+    fullform(io,wrapout(mhead(mx)),data)
     print(io, data.lfunc)
     if length(mx) > 0 fullform(io,mx[1],data) end
     for i in 2:length(mx)
@@ -64,6 +67,7 @@ function fullform(io::IO, mx::Mxpr, data::FullFormData)
     end
     print(io, data.rfunc)
 end
+
 
 fullform(io::IO,x,data::FullFormData) = show(io,x)
 fullform(x,data::FullFormData) = fullform(STDOUT,x,data)
@@ -75,28 +79,6 @@ mmafullform(x) = mmafullform(STDOUT,x)
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1],juliafullformdata)
 
 symata_to_mma_fullform_string(x) = print_with_function_to_string(mmafullform, wrapout(x))
-
-## Copied from base. There is probably a trick to avoid this.
-function print_with_function_to_string(printfunc::Function, xs...; env=nothing)
-    # specialized for performance reasons
-    s = IOBuffer(Array{UInt8}(Base.tostr_sizehint(xs[1])), true, true)
-    # specialized version of truncate(s,0)
-    s.size = 0
-    s.ptr = 1
-    if env !== nothing
-        env_io = IOContext(s, env)
-        for x in xs
-            printfunc(env_io, x)
-        end
-    else
-        for x in xs
-            printfunc(s, x)
-        end
-    end
-    String(resize!(s.data, s.size))
-end
-
-
 
 # This puts unecessary parens on prefix functions.
 #needsparen(x::Mxpr) = length(x) > 1
@@ -193,6 +175,7 @@ end
 #wrapout(x) = x  # defined in wrapout.jl
 
 function wrapout(mx::Mxpr)
+#    mxprcf(wrapout(mhead(mx)), map(wrapout, margs(mx)))
     mxprcf(mhead(mx), map(wrapout, margs(mx)))
 end
 

@@ -136,7 +136,7 @@ function apprules(mx::Mxpr{:Unprotect})
 end
 
 function do_unprotect(mx,a::SJSym)
-    if is_protected(a)
+    if isProtected(a)
         unprotect(a)
         return string(a)
     end
@@ -167,7 +167,7 @@ add the `Protected` attribute to the lists of attributes for the symbols `z1, z2
 end
 
 function do_protect(a::SJSym)
-    is_protected(a) && return false
+    isProtected(a) && return false
     protect(a)
     string(a)
 end
@@ -769,7 +769,17 @@ return a `List` of all "builtin" symbols. These are in fact all symbols that
 have the `Protected` attribute.
 """
 
-apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+## This does not cause infinite evaluation loop.
+#apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
+
+function apprules(mx::Mxpr{:BuiltIns})
+    syms = get_system_symbols();
+    deleteat!(syms,findfirst(syms,:ans))  ## These two lines avoid infinite evaluation loop
+    deleteat!(syms,find((x -> match(r"^O+$",string(x)) !== nothing),syms))
+    nargs = newargs(length(syms))
+    copy!(nargs,syms)
+    setfixed(MListA(nargs))
+end
 
 @sjdoc UserSyms """
     UserSyms()

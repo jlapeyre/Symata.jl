@@ -56,6 +56,9 @@ T If(BigIntInput(), True, Isa(Format(1/2, Conversion => "e"), String))
 T Isa(Format(1.0, Conversion => "e"), String)
 T If(BigIntInput(), True, Isa(Format(1, Conversion => "e"), String))
 
+##  Issue #56
+ToString(FullForm(f(x)(y))) == "f(x)(y)"
+
 CompactOutput(savestate)
 
 ClearAll(a,b,x,savestate,f,x,ex,n)
