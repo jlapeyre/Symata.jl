@@ -57,9 +57,10 @@ end
 function _init_isymata_v1_3_2()
     eval( Main.IJulia, quote
 
-import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, isymata_mma_mode, using_ijulia_output, doeval
+          import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, isymata_mma_mode, using_ijulia_output, doeval, mxpr,
+           MyLaTeXString
 using SymataSyntax
-import SymataSyntax: mmatosymata
+#import SymataSyntax: mmatosymata
           
 
           
@@ -134,7 +135,10 @@ end
         function symata_format_outptut(ex)
             if isymata_mode()
                 if isymata_mma_mode()
-                    SymataSyntax.MmaOutString(symata_expr_to_mma_string(ex))
+                    newex = mxpr(:TeXForm, ex)
+                    str = symata_expr_to_mma_string(newex)
+                    MyLaTeXString("\$\$ " * str *  " \$\$")
+#                    SymataSyntax.MmaOutString(symata_expr_to_mma_string(ex))
                 else
                     using_ijulia_output() ? latex_display(wrapout(ex)) : wrapout(ex)
                 end

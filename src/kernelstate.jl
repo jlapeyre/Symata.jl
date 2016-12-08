@@ -19,18 +19,28 @@ give more verbose information.
     _versioninfo()
 end
 
+_vpad(s) = rpad(s,19)
+
 function _versioninfo()
-    println("symata version ", SYMATA_VERSION)
-    println("julia version  ", Base.VERSION)
+    println(_vpad("symata version"), SYMATA_VERSION)
+    println(_vpad("julia version"), Base.VERSION)
     if isdefined(PyCall, :pyversion)
-        println("python version ", pyversion)
+        println(_vpad("python version"), pyversion)
     else
         println("no python version available")
     end
     try
-        println("sympy version  " * sympy[:__version__])
+        println(_vpad("sympy version") * sympy[:__version__])
     catch
         println("sympy version unavailable")
+    end
+    if isdefined(:SymataSyntax) && _init_symatasyntax()
+        println(_vpad("symatasyntax ver."), SymataSyntax.SYMATASYNTAX_VERSION)
+        try
+            println(_vpad("mathics version") * SymataSyntax.mathics[:__version__])
+        catch
+            println("mathics version unavailable")
+        end
     end
 end
 
