@@ -383,7 +383,7 @@ end
     a = margs(expr)
     r = Array{eltype(a)}(0) ## same as newargs
     for ai in a
-        (gotmatch,res) = replace(ai,jp)
+        (gotmatch,res) = replace_ptob(ai,jp)
         if gotmatch
             push!(r, res)
         end

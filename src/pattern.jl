@@ -653,7 +653,6 @@ end
 
 #######  Replacing
 
-# Head pattern (f::_)(x) is not captured properly
 function match_and_replace(ex,r::Rules)
     @mdebug(1, "enter match_and_replace with ", ex)
     (lhs,rhs) = (r[1],r[2])
@@ -680,6 +679,12 @@ end
 # No level spec
 function replace(ex, r::Rules)
     r = patterntoBlank(r)
+    res = match_and_replace(ex,r)
+    res === false ? (false,ex) : (true,res)
+end
+
+## assume r already passed through patterntoBlank
+function replace_ptob(ex, r::Rules)
     res = match_and_replace(ex,r)
     res === false ? (false,ex) : (true,res)
 end
