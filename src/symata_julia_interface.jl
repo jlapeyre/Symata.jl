@@ -184,6 +184,11 @@ function mxpr_to_expr(s::Symbol,aux::AbstractMtoE)
 #    Symbol(lowercase(string(s)))
 end
 
+function mxpr_to_expr(s::Symbol,aux::MtoEPlain)
+    Symbol(lowercase(string(s)))  # only lowercase some
+end
+
+
 const MTOJSYM_COMPILE = Dict(
                              :Times => :mmul,
                              :Plus => :mplus,
@@ -197,7 +202,8 @@ const MTOJSYM_PLAIN = Dict(
                              :Times => :(*),
                              :Plus => :(+),
                              :Power => :(^),
-                             :Abs => :abs
+                             :Abs => :abs,
+                             :E => :e
                              )
 
 function mtojsym_plain(s::Symbol)
