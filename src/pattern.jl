@@ -13,6 +13,8 @@ type Match
     capt      # dictionary of named captures
 end
 
+Match(expr,capt) = Match(expr,NullMxpr,NullMxpr,1,capt)
+
 #### BlankT
 
 abstract Blanks
@@ -151,7 +153,7 @@ applyupvalues(x) = x
 # We had a few optimizations, but they are removed for flexibility.
 function match_and_capt(expr,pattern)
     capt = capturealloc() # Array(Any,0)  # allocate capture array
-    m = Match(expr,NullMxpr,NullMxpr,1,capt)
+    m = Match(expr,capt)
     success_flag = ematch(pattern,m)
     return (success_flag,capt)  # report whether matched, and return captures
 end
@@ -159,7 +161,7 @@ end
 # pre-allocate the capture Dict. This can be much faster in a loop.
 function match_and_capt(expr,pattern, capt)
     empty!(capt)
-    m = Match(expr,NullMxpr,NullMxpr,1,capt)
+    m = Match(expr,capt)
     success_flag = ematch(pattern,m)  # do the matching
     return (success_flag,capt)        # report whether matched, and return captures
 end
@@ -167,6 +169,13 @@ end
 function match_no_capture(expr,pattern)
     (gotmatch, capture) = match_and_capt(expr,pattern)
     gotmatch
+end
+
+function match_no_capture(expr,pattern, capt)
+    empty!(capt)
+    m = Match(expr,capt)
+    success_flag = ematch(pattern,m)
+    return success_flag
 end
 
 capturealloc() = Dict{SJSym,Any}()

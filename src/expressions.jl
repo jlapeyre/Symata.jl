@@ -349,12 +349,17 @@ set_sysattributes(:Count)
     c = 0
     jp = patterntoBlank(pat)
     capt = capturealloc()
-    @inbounds for i in 1:length(args)
-        (gotmatch,capt) = match_and_capt(args[i],jp,capt)
-        gotmatch ? c += 1 : nothing
-    end
-    return c
+    count( x -> match_no_capture(x,jp,capt), args)
+#     @inbounds for i in 1:length(args)
+# #        (gotmatch,capt) = match_and_capt(args[i],jp,capt)
+#         gotmatch = match_no_capture(args[i],jp,capt)        
+#         gotmatch ? c += 1 : nothing
+#     end
+#     return c
 end
+
+## count is much faster than an explicit loop
+@doap Count(expr::Mxpr,pat::Union{Number,Symbol,String}) = count(x -> x == pat, margs(expr))
 
 @curry_last Count
 
