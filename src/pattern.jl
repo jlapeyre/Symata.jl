@@ -654,12 +654,16 @@ end
 #######  Replacing
 
 function match_and_replace(ex,r::Rules)
+    match_and_replace(ex,r,capturealloc())
+end
+
+function match_and_replace(ex,r::Rules,capt1)
     @mdebug(1, "enter match_and_replace with ", ex)
     (lhs,rhs) = (r[1],r[2])
-    (res,capt) = match_and_capt(ex,lhs)
+    (res,capt) = match_and_capt(ex,lhs,capt1)
     res == false && return false # match failed
     local rhs1
-    if is_Mxpr(rhs, :Condition)
+    if isa(rhs, Mxpr{:Condition})
         (rhs1, condition) = (rhs[1],rhs[2])
         cond_pat_subst = patsubst!(deepcopy(condition),capt)
         cres = doeval(cond_pat_subst)
@@ -667,9 +671,7 @@ function match_and_replace(ex,r::Rules)
         rhs  = rhs1
     end
     rhs_copy = deepcopy(rhs)
-#    symprintln(rhs_copy)    
     rhs_copy_subst = patsubst!(rhs_copy,capt) # do replacement
-#    symprintln(rhs_copy_subst)
     return rhs_copy_subst
 end
 
@@ -686,6 +688,11 @@ end
 ## assume r already passed through patterntoBlank
 function replace_ptob(ex, r::Rules)
     res = match_and_replace(ex,r)
+    res === false ? (false,ex) : (true,res)
+end
+
+function replace_ptob(ex,r::Rules,capt)
+    res = match_and_replace(ex,r,capt)
     res === false ? (false,ex) : (true,res)
 end
 

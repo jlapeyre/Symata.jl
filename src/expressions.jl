@@ -382,8 +382,9 @@ end
     jp = patterntoBlank(pat)
     a = margs(expr)
     r = Array{eltype(a)}(0) ## same as newargs
+    capt = capturealloc()
     for ai in a
-        (gotmatch,res) = replace_ptob(ai,jp)
+        (gotmatch,res) = replace_ptob(ai,jp,capt)
         if gotmatch
             push!(r, res)
         end
