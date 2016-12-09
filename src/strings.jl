@@ -121,3 +121,7 @@ end
 @mkapprule StringSplit
 @doap StringSplit(s::String) = MList(split(s)...)
 @doap StringSplit(s::String, d::Union{String,Regex}) = MList(split(s,d)...)
+
+@mkapprule MathematicaFullFormString  :nargs => 1
+
+@doap MathematicaFullFormString(x) = SymataIO.symata_to_mma_fullform_string(x)
