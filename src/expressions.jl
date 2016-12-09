@@ -372,22 +372,32 @@ For example, `getints = Cases(_Integer)`.
 
 @mkapprule Cases nargs => 1:4
 
-## TODO: reenable this for the that case there is no level spec
-# @doap function Casesold(expr,pat)
-#     args = margs(expr)
-#     nargs = newargs()
-#     jp = patterntoBlank(pat)
-#     capt = capturealloc()
-#     @inbounds for i in 1:length(args)
-#         ex = args[i]
-#         (gotmatch,capt) = match_and_capt(ex,jp,capt)
-#         gotmatch ? push!(nargs,sjcopy(ex)) : nothing
-#     end
-#     mxpr(:List,nargs)
-# end
+@doap function Cases(expr,pat)
+    jp = patterntoBlank(pat)
+    m = Match()
+    MListA(filter(x -> match_no_capture(x,jp,m), margs(expr)))
+end
+
+@doap function Cases(expr,pat::RuleT)
+    jp = patterntoBlank(pat)
+    a = margs(expr)
+    r = Array{eltype(a)}(0) ## same as newargs
+    for ai in a
+        (gotmatch,res) = replace(ai,jp)
+        if gotmatch
+            push!(r, res)
+        end
+    end
+    return MListA(r)
+end
 
 ## maybe better that pat be anything but Mxpr
 @doap Cases(expr,pat::Union{Number,Symbol,String}) = mxpra(mhead(expr),filter(x -> x == pat, margs(expr)))
+
+@doap function Cases(expr,pat,inlevelspec)
+    levelspec = make_level_specification(expr, inlevelspec)
+    _doCases(levelspec,expr,pat)
+end
 
 type CasesData
     new_args
@@ -395,38 +405,11 @@ type CasesData
     capt
 end
 
-# We have no level spec
-# Then why do we waste time creating the Level stuff ?
-@doap function Cases(expr,pat)
-    new_args = newargs()
-    jp = patterntoBlank(pat)
-    capt = capturealloc()
-    data = CasesData(new_args,jp,capt)
-    local action
-    if isa(pat,RuleT)
-        action = LevelAction(data, function (data, expr)
-                             (gotmatch,res) = replace(expr,data.jp)
-                             gotmatch ? push!(data.new_args,res) : nothing
-                             end)
-    else
-        action = LevelAction(data, function (data, expr)
-                             (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
-                             gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
-                             end)
-    end
-    traverse_levels!(action,LevelSpecAtDepth(1),expr)
-    mxpra(:List,new_args)
-end
-
 function _doCases(levelspec::LevelSpec, expr ,pat)
     new_args = newargs()
     jp = patterntoBlank(pat)
     capt = capturealloc()
     data = CasesData(new_args,jp,capt)
-    # action = LevelAction(data, function (data, expr)
-    #                         (gotmatch,capt) = match_and_capt(expr,data.jp,data.capt)
-    #                         gotmatch ? push!(data.new_args,sjcopy(expr)) : nothing
-    #                      end)
     if isa(pat,RuleT)
         action = LevelAction(data, function (data, expr)
                              (gotmatch,res) = replace(expr,data.jp)
@@ -441,12 +424,6 @@ function _doCases(levelspec::LevelSpec, expr ,pat)
     traverse_levels!(action,levelspec,expr)
     mxpra(:List,new_args)
 end
-
-@doap function Cases(expr,pat,inlevelspec)
-    levelspec = make_level_specification(expr, inlevelspec)
-    _doCases(levelspec,expr,pat)
-end
-
 
 @curry_last Cases
 
