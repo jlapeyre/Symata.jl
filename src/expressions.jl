@@ -304,9 +304,6 @@ end
 
 ### ToExpression
 
-
-#@doap apprules(mx::Mxpr{:ToExpression}) = do_ToExpression(mx,margs(mx)...)
-
 @sjdoc ToExpression """
     ToExpression(str)
 
@@ -341,24 +338,14 @@ set_sysattributes(:Count)
 
 @mkapprule Count nargs => 1:3
 
-#apprules(mx::Mxpr{:Count}) = do_Count(mx,margs(mx)...)
-
-# Allocating outside loop and sending Dict as arg is 3x faster in one test
 @doap function Count(expr,pat)
     args = margs(expr)
-    c = 0
     jp = patterntoBlank(pat)
-    capt = capturealloc()
-    count( x -> match_no_capture(x,jp,capt), args)
-#     @inbounds for i in 1:length(args)
-# #        (gotmatch,capt) = match_and_capt(args[i],jp,capt)
-#         gotmatch = match_no_capture(args[i],jp,capt)        
-#         gotmatch ? c += 1 : nothing
-#     end
-#     return c
+    m = Match()  # allocating Match here is not faster than allocating capt here.
+    count( x -> match_no_capture(x,jp,m), args)
 end
 
-## count is much faster than an explicit loop
+## julia count is much faster than an explicit loop
 @doap Count(expr::Mxpr,pat::Union{Number,Symbol,String}) = count(x -> x == pat, margs(expr))
 
 @curry_last Count
@@ -385,7 +372,7 @@ For example, `getints = Cases(_Integer)`.
 
 @mkapprule Cases nargs => 1:4
 
-# Allocating outside loop and sending Dict as arg is 3x faster in one test
+## TODO: reenable this for the that case there is no level spec
 # @doap function Casesold(expr,pat)
 #     args = margs(expr)
 #     nargs = newargs()
@@ -399,7 +386,8 @@ For example, `getints = Cases(_Integer)`.
 #     mxpr(:List,nargs)
 # end
 
-# Allocating outside loop and sending Dict as arg is 3x faster in one test
+## maybe better that pat be anything but Mxpr
+@doap Cases(expr,pat::Union{Number,Symbol,String}) = mxpra(mhead(expr),filter(x -> x == pat, margs(expr)))
 
 type CasesData
     new_args
@@ -408,6 +396,7 @@ type CasesData
 end
 
 # We have no level spec
+# Then why do we waste time creating the Level stuff ?
 @doap function Cases(expr,pat)
     new_args = newargs()
     jp = patterntoBlank(pat)
@@ -480,7 +469,6 @@ For example `noints = DeleteCases(_Integer)`.
 
 @mkapprule DeleteCases nargs => 1:4
 
-# Allocating outside loop and sending Dict as arg is 3x faster in one test
 @doap function DeleteCases(expr,pat)
     args = margs(expr)
     new_args = newargs()

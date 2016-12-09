@@ -14,6 +14,8 @@ type Match
 end
 
 Match(expr,capt) = Match(expr,NullMxpr,NullMxpr,1,capt)
+Match(capt) = Match(NullMxpr,capt)
+Match() = Match(capturealloc())
 
 #### BlankT
 
@@ -169,6 +171,12 @@ end
 function match_no_capture(expr,pattern)
     (gotmatch, capture) = match_and_capt(expr,pattern)
     gotmatch
+end
+
+function match_no_capture(expr,pattern, m::Match)
+    empty!(m.capt)
+    m.ex = expr
+    ematch(pattern,m)
 end
 
 function match_no_capture(expr,pattern, capt)
