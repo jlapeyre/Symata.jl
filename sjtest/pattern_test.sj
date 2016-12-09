@@ -170,7 +170,7 @@ T g(2,2) == [2]
 T Head(g(2,"dog")) == g
 T g(2,h("dog")) == [2,"dog"]
 
-ClearAll(h,p,a,bc,d)
+ClearAll(h,p,a,b,c,d)
 
 # Alternatives can be explicit expressions containing no blanks
 h(a | b) := p
@@ -182,10 +182,18 @@ T ReplaceAll([1, x, x^2, x^3, y^2] , (x | x^_) => q) == [1,q,q,q,y^2]
 # The head can be either a or b and it is bound to f
 # FIXME. This is not parsed correctly. We get Span
 # (f : (a | b))(x_) => r(f, x)
+# But, the following syntax does work
+
+r1 = (f::(a | b))(x_) => r(f, x)
+
+T b(2) ./ r1 == r(b,2)
+T a(z) ./ r1 == r(a,z)
+T c(z) ./ r1 == c(z)
+
 # FIXME. This is parsed as named pattern, but the rest of the parsing is wrong.
 # (f:J(a | b))(x_) => r(f, x)
 
-ClearAll(a,b,c,f,g,h,p,x,y)
+ClearAll(a,b,c,f,g,h,p,x,y,r1,r,z)
 
 ClearAll(f,a,x)
 

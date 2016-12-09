@@ -348,7 +348,7 @@ function ematch(pat::Mxpr{:Alternatives}, m)
     false  # no alternative matched
 end
 
-#### Except
+### Except
 
 function ematch(pat::Mxpr{:Except}, m)
     captures = m.capt
