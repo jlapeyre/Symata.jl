@@ -6,12 +6,15 @@ examples/Untit*
 mod1.jl
 mod1a.jl
 papers/
+stash/
 src/nomodule.jl
 src/tcode.jl
 src/testcode/
 src/tmp.jl
 symtest.jl
 why.txt
+*.pdf
+*.nb
 workflowquestion
 *.cov
 jlcopy*
