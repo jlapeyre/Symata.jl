@@ -30,7 +30,11 @@ end
 
 ### Part
 
-@sjdoc Part """
+# Get part of expression. Julia :ref is mapped to :Part
+# a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
+# a[i,j] parses to Part(a,i,j).
+
+@mkapprule Part  """
     Part(expr,n) or expr[n]
 
 returns the `n`th element of expression `expr`.
@@ -51,12 +55,6 @@ normally. `expr` is evaluated once.
 `expr[n]` also returns the `n`th element of instances of several
 Julia types such as `Array`, or the element with key `n` for `Dict`'s.
 """
-
-# Get part of expression. Julia :ref is mapped to :Part
-# a[i] parses to Part(a,i), and a[i][j] to Part(Part(a,i),j)
-# a[i,j] parses to Part(a,i,j).
-
-@mkapprule Part
 
 @doap Part(texpr,tinds...) = getpart2(texpr,tinds...)
 
@@ -83,15 +81,14 @@ represents elements `a` through `b` in steps of `c`.
 
 ### Position
 
-@sjdoc Position """
+@mkapprule Position """
     Position(expr,x)
 
 return a list of part specifications (indices) of positions in
 `expr` at which `x` occurs.
 """
-@mkapprule Position
-@doap Position(expr,subx) = tolistoflists(find_positions(expr,subx))
 
+@doap Position(expr,subx) = tolistoflists(find_positions(expr,subx))
 @curry_second Position
 
 """
@@ -161,10 +158,12 @@ Because most heads are effectively immutable, we must replace the final subexpre
 ## maybe getpart2 above is faster and handles more cases.
 function setpart!(mx::Mxpr,val,inds...)
     if length(inds) == 0
-        return mxpr(val,margs(mx))
+#        return mxpr(val,margs(mx))
+        return mxprnewhead(mx, val)
     elseif length(inds) == 1
-        if inds[1] == 0
-            mx = mxpr(val,margs(mx)...)
+        if inds[1] == 0  # replacing head
+#            mx = mxpr(val,margs(mx)...)
+            mx = mxprnewhead(mx,val)
             # Function application is very slow if this branch is taken.
             return mx
         else
@@ -177,7 +176,8 @@ function setpart!(mx::Mxpr,val,inds...)
         end
         ex = getpart(mx, ninds...)
         ex1 = margs(ex)[inds[end-1]]
-        margs(ex)[inds[end-1]] = mxpr(val, margs(ex1))
+#        margs(ex)[inds[end-1]] = mxpr(val, margs(ex1))
+        margs(ex)[inds[end-1]] = mxprnewhead(ex1,val)
     else
         ex = getpart(mx, inds[1:end-1]...)
         margs(ex)[inds[end]] = val
@@ -204,7 +204,6 @@ function setpart2!(mx::Mxpr,val,inds...)
         ex = get_part_one_ind(ex,inds[j])
     end
     ind = posnegi(ex,inds[ninds])
-#    ind = posnegi(ex,ind)
     if  ind == 0
         exlast[inds[ninds-1]] = mxprnewhead(ex,val)
     else
@@ -442,9 +441,6 @@ end
 end
 
 @curry_second Replace
-# no need for this
-# doreplace(mx,a,b) = mx
-# doreplace(mx,args...) = mx
 
 #### ReplaceAll
 
@@ -467,27 +463,7 @@ Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
 
 @mkapprule ReplaceAll
 
-#apprules(mx::Mxpr{:}) = doreplaceall(mx,margs(mx)...)
-
-# These two rules specify Currying with the second argument
-
-@curry_second ReplaceAll
-
-# doreplaceall(mx,a) = mx
-# do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
-
-# FIXME. level spec, if present, goes in wrong place. easy to fix.
-# doreplace(mx,a) = mx
-# do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
-
-
-# function doreplaceall(mx,expr,r::Rules)
-#     replaceall(expr,r)
-# end
-
-@doap function ReplaceAll(expr,r::Rules)
-    replaceall(expr,r)
-end
+@doap ReplaceAll(expr,r::Rules) =replaceall(expr,r)
 
 @doap function ReplaceAll(expr,rs::Mxpr{:List})
     if listoflistsq(rs)
@@ -510,13 +486,14 @@ function _doreplaceall(mx,expr,rs::Mxpr{:List})
     replaceall(expr,rsa)
 end
 
-#doreplaceall(mx,a,b) = mx
-
-
 @sjexamp( ReplaceAll,
          ("ClearAll(zz,b,c)",""),
          ("zz = 10 * b^2 * (c+d)","zz = 10 * b^2 * (c+d)"),
          ("ReplaceAll(zz, List(c => 3,d => 2) )", "50*b^2"))
+
+@curry_second ReplaceAll
+
+### ReplaceRepeated
 
 @mkapprule ReplaceRepeated :options => Dict( :MaxIterations => 65536 )
 
@@ -528,20 +505,21 @@ perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 
 @doap ReplaceRepeated{T<:Rules}(expr,r::T; kws...) = replacerepeated(expr,r; kws...)
 
-function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
+#function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
+@doap function ReplaceRepeated(expr,rs::Mxpr{:List}; kws...)
     rsa = Array(Any,0)
-    for i in 1:length(rs)
-        if isa(rs[i],Rules)
-            push!(rsa, rs[i])
+    for r in rs
+        if isa(r,Rules)
+            push!(rsa, r)
         else
-            symwarn("ReplaceRepeated expected Rule, got ", rs[i])
+            symwarn("ReplaceRepeated expected Rule, got ", r)
             nothing  # do something better here, like return mx
         end
     end
     replacerepeated(expr,rsa; kws...)
 end
 
-do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},a,b; kws...) = mx
+@doap ReplaceRepeated(a,b; kws...) = mx
 
 ### MatchQ
 
@@ -565,5 +543,3 @@ matchq(expr,pat) = match_no_capture(expr,patterntoBlank(pat))
          ("ClearAll(gg,xx,b)",""),
          ("MatchQ( gg(xx) , _gg)", "true"),
          ("MatchQ( b^2, _^2)","true"))
-
-
