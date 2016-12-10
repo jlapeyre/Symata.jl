@@ -905,8 +905,13 @@ end
 
 @inline function mxprcf(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
-#    checkhash(mx)
-    mx
+end
+
+## TODO: prefer mxprcfa to mxcprcf if we are not copying args.
+## TODO: when does clean bit matter ? Is fixed bit enough.
+##  in mxpr_utils, tolistfixed, etc. only set fixed.
+@inline function mxprcfa(s::SJSym,args::MxprArgs)
+    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
 end
 
 function mxprcf(s,args::MxprArgs)
@@ -1095,6 +1100,13 @@ is the identity if `x` is not a `Mxpr`.
 """
 deepsetfixed(x) = x
 
+
+function deepsetfixed_nocopy(mx::Mxpr)
+    foreach(x -> setfixed(x), mx)
+    setfixed(mx)
+end
+deepsetfixed_nocopy(x) = x
+
 """
     deepunsetfixed(mx::Mxpr)
 
@@ -1105,6 +1117,7 @@ function deepunsetfixed(mx::Mxpr)
     map!(deepunsetfixed,nargs,margs(mx))
     unsetfixed(mx)
 end
+
 
 """
     deepunsetfixed(x)

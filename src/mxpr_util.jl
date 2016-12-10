@@ -4,8 +4,18 @@
 converts `a` to type `MxprArgs`. `tomargs` is the identity
 if `a` is of type `MxprArgs`.
 """
+
+## NOTE: It appears that collect always copies. convert does nothing if they type is already correct.
+
+## Goal here is apply collect when it is needed. But not needlessly copy an array
 tomargs(a::Vector) = convert(MxprArgs,a)
+tomargs(a::AbstractVector) = convert(MxprArgs,collect(MxprArgT,a)) ## convert should be redundant here
 tomargs(a::MxprArgs) = a
+
+## Following includes iterables.
+## TODO: We could collect directly into type Any rather than copying
+## TODO: test if as is iterable or s.t. There was a discussion about this
+tomargs(a) = collect(MxprArgT,a)
 
 """
     tolist(a::AbstractArray)
@@ -24,13 +34,41 @@ tolist(a::ListT) = a
 convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
 `a` might be, for instance, `Array{Array{T, 1}, 1}` or nested `Tuple`s.
 """
-function tolistoflists(a)
+function tolistoflists(ain)
+    a = collect(ain)
     nargs = newargs(a)
     for (i,v) in enumerate(a)
        nargs[i] = tolist(v)
     end
     MListA(nargs)
 end
+
+tolistfixed(x) = setfixed(tolist(x))
+
+## Both levels are fixed. We may want more fine grained function some day.
+function tolistoflistsfixed(ain)
+    a = collect(ain)
+    nargs = newargs(a)
+    for (i,v) in enumerate(a)
+       nargs[i] = tolistfixed(v)
+    end
+    setfixed(MListA(nargs))
+end
+
+function tolistoflistsfixed(dict::Dict)
+    setfixed(MListA(tomargsoflistfixed(dict)))
+end
+
+function tomargsoflistfixed(dict::Dict)
+    args = newargs(length(dict))
+    i = 0
+    for (k,v) in dict
+        i += 1
+        args[i] = mxprcf(:List,k,v)
+    end
+    return args
+end
+
 
 """
    maplist(f, ls::ListT)

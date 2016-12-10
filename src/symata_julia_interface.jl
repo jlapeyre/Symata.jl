@@ -113,6 +113,7 @@ function unpacktoList(obj)
 end
 do_unpack(obj) = copy!(newargs(length(obj)),obj)
 
+## We copy this and change it a bit to tolistoflists in mxpr_utils
 function do_unpack(dict::Dict)
     args = newargs(length(dict))
     i = 0
