@@ -24,13 +24,13 @@ function checkprotect(s::Qsym)
 end
 
 function checkprotect(s::SJSym)
-    get_attribute(symname(s),:Protected) &&
-    symerror(protectstr(symname(s)))
+    isProtected(s) && symerror(protectstr(symname(s)))
 end
+
 checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 function warncheckprotect(s::SJSym)
-    if get_attribute(symname(s),:Protected)
+    if isProtected(s)
         symwarn(protectstr(symname(s)))
         return false
     else
@@ -41,7 +41,7 @@ warncheckprotect(mx::Mxpr) = warncheckprotect(mhead(mx))
 
 ### Attributes
 
-@sjdoc Attributes """
+@mkapprule Attributes :nargs => 1  """
     Attributes(s)
 
 returns attributes associated with symbol `s`. Builtin symbols have
@@ -50,20 +50,13 @@ the attribute `Protected`, and may have others, including `HoldFirst`, `Sequence
 `NumericFunction`, `OneIdentity`.
 """
 
-apprules(mx::Mxpr{:Attributes}) = get_attributesList(mx[1])
+@doap Attributes(s::SymString) = get_attributesList(Symbol(s)) 
 
-get_attributesList(s::AbstractString) = get_attributesList(Symbol(s))
-
-function get_attributesList(sj::SJSymbol)
-    ks = get_attributes(sj)
-    mxpr(:List,ks...) # need to splat because array ks is not of type Any
-end
+get_attributesList(sj::SJSymbol) = tolistfixed(get_attributes(sj))
 
 ### SetAttributes
 
-@mkapprule SetAttributes nargs => 2
-
-@sjdoc SetAttributes """
+@mkapprule SetAttributes nargs => 2  """
     SetAttributes(sym,attr)
 
 add `attr` to the list of attributes for `sym`.
@@ -86,20 +79,19 @@ end
 set_attributes(sym::SJSymbol, attr::SJSym) = check_set_attributes(sym,attr)
 
 function set_attributes{T<:Array}(sym::SJSymbol, attrs::T)
-    for a in attrs
-        check_set_attributes(sym,a)
-    end
+    foreach(a -> check_set_attributes(sym,a), attrs)
 end
 
 function set_attributes{T<:Array}(syms::T, attr::SJSym)
-    for a in syms
-        check_set_attributes(a,attr)
-    end
+    foreach(sym -> check_set_attributes(sym,attr), syms)
+    # for a in syms
+    #     check_set_attributes(a,attr)
+    # end
 end
 
-do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attr::SJSym) = set_attributes(sym,attr)
-do_SetAttributes(mx::Mxpr{:SetAttributes}, syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
-do_SetAttributes(mx::Mxpr{:SetAttributes}, sym::SJSymbol, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
+@doap SetAttributes(sym::SJSymbol, attr::SJSym) = set_attributes(sym,attr)
+@doap SetAttributes(syms::Mxpr{:List}, attr::SJSym) = set_attributes(margs(syms),attr)
+@doap SetAttributes(sym::SJSymbol, attrs::Mxpr{:List}) = set_attributes(sym,margs(attrs))
 
 ### ClearAttributes
 
@@ -460,6 +452,7 @@ representation is printed.
 # DumpHold does not evaluate args before dumping
 apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
+## TODO: completely redesign this
 ### Contexts
 
 @mkapprule Contexts  nargs => 0:1
