@@ -26,11 +26,10 @@ convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
 """
 function tolistoflists(a)
     nargs = newargs(a)
-    for i in 1:length(a)
-#        nargs[i] = mxpr(:List,a[i]...)
-       nargs[i] = tolist(a[i])
+    for (i,v) in enumerate(a)
+       nargs[i] = tolist(v)
     end
-    mxpra(:List,nargs)
+    MListA(nargs)
 end
 
 """
@@ -40,12 +39,10 @@ maps `f` over `ls`, returing a `ListT`
 """
 function maplist(f, ls::ListT)
     nargs = newargs(ls)
-    i = 1
-    for x in ls
+    for (i,x) in enumerate(ls)
         nargs[i] = f(x)
-        i += 1
     end
-    mxpra(:List, nargs)
+    MListA(nargs)    
 end
 
 # not used yet
