@@ -9,13 +9,15 @@ function tolistoflists(a)
     for i in 1:length(a)
         nargs[i] = mxpr(:List,a[i]...)
     end
-    mxpr(:List,nargs)
+    mxpra(:List,nargs)
 end
 
 function maplist(f, ls::ListT)
-    nargs = newargs()
+    nargs = newargs(ls)
+    i = 1
     for x in ls
-        push!(nargs,f(x))
+        nargs[i] = f(x)
+        i += 1
     end
     mxpra(:List, nargs)
 end
@@ -38,6 +40,7 @@ sjcopy(x) = copy(x)
 
 Count the number of first-level elements of mx that are of type Mxpr{head}.
 """
+## using Julia's count here is probably faster
 function mxpr_count_heads(mx::Mxpr, head)
     cnt = 0
     for x in mx
@@ -45,7 +48,6 @@ function mxpr_count_heads(mx::Mxpr, head)
     end
     cnt
 end
-
 
 ###
 

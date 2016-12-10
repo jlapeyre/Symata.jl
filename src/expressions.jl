@@ -1,19 +1,6 @@
 ## TODO: Reorganize this. Migrate most of the Heads handled here elsewhere.
 ## Which heads should be here ?
 
-
-# this breaks pre-compilation only with OSX and Windows on nightliles starting about Oct 18, 2016
-
-# No, this appears to save nightly builds on al least linux. otherwise
-# nightlies fail on every platform
-if VERSION >= v"0.5-"
-    import Combinatorics: permutations
-end
-
-# So we return to loadinb Combinatorics unconditionally and tolerating warnings in v0.4
-#using Combinatorics
-
-
 ### Apply
 
 @mkapprule Apply nodefault => true """
@@ -180,41 +167,6 @@ end
     ex
     end
 @doap Reverse!(ex::AbstractArray) = reverse!(ex)
-
-### Permutations
-
-@sjdoc Permutations """
-    Permutations(expr)
-
-give a list of all permutations of elements in `expr`.
-"""
-
-@mkapprule Permutations nargs => 1:2
-
-## TODO:
-## Permutations[list, n] gives all permutations containing at most n elements.
-## Permutations[list, {n}] gives all permutations containing exactly n elements
-@doap function Permutations(x::Mxpr)
-    perms = collect(permutations(margs(x)))
-    h = mhead(x)
-    len = length(perms)
-    nargs = newargs(len)
-    @inbounds for i in 1:len
-        nargs[i] = setfixed(mxpr(:List,perms[i]))
-    end
-    setfixed(mxpra(:List,nargs))
-end
-
-@sjdoc FactorInteger """
-    FactorInteger(n)
-
-give a list of prime factors of `n` and their multiplicities.
-"""
-@mkapprule FactorInteger nargs => 1:2
-@doap FactorInteger(x) = setfixed(mxpra(:List,do_unpack(factor(x))))
-
-### Level
-
 
 ### Map
 
