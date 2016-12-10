@@ -84,9 +84,6 @@ end
 
 function set_attributes{T<:Array}(syms::T, attr::SJSym)
     foreach(sym -> check_set_attributes(sym,attr), syms)
-    # for a in syms
-    #     check_set_attributes(a,attr)
-    # end
 end
 
 @doap SetAttributes(sym::SJSymbol, attr::SJSym) = set_attributes(sym,attr)
@@ -264,13 +261,6 @@ function do_Set(mx::Mxpr{:Set},lhs::SJSymbol, rhs)
     rhs
 end
 
-# function do_Set(mx::Mxpr{:Set},lhs::Qsym, rhs)
-#     checkprotect(lhs)  #  FIXME
-#     setsymval(lhs,rhs)
-#     setdefinition(lhs, mx)
-#     rhs
-# end
-
 # Create DownValue. "function" definition
 # eg f(x_) := x  defines a DownValue for the SJSym f
 function setdelayed(mx,lhs::Mxpr, rhs)
@@ -319,8 +309,6 @@ end
 # Optimize a bit. Localize variables once, not every time pattern is evaluated
 setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module!(rhs))
 
-#do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
-
 @doap Set(lhs::Mxpr, rhs::Mxpr{:Module}) = do_Set(mx,lhs,localize_module!(rhs))
 
 ### Increment
@@ -364,7 +352,7 @@ decrements the value of `n` by `1` and returns the old value.
     do_decrement1(mx,x,xval)
 end
 
-function do_decrement1{T<:Number}(mx,x,xval::T)
+function do_decrement1(mx,x,xval::Number)
     setsymval(x,mplus(xval,-1))  # maybe + is ok here.
     return xval
 end
@@ -463,9 +451,9 @@ apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_S
 return a `List` of all contexts.
 """
 
-@doap function Contexts()
-    mxpr(:List, getcontexts()...)
-end
+@doap Contexts() = tolist(getcontexts())
+#     mxpr(:List, getcontexts()...)
+# end
 
 
 @mkapprule ContextSymbols  nargs => 1
@@ -476,10 +464,9 @@ end
 return a `List` of all symbols in `context`.
 """
 
-@doap function ContextSymbols(s)
-    mxpr(:List, getsymbolsincontext(s)...)
-end
-
+@doap ContextSymbols(s) = tolist(getsymbolsincontext(s))
+#     mxpr(:List, getsymbolsincontext(s)...)
+# end
 
 ### UpSet
 
