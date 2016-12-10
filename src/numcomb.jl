@@ -1,5 +1,7 @@
 #### Number theory and combinatorics.
 
+using Primes
+
 if VERSION >= v"0.5-"
     import Combinatorics: permutations
 end
