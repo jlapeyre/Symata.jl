@@ -269,7 +269,7 @@ end
 ### BlankT
 
 # For instance, in x_Integer, we match Integer.
-match_head(head::SJSym,ex) = head == :All ? true : is_Mxpr(ex,head)
+match_head(head::SJSym,ex) = head == :All ? true : isa(ex,Mxpr{head})
 match_head(head::DataType,ex) = isa(ex,head)
 match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))
 
@@ -295,7 +295,7 @@ function ematch(pat::BlankSequenceT, m::Match)
         if imx > len break end
     end
     m.imx = imx
-    m.special = mxpr(:Sequence, args...)
+    m.special = mxpra(:Sequence, args)
 #    unsetfixed(m.parent)
     true
 end
@@ -482,7 +482,7 @@ function match_and_capt_yes_optional_no_repeated(pat,m,lm,lp)
     captures = m.capt
     for i in 1:lp
         if i > lm
-            if is_Mxpr(pat[i],:Optional)
+            if isa(pat[i],Mxpr{:Optional})
                 _do_optional(pat[i], captures)
             else
                 return false
@@ -602,7 +602,7 @@ function ematch(pat::Mxpr, m)
     # following line only works if we have no sequences or repeated.
     #    ((lm >= lp - nopt) && (lm <= lp)) || return false
     nopt == 0 && return match_and_capt_no_optional_no_repeated(pat,m)
-    return match_and_capt_yes_optional_no_repeated(pat, m,lm,lp)
+    return match_and_capt_yes_optional_no_repeated(pat,m,lm,lp)
 end
 
 ##### Atoms
