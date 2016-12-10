@@ -1180,9 +1180,11 @@ end
 
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
+
 ## getindex(mx::Mxpr,ind) with single index does not check for index 0 for efficiency.
 ## Also the iterator over mx relies on this behavior.
 ## But, with more than one index, getindex checks for index of zero (heads)
+## It is probably faster to use the 
 @inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
 getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
 

@@ -465,25 +465,31 @@ list of rules. If given explicitly, the rules should be given as `List(...)` rat
 Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
 """
 
-apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,margs(mx)...)
+@mkapprule ReplaceAll
+
+#apprules(mx::Mxpr{:}) = doreplaceall(mx,margs(mx)...)
 
 # These two rules specify Currying with the second argument
 
-# @curry_second ReplaceAll
+@curry_second ReplaceAll
 
-doreplaceall(mx,a) = mx
-do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+# doreplaceall(mx,a) = mx
+# do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 
 # FIXME. level spec, if present, goes in wrong place. easy to fix.
 # doreplace(mx,a) = mx
 # do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 
 
-function doreplaceall(mx,expr,r::Rules)
+# function doreplaceall(mx,expr,r::Rules)
+#     replaceall(expr,r)
+# end
+
+@doap function ReplaceAll(expr,r::Rules)
     replaceall(expr,r)
 end
 
-function doreplaceall(mx,expr,rs::Mxpr{:List})
+@doap function ReplaceAll(expr,rs::Mxpr{:List})
     if listoflistsq(rs)
         maplist( r ->  _doreplaceall(mx,expr,r), rs)
     else
@@ -503,7 +509,8 @@ function _doreplaceall(mx,expr,rs::Mxpr{:List})
     end
     replaceall(expr,rsa)
 end
-doreplaceall(mx,a,b) = mx
+
+#doreplaceall(mx,a,b) = mx
 
 
 @sjexamp( ReplaceAll,
