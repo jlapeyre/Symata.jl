@@ -1,4 +1,24 @@
 """
+    tomargs(a::Vector)
+
+converts `a` to type `MxprArgs`. `tomargs` is the identity
+if `a` is of type `MxprArgs`.
+"""
+tomargs(a::Vector) = convert(MxprArgs,a)
+tomargs(a::MxprArgs) = a
+
+"""
+    tolist(a::AbstractArray)
+
+returns a Syamta list with elements in `a`. If `a` is already
+of type `MxprArgs`, a copy is *not* made. If `a` is of type `ListT`,
+`tolist` is the identity.
+"""
+tolist(a::AbstractArray) = MListA(tomargs(a))
+tolist(a::ListT) = a
+
+### TODO: decide whether this copies or not.
+"""
     tolistoflists(a)
 
 convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
@@ -7,11 +27,17 @@ convert a Julia object that can be indexed on two levels to a `List` of `Lists`.
 function tolistoflists(a)
     nargs = newargs(a)
     for i in 1:length(a)
-        nargs[i] = mxpr(:List,a[i]...)
+#        nargs[i] = mxpr(:List,a[i]...)
+       nargs[i] = tolist(a[i])
     end
     mxpra(:List,nargs)
 end
 
+"""
+   maplist(f, ls::ListT)
+
+maps `f` over `ls`, returing a `ListT`
+"""
 function maplist(f, ls::ListT)
     nargs = newargs(ls)
     i = 1
@@ -40,17 +66,9 @@ sjcopy(x) = copy(x)
 
 Count the number of first-level elements of mx that are of type Mxpr{head}.
 """
-## using Julia's count here is probably faster
-function mxpr_count_heads(mx::Mxpr, head)
-    cnt = 0
-    for x in mx
-        if isa(x,Mxpr{head}) cnt += 1  end
-    end
-    cnt
-end
+mxpr_count_heads(mx::Mxpr, head) = count(x -> isa(x,Mxpr{head}), mx)
 
-###
-
+### MList
 
 @doc """
     MList(a...)
