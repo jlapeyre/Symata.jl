@@ -496,16 +496,7 @@ _upset_one(args...) = nothing
 
 function _upset(mx,lhs::Mxpr, rhs)
     rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    # for i in 1:length(lhs)
-    #     m = lhs[i]
-    for m in lhs
-        _upset_one(mx,m,rule)
-        # if isa(m,Mxpr) && warncheckprotect(m)
-        #     set_upvalue(mx,mhead(m),rule)
-        # elseif isa(m,SJSym) && warncheckprotect(m)
-        #     set_upvalue(mx, m,rule)
-        # end
-    end
+    foreach( m -> _upset_one(mx,m,rule), lhs)
 end
 
 @mkapprule UpSetDelayed nargs => 1:Inf
@@ -525,7 +516,6 @@ function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
     set_downvalue(mx, mhead(lhs),rule) # push DownValue
     rhs # Set always returns the rhs. This is checked
 end
-
 
 ### Symbol
 
@@ -585,23 +575,6 @@ function _clear(ins::SymString)
     clear_ownvalue_definition(s)
     setsymval(s,s)        # May 2016. This works ?
 end
-
-# function apprules(mx::Mxpr{:Clear})  # This will be threaded over anyway
-#     @inbounds for a in margs(mx)  # no inbounds does not work here
-#         a = typeof(a) <: AbstractString ?  Symbol(a) : a
-#         if a == :Out
-#             clear_all_output()
-#             return Null
-#         end
-#         checkprotect(a)
-# #        setsymval(a,symname(a))
-#         clear_downvalues(a)
-#         clear_upvalues(a)
-#         clear_ownvalue_definition(a)
-#         setsymval(a,a)        # May 2016. This works ?
-#     end
-#     Null
-# end
 
 ### ClearAll
 
@@ -663,8 +636,9 @@ For example `f(x_) := x` sets a `DownValue` for `f`.
          ("f(x_) := x^2",""),
          ("DownValues(f)", "[HoldPattern(f(x_))->(x^2)]"))
 
-@mkapprule DownValues
-@doap DownValues(x) = sjlistdownvalues(x)
+## TODO. implement options
+@mkapprule DownValues :nargs => 1
+@doap DownValues(s::SJSymbol) = mxpr(:List,downvalues(s)...)
 
 ### UpValues
 
@@ -675,8 +649,7 @@ returns a List of UpValues associated with symbol `s`. These are values
 that are typically set with `UpSet`.
 """
 @mkapprule UpValues
-@doap UpValues(x) = sjlistupvalues(x)
-
+@doap UpValues(s::SJSymbol) = mxpr(:List,upvalues(s)...)
 
 #### HAge, FixedQ and UnFix
 
@@ -777,12 +750,7 @@ This is all user defined symbols (unless you have imported symbols from elsewher
 
 @mkapprule UserSyms  nargs => 0
 
-@doap UserSyms() = usersymbolsList()
-
-# This is the old version
-@mkapprule UserSyms2 nargs => 0
-
-@doap UserSyms2() = usersymbolsListold()
+@doap UserSyms() = tolistfixed(usersymbols())
 
 @sjdoc CurrentContext """
     CurrentContext()

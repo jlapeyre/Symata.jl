@@ -468,7 +468,6 @@ function clear_downvalues(s::SJSym)
 end
 
 downvalues(s::SJSymbol) = getssym(s).downvalues
-sjlistdownvalues(s::SJSymbol) = mxpr(:List,downvalues(s)...)
 
 function jlistdownvaluedefs(sym::SJSymbol)
     s = getssym(sym)
@@ -501,7 +500,6 @@ function set_upvalue(mx, ins::SJSym,val)
 end
 
 @inline upvalues(s::SJSym) = getssym(s).upvalues
-@inline sjlistupvalues(s::SJSym) = mxpr(:List,upvalues(s)...)
 @inline has_upvalues(s::SJSym) = length(upvalues(s)) > 0
 
 function clear_upvalue_definitions(sym::SJSym)
@@ -1143,9 +1141,9 @@ end
 
 # This is the new version used by UserSyms()
 # Experiment with namespaces
-function usersymbolsList()
-        mxpra(:List, usersymbols())
-end
+# function usersymbolsList()
+#         mxpra(:List, usersymbols())
+# end
 
 #### typealiases
 
