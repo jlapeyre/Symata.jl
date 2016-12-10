@@ -103,3 +103,36 @@ end
 _integer_partitions_list(mx,n,m) = tolistoflistsfixed(collect(partitions(n,m)))
 _integer_partitions_list(mx,n,m1,m2) = _integer_partitions_range(n,m1,m2)
 _integer_partitions_list(mx,n,m,args...) = mx
+
+@mkapprule NumberOfPartitions nargs => 1  """
+    NumberOfPartitions(n)
+
+gives the number of integer partitions of `n`.
+"""
+
+@doap NumberOfPartitions(n::Integer) = n <= 405 ? length(partitions(n)) : bnpartitions(n)
+
+## copied from partitions.jl. We just add the BigInt dict
+
+## in n > 405, we need BigInt
+
+let _bnpartitions = Dict{BigInt,BigInt}()
+    global bnpartitions
+    function bnpartitions(n::Integer)
+        if n < 0
+            0
+        elseif n < 2
+            1
+        elseif (np = get(_bnpartitions, n, 0)) > 0
+            np
+        else
+            np = 0
+            sgn = 1
+            for k = 1:n
+                np += sgn * (bnpartitions(n-k*(3k-1)>>1) + bnpartitions(n-k*(3k+1)>>1))
+                sgn = -sgn
+            end
+            _bnpartitions[n] = np
+        end
+    end
+end
