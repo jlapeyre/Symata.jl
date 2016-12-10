@@ -179,10 +179,6 @@ T [h(a), h(b), h(c), h(d)] == [p,p,h(c),h(d)]
 # Powers match structually, so we include an alternative for a power with exponent one.
 T ReplaceAll([1, x, x^2, x^3, y^2] , (x | x^_) => q) == [1,q,q,q,y^2]
 
-# The head can be either a or b and it is bound to f
-# FIXME. This is not parsed correctly. We get Span
-# (f : (a | b))(x_) => r(f, x)
-# But, the following syntax does work
 
 r1 = (f::(a | b))(x_) => r(f, x)
 
@@ -190,8 +186,12 @@ T b(2) ./ r1 == r(b,2)
 T a(z) ./ r1 == r(a,z)
 T c(z) ./ r1 == c(z)
 
-# FIXME. This is parsed as named pattern, but the rest of the parsing is wrong.
-# (f:J(a | b))(x_) => r(f, x)
+r2 = (f::j(a | b))(x_) => r(f, x)
+
+T j(a)(2) ./ r2 == r(j(a),2)
+T j(b)(2) ./ r2 == r(j(b),2)
+T j(c)(2) ./ r2  == j(c)(2)
+T q(b)(2) ./ r2 == q(b)(2)
 
 ClearAll(a,b,c,f,g,h,p,x,y,r1,r,z)
 
