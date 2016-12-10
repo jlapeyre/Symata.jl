@@ -481,16 +481,31 @@ associate the transformation rule with `g`.
 
 ## Note, mx is needed here because the entire expression is recorded for the definition of lhs
 function upset(mx,lhs::Mxpr, rhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    for i in 1:length(lhs)
-        m = lhs[i]
-        if isa(m,Mxpr) && warncheckprotect(m)
-            set_upvalue(mx,mhead(m),rule)
-        elseif isa(m,SJSym) && warncheckprotect(m)
-            set_upvalue(mx, m,rule)
-        end
-    end
+    _upset(mx,lhs,rhs)
     return rhs
+end
+
+function _upset_one(mx,m::SJSym,rule)
+    warncheckprotect(m)
+    set_upvalue(mx, m,rule)
+end
+
+_upset_one(mx,m::Mxpr,rule) = _upset_one(mx,mhead(m),rule)
+
+_upset_one(args...) = nothing
+
+function _upset(mx,lhs::Mxpr, rhs)
+    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
+    # for i in 1:length(lhs)
+    #     m = lhs[i]
+    for m in lhs
+        _upset_one(mx,m,rule)
+        # if isa(m,Mxpr) && warncheckprotect(m)
+        #     set_upvalue(mx,mhead(m),rule)
+        # elseif isa(m,SJSym) && warncheckprotect(m)
+        #     set_upvalue(mx, m,rule)
+        # end
+    end
 end
 
 @mkapprule UpSetDelayed nargs => 1:Inf
@@ -498,16 +513,8 @@ end
 
 ## I think the only difference with UpSet again, is we don't return the rhs
 function upsetdelayed(mx,lhs::Mxpr, rhs)
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    for i in 1:length(lhs)
-        m = lhs[i]
-        if isa(m,Mxpr) && warncheckprotect(m)
-            set_upvalue(mx,mhead(m),rule)
-        elseif isa(m,SJSym) && warncheckprotect(m)
-            set_upvalue(mx, m,rule)
-        end
-    end
-    Null
+    _upset(mx,lhs,rhs)    
+    return Null
 end
 
 function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
