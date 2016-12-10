@@ -43,8 +43,9 @@ give a list of prime factors of `n` and their multiplicities.
 return the list of all prime numbers `<= n`.
 """
 
+## Convert `n` to Int to work around julia bug
 @mkapprule PrimeList nargs => 1
-@doap PrimeList(n::Integer) = tolistfixed(primes(n))
+@doap PrimeList(n::Integer) = tolistfixed(primes(convert(Int,n)))
 
 ### Prime
 
@@ -58,42 +59,23 @@ returns the `n`th prime number.
 
 ### PrimePi
 
-@sjdoc PrimePi """
+@mkapprule PrimePi nargs => 1  """
     PrimePi(n)
 
 returns the number of primes less than or equal to `n`.
 """
-@mkapprule PrimePi :nargs => 1
+
 @doap PrimePi(n::Integer) = sympy[:primepi](n)
 
 ### Permutations
 
-@sjdoc Permutations """
+@mkapprule Permutations nargs => 1:2  """
     Permutations(expr)
 
 give a list of all permutations of elements in `expr`.
 """
 
-### 
-@mkapprule Permutations nargs => 1:2
 @doap Permutations(x::Mxpr) = tolistoflistsfixed(permutations(margs(x)))
-
-## Code above is about as fast as below. Doing setfixed may cause a bug some day.
-## One difference is that the following only does setfixed on the two levels we create.
-## deepsetfixed_nocopy traverses the entire tree.
-## TODO:
-## Permutations[list, n] gives all permutations containing at most n elements.
-## Permutations[list, {n}] gives all permutations containing exactly n elements
-# @mkapprule Permutations2 nargs => 1:2
-# @doap function Permutations2(x::Mxpr)
-#     perms = collect(permutations(margs(x)))
-#     len = length(perms)
-#     nargs = newargs(len)
-#     @inbounds for i in 1:len
-#         nargs[i] = setfixed(mxpr(:List,perms[i]))
-#     end
-#     setfixed(mxpra(:List,nargs))
-# end
 
 ### IntegerPartitions
 
