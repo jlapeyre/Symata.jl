@@ -50,7 +50,7 @@ the attribute `Protected`, and may have others, including `HoldFirst`, `Sequence
 `NumericFunction`, `OneIdentity`.
 """
 
-@doap Attributes(s::SymString) = get_attributesList(Symbol(s)) 
+@doap Attributes(s::SymString) = get_attributesList(Symbol(s))
 
 get_attributesList(sj::SJSymbol) = tolistfixed(get_attributes(sj))
 
@@ -504,7 +504,7 @@ end
 
 ## I think the only difference with UpSet again, is we don't return the rhs
 function upsetdelayed(mx,lhs::Mxpr, rhs)
-    _upset(mx,lhs,rhs)    
+    _upset(mx,lhs,rhs)
     return Null
 end
 
@@ -533,7 +533,7 @@ then Symbol("a") returns `1`.
 # end
 
 @doap Symbol(s::String) = getsym(Symbol(s))
-@doap Symbol(x) = (symwarn("Symbol: expected a string"); mx) 
+@doap Symbol(x) = (symwarn("Symbol: expected a string"); mx)
 
 #### Clear
 

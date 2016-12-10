@@ -1139,12 +1139,6 @@ function usersymbols()
     return nargs
 end
 
-# This is the new version used by UserSyms()
-# Experiment with namespaces
-# function usersymbolsList()
-#         mxpra(:List, usersymbols())
-# end
-
 #### typealiases
 
 typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
@@ -1184,7 +1178,7 @@ for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
 
-# These should be fast: In the Symata language, mx[0] gets the head, but not here.
+# We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 ## getindex(mx::Mxpr,ind) with single index does not check for index 0 for efficiency.
 ## Also the iterator over mx relies on this behavior.

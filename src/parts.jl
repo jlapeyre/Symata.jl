@@ -58,9 +58,11 @@ Julia types such as `Array`, or the element with key `n` for `Dict`'s.
 
 @mkapprule Part
 
-@doap function Part(texpr,tinds...)
-    for j in 1:length(tinds)
-        texpr = get_part_one_ind(texpr,tinds[j])
+@doap Part(texpr,tinds...) = getpart2(texpr,tinds...)
+
+function getpart2(texpr,tinds...)
+    for tind in tinds
+        texpr = get_part_one_ind(texpr,tind)
     end
     return texpr
 end
@@ -154,6 +156,9 @@ set the part of `mx` indexed by `inds` to `val`.
 The last index equal to zero means the head of the subexpression specified by the previous indices.
 Because most heads are effectively immutable, we must replace the final subexpression in this case.
 """
+
+## getpart is used only here. it is defined in mxpr.jl. It is probably not fast
+## maybe getpart2 above is faster and handles more cases.
 function setpart!(mx::Mxpr,val,inds...)
     if length(inds) == 0
         return mxpr(val,margs(mx))
@@ -413,24 +418,33 @@ replace at level `n` only.
           "Cos(a + b)^2 + Sin(a + c)^2", "This expression does not match the pattern."),
          ("Replace( Cos(a+b)^2 + Sin(a+b)^2, Cos(x_)^2 + Sin(x_)^2 => 1)",
           "1", "This expression does match the pattern."))
-function apprules(mx::Mxpr{:Replace})
-    doreplace(mx,margs(mx)...)
-end
 
-function doreplace(mx,expr,r::Rules)
+@mkapprule Replace
+
+# function apprules(mx::Mxpr{:Replace})
+#     doreplace(mx,margs(mx)...)
+# end
+
+# function doreplace(mx,expr,r::Rules)
+#     (success, result) = replace(expr,r)
+#     result
+# end
+
+@doap function Replace(expr,r::Rules)
     (success, result) = replace(expr,r)
     result
 end
 
-function doreplace(mx,expr,r::Rules,inlevelspec)
+@doap function Replace(expr,r::Rules,inlevelspec)
     levelspec = make_level_specification(expr,inlevelspec)
     (success, result) = replace(levelspec,expr,r)
     result
 end
 
+@curry_second Replace
 # no need for this
-doreplace(mx,a,b) = mx
-doreplace(mx,args...) = mx
+# doreplace(mx,a,b) = mx
+# doreplace(mx,args...) = mx
 
 #### ReplaceAll
 
@@ -455,12 +469,14 @@ apprules(mx::Mxpr{:ReplaceAll}) = doreplaceall(mx,margs(mx)...)
 
 # These two rules specify Currying with the second argument
 
+# @curry_second ReplaceAll
+
 doreplaceall(mx,a) = mx
 do_GenHead(mx,head::Mxpr{:ReplaceAll}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 
 # FIXME. level spec, if present, goes in wrong place. easy to fix.
-doreplace(mx,a) = mx
-do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
+# doreplace(mx,a) = mx
+# do_GenHead(mx,head::Mxpr{:Replace}) =  mxpr(mhead(head),copy(margs(mx))...,margs(head)...)
 
 
 function doreplaceall(mx,expr,r::Rules)
