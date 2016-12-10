@@ -39,7 +39,7 @@ concatenate arguments of expressions with the same `Head`, returning an expressi
 @doap function Join{T}(args::Mxpr{T}...)
     nargs = newargs()
     foreach( x -> append!(nargs,margs(x)), args)
-    mxpr(mhead(args[1]),nargs)
+    mxpra(mhead(args[1]),nargs)
 end
 
 ### Rest
@@ -52,7 +52,7 @@ end
     for i in 1:length(nargs)
         nargs[i] = deepcopy(x[i+1])
     end
-    mxpr(mhead(x),nargs)
+    mxpra(mhead(x),nargs)
 end
 
 @doap Rest(x) = mx
@@ -67,7 +67,7 @@ end
     for i in 1:length(nargs)
         nargs[i] = deepcopy(x[i])
     end
-    mxpr(mhead(x),nargs)
+    mxpra(mhead(x),nargs)
 end
 
 @doap Most(x) = mx
@@ -132,11 +132,11 @@ for head in (:Fold, :FoldList)
                         $(fl ? :(nargs[i+1] = res) : nothing)
                     end
                 end
-                $(fl ? :(mxpr(mhead(lst), nargs)) : :( res ))
+                $(fl ? :(mxpra(mhead(lst), nargs)) : :( res ))
          end
 
    @doap function ($head)(f,lst::Mxpr)
-           length(lst) == 0 && return mx
+           isempty(lst) && return mx
            mxpr($(QuoteNode(head)), f, lst[1], mxpr(mhead(lst),lst[2:end]))
          end
 end
@@ -174,7 +174,7 @@ for head in (:Nest, :NestList)
                         $(nl ? :(nargs[i+1] = res) : nothing)
                     end
                 end
-                $(nl ? :(mxpr(:List, nargs)) : :( res ))
+                $(nl ? :(mxpra(:List, nargs)) : :( res ))
          end
 end
 end
@@ -203,7 +203,7 @@ This uses embedded Julia to create a typed `Array` and then unpacks it to a List
 function apprules(mx::Mxpr{:Range})
     iter = make_sjitera(margs(mx))
     args = do_Range(iter)
-    r = mxpr(:List,args)
+    r = mxpra(:List,args)
     setfixed(r)
     setcanon(r)
     mergesyms(r,:nothing)  # not correct if we have symbols.
@@ -218,18 +218,22 @@ function do_Range(iter::SJIterA1)  # iter is parameterized, so we hope type of n
 end
 
 function _do_Range_fill(args, n, ::Type{Int})
-  @inbounds @simd for i in 1:n
-                     args[i] = i
-                  end
+    copy!(args,1:n)
+  # @inbounds @simd for i in 1:n
+  #                    args[i] = i
+  #                 end
     return args
 end
 
 function _do_Range_fill{T<:Real}(args, n, ::Type{T})
-   j = one(T)
-    @inbounds for i in 1:n
-       args[i] = j
-       j += 1
-    end
+#    j = one(T)
+    n1 = one(T)
+    n2 = convert(T,n)
+    copy!(args,n1:n2)
+    # @inbounds for i in 1:n
+    #    args[i] = j
+    #    j += 1
+    # end
     return args
 end
 
@@ -371,7 +375,7 @@ function apprules(mx::Mxpr{:OldRange})
     else
         return mx
     end
-    r = mxpr(:List,args)
+    r = mxpra(:List,args)
     setfixed(r)
     setcanon(r)
     mergesyms(r,:nothing)
@@ -447,7 +451,7 @@ function _constantarray(expr,n::Integer)
     @inbounds for i in 1:n
         nargs[i] = recursive_copy(expr)
     end
-    mxpr(:List,nargs)
+    mxpra(:List,nargs)
 end
 
 function _constantarray(expr::Mxpr,n::Integer)
@@ -455,7 +459,7 @@ function _constantarray(expr::Mxpr,n::Integer)
      @inbounds for i in 1:n
         nargs[i] = setfixed(recursive_copy(expr))         
      end
-    mxpr(:List,nargs)
+    mxpra(:List,nargs)
 end
 
 @doap function ConstantArray(expr,ns::Mxpr{:List})
@@ -464,7 +468,7 @@ end
 end
 
 function _constantarray(expr,ns::Array)
-    length(ns) == 0 && return Null
+    isempty(ns) && return Null
     a = _constantarray(expr,ns[1])
     length(ns) == 1 && return a
     _constantarray(a,ns[2:end])
@@ -473,7 +477,7 @@ end
 function _constantarray{T<:Union{Number,SJSym,String}}(expr::T,n::Integer)
     nargs = newargs(n)
     fill!(nargs,expr)
-    a = mxpr(:List,nargs)
+    a = mxpra(:List,nargs)
     expr == :Nothing && return a
     setfixed(a)
 end
@@ -573,7 +577,7 @@ apply `test` to determine identical elements.
 @mkapprule Split
 
 @doap function Split(lst::ListT)
-    length(lst) == 0 && return MList()
+    isempty(lst) && return MList()
     a = margs(lst)
     a0 = newargs()
     a1 = newargs()
@@ -589,7 +593,7 @@ apply `test` to determine identical elements.
 end
 
 @doap function Split(lst::ListT, test)
-    length(lst) == 0 && return MList()
+    isempty(lst) && return MList()
     a = margs(lst)
     a0 = newargs()
     a1 = newargs()
@@ -642,7 +646,7 @@ function partition(x::Mxpr, n, m)
         i -= (n - m)
         push!(na, mxpr(h,na1))
     end
-    mxpr(h,na)
+    mxpra(h,na)
 end
 
 ### Riffle
@@ -676,7 +680,7 @@ end
 @mkapprule Union
 
 @doap function Union(lists::Mxpr...)
-    length(lists) == 0 && return mxpr(:List)
+    isempty(lists) && return mxpr(:List)
     seen = Dict{Any,Bool}()
     nargs = newargs()
     for list in lists

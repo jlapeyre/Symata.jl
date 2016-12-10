@@ -113,7 +113,6 @@ gives the number of integer partitions of `n`.
 @doap NumberOfPartitions(n::Integer) = n <= 405 ? length(partitions(n)) : bnpartitions(n)
 
 ## copied from partitions.jl. We just add the BigInt dict
-
 ## in n > 405, we need BigInt
 
 let _bnpartitions = Dict{BigInt,BigInt}()

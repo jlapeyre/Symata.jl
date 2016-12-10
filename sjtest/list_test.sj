@@ -161,6 +161,8 @@ T [res = NestWhileList( y -> Mod(2*y, 19) , 2, x -> x != 1 ), Length(res)] == [[
 
 ClearAll(f,x)
 
+### Range
+
 T  Range(0) == []
 T  Range(1) == [1]
 T  Range(3) == [1,2,3]
@@ -189,6 +191,12 @@ T  Range(5+x,x,-1) == [5 + x,4 + x,3 + x,2 + x,1 + x,x]
 
 # For some reason, this, but not the examples above, triggered a bug.
 T Map(Function(x,Range(x+1,2*x)), Range(4)) == [[2],[3,4],[4,5,6],[5,6,7,8]]
+
+## FIXME: Mma can do this
+# Range(0,10,Pi)
+
+## FIXME: can't do this
+## Range[a, b, (b - a)/4]
 
 ClearAll(x,y,a,b,c,d,m,p,z,f,j)
 
