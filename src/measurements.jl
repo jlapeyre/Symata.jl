@@ -12,7 +12,6 @@ Julia `length`.
 @mkapprule Length :nargs => 1
 @doap Length(x) = symlength(x)
 
-Base.length(mx::Mxpr) = length(margs(mx))
 symlength(mx::Mxpr) = length(mx)
 symlength(s::String) = 1
 symlength(s::Symbol) = 0

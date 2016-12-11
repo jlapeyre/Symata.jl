@@ -210,8 +210,8 @@ ematch(pat::Mxpr{:HoldPattern}, m::Match) = ematch(pat[1],m)
 
 #### Pattern
 
-# First arg is a name.
-# Second arg is a pattern. If it matches, store the matching expression in
+# First arg of pat is a name.  Second arg of pat is a pattern.
+# If it matches, store the matching expression in
 # a dict under the name.
 function ematch(pat::Mxpr{:Pattern}, m::Match)
     ex = m.ex

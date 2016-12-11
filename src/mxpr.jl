@@ -1178,6 +1178,8 @@ for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
 
+Base.length(mx::Mxpr) = length(margs(mx))
+
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 

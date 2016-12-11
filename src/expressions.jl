@@ -155,22 +155,22 @@ reverse the order of the arguments in `expr`.
 
 @mkapprule Reverse nargs => 1
 @doap function Reverse(ex::Mxpr)
-    get_attribute(ex,:Orderless) && return ex
+    isOrderless(ex) && return ex
     setfixed(mxpra(mhead(ex),reverse(margs(ex))))
 end
 @doap Reverse(ex::AbstractArray) = reverse(ex)
 
 @mkapprule Reverse! nargs => 1
 @doap function Reverse!(ex::Mxpr)
-    get_attribute(ex,:Orderless) && return ex    
+    isOrderless(ex) && return ex    
     reverse!(margs(ex))
     ex
-    end
+end
 @doap Reverse!(ex::AbstractArray) = reverse!(ex)
 
 ### Map
 
-@sjdoc Map """
+@mkapprule Map nargs => 1:3  """
     Map(f,expr)   f % expr
 
 return `f` applied to each element in a `expr`.
@@ -193,8 +193,6 @@ Negative indices count backwards from the deepest level.
 `Map` can be used in an operator form. For example `Map(f)(expr)`.
 """
 
-@mkapprule Map nargs => 1:3
-
 @doap function Map(f::Function,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
@@ -216,7 +214,9 @@ end
 # We create one Mxpr outside the loop. Old
 # code (commented out) created Mxpr every time.
 # This saves 30 percent of time and allocation in some tests.
-@doap function Map(f,expr::Mxpr)
+@doap Map(f,expr::Mxpr) =  _Map_one(f,expr::Mxpr)
+
+function _Map_one(f,expr::Mxpr)
     args = margs(expr)
     nargs = newargs(args)
     mx1 = mxpr(f,0) # reserve one argument
@@ -225,6 +225,13 @@ end
         nargs[i] = doeval(mx1)
     end
     mxpra(mhead(expr),nargs)
+end
+
+## Optimize for a very special case.
+## There are many such optimizations to do.
+@doap function Map(sym::Symbol, expr::PlusT)
+    sym != :Length && return _Map_one(sym,expr)
+    sum(x -> symlength(x), expr)
 end
 
 type MapData
