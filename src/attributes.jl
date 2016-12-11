@@ -178,7 +178,8 @@ unprotect(sj::SJSym) = unset_attribute(sj,:Protected)
 protect(sj::SymString) = set_attribute(sj,:Protected)
 
 ## hmmm, we could do this for all attributes
-for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Listable, :Protected, :Constant)
+for s in (:HoldFirst,:HoldAll,:HoldRest,:HoldAllComplete, :SequenceHold, :Flat, :Orderless,
+          :Listable, :Protected, :Constant)
     sf = Symbol("is",s)
     @eval ($sf)(x) = get_attribute(x,$(QuoteNode(s)))
 end
