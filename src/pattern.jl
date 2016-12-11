@@ -59,17 +59,7 @@ end
 
 getBlankhead(pvar::Blanks) = pvar.head
 
-function patterntoBlank(mx::Mxpr)
-    nargs = newargs()
-    for x in mx.args
-        nx = patterntoBlank(x)
-        push!(nargs,nx)
-    end
-    #    nmx = mxpr(mhead(mx), nargs...)  # Nov 4, 2016
-    nmx = mxpr(patterntoBlank(mhead(mx)), nargs...)
-    nmx
-end
-
+patterntoBlank(mx::Mxpr) = mxpra(patterntoBlank(mhead(mx)), map(x -> patterntoBlank(x), margs(mx)))
 patterntoBlank(x) = x
 
 # Nov 2016, added isa(head,Symbol) in order to handle [x__Integer]
