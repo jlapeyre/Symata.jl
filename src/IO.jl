@@ -425,6 +425,21 @@ may always be entered in `FullForm`.
 
 # FullForm is implemented in output.jl
 
+### Echo
+
+@mkapprule Echo :nargs => 1:3
+
+@doap Echo(x) = (symprintln(x); x)
+@doap Echo(x,label::String) = (symprintln(label," ", x); x)
+
+@doap function Echo(x,label::String, f)
+    res = doeval(mxpr(f,x))
+    symprintln(label," ", res)
+    x
+end
+    
+
+
 ### Julia
 
 ## Julia() should be in some other file... which one ?
