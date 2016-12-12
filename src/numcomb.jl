@@ -143,8 +143,10 @@ end
 
 ### Named polynomial sequences.
 ##
-## Many more of these are easy to reimplement. See sympy source. These are much more efficient than
-## translating/computing with sympy.
+## FIXME:
+## memoization has trouble with BigInt input, probably because they are not ===
+## These polynomial functions return wrong results for large n and crash julia, or allocate all memory
+## still smallish BigInt inputs.
 
 ### Fibonaccci
 
@@ -161,11 +163,11 @@ end
     fromjuliaPolynomial(p,x)
 end
 
-
+#let xvar = Polynomials.Poly([big(0),big(1)])
 let xvar = Polynomials.Poly([0,1])
     global _fib_poly
     @memoize function _fib_poly(n)
-        n == 0 ? zero(n) : n == 1 ? one(n) :  xvar *  _fib_poly(n-1) + _fib_poly(n-2)
+        n == 0 ? big(0) : n == 1 ? big(1) :  xvar *  _fib_poly(n-1) + _fib_poly(n-2)
     end
 end
 
@@ -188,6 +190,7 @@ let xvar1 = Polynomials.Poly([0,1])
     global _lucas_poly
     @memoize function _lucas_poly(n::Integer)
         n == zero(n) ? convert(typeof(n),2) : n == 1 ? xvar1 :  xvar1 *  _lucas_poly(n-1) + _lucas_poly(n-2)
+#        n == big(0) ? big(2) : n == 1 ? xvar1 :  xvar1 *  _lucas_poly(n-1) + _lucas_poly(n-2)        
     end
 end
 
