@@ -511,7 +511,7 @@ function Base.show(io::IO, mx::Mxpr{:BlankSequence})
 end
 
 function Base.show(io::IO, mx::Mxpr{:BlankNullSequence})
-    print(io,"__")
+    print(io,"___")
     if length(mx) > 0
         show(io,mx[1])
     end

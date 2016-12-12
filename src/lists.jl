@@ -1,3 +1,5 @@
+using DataStructures
+
 ### List
 
 # TODO. Find where rules for List are put this doc there.
@@ -75,9 +77,6 @@ end
 ### Last
 
 @mkapprule Last :nargs => 1:2
-
-# FIXME. add warning message
-@doap Last(x) = mx
 
 @doap function Last(x::Mxpr)
     isempty(x) && return mx  # FIXME add warning
@@ -655,12 +654,15 @@ end
 
 ## TODO: implement all features. document
 @doap function Riffle(x::Mxpr{:List},ex)
-    nargs = newargs()
-    for i in 1:length(x)
-        push!(nargs,x[i])
-        push!(nargs,ex)  # need copy
+    n = 2 * length(x)
+    nargs = newargs(n)
+    j = 0
+    for i in 1:2:n
+        j += 1
+        nargs[i] = x[j]
+        nargs[i+1] = ex
     end
-    MList(nargs)
+    MListA(nargs)
 end
 
 @doap function Riffle(x::Mxpr{:List},ex::Mxpr{:List})
@@ -672,7 +674,7 @@ end
         push!(nargs,ex[j])
         j = j >= n ? 1 : j + 1
     end
-    MList(nargs)
+    MListA(nargs)
 end
 
 ### Union
@@ -795,38 +797,28 @@ function threadlistable(mx, head, seqspec::SequenceSpec)
     return nmx
 end
 
-# @sjdoc MapThread """
-#     MapThread(f,list)
+### MapThread
 
-# threads `f` over lists in `list` and evaluates the result.
-# """
-# @mkapprule MapThread :nargs => 2
-# @doap MapThread(f,x) = threadlistable(mxpr(f,margs(x)))
-
-@mkapprule MapThread """
+@mkapprule MapThread nargs => 2  """
     MapThread(f,list)
 
 threads `f` over lists in `list` and evaluates the result.
-""" :nargs => 2
+"""
 
 @doap MapThread(f,x) = threadlistable(mxpr(f,margs(x)))
 
 ### Counts
 
-@mkapprule Counts
-
-@sjdoc Counts """
+@mkapprule Counts nargs => 1 """
     Counts(list)
 
 return a dictionary of the number of times each distinct element of list
 occurs.
 """
 
-# We should use an ordered dict, but the package is broken
-function do_Counts(mx::Mxpr{:Counts}, list::ListT)
-#    d = OrderedDict{Any,Any}()  # We need to canonicalize this
-    d = Dict{Any,Any}()  # We need to canonicalize this
-    for el in margs(list)
+@doap function Counts(list::ListT)
+    d = OrderedDict{Any,Int}()
+    for el in list
         val = get!(d,el,0)
         d[el] = val + 1
     end
@@ -835,7 +827,7 @@ end
 
 ### Select
 
-@mkapprule Select :nargs => 1:3
+@mkapprule Select nargs => 1:3
 
 @doap function Select(x::Mxpr, crit)
     nargs = newargs()

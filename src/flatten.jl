@@ -1,3 +1,5 @@
+## FIXME: rename flatten! to flatten. it returns a copy.
+
 ## Flatten, flatten nested operations that are associative
 
 # eg   (a + b + (c + d)) --> (a + b + c + d)

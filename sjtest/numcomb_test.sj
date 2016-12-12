@@ -14,3 +14,8 @@ T PrimePi(1000) == 168
 T FactorInteger(10) == [[2,1],[5,1]]
 
 T NumberOfPartitions(3000) == 496025142797537184410324879054927095334462742231683423624
+
+T Fibbonaci(10) == 55
+T Fibbonaci(5,x) == 1 + 3*x^2 + x^4
+T LucasL(5) == 11
+T LucasL(5,x) == 5x + 5*x^3 + x^5

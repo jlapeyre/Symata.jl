@@ -544,7 +544,6 @@ function replaceonepart(mx,expr,_lhs::ListT,_rhs)
         return mx
     end
     setpart2!(expr,_rhs,margs(_lhs)...)
-#    expr[margs(_lhs)...] = _rhs
     expr
 end
 
@@ -572,7 +571,6 @@ type LevelData
 end
 
 
-
 @doap function Level(expr, inlevelspec)
     levelspec = make_level_specification(expr,inlevelspec)
     nargs = newargs()
@@ -580,7 +578,6 @@ end
     action = LevelAction(data,
                          function(data,expr)
 #                         act = data.action
-#                         println(act.levelind, " ", act.subind)
                            push!(data.levellist,expr)
                          end)
     data.action = action

@@ -1,0 +1,296 @@
+## Pattern matching needs a new implementation. The ad hoc approach can't go further.
+## This is a start ...
+
+### Types for patterns
+
+abstract AbstractBlanks
+
+abstract ABlank  <: AbstractBlanks
+abstract ABlankSequence <: AbstractBlanks
+abstract ABlankNullSequence <: AbstractBlanks
+
+type BlankNoHead <: ABlank end
+type BlankWithHead{T} <: ABlank
+    head::T
+end
+
+type BlankSequenceNoHead <: ABlankSequence end
+type BlankSequenceWithHead{T} <: ABlankSequence
+    head::T
+end
+
+type BlankNullSequenceNoHead <: ABlankNullSequence end
+type BlankNullSequenceWithHead{T} <: ABlankNullSequence
+    head::T
+end
+
+typealias BlanksNoHead  Union{BlankNoHead,BlankSequenceNoHead,BlankNullSequenceNoHead}
+typealias BlanksWithHead  Union{BlankWithHead,BlankSequenceWithHead,BlankNullSequenceWithHead}
+
+topattern(mx::Mxpr) = mxpra(topattern(mhead(mx)), map(x -> topattern(x), margs(mx)))
+topattern(x) = x
+
+## replace this later with BlankT. after removing the old BlankT
+topattern(b::Mxpr{:Blank}) = isempty(b) ? BlankNoHead() : BlankWithHead(_make_blank_head(b,margs(b)...))
+topattern(b::Mxpr{:BlankSequence}) = isempty(b) ? BlankSequenceNoHead() : BlankSequenceWithHead(_make_blank_head(b,margs(b)...))
+topattern(b::Mxpr{:BlankNullSequence}) = isempty(b) ? BlankNullSequenceNoHead() :
+          BlankNullSequenceWithHead(_make_blank_head(b,margs(b)...))
+
+_make_blank_head(b,head,args...) = error("More than one argument in Blank.")
+_make_blank_head(b,head::Symbol) = isdefined(head) ? eval(head) : head
+_make_blank_head(b,head) = head
+
+
+#### Matching1
+
+pmatch(b::BlanksNoHead,ex) = true
+pmatch{T<:DataType}(b::BlankWithHead{T},ex) = isa(ex,b.head)
+pmatch{T<:DataType}(b::BlankSequenceWithHead{T},ex) = isa(ex,b.head)
+pmatch{T<:DataType}(b::BlankNullSequenceWithHead{T},ex) = isa(ex,b.head)
+pmatch(b::BlanksWithHead,ex) = isa(ex,Mxpr{b.head})
+pmatch(b::AbstractBlanks,ex) = symerror("match: Can't match Blank of type ", typeof(b))
+
+#### Matching
+
+type Capt
+    c::Dict{SJSym,Any}
+end
+
+Capt() = Capt(Dict{SJSym,Any}())
+
+abstract AbstractMatchData
+
+type SearchRange
+    start::Int
+    stop::Int
+end
+
+SearchRange(r::UnitRange) = SearchRange(r.start, r.stop)
+
+type MatchDataIn
+    _expr::Mxpr
+    _indr::SearchRange
+    _pat ## pattern in general sense
+    _capt::Capt
+end
+
+## Neither flat nor orderless
+type MatchData <: AbstractMatchData
+    d::MatchDataIn
+end
+
+## flat
+type MatchDataF <: AbstractMatchData
+    d::MatchDataIn
+end
+
+## orderless
+type MatchDataO <: AbstractMatchData
+    d::MatchDataIn
+end
+
+## flat and orderless
+type MatchDataFO <: AbstractMatchData
+    d::MatchDataIn
+end
+
+getexpr(d::AbstractMatchData) = d.d._expr
+getcap(d::AbstractMatchData) = d.d._capt
+getstartind(d::AbstractMatchData) = d.d._indr.start
+getstopind(d::AbstractMatchData) = d.d._indr.stop
+setind(d::AbstractMatchData,i::Integer) = d.d._indr.start = i
+incrind(d::AbstractMatchData) = d.d._indr.start += 1
+getpat(d::AbstractMatchData) = d.d._pat
+
+function setsearchrange(d::AbstractMatchData, r::UnitRange)
+    d.d._indr.start = r.start
+    d.d._indr.stop = r.stop
+end
+
+
+startsearchind(d::AbstractMatchData) = getstartind(d) + 1
+stopsearchind(d::AbstractMatchData) = getstopind(d) + 1
+firstel(d::AbstractMatchData) = d[startsearchind(d)]
+
+Base.getindex(d::AbstractMatchData,i::Integer) =  getexpr(d)[i]
+Base.length(d::AbstractMatchData) = length(getexpr(d))
+
+matchdata(expr::Mxpr, pat) = matchdata(expr,pat,Capt())
+
+function matchdata(expr::Mxpr, pat, capt::Capt)
+    if isFlat(expr)
+        if isOrderless(expr)
+            MatchDataFO(expr,pat,capt)
+        else
+            MatchDataF(expr,pat,capt)
+        end
+    elseif isOrderless(expr)
+        MatchDataO(expr,pat,capt)
+    else
+        MatchData(expr,pat,capt)
+    end
+end
+
+_matchdatain(expr,pat,capt) = MatchDataIn(expr,SearchRange(0:0),pat,capt)
+
+MatchData(expr,pat,capt) = MatchData(_matchdatain(expr,pat,capt))
+MatchDataF(expr,pat,capt) = MatchDataF(_matchdatain(expr,pat,capt))
+MatchDataO(expr,pat,capt) = MatchDataO(_matchdatain(expr,pat,capt))
+MatchDataFO(expr,pat,capt) = MatchDataFO(_matchdatain(expr,pat,capt))
+
+####
+
+abstract AbstractMatchIndex
+
+#abstract MatchIndexCompound <: AbstractMatchIndex
+
+type MatchIndexSingle <: AbstractMatchIndex
+    i::Int
+end
+    
+type MatchIndexAbstractArray{T<:AbstractArray} <: AbstractMatchIndex
+    a::T
+end
+
+MatchIndex(a::AbstractArray) = MatchIndexAbstractArray(a)
+MatchIndex(a::Int) = MatchIndexSingle(a)
+
+getstart(mi::MatchIndexAbstractArray) = start(mi.a)
+getstop(mi::MatchIndexAbstractArray) = endof(mi.a)
+
+getstart(mi::MatchIndexSingle) = mi.i
+getstop(mi::MatchIndexSingle) = mi.i
+
+####
+
+abstract AbstractMatchType
+
+type MatchOne{T<:AbstractMatchIndex} <: AbstractMatchType
+    a::T
+end
+
+MatchOne(a) = MatchOne(MatchIndex(a))
+
+type MatchNone <: AbstractMatchType
+end
+
+type MatchFail <: AbstractMatchType
+end
+
+immutable MatchSequence{T<:AbstractMatchIndex} <: AbstractMatchType
+    a::T
+end
+
+MatchSequence(a) = MatchSequence(MatchIndex(a))
+
+immutable MatchNullSequence{T<:AbstractMatchIndex} <: AbstractMatchType
+    a::T
+end
+
+MatchNullSequence(a) = MatchNullSequence(MatchIndex(a))
+
+getstart(mr::AbstractMatchType) = getstart(mr.a)
+getstop(mr::AbstractMatchType) = getstop(mr.a)
+
+function setsearchrange(d::AbstractMatchData, mr::AbstractMatchType)
+    d.d._indr.start = getstart(mr)
+    d.d._indr.stop = getstop(mr)     
+end
+
+function setsearchstop(d::AbstractMatchData, mr::AbstractMatchType)
+    d.d._indr.stop = getstop(mr)
+end
+
+#### Matching 2
+
+function matchrange(data::MatchData, pat::ABlank)
+#    pmatch(pat,data[startsearchind(data)]) ?
+    #       MatchOne(startsearchind(data)) : MatchFail()
+    (j1,j) = _matchrange_blank(data,pat)
+    return j1 == 0 ? MatchFail() : MatchOne(j1:j)
+end
+
+function _matchrange_blank(data,pat)
+    local j1
+    matchedone::Bool = false
+    for i in startsearchind(data):stopsearchind(data)
+        j1 = i
+        if pmatch(pat,data[i])
+            matchedone = true
+            break
+        end
+    end
+    matchedone || return (0,0)
+    j = j1
+    #    for i in j1+1:length(data)
+    maxi = min(length(data),stopsearchind(data))
+#    for i in j1+1:stopsearchind(data)
+    for i in j1+1:maxi
+        pmatch(pat,data[i]) || break
+        j = i
+    end
+    return (j1,j)
+end
+
+
+function matchrange(data::MatchData, pat::ABlankSequence)
+    (j1,j) = _matchrange_blanksequence(data,pat)
+    return j1 == 0 ? MatchFail() : MatchSequence(j1:j)
+end
+
+function matchrange(data::MatchData, pat::ABlankNullSequence)
+    (j1,j) = _matchrange_blanksequence(data,pat)
+    return j1 == 0 ? MatchNone() : MatchNullSequence(j1:j)    
+end
+
+function _matchrange_blanksequence(data,pat)
+    local j1
+    matchedone::Bool = false
+    for i in startsearchind(data):stopsearchind(data)
+        j1 = i
+        if pmatch(pat,data[i])
+            matchedone = true
+            break
+        end
+    end
+    matchedone || return (0,0)
+    j = j1
+    for i in j1+1:length(data)
+#    for i in j1+1:stopsearchind(data)
+        pmatch(pat,data[i]) || break
+        j = i
+    end
+    return (j1,j)
+end
+
+function advanceind(d::AbstractMatchData, mr::AbstractMatchType)
+    nothing
+end
+
+function advanceind(d::AbstractMatchData, mr::MatchOne)
+    setsearchrange(d,mr)
+end
+
+function advanceind(d::AbstractMatchData, mr::MatchSequence)
+    setsearchrange(d,mr)
+end
+
+function advanceind(d::AbstractMatchData, mr::MatchNullSequence)
+    setsearchstop(d,mr)
+end
+
+function matchranges(expr::Mxpr, pat)
+    pat = topattern(pat)
+    matchranges(matchdata(expr,pat))
+end
+
+function matchranges(d::AbstractMatchData)
+    pat = getpat(d)
+    a = Any[]
+    for p in pat
+        mr = matchrange(d,p)
+        advanceind(d,mr)
+        push!(a,mr)
+    end
+    a
+end

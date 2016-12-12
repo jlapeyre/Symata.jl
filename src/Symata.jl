@@ -35,8 +35,6 @@ sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
    
 export name, typename
 
-
-
 # These are for IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
@@ -80,6 +78,8 @@ include("system.jl")
 include("IO.jl")
 include("latex.jl")
 include("pattern.jl")
+## experimental, eventually replace pattern with this.
+#include("pattern2.jl")
 include("parts.jl")
 include("lists.jl")
 include("stats.jl")

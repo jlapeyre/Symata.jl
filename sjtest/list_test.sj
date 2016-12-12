@@ -275,6 +275,12 @@ T ReplaceAll( Range(20) ,  _:?(PrimeQ) => Nothing) == [1,4,6,8,9,10,12,14,15,16,
 
 ClearAll(a,b,c,d,f,ex)
 
+### Riffle
+
+T Riffle([1,2,3],x) == [1,x,2,x,3,x]
+T Riffle([1,2,3],[a,b,c]) == [1,a,2,b,3,c]
+T Riffle([1,2,3],[a,b,c,d]) == [1,a,2,b,3,c]
+
 ### Subdivide
 
 T Subdivide(5) == [0,1/5,2/5,3/5,4/5,1]

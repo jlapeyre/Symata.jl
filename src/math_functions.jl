@@ -145,7 +145,7 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
                            (:BellB, :bell), (:BernoulliB, :bernoulli), (:CatalanNumber, :catalan),
                            (:EulerE, :euler), (:Subfactorial, :subfactorial), (:Factorial2, :factorial2),
                            (:FactorialPower, :FallingFactorial), (:Pochhammer, :RisingFactorial),
-(:Fibonacci, :fibonacci), (:LucasL, :lucas), (:LeviCivita, :LeviCivita),
+ (:LeviCivita, :LeviCivita),
 (:KroneckerDelta, :KroneckerDelta),  (:HypergeometricPFQ, :hyper), (:FactorSquareFree, :sqf), (:MellinTransform, :mellin_transform),
 (:InverseMellinTransform, :inverse_mellin_transform), (:SineTransform, :sine_transform), (:InverseSineTransform, :inverse_sine_transform),
 (:CosineTransform, :cosine_transform), (:InverseCosineTransform, :inverse_cosine_transform),
