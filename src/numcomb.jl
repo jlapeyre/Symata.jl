@@ -152,7 +152,7 @@ let polys_inited = false
             polys_inited = true
             return true
         catch
-            error("Unable to load 'PolynomialSequences'.")
+            warn("Unable to load 'PolynomialSequences'.")
             return false
         end
     end
