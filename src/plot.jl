@@ -4,6 +4,7 @@ function _init_plots()
     if ! plots_inited
         try
             @eval using Plots
+            plots_inited = true
             return true
         catch
             error("Unable to load 'Plots'. If the module is not installed, try `Pkg.add(\"Plots\")`")
@@ -13,7 +14,7 @@ function _init_plots()
     true
 end
 
-@mkapprule Plot  :nodefault => true
+@mkapprule Plot nodefault => true
 
 @sjdoc Plot """
     Plot(args..., color => red, xlabel => "x label")
