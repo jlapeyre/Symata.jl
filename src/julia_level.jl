@@ -1,13 +1,10 @@
 # This is for testing using Symata code from Julia
 
-## These just call apprules, so they are in general no more efficien than calling from Symata directly. Special
+## These just call apprules, so they are in general no more efficient than calling from Symata directly.
 ## In contrast, the trig functions below filter numeric arguments and are exactly as efficient as pure Julia
 ## when called from within Julia functions for which the compiler can infer types.
 ## Similar filters could be written for the functions wrapped here.
 ##
-## FIXME:  We can't use :List here, because we have defined it as a type as a (useful) convenience for the developer.
-## We defined it so because Mxpr{:List} is the most common type of Mxpr. We need to resolve this somehow,
-## probably in favor of using :List here.
 for f in (:Expand, :Factor, :Head, :Take, :Simplify, :Integrate, :DirichletEta, :Times, :List, :Plus, :Exp, :Power, :Length)
     @eval ($f)(mx...) = apprules(mxpr($(QuoteNode(f)),mx...))
     @eval export $f
