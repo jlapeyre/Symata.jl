@@ -18,4 +18,12 @@ T NumberOfPartitions(3000) == 49602514279753718441032487905492709533446274223168
 T Fibbonaci(10) == 55
 T Fibbonaci(5,x) == 1 + 3*x^2 + x^4
 T LucasL(5) == 11
-T LucasL(5,x) == 5x + 5*x^3 + x^5
+ClearAll(x,p)
+p = LucasL(5,x)
+T p == 5x + 5*x^3 + x^5
+x = 1
+T p == 11
+ClearAll(x)
+T Head(p) == Plus
+
+ClearAll(x,p)

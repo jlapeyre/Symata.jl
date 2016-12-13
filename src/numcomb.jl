@@ -1,6 +1,5 @@
 #### Number theory and combinatorics.
 
-using Memoize
 using Primes
 
 if VERSION >= v"0.5-"
@@ -9,11 +8,6 @@ end
 
 import Polynomials
 import Combinatorics
-
-
-# We have dropped support for v0.4 in any case
-#using Combinatorics
-
 
 ### BinarySearch
 
@@ -118,11 +112,13 @@ gives the number of integer partitions of `n`.
 @doap NumberOfPartitions(n::Integer) = n <= 405 ? length(partitions(n)) : bnpartitions(n)
 
 ## copied from partitions.jl. We just add the BigInt dict
-## in n > 405, we need BigInt
+## If n > 405, we need BigInt.
+## We intentionally eschew type stability.
+bnpartitions(n::Integer) = _bnpartitions_func(convert(Int,n))
 
-let _bnpartitions = Dict{BigInt,BigInt}()
-    global bnpartitions
-    function bnpartitions(n::Integer)
+let _bnpartitions = Dict{Int,BigInt}()
+    global _bnpartitions_func
+    function _bnpartitions_func(n::Int)
         if n < 0
             0
         elseif n < 2
@@ -136,19 +132,33 @@ let _bnpartitions = Dict{BigInt,BigInt}()
                 np += sgn * (bnpartitions(n-k*(3k-1)>>1) + bnpartitions(n-k*(3k+1)>>1))
                 sgn = -sgn
             end
-            _bnpartitions[n] = np
+            _bnpartitions[convert(Int,n)] = np
         end
     end
 end
 
 ### Named polynomial sequences.
-##
-## FIXME:
-## memoization has trouble with BigInt input, probably because they are not ===
-## These polynomial functions return wrong results for large n and crash julia, or allocate all memory
-## still smallish BigInt inputs.
 
 ### Fibonaccci
+
+const _poly_path = joinpath(dirname(@__FILE__), "PolynomialSequences.jl")
+
+let polys_inited = false
+    global _init_polys
+    function _init_polys()
+    if ! polys_inited
+        try
+            eval(parse("include(\"$_poly_path\")"))
+            polys_inited = true
+            return true
+        catch
+            error("Unable to load 'PolynomialSequences'.")
+            return false
+        end
+    end
+    true
+    end
+end
 
 @mkapprule Fibbonaci nargs => 1:2
 
@@ -157,18 +167,15 @@ end
     Combinatorics.fibonaccinum(n)
 end
 
+# The choice of n <= 92 is arbitrary. This is where evaluation with x = 1 causes Int overflow
 @doap function Fibbonaci(n::Integer,x)
     n < 0 && return mx
-    p = _fib_poly(n)
+    _init_polys() || return mx
+    # p =  n <= 92 ? PolynomialSequences.fibpoly(n) :
+    # PolynomialSequences.fibpoly(big(n))
+    p =  n <= 92 ? fibpoly(n) :
+          fibpoly(big(n))        
     fromjuliaPolynomial(p,x)
-end
-
-#let xvar = Polynomials.Poly([big(0),big(1)])
-let xvar = Polynomials.Poly([0,1])
-    global _fib_poly
-    @memoize function _fib_poly(n)
-        n == 0 ? big(0) : n == 1 ? big(1) :  xvar *  _fib_poly(n-1) + _fib_poly(n-2)
-    end
 end
 
 ### LucasL
@@ -182,16 +189,12 @@ end
 
 @doap function LucasL(n::Integer,x)
     n < 0 && return mx
-    p = _lucas_poly(n)
+    _init_polys() || return mx
+    # p =  n <= 90 ? PolynomialSequences.lucaspoly(n) :
+    # PolynomialSequences.lucaspoly(big(n))
+    p =  n <= 90 ? lucaspoly(n) :
+          lucaspoly(big(n))    
     fromjuliaPolynomial(p,x)
-end
-
-let xvar1 = Polynomials.Poly([0,1])
-    global _lucas_poly
-    @memoize function _lucas_poly(n::Integer)
-        n == zero(n) ? convert(typeof(n),2) : n == 1 ? xvar1 :  xvar1 *  _lucas_poly(n-1) + _lucas_poly(n-2)
-#        n == big(0) ? big(2) : n == 1 ? xvar1 :  xvar1 *  _lucas_poly(n-1) + _lucas_poly(n-2)        
-    end
 end
 
 #### Interface to Julia Polynomials.jl
@@ -205,13 +208,11 @@ function _monomial(var,c,n)
     end
 end
 
-## TODO: we can use some logic to avoid reevaluation, which
-## is orders of magnitude slower than constructing the polynomial.
-## Eg. if var is a Symbol, I think we can fix the output Mxprs.
-
-## It may be slightly faster to set fixed when the mxpr is constructed.
+## TODO: why do we have to do mergesyms here, but not when "var" is a Mxpr, as below
+## ... a method is missing in evaluation.jl ?
 function fromjuliaPolynomial(p::Polynomials.Poly, var::Symbol)
     res = _fromjuliaPolynomial(p,var)
+    mergesyms(res,var)  # force evaluation when var changes.
     if isa(res,Mxpr)
         a = margs(res)
         foreach(setfixed, a)
@@ -219,6 +220,8 @@ function fromjuliaPolynomial(p::Polynomials.Poly, var::Symbol)
     setfixed(res)
 end
 
+## symbols are merged correctly automatically.
+## TODO: It is probably faster to merge symbols here
 function fromjuliaPolynomial(p::Polynomials.Poly, var)
     _fromjuliaPolynomial(p,var)
 end
