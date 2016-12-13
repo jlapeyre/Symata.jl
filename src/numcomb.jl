@@ -139,26 +139,11 @@ end
 
 ### Named polynomial sequences.
 
+## @runtime_include is defined in util.jl
+
+@runtime_include "PolynomialSequences.jl" _init_polys
+
 ### Fibonaccci
-
-const _poly_path = joinpath(dirname(@__FILE__), "PolynomialSequences.jl")
-
-let polys_inited = false
-    global _init_polys
-    function _init_polys()
-    if ! polys_inited
-        try
-            eval(parse("include(\"$_poly_path\")"))
-            polys_inited = true
-            return true
-        catch
-            warn("Unable to load 'PolynomialSequences'.")
-            return false
-        end
-    end
-    true
-    end
-end
 
 @mkapprule Fibbonaci nargs => 1:2
 
@@ -171,8 +156,6 @@ end
 @doap function Fibbonaci(n::Integer,x)
     n < 0 && return mx
     _init_polys() || return mx
-    # p =  n <= 92 ? PolynomialSequences.fibpoly(n) :
-    # PolynomialSequences.fibpoly(big(n))
     p =  n <= 92 ? fibpoly(n) :
           fibpoly(big(n))        
     fromjuliaPolynomial(p,x)
@@ -190,8 +173,6 @@ end
 @doap function LucasL(n::Integer,x)
     n < 0 && return mx
     _init_polys() || return mx
-    # p =  n <= 90 ? PolynomialSequences.lucaspoly(n) :
-    # PolynomialSequences.lucaspoly(big(n))
     p =  n <= 90 ? lucaspoly(n) :
           lucaspoly(big(n))    
     fromjuliaPolynomial(p,x)
