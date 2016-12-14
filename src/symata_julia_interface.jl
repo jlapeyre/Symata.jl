@@ -34,7 +34,7 @@ exportj(lhs::SymString, rhs::Symbol) = exportj(lhs,QuoteNode(rhs))
     ExportJ(x,y,...)
 
 sets the Julia symbols `x`,`y`, etc. to the Symata-value of `x`,`y`, etc.
-`ExportJ(x)` is equivalent to `SetJ(x,x).
+`ExportJ(x)` is equivalent to `SetJ(x,x)`.
 """
 
 @doap ExportJ(vars::SymString...) = foreach(exportj, vars)

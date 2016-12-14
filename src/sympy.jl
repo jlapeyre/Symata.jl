@@ -369,7 +369,8 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
     if expr[:is_Integer]
         #  returns Int or BigInt. It just returns a member of a python object. It would be nice to get this faster.
         # `_to_mpath` in evalf.py checks again expr.is_Integer.
-        num = expr[:_to_mpmath](-1)  #  precision '-1' is ignored for integers.
+#        num = expr[:_to_mpmath](-1)  #  precision '-1' is ignored for integers.
+        num = expr[:p]  ## This is 5 or so times faster and does the same thing.
         return num
     end
 #    if pytype == sympy_Rational
@@ -772,6 +773,33 @@ function init_sympy()
     copy!(sympy_True,sympy[:boolalg][:BooleanTrue])
     copy!(sympy_False,sympy[:boolalg][:BooleanFalse])
     populate_rewrite_dict()
+    init_isympy()
+end
+
+const symatapydir = joinpath(dirname(@__FILE__), "..", "pysrc")
+
+const symatapy = PyCall.PyNULL()
+
+function init_isympy()
+    try
+        push!(pyimport("sys")["path"], symatapydir)
+        copy!(symatapy, pyimport("isympy"))
+    catch
+        nothing
+    end
+end
+
+"""
+    isympy()
+
+enters the ipython shell with sympy imported.
+"""
+function isympy()
+    try
+        symatapy[:main]()
+    catch
+        nothing
+    end
 end
 
 #####

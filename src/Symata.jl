@@ -9,8 +9,9 @@ import Base: setindex!, getindex, replace
 
 export @symExpr, @extomx
 
-export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln, unpacktoList, mhead, margs, newargs,
-        symparseeval, symparsestring, sjtopy, pytosj
+export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln,
+      unpacktoList, mhead, margs, newargs, symparseeval, symparsestring, sjtopy, pytosj,
+      isympy
 
 export mmul, mplus, mpow, mabs, mminus, symatamath
 

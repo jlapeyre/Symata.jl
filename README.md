@@ -162,6 +162,10 @@ works in `Jupyter`. To see a list of all possible completions, type `*[TAB]`.
 
 If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear automatically.
 
+### sympy shell
+
+From the julia prompt, type `isympy()` to enter the sympy shell.
+
 ### Help, examples, tests
 
 

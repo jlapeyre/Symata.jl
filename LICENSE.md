@@ -21,3 +21,5 @@ Symata.jl is licensed under the MIT License:
 > OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 > WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+Files in the directory ./pysrc are taken from the sympy distribution licensed
+under the BSD licencse.
