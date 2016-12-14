@@ -17,8 +17,9 @@ end
 """
     @runtime_include filename initfunc
 
-defines a function with name `initfunc` to load code in `filename` (in the src directory) at runtime and subsequently check if it is loaded.
-`initfunc()` will return true if the code is already loaded.
+defines a function with name `initfunc` to load code in `filename` (in the src
+directory) at runtime and subsequently check if it is loaded.  `initfunc()` will
+return true if the code is already loaded.
 
 A similar macro should be written to "use" a module at runtime.
 """

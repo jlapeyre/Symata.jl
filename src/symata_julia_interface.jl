@@ -13,9 +13,9 @@ For example, if `a = 1` in Julia and `b = a` in Symata, then `JVar(b)` evaluates
 @sjseealso_group(Jxpr,JVar)
 apprules(mx::Mxpr{:JVar}) = eval(Main,symname(mx[1]))
 
-#### SetJ
+### SetJ
 
-@sjdoc SetJ """
+@mkapprule SetJ nargs => 2  """
     SetJ(x,val)
 
 sets the Julia symbol `x` to `val`.
@@ -23,16 +23,21 @@ sets the Julia symbol `x` to `val`.
 Variables and functions in Symata are separate from those in Julia, ie, their table of bindings to symbols are separate.
 """
 
-# This can also be done with a Jxpr
-# Bind a Julia symbol to the rhs
-function apprules(mx::Mxpr{:SetJ})
-    lhs = mx[1]
-    rhs = mx[2]
-    if typeof(rhs) == Symbol
-        rhs = QuoteNode(rhs)
-    end
-    Main.eval(Expr(:(=),symname(lhs),rhs))
-end
+exportj(lhs::SymString) = exportj(lhs,doeval(lhs))
+exportj(lhs::SymString, rhs) = Main.eval(Expr(:(=),symname(Symbol(lhs)),rhs))
+exportj(lhs::SymString, rhs::Symbol) = exportj(lhs,QuoteNode(rhs))
+@doap SetJ(lhs::SymString,rhs) = exportj(lhs,rhs)
+
+### ExportJ
+
+@mkapprule ExportJ """
+    ExportJ(x,y,...)
+
+sets the Julia symbols `x`,`y`, etc. to the Symata-value of `x`,`y`, etc.
+`ExportJ(x)` is equivalent to `SetJ(x,x).
+"""
+
+@doap ExportJ(vars::SymString...) = foreach(exportj, vars)
 
 ### Jxpr
 
