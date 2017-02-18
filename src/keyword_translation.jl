@@ -1,7 +1,12 @@
 ## Translations for both the key and value
 const KeywordDict = Dict{Symbol,Symbol}()
-for s in (:complex, :basic, :modulus, :gaussian, :force, :deep, :none, :method,
-           :fu, :combined, :default, :groebner, :measure, :double, :trig, :log, :denom, :numer)
+
+for s in (:complex, :basic, :modulus, :gaussian, :force, :deep, :none,
+          :method, :fu, :combined, :default, :groebner, :measure,
+          :double, :trig, :log, :denom, :numer, :check, :numerical,
+          :minimal, :warn, :simplify, :rational, :manual, :implicit,
+          :particular, :quick, :cubics, :quartics, :quintics)
+
     KeywordDict[Symbol(ucfirst(string(s)))] = s
 end
 KeywordDict[:Conditions] = :conds

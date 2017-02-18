@@ -4,9 +4,14 @@ using PyCall
 ##
 ## Symata -> SymPy is in general much faster than the reverse, 10x or more
 
+## We don't need to define all of these.
 const sympysyms1 = [:Symbol,:Number,:Integral, :Sum, :StrictLessThan, :StrictGreaterThan,
-                    :LessThan, :GreaterThan, :Equality, :Unequality,
+                    :LessThan, :GreaterThan, :Unequality,
                     :Integer, :Rational, :Float]
+
+# const sympysyms1 = [:Symbol,:Number,:Integral, :Sum, :StrictLessThan, :StrictGreaterThan,
+#                     :LessThan, :GreaterThan, :Equality, :Unequality,
+#                     :Integer, :Rational, :Float]
 
 ## These are buried in arbitrary class hierarchies
 const sympysyms2 = [:True,:False]
@@ -169,6 +174,9 @@ function make_sympy_to_symata()
                       (:Conjugate, :conjugate), (:Factorial, :factorial)
                       ]
 
+##  Cannot put Equality here. It is not a symbol. It is not a function. It is a something else.
+## (:Equal,:Equality)
+    
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
                      single_arg_float_int, single_arg_int, two_arg_int,
                      two_arg_float_and_float_or_complex, two_arg_float,
@@ -230,6 +238,7 @@ function populate_py_to_mx_dict()
                     (sympy[:containers][:Tuple], :List),
                     (sympy[:oo], :Infinity),
                     (sympy[:zoo],:ComplexInfinity),
+                    (sympy[:Eq], :Equal),
                     (sympy[:functions][:elementary][:piecewise][:ExprCondPair], :ConditionalExpression))
         py_to_mx_dict[onepair[1]] = onepair[2]
         if haskey(sympy[:functions][:special][:hyper], :TupleArg)  # This is missing in older versions of SymPy. (But so are many other symbols)
@@ -276,7 +285,7 @@ sympy_to_mxpr_symbol(s::String) = sympy_to_mxpr_symbol(Symbol(s))
 
 function pytosj(x)
     getkerneloptions(:return_sympy) && return x  # The user can disable conversion. Eg. for debugging.
-    __pytosj(x)
+    maybetrace_pytosj(x)
 end
 
 type SympyTrace
@@ -289,8 +298,9 @@ increment_pytosj_count() = SYMPYTRACENUM[1] += 1
 decrement_pytosj_count() = SYMPYTRACENUM[1] -= 1
 is_pytosj_trace() = SYMPYTRACE.trace
 
-## Note there are two underscores __pytosj
-function __pytosj(expr)
+## This probably does not work, because we call the inner function _pytosj when doing recursion
+##
+function maybetrace_pytosj(expr)
     increment_pytosj_count()
     if is_pytosj_trace()
         ind = " " ^ (get_pytosj_count() - 1)
@@ -312,6 +322,15 @@ function pytosj_map(head,args)
     nargs = newargs()
     for a in args
         push!(nargs,pytosj(a))
+#        push!(nargs,_pytosj(a))  ## Using underscore here breaks some things. But pytosj_map is only called when _pytosj should be safe.
+    end
+    mxpra(head,nargs)
+end
+
+function pytosj_map2(head,args)
+    nargs = newargs()
+    for a in args
+        push!(nargs,_pytosj(a))  ## Using underscore here
     end
     mxpra(head,nargs)
 end
@@ -323,10 +342,18 @@ function pytosj_Function(pyexpr,pytype)
     if targs[1] == dummy_arg  # sympy does not allow functions without args, so we pass a dummy arg.
         return mxprcf(head, [])
     else
-        return pytosj_map(head, targs)
+        return pytosj_map2(head, targs)
     end
 end
 
+
+## TODO: we probably want to get rid of all of these.
+## We are currently not translating !=, etc. correctly. At the moment it does not trigger any bugs.
+##  Do not use Comparison.
+##    Sympy        Symata
+##    ==           SameQ     '==' is probably just python '=='. I can't convert this to sympy
+##   Eq,Equality   Equal     Eq and Equality are aliases. In sympy Eq neither as symbol, nor a function. It is its own class
+##                           This makes Eq more like Add and not Cos.
 function populate_rewrite_dict()
     py_to_mx_rewrite_function_dict[sympy_True] = (x -> true)
     py_to_mx_rewrite_function_dict[sympy_False] = (x -> false)
@@ -337,7 +364,7 @@ function populate_rewrite_dict()
                                          ("less_than_equal", :sympy_LessThan, "<="),
                                          ("less_than", :sympy_StrictLessThan, "<"),
                                          ("greater_than", :sympy_StrictGreaterThan, ">"),
-                                         ("equality", :sympy_Equality, "=="),
+#                                         ("equality", :sympy_Equality, "=="),
                                          ("unequality", :sympy_Unequality, "!="))
 
         sfname = Symbol("pytosj_" * fname)
@@ -366,6 +393,8 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
     end
     @pydebug(3, "Entering with ", expr)
 #    if pytype == sympy_Integer  ## This does not work. 1, 1/2, etc, are in their own classes.
+    ## Many things apparently cannot be checked via the 'pytype' or class.
+    ## There are paraphyletic groups whose membership is tested with functions (well, class member functions)
     if expr[:is_Integer]
         #  returns Int or BigInt. It just returns a member of a python object. It would be nice to get this faster.
         # `_to_mpath` in evalf.py checks again expr.is_Integer.
@@ -391,7 +420,7 @@ function _pytosj{T <: PyCall.PyObject}(expr::T)
         @pydebug(3, "function lookup trans. ", expr)
         return pytosj_map(get_function_sympy_to_symata_translation(pytype), expr[:args])
     end
-    if expr[:is_Function]
+    if expr[:is_Function] ## User defined functions whose pytpe is the name of the function
         @pydebug(3, "is_Function trans. ", expr)
         return pytosj_Function(expr,pytype)
     end   # perhaps a user defined function
@@ -421,7 +450,6 @@ function _pytosj{T}(expr::Array{T,1})
     return pytosj_map(:List, expr)
 end
 
-## TODO combine this function and the one above.
 function _pytosj(expr::Tuple)
     return pytosj_map(:List, expr)
 end
@@ -517,6 +545,17 @@ function _sjtopy(mx::Mxpr{:DirectedInfinity})
         sympy[:oo]
     end
 end
+
+### Equal
+
+function _sjtopy(mx::Mxpr{:Equal})
+    if length(mx) == 2
+        sympy[:Eq](_sjtopy(mx[1]),_sjtopy(mx[2]))
+    else
+        symwarn("Unimplemented translation to Sympy", mx)
+    end
+end
+
 
 #### Rewrite
 

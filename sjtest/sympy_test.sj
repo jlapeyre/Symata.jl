@@ -22,6 +22,8 @@ ClearAll(isdef)
 #    res = Solve([x+y-1, x - y + 1], [x,y])
 # T  res[x] == 0
 # T  res[y] == 1
+T  Solve(x^2 - 1,  x) == [[x => (-1)],[x => 1]]
+T  Solve(x^2 == 1,  x) == [[x => (-1)],[x => 1]]
 T  Solve([x+y-1, x - y + 1], [x,y]) == [[y => 1,x => 0]]  # todo. sort lexically
 T  Solve(x^4-1,x) == [[x => (-1)],[x => 1],[x => -I],[x => I]]
 #T  Solve(x^4-1,x) == [-1,1,-1I,I]

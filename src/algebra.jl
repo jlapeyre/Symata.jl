@@ -1,13 +1,24 @@
 ### Coefficient
 
-@mkapprule Coefficient nargs => 2:3
+## FIXME: Can't specify both
+#@mkapprule Coefficient nargs => 2:3  options => Dict(:Method => :SymPy)
 
-@doap function Coefficient(expr, x)
+@mkapprule Coefficient options => Dict(:Method => :SymPy)
+
+
+## TODO Merge this with CoefficientSympy
+# @doap function Coefficient(args...; kws...)
+#     meth = get(kws,:Method)
+#     if meth == :Sympy
+        
+
+
+@doap function Coefficient(expr, x; kws...)
     res = coefficient0(mx,expr,x)
     res == :nothing ? mx : res
 end
 
-@doap function Coefficient(expr, x, pow)
+@doap function Coefficient(expr, x, pow; kws...)
     pow == 0 && return coefficient_free(mx,expr,x)
     res = coefficient0(mx,expr, mxpr(:Power, x,pow))
     res == :nothing ? mx : res

@@ -13,6 +13,11 @@ symatatest = SymataPlainTest()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "sympy_test.sj",
+              "integral_derivative_test.sj",
+              "evaluation_test.sj",
+              "list_test.sj",
+              "math_function_test.sj",              
               "numcomb_test.sj",
               "ast_translation_test.sj",
               "system_test.sj",
@@ -33,19 +38,14 @@ function runalltests()
         "io_test.sj",
         #        "comparison_test.sj"
         "newcomparison_test.sj",
-        "math_function_test.sj",
         "flowcontrol_test.sj",
-        "evaluation_test.sj",
-        "list_test.sj",
         "ntable_test.sj",
         "predicate_test.sj",
         "trig_test.sj",
         ## FIXME! reimplement the following after change in comparison code
         #              "context_test.sj",
         "mxpr_test.sj",
-        "integral_derivative_test.sj",
         "algebraic_transformation_test.sj",
-        "sympy_test.sj",
         "attribute_test.sj",
         "module_test.sj",
         "orderless_test.sj",

@@ -505,6 +505,7 @@ perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 
 @doap ReplaceRepeated{T<:Rules}(expr,r::T; kws...) = replacerepeated(expr,r; kws...)
 
+## FIXME: use get to get keywords
 #function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
 @doap function ReplaceRepeated(expr,rs::Mxpr{:List}; kws...)
     rsa = Array(Any,0)

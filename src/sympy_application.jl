@@ -475,8 +475,9 @@ solve `expr == 0` for `var`.
 solve a system of equations.
 """
 
-@mkapprule Solve :nargs => 1:2
-
+## TODO: This takes keyword args, in fact a system for sympy keyword args.
+##  options => Dict(:Rational => True, 
+@mkapprule Solve
 
 # TODO: find free symbols in expr and return rules as in following methods
 @doap function Solve(expr)
@@ -510,8 +511,18 @@ end
 register_sjfunc_pyfunc("Solve", "solve")
 
 # This is broken
-apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
-do_DSolve(mx, expr) = expr |> sjtopy |> sympy[:dsolve] |> pytosj
+# apprules(mx::Mxpr{:DSolve}) = do_DSolve(mx,margs(mx)...)
+# do_DSolve(mx, expr) = expr |> sjtopy |> sympy[:dsolve] |> pytosj
+@mkapprule DSolve
+
+@doap function DSolve(expr, fcn)
+    pyexpr = expr |> sjtopy
+    pyfcn = fcn |> sjtopy
+    res =  sympy[:dsolve](pyexpr,pyfcn)
+    sres = res |>  pytosj
+#    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
+end
+
 
 
 #### Roots
