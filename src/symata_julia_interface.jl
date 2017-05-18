@@ -387,7 +387,7 @@ Symata-evaluated and the result is returned.
 
 `wrap_symata` is used by `NIntegrate` and `Plot`.
 """
-function wrap_symata(var0,expr0::Mxpr)
+function wrap_symata(var0,expr0::Mxpr)   # Why are arguments reversed here ? Is this ever called ?
     (var,expr) = localize_variable(var0,expr0)
 #    deepunsetfixed(expr)
     function (x)
@@ -415,11 +415,10 @@ function wrap_symata(expr0::Mxpr,vars0...)
 end
 
 function wrap_symata(expr0::SJSym,var0)
+    var0 == expr0 && return (x) -> x
     sym = get_localized_symbol(var0)
-    var0 == expr0 && return (sym,sym)
-    return (sym,expr0)
+    return (sym,expr0)   # this does not appear to be useful
 end
-
 
 
 #### CodeNative

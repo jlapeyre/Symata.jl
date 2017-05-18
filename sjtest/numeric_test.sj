@@ -7,6 +7,10 @@ approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
 
 # Different ways to give integrand to NIntegrate
 
+# Issue #71
+T  approxeq( NIntegrate(x, [0,3])[1], 4.5)
+T  approxeq( NIntegrate(x, [x,0,3])[1], 4.5)
+
 # Explicitly compile Symata to Julia function
 T  approxeq( NIntegrate(Compile(x^2), [0,2])[1], 8.0/3)
 
