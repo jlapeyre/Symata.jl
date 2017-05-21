@@ -45,10 +45,6 @@ function eval_app_directive(ex::Expr)
     if iscall(ex, :(=>)) &&  isa(ex.args[2],Symbol)
         return ex.args[2] => eval(ex.args[3])
     end        
-    # if ex.head == :( => ) &&
-    #     isa(ex.args[1],Symbol)
-    #     return ex.args[1] => eval(ex.args[2])
-    # end
     eval(ex)
 end
 

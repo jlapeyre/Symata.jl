@@ -142,11 +142,13 @@ end
 
 function checkargscode(var, head, nargsspec::UnitRangeInf)
     head = string(:($head))
-    return :( begin
-                if  length(margs($var))  < $(nargsspec.start)
-                  sjthrow(RangeNumArgsInfErr($head, $nargsspec, length(margs($var))))
-               end
-             end )
+    quote
+        begin
+            if  length(margs($var))  < $(nargsspec.start)
+                sjthrow(RangeNumArgsInfErr($head, $nargsspec, length(margs($var))))
+            end
+        end
+    end
 end
 
 
@@ -191,7 +193,19 @@ function MoreNumArgsErr(head,argrange,ngot)
 end
 
 
+function checkargscode1(var, head, nargsspec::UnitRangeInf)
+    head = string(:($head))
+    quote
+        begin
+            if  length(margs($(esc(var))))  < $(nargsspec.start)
+                sjthrow(RangeNumArgsInfErr($head, $nargsspec, length(margs($var))))
+            end
+        end
+    end
+end
+
 
 macro checknargs(var, head, nargsspec)
     code = checkargscode(var,head,nargsspec)
+    :( $(esc(code)) )
 end
