@@ -1423,6 +1423,7 @@ end
 do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 
 @doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
+@doap Power(b::SJSym, expt::Integer) = b == :E ? dopowerE(mx, expt) : mx
 dopowerE{T<:AbstractFloat}(mx, expt::T) = exp(expt)
 dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
 
