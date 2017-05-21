@@ -142,7 +142,9 @@ do_unprotect(mx,a) = false
 add the `Protected` attribute to the lists of attributes for the symbols `z1, z2, ...`.
 """
 
-@mkapprule Protect :nargs => 1:Inf  :nodefault => true
+# FIXME: Following broke after updating to v0.6.0-rc2 from an older v0.6.0
+#@mkapprule Protect :nargs => 1:Inf  :nodefault => true
+@mkapprule Protect :nodefault => true
 
 @doap function Protect(args...)
     nargs = newargs()
@@ -197,7 +199,7 @@ rather to the current value of `b` every time `a` is evaluated.
 # Set SJSym value.
 # Set has HoldFirst, SetDelayed has HoldAll.
 
-@mkapprule Set :nargs => 1:Inf
+@mkapprule Set nargs => 1:Inf
 
 # function do_Set(mx::Mxpr{:Set})
 #     warn("Set called with 0 arguments; 1 or more arguments are expected.")
