@@ -63,21 +63,20 @@ constructs a Dict from the macro aguments.
 function get_arg_dict(args)
     d = Dict{Symbol,Any}()
     local pe
-    println("***** get_arg_dict: args: $args")
     for p in args
         if iscall(p, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
             p = Expr(:(=>), p.args[2], p.args[3])
         end
-        println("  ***** get_arg_dict: doing p = $p")
-        println("  Length is ", length(p.args))
-        println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
+        # println("  ***** get_arg_dict: doing p = $p")
+        # println("  Length is ", length(p.args))
+        # println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
 #        if isa(p,Expr) && p.args[1] == :(=>) && p.args[2] == :nargs
         if isa(p,Expr) && p.args[1] == :nargs            
-            println("***** get_arg_dict: p is Expr and nargs")
+#            println("***** get_arg_dict: p is Expr and nargs")
             pres = parse_nargs(p.args[2])
             pe = :nargs => pres
         else
-            println("***** get_arg_dict: p is NOT Expr and nargs")
+#            println("***** get_arg_dict: p is NOT Expr and nargs")
             pe = eval_app_directive(p)
         end
         d[pe[1]] = pe[2]
@@ -123,9 +122,9 @@ macro mkapprule(inargs...)
     else
         rargs = Any[]
     end
-    println("********  Getting args $rargs")
+#    println("********  Getting args $rargs")
     specs = get_arg_dict(rargs)
-    println("********  Success Got specs")
+#    println("********  Success Got specs")
     if haskey(specs, :options)
         optd = get_arg_dict_options(specs[:options])
         if haskey(specs, :nargs)
