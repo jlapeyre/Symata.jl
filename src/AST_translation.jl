@@ -449,7 +449,8 @@ function rewrite_expr(ex::Expr)
     elseif iscall(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
     elseif iscall(ex, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
-        ex = Expr(:call, :(=>), ex.args[1], ex.args[2])
+        ex = Expr(:(=>), ex.args[2], ex.args[3])
+#        ex = Expr(:call, :(=>), ex.args[1], ex.args[2])
     elseif is_rational(ex)
         return eval(ex)  # TODO: don't do eval, use //
     elseif is_complex(ex)
@@ -460,6 +461,6 @@ function rewrite_expr(ex::Expr)
         # else
         #     return ex
         # end
-    end 
+    end
     return ex
 end
