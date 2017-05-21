@@ -232,7 +232,7 @@ end
 #     simple::Bool
 # end
 
-abstract AbstractEvaluateOptions
+@compat abstract type AbstractEvaluateOptions end
 
 type EvaluateJuliaSyntax <: AbstractEvaluateOptions
 end

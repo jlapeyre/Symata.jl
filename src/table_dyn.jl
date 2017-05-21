@@ -9,7 +9,7 @@
 ## Also, this is copied from older code. There are probably no inefficiencies introduced.
 ## But, it is more complicated than it needs to be
 
-abstract TableEval
+@compat abstract type TableEval end
 
 immutable TableSetEval{T,V} <: TableEval
     expr::T

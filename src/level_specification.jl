@@ -2,7 +2,7 @@
 
 ## TODO: Heads => True
 
-abstract LevelSpec
+@compat abstract type LevelSpec end
 
 immutable LevelSpecToDepth  <: LevelSpec
     level::Int

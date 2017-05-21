@@ -1,4 +1,4 @@
-abstract SequenceSpec
+@compat abstract type SequenceSpec end
 
 #  All all elements
 type SequenceAll <: SequenceSpec

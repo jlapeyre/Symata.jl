@@ -31,12 +31,11 @@ end
 # SSJSym are Symata symbols
 # Mxpr are Symata expressions
 
-typealias MxprArgs Array{Any,1}
-typealias MxprArgType Any
-typealias MxprArgT Any
-typealias FreeSyms Dict{Symbol,Bool}
-
-typealias SymString  Union{Symbol,String}
+const MxprArgs = Array{Any,1}
+const MxprArgType = Any
+const MxprArgT  = Any
+const FreeSyms = Dict{Symbol,Bool}
+const SymString  = Union{Symbol,String}
 
 """
     UnitRangeInf
@@ -81,12 +80,12 @@ end
 
 #Mxpr{T}(args...) = Mxpr{T,Any}(args...)
 
-typealias SJSymAttrs Dict{Symbol,Bool}
-typealias SJSymDVs Array{Any,1}
-typealias SJSymuVs Array{Any,1}
+const SJSymAttrs = Dict{Symbol,Bool}
+const SJSymDVs =  Array{Any,1}
+const SJSymuVs =  Array{Any,1}
 @inline newattributes() = SJSymAttrs()
-@inline newdownvalues() = Array(Any,0)
-@inline newupvalues() = Array(Any,0)
+@inline newdownvalues() = Array{Any}(0)
+@inline newupvalues() = Array{Any}(0)
 
 # Almost all symbols use Any for parameter T.  We experimented a bit
 # with a value of Int for some symbols It may be better to have no
@@ -109,7 +108,8 @@ typealias SJSymuVs Array{Any,1}
 ## It will almost certainly be more efficient for most symbols to store up/downvalues, attributes, and definition
 ## In an external structure. Or, to somehow leave these them unallocated till needed.
 ## For symbols with downvalues, getting a field might be faster than looking up in a table.
-abstract AbstractSJSym
+@compat abstract type AbstractSJSym end
+
 type SSJSym{T}  <: AbstractSJSym
     val::Array{T,1}
     attr::SJSymAttrs
@@ -129,13 +129,13 @@ end
 # data associated with Symata symbols are instances of type SSJSym     #
 # SJSym is just Symbol. It is an older abstraction. Maybe we need it ! #
 ########################################################################
-typealias SJSym Symbol
+const SJSym = Symbol
 
 #### Symbol Table
 
 ## symbol table for Symata symbols
 
-typealias SymTab Dict{Symbol,SSJSym}
+const SymTab = Dict{Symbol,SSJSym}
 
 newsymtable() = SymTab()
 
@@ -268,7 +268,7 @@ const EXPRDICT = Dict{UInt64,Mxpr}()
 ###################################################################
 ###################################################################
 
-typealias SJSymbol Union{SJSym,Qsym}
+const SJSymbol = Union{SJSym,Qsym}
 
 """
     GenHead
@@ -439,7 +439,7 @@ end
 
 # TODO: fix this. necessary for Derivative
 #typealias SS Union{SSJSym,Mxpr{GenHead}}
-typealias SS SSJSym
+const SS = SSJSym
 function set_downvalue(mx::Mxpr, s::SS, val)
     dvs = s.downvalues
     isnewrule = true
@@ -467,7 +467,7 @@ end
 
 function clear_downvalues(s::SJSym)
     clear_downvalue_definitions(s)
-    getssym(s).downvalues = Array(Any,0)
+    getssym(s).downvalues = Array{Any}(0)
 end
 
 downvalues(s::SJSymbol) = getssym(s).downvalues
@@ -516,7 +516,7 @@ end
 
 function clear_upvalues(s::SJSym)
     clear_upvalue_definitions(s)
-    getssym(s).upvalues = Array(Any,0)
+    getssym(s).upvalues = Array{Any}(0)
 end
 
 function jlistupvaluedefs(sym::SJSym)
@@ -606,7 +606,7 @@ end
 
 # =={T<:Mxpr, V<:Mxpr}(ax::T, bx::V) = false
 
-typealias Symbolic Union{Mxpr,SJSym}
+const Symbolic = Union{Mxpr,SJSym}
 
 """
     newargs()
@@ -614,14 +614,16 @@ typealias Symbolic Union{Mxpr,SJSym}
 return an empty container to hold the arguments in an `Mxpr`. This is
 currently `Array{Any,1}`.
 """
-@inline newargs() = Array(MxprArgType,0)
+#@inline newargs() = Array(MxprArgType,0)
+@inline newargs() = Array{MxprArgType}(0)
 
 """
     newargs(n::Integer)
 
 return a container with n elements to hold arguments for an `Mxpr`.
 """
-@inline newargs(n::Integer) = Array(Any,n)
+#@inline newargs(n::Integer) = Array(Any,n)
+@inline newargs(n::Integer) = Array{Any}(n)
 
 """
     newargs(m::Mxpr)
@@ -1144,36 +1146,36 @@ end
 
 #### typealiases
 
-typealias Orderless Union{Mxpr{:Plus},Mxpr{:Times}}
+const Orderless = Union{Mxpr{:Plus},Mxpr{:Times}}
 
 # Everything except Bool is what we want
 # Maybe we actually need a separate Bool from julia
-typealias SJReal Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned}
+const SJReal = Union{AbstractFloat, Irrational, Rational{Integer},BigInt,Signed, Unsigned}
 
 # used in predicates.jl
-typealias BlankXXX Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
+const BlankXXX = Union{Mxpr{:Blank},Mxpr{:BlankSequence},Mxpr{:BlankNullSequence}}
 
 # used in apprules.jl
-typealias Rules Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}  ## find uses of this and remove them
-typealias RulesT Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
+const Rules = Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}  ## find uses of this and remove them
+const RulesT = Union{Mxpr{:Rule},Mxpr{:RuleDelayed}}
 
 # used in expressions.jl
-typealias Holds Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
+const Holds = Union{Mxpr{:Hold}, Mxpr{:HoldForm}, Mxpr{:HoldPattern}, Mxpr{:HoldComplete}}
 
 # used in sortorderless.jl
-typealias ExpNoCanon Union{SJSym,Number}
+const ExpNoCanon = Union{SJSym,Number}
 
 # used in flatten.jl
-typealias FlatT Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
+const FlatT = Union{Mxpr{:Plus},Mxpr{:Times},Mxpr{:And},Mxpr{:Or}, Mxpr{:LCM}, Mxpr{:GCD} }
 
 ## Alias types for convenience and clarity.
 for s in (:List, :Power, :Times, :Plus, :Rule)
-    @eval typealias $(Symbol(s,"T")) Mxpr{$(QuoteNode(s))}
+    @eval const $(Symbol(s,"T"))  = Mxpr{$(QuoteNode(s))}
 end
 
 ## For many jula functions that take real or complex floating point args.
 ## Complex{AbstractFloat} does not do what we want. The inner type must be concrete
-typealias FloatRC  Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
+const FloatRC  = Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
 ### Iterator, etc.
 

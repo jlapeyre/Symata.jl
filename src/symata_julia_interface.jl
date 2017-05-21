@@ -174,7 +174,7 @@ do_pack(T,sjobj) = copy!(Array(T,length(sjobj)), sjobj)
 ##
 # Wrap Expr to prevent Symata from evaluating it.
 
-abstract AbstractMtoE
+@compat abstract type AbstractMtoE end
 
 type MtoECompile <: AbstractMtoE
 end

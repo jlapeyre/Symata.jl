@@ -1,5 +1,7 @@
 module SymataIO
 
+using Compat
+
 import Base: show
 
 import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
@@ -104,7 +106,7 @@ de_gensym(x) = x
 
 #### Wrap output
 
-abstract AbstractWO
+@compat abstract type AbstractWO end
 
 needsparen(y::AbstractWO) = needsparen(y.x)
 

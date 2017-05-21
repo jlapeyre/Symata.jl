@@ -10,7 +10,7 @@ type RecursionLimitError <: Exception
 end
 
 # We don't have these working yet. We just use error for now
-abstract SymataParseErr <: Exception
+@compat abstract type SymataParseErr <: Exception end
 
 type NoTranslationError <: SymataParseErr
     head
@@ -60,7 +60,7 @@ end
 
 #### Argument check warnings
 
-abstract ArgCheckErr <: Exception
+@compat abstract type ArgCheckErr <: Exception end
 
 type ExactNumArgsErr <: ArgCheckErr
     msg::AbstractString

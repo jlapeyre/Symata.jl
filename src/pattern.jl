@@ -19,7 +19,7 @@ Match() = Match(capturealloc())
 
 #### BlankT
 
-abstract Blanks
+@compat abstract type Blanks end
 
 # BlankT is a "compiled" version of Mxpr{:Blank}
 # This prevents process_blank_head from being called repeatedly, for what that is worth.
