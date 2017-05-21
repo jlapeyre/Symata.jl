@@ -42,20 +42,17 @@ end
 eval_app_directive(ex) = eval(x)
 
 function eval_app_directive(ex::Expr)
-    if ex.head == :( => ) &&
-        isa(ex.args[1],Symbol)
-        return ex.args[1] => eval(ex.args[2])
-    end
+    if iscall(ex, :(=>)) &&  isa(ex.args[2],Symbol)
+        return ex.args[2] => eval(ex.args[3])
+    end        
+    # if ex.head == :( => ) &&
+    #     isa(ex.args[1],Symbol)
+    #     return ex.args[1] => eval(ex.args[2])
+    # end
     eval(ex)
 end
 
 
-## FIXME: broken in an update to v0.6.0-rc2
-## Now only one of he following kindof works:  @mkapprule nargs => 1:Inf, or  @mkapprule :nargs => 1:Inf,
-## Depending on what we do here.
-## There are several possible sources of errors
-## !!!!!!!!!!!!   The AST for  :( a => b ) differs between v0.5 and v0.6,
-## This is the main source of bugs here.
 """
  get_arg_dict(args)
 constructs a Dict from the macro aguments.
@@ -64,16 +61,18 @@ function get_arg_dict(args)
     d = Dict{Symbol,Any}()
     local pe
     for p in args
-        if iscall(p, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
-            p = Expr(:(=>), p.args[2], p.args[3])
+        # if iscall(p, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
+        #     p = Expr(:(=>), p.args[2], p.args[3])
+        # end
+        if isa(p,Expr) && p.head == :(=>)
+            p = Expr(:call, :(=>), p.args[1], p.args[2])
         end
-        # println("  ***** get_arg_dict: doing p = $p")
-        # println("  Length is ", length(p.args))
-        # println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
-#        if isa(p,Expr) && p.args[1] == :(=>) && p.args[2] == :nargs
-        if isa(p,Expr) && p.args[1] == :nargs            
+       # println("  ***** get_arg_dict: doing p = $p")
+       #  println("  Length is ", length(p.args))
+       #  println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
+        if iscall(p, :(=>)) && p.args[2] == :nargs
 #            println("***** get_arg_dict: p is Expr and nargs")
-            pres = parse_nargs(p.args[2])
+            pres = parse_nargs(p.args[3])
             pe = :nargs => pres
         else
 #            println("***** get_arg_dict: p is NOT Expr and nargs")
