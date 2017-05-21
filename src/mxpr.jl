@@ -43,7 +43,7 @@ typealias SymString  Union{Symbol,String}
 
 like `UnitRange`, but the upper limit is "infinity"
 """
-immutable UnitRangeInf{T}  <: AbstractUnitRange
+immutable UnitRangeInf{T<:Real}  <: AbstractUnitRange{T}
     start::T
 end
 
