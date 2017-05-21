@@ -77,7 +77,7 @@ function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
     return ret, partial[range], should_complete
 end
 
-const sorted_builtins = Array(Compat.String,0)
+const sorted_builtins = Array{Compat.String}(0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b

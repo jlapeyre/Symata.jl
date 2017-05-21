@@ -270,8 +270,8 @@ end
 # compute array of coefficients μ in (4.22).
 # m[1] is μ₀
 function lamwcoeff(T::DataType, n::Int)
-    a = Array(T,n)
-    m = Array(T,n)
+    a = Array{T}(n)
+    m = Array{T}(n)
     cset(a,0,2)  # α₀ literal in paper
     cset(a,1,-1) # α₁ literal in paper
     cset(a,2,0)  # α₂ get this by solving (4.23) for alpha_2 with values printed in paper

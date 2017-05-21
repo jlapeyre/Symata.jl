@@ -376,8 +376,8 @@ end
 
 # Faster if we don't do interpolation
 function write_sympy_apprule(sjf, sympyf, nargs::Int)
-    callargs = Array(AbstractString,0)
-    sympyargs = Array(AbstractString,0)
+    callargs = Array{AbstractString}(0)
+    sympyargs = Array{AbstractString}(0)
     for i in 1:nargs
         xi = "x" * string(i)
         push!(callargs, xi)

@@ -196,7 +196,7 @@ is the number of previous outputs to bind to `O`, `OO`, etc.
 """
 const number_of_Os = 10
 
-const Os = Array(SJSym,0)
+const Os = Array{SJSym}(0)
 for i in 1:number_of_Os
     push!(Os, Symbol("O"^i))
 end
@@ -575,7 +575,7 @@ function meval_arguments(mx::Mxpr{:List})
         end
     end
     if got_nothing
-        ninds = Array(Int,0)
+        ninds = Array{Int}(0)
         for i in 1:len
             if nargs[i] == :Nothing
                 push!(ninds,i)
@@ -667,7 +667,7 @@ end
 # Mma. So we can't add lists of numbers at that point.
 
 function threadlistable(mx::Mxpr)
-    pos = Array(Int,0)      # should avoid this
+    pos = Array{Int}(0)      # should avoid this
     lenmx = length(mx)
     lenlist::Int = -1
     h = mhead(mx)
