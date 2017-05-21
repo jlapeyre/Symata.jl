@@ -33,7 +33,9 @@
 # This is the natural order for pattern matching.
 # Blank, BlankSequence, BlankNullSequence are not less than one another
 
-const _jstypeorder = Dict{DataType,Int}()
+#const _jstypeorder = Dict{DataType,Int}()
+# In v0.6.0, Rational is of type UnionAll
+const _jstypeorder = Dict{Any,Int}()
 
 # orderless (commutative) functions will have terms ordered from first
 # to last according to this order of types. Then lex within types.

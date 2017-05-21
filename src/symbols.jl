@@ -227,7 +227,7 @@ end
     rhs
 end
 
-@mkapprule SetDelayed :nargs => 1:Inf  :nodefault => true
+@mkapprule SetDelayed nargs => 1:Inf  nodefault => true
 
 @doap SetDelayed(lhs,rhs) = setdelayed(mx,lhs,rhs)
 
@@ -478,7 +478,7 @@ return a `List` of all symbols in `context`.
 associate the transformation rule with `g`.
 """
 
-@mkapprule UpSet :nargs => 1:Inf
+@mkapprule UpSet nargs => 1:Inf
 @doap UpSet(lhs,rhs) = upset(mx,lhs,rhs)
 
 ## Note, mx is needed here because the entire expression is recorded for the definition of lhs
@@ -501,7 +501,7 @@ function _upset(mx,lhs::Mxpr, rhs)
     foreach( m -> _upset_one(mx,m,rule), lhs)
 end
 
-@mkapprule UpSetDelayed :nargs => 1:Inf
+@mkapprule UpSetDelayed nargs => 1:Inf
 @doap UpSetDelayed(lhs,rhs) = upsetdelayed(mx,lhs,rhs)
 
 ## I think the only difference with UpSet again, is we don't return the rhs

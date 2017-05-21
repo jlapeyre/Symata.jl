@@ -401,7 +401,7 @@ regular expression regex. For example `Help(r\"Set\"i)` lists all topics that
 match "Set" case-independently.
 """
 
-@mkapprule Help  :nodefault => true
+@mkapprule Help  nodefault => true
 
 @doap Help() = print_doc("Help")
 

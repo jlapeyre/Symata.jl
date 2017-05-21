@@ -63,14 +63,18 @@ constructs a Dict from the macro aguments.
 function get_arg_dict(args)
     d = Dict{Symbol,Any}()
     local pe
-    println("***** get_arg_dict: $args")
+    println("***** get_arg_dict: args: $args")
     for p in args
-        println("***** get_arg_dict: doing p = $p")
-        println(" Length is ", length(p.args))
-        println(" type is ", typeof(p.args[1]), " val is ", p.args[1])
-        if isa(p,Expr) && p.args[1] == :(=>) && p.args[2] == :nargs
+        if iscall(p, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
+            p = Expr(:(=>), p.args[2], p.args[3])
+        end
+        println("  ***** get_arg_dict: doing p = $p")
+        println("  Length is ", length(p.args))
+        println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
+#        if isa(p,Expr) && p.args[1] == :(=>) && p.args[2] == :nargs
+        if isa(p,Expr) && p.args[1] == :nargs            
             println("***** get_arg_dict: p is Expr and nargs")
-            pres = parse_nargs(p.args[3])
+            pres = parse_nargs(p.args[2])
             pe = :nargs => pres
         else
             println("***** get_arg_dict: p is NOT Expr and nargs")
@@ -121,7 +125,7 @@ macro mkapprule(inargs...)
     end
     println("********  Getting args $rargs")
     specs = get_arg_dict(rargs)
-    println("********  Got specs")
+    println("********  Success Got specs")
     if haskey(specs, :options)
         optd = get_arg_dict_options(specs[:options])
         if haskey(specs, :nargs)
@@ -130,7 +134,7 @@ macro mkapprule(inargs...)
             nargcode = :(nothing)
         end
         apprulecall = :(function apprules($mxarg)
-                        kws = $(esc(optd))
+                        kws = $optd
                         newargs = separate_known_rules(mx,kws)
                         $nargcode
                         if length(kws) == 0
