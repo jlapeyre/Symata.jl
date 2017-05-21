@@ -401,7 +401,7 @@ regular expression regex. For example `Help(r\"Set\"i)` lists all topics that
 match "Set" case-independently.
 """
 
-@mkapprule Help  nodefault => true
+@mkapprule Help  :nodefault => true
 
 @doap Help() = print_doc("Help")
 
@@ -438,7 +438,7 @@ the examples are printed along with the documentation string, but are not evalua
 Returns a list of all example topics.
 """
 
-@mkapprule Example  nargs => 0:2
+@mkapprule Example  :nargs => 0:2
 
 @doap Example() = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
 @doap Example(topic) = do_examples(mx[1])  ## <-- mx[1] is topic ?
