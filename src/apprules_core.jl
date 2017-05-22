@@ -263,7 +263,11 @@ apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
-do_GenHead(mx,f::Function) = f(margs(mx)...)
+# For v0.6
+do_GenHead(mx,f::Function) = Base.invokelatest(f,margs(mx)...)
+
+# For version v0.5
+#do_GenHead(mx,f::Function) = f(margs(mx)...)
 
 
 # Assume operator version of an Symata "function". Eg, Map
