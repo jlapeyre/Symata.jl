@@ -248,7 +248,7 @@ const EXPRDICT = Dict{UInt64,Mxpr}()
 #     ind::Int
 # end
 # const Freesymspoolsize = 10^6
-# const Freesymspool = Array(FreeSyms,Freesymspoolsize)
+# const Freesymspool = Array{FreeSyms}(Freesymspoolsize)
 # const freesymsind = Freesymsind(Freesymspoolsize)
 # function disable_newsymsdict()
 #     if freesymsind.ind < Freesymspoolsize - 1
@@ -614,7 +614,6 @@ const Symbolic = Union{Mxpr,SJSym}
 return an empty container to hold the arguments in an `Mxpr`. This is
 currently `Array{Any,1}`.
 """
-#@inline newargs() = Array(MxprArgType,0)
 @inline newargs() = Array{MxprArgType}(0)
 
 """
@@ -622,7 +621,6 @@ currently `Array{Any,1}`.
 
 return a container with n elements to hold arguments for an `Mxpr`.
 """
-#@inline newargs(n::Integer) = Array(Any,n)
 @inline newargs(n::Integer) = Array{Any}(n)
 
 """

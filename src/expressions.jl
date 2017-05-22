@@ -197,7 +197,7 @@ Negative indices count backwards from the deepest level.
     args = margs(expr)
     nargs = newargs(args)
     @inbounds for i in 1:length(args)
-        nargs[i] = f(args[i]) # Probably need more evaluation
+        nargs[i] = Base.invokelatest(f,args[i]) # Probably need more evaluation
     end
     mxpra(mhead(expr),nargs)
 end
@@ -206,7 +206,7 @@ end
 @doap function Map(f::Function, a::AbstractArray)
     nargs = newargs(length(a))
     @inbounds for i in 1:length(a)
-        nargs[i] = f(a[i])
+        nargs[i] = Base.invokelatest(f,a[i])
     end
     mxpra(:List,nargs)
 end

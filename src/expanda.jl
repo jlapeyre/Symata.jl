@@ -138,7 +138,10 @@ function mulfacs(a, b::Mxpr{:Plus})
 end
 
 ## construct Power. Decide whether to canonicalize according to types of args
-function canonpower{T<:Real}(base,expt::T)
+function canonpower(base,expt::Real)
+    canonexpr!(mpow(base,expt))
+end
+function canonpower(base::SJSym,expt::Real)
     canonexpr!(mpow(base,expt))
 end
 function canonpower(base::SJSym,expt)

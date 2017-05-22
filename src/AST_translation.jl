@@ -45,7 +45,7 @@ and returns an array of the Symata expressions.
 Note that the phrases *Symata expression* and *Julia expression* here include numbers, symbols, etc.
 """
 function symparsestring(s)
-    mxprs = Array(Any,0)
+    mxprs = Array{Any}(0)
     s = sjpreprocess_string(s)
     i = 1
     local sjretval

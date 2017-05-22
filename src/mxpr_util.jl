@@ -142,7 +142,7 @@ end
 # generally.
 function apply_upvalues_to_args!(mx::Mxpr)
     syms = listsyms(mx)
-    goodsyms = Array(SJSym,0)
+    goodsyms = Array{SJSym}(0)
     for sym in syms
         if has_upvalues(sym)
             push!(goodsyms,sym)

@@ -719,7 +719,7 @@ threads only over elments specified by the standard seuence specification `spec.
 
 ## TODO: generate this with a macro or something, there is a copy in evaluation.jl with :List hardcoded
 function threadlistable(mx::Mxpr, head)
-    pos = Array(Int,0)      # should avoid this
+    pos = Array{Int}(0)      # should avoid this
     lenmx = length(mx)
     lenlist::Int = -1
     h = mhead(mx)
@@ -762,7 +762,7 @@ threadlistable(x,head,s::SequenceAll) = threadlistable(x,head)
 threadlistable(x,head,s::SequenceNone) = x  # copy ?
 
 function threadlistable(mx, head, seqspec::SequenceSpec)
-    pos = Array(Int,0)      # should avoid this
+    pos = Array{Int}(0)      # should avoid this
     lenmx = length(mx)
     lenlist::Int = -1  # length of lists that we will thread over
     h = mhead(mx)
