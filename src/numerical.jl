@@ -1,3 +1,8 @@
+if VERSION >= v"0.6-"
+    import QuadGK: quadgk
+end
+
+
 ## TODO: move this code somewhere more appropriate
 function Base.convert(::Type{AbstractFloat}, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 1
