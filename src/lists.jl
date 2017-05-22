@@ -117,10 +117,10 @@ for head in (:Fold, :FoldList)
                 $(fl ? :(nargs = newargs(n+1)) : nothing)
                 $(fl ? :(nargs[1] = x) : nothing)
                 if isa(f,Function)
-                    res = doeval(f(x,lst[1]))
+                    res = doeval(Base.invokelatest(f,x,lst[1]))
                     $(fl ? :(nargs[2] = res) : nothing)
                     for i in 2:n
-                        res = f(res,lst[i])
+                        res = invokelatest(f,res,lst[i])
                         $(fl ? :(nargs[i+1] = res) : nothing)
                     end
                 else
@@ -144,6 +144,9 @@ end
 @mkapprule Nest :nargs => 3
 @mkapprule NestList :nargs => 3
 
+## FIXME: Using invokelatest makes a typical call 10x slower.
+## But, it seems we have to do this in v0.6
+
 for head in (:Nest, :NestList)
     nl = (head == :NestList)
 @eval begin
@@ -153,11 +156,11 @@ for head in (:Nest, :NestList)
                 $(nl ? :(nargs = newargs(n+1)) : nothing)
                 $(nl ? :(nargs[1] = x) : nothing)
                 if isa(f,Function)
-                    res = doeval(f(x))
+                    res = doeval(Base.invokelatest(f,x))
                     if is_throw() return res end
                     $(nl ? :(nargs[2] = res) : nothing)
                     for i in 2:n
-                        res = f(res)
+                        res = invokelatest(f,res)
                         if is_throw() return res end
                         $(nl ? :(nargs[i+1] = res) : nothing)
                     end

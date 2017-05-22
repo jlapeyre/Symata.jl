@@ -3,7 +3,7 @@
 using Primes
 
 if VERSION >= v"0.5-"
-    import Combinatorics: permutations
+    import Combinatorics: permutations, partitions
 end
 
 import Polynomials
