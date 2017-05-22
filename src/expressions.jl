@@ -91,7 +91,7 @@ is the head of compiled functions.
 
 Compiled functions can be written directly in the host language, Julia.
 ```
-f = :( x -> x^2 )
+f = J( x -> x^2 )
 ```
 
 They may also be compiled from Symata expressions

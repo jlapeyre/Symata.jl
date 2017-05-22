@@ -523,7 +523,7 @@ end
 
 function _sjtopy(mx::Mxpr{:List})
     @sjdebug(3,"List ", mx)
-    a = Array(Any,0)
+    a = Array{Any}(0)
     rs = map(_sjtopy, mx.args)
     for el in rs
         push!(a,el)
@@ -856,14 +856,14 @@ macro try_sympyfunc(pycall, errstr, return_val_err)
              begin
              (sflag, _pyres) =
                  try
-                   (true, $pycall)
+                   (true, $(esc(pycall)))
                  catch pyerr
                   (false,pyerr)
                  end
                  if sflag == false
                  warn($errstr)
                    setkerneloptions(:sympy_error, _pyres)
-                   return $return_val_err
+                   return $(esc(return_val_err))
                  end
                  _pyres
               end
