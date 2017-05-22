@@ -27,7 +27,7 @@ end
 const BlanksNoHead = Union{BlankNoHead,BlankSequenceNoHead,BlankNullSequenceNoHead}
 const BlanksWithHead = Union{BlankWithHead,BlankSequenceWithHead,BlankNullSequenceWithHead}
 
-topattern(mx::Mxpr) = mxpra(topattern(mhead(mx)), map(x -> topattern(x), margs(mx)))
+topattern(mx::Mxpr) = mxpra(topattern(mhead(mx)), mapmargs(x -> topattern(x), margs(mx)))
 topattern(x) = x
 
 ## replace this later with BlankT. after removing the old BlankT

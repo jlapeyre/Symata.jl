@@ -14,6 +14,7 @@ symatatest = SymataPlainTest()
 function runalltests()
     for f in (
               "sympy_test.sj",
+              "pattern_test.sj",
               "integral_derivative_test.sj",
               "evaluation_test.sj",
               "list_test.sj",
@@ -25,7 +26,6 @@ function runalltests()
               "part_test.sj",
               "shifrin_test.sj",
               "function_test.sj",
-              "pattern_test.sj",
               "up_downvalue_test.sj",
               "linalg_test.sj",
               "string_test.sj",

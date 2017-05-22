@@ -60,9 +60,8 @@ end
 getBlankhead(pvar::Blanks) = pvar.head
 
 function patterntoBlank(mx::Mxpr)
-    nargs = newargs(mx)
     mxpra(patterntoBlank(mhead(mx)),
-          map!(x -> patterntoBlank(x), nargs, margs(mx)))
+          mapmargs(x -> patterntoBlank(x), margs(mx)))
 end
 patterntoBlank(x) = x
 
@@ -729,9 +728,8 @@ function replaceall(ex,rule::Rules)
     res = match_and_replace(ex,rule)
     res !== false && return res  # return if we had success
     if is_Mxpr(ex)               # no success so we try at lower levels.
-        nargs = newargs(ex)
         ex = mxpr(replaceall(mhead(ex),rule),
-                    map!((x)->replaceall(x,rule),nargs,margs(ex))...)
+                    mapmargs((x)->replaceall(x,rule),margs(ex))...)
     end
     ex                # if lower levels changed nothing, this is the same as the input ex.
 end

@@ -83,6 +83,28 @@ function maplist(f, ls::ListT)
     MListA(nargs)    
 end
 
+"""
+    mapmargs(f, inargs::AbstractArray)
+
+map `f` over `inargs` returning an `Array{Any}`.
+Arguments to `Mxpr`s are stored in this type. Julia v0.6
+no longer creates a container of the same type as `inargs`,
+but rather a container of the least common supertype. We don't
+want that behavior. So we use this function.
+"""
+function mapmargs(f, inargs::AbstractArray)
+    nargs = newargs(length(inargs))
+    map!(f, nargs, inargs)
+end
+
+function mapmargs(f, inargs::Tuple)
+    nargs = newargs()
+    for x in inargs
+        push!(f(x),nargs)
+    end
+    nargs
+end
+
 # not used yet
 #totuple(mx::Mxpr{:List}) = tuple(margs(mx)...)
 

@@ -490,7 +490,7 @@ end
     pyvar = var |> sjtopy
     res =  sympy[:solve](pyexpr,pyvar)
     sres = res |>  pytosj
-    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
+    mxpr(:List, (mapmargs(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
 end
 
 @doap function Solve(eqs::Mxpr{:List}, vars::Mxpr{:List})
@@ -559,7 +559,7 @@ register_sjfunc_pyfunc("RealRoots", "real_roots")
     if isa(res,Mxpr{:EmptySet})
         return List()
     elseif isa(res,Mxpr{:FiniteSet})
-        mxpr(:List, map( x -> mxpr(:Rule, var, x), margs(res))...)
+        mxpr(:List, mapmargs( x -> mxpr(:Rule, var, x), margs(res))...)
     else
         return res
     end
@@ -660,7 +660,7 @@ end
     p = sympy[:Poly](spexpr,spvar)
 #    cs = p[:coeffs]()  # lists only non-zero coefficients
     cs = reverse!(p[:all_coeffs]())
-    List(map(pytosj,cs))
+    List(mapmargs(pytosj,cs))
 end
 
 

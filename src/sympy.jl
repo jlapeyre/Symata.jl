@@ -357,8 +357,8 @@ end
 function populate_rewrite_dict()
     py_to_mx_rewrite_function_dict[sympy_True] = (x -> true)
     py_to_mx_rewrite_function_dict[sympy_False] = (x -> false)
-    py_to_mx_rewrite_function_dict[sympy_Sum] = pyexpr -> deepsetfixed(mxpr(:Sum, map(pytosj, pyexpr[:args])...))
-    py_to_mx_rewrite_function_dict[sympy_Integral] = pyexpr -> deepsetfixed(mxpr(:Integrate, map(pytosj, pyexpr[:args])...))
+    py_to_mx_rewrite_function_dict[sympy_Sum] = pyexpr -> deepsetfixed(mxpr(:Sum, mapmargs(pytosj, pyexpr[:args])...))
+    py_to_mx_rewrite_function_dict[sympy_Integral] = pyexpr -> deepsetfixed(mxpr(:Integrate, mapmargs(pytosj, pyexpr[:args])...))
 
     for (fname,pyftype, sjsymbolstr) in (("greater_than_equal", :sympy_GreaterThan, ">="),
                                          ("less_than_equal", :sympy_LessThan, "<="),
@@ -521,6 +521,7 @@ function _sjtopy(z::Complex)
     return _sjtopy(res)
 end
 
+## FIXME: this can probably be simplified, but we we would need to test it.
 function _sjtopy(mx::Mxpr{:List})
     @sjdebug(3,"List ", mx)
     a = Array{Any}(0)
@@ -752,7 +753,7 @@ end
 @mkapprule Max :nodefault => true
 @doap function Max(args...)
     args = margs(flatten_recursive!(mxpr(:List,args...)))
-    return pytosj(sympy[:Max](map(sjtopy, args)...))
+    return pytosj(sympy[:Max](mapmargs(sjtopy, args)...))
 end
 
 @doap Max() = MinusInfinity
@@ -762,7 +763,7 @@ end
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
     args = margs(flatten_recursive!(mxpr(:List,args...)))
-    return pytosj(sympy[:Min](map(sjtopy, args)...))
+    return pytosj(sympy[:Min](mapmargs(sjtopy, args)...))
 end
 
 @doap Min() = Infinity

@@ -163,7 +163,10 @@ function parseblank(s::AbstractString)
 end
 
 # Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
-parsepattern(ex) = mxpr(:Pattern,map(extomx,ex.args))
+function parsepattern(ex)
+    nargs = newargs(length(ex.args))
+    mxpr(:Pattern,map!(extomx,nargs,ex.args))
+end
 
 extomxarr!(ain,aout) =  foreach( x -> push!(aout,extomx(x)), ain )
 

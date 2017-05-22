@@ -916,7 +916,7 @@ end
 @mkapprule Conjugate :nargs => 1
 
 @doap Conjugate(z::Number) = conj(z)
-@doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, map( x -> mxpr(:Conjugate, x), margs(z))...)
+@doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, mapmargs( x -> mxpr(:Conjugate, x), margs(z))...)
 @doap Conjugate(z::Mxpr) = z |> sjtopy |> sympy[:conjugate] |> pytosj
 
 ### Exp

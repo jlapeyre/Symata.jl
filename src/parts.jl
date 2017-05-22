@@ -304,7 +304,7 @@ apply `spec1` at level `1`, `spec2` at level `2`...
 """
 @mkapprule Take
 @doap Take(x::Mxpr, rawspecs...) = take(x,map(sequencespec, rawspecs)...)
-take(x, onespec, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,onespec)))...)
+take(x, onespec, specs...) = mxpr(mhead(x),mapmargs(t -> take(t,specs...), margs(take(x,onespec)))...)
 take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0?(1:spec.n):(length(x)+spec.n+1:end)]...)
 take(x,spec::SequenceUpToN) = mxpr(mhead(x), margs(x)[1:min(spec.n,length(x))]...)
 take(x,spec::SequenceNOnly) = mxpr(mhead(x), margs(x)[posnegi(x,spec.n)])

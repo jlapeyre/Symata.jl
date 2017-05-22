@@ -167,7 +167,7 @@ latex_text(s) =  "\\text{" * string(s)  * "}"
 function latex_string_mathop(ins)
     s = string(ins)
     isempty(s) && return ""
-    islower(s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
+    all(islower,s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
     latex_text(s)
 end
 

@@ -5,7 +5,7 @@ using Compat
 import Base: show
 
 import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
-       getsym, symname, mhead, margs,  getoptype, mtojsym, newargs,
+       getsym, symname, mhead, margs,  getoptype, mtojsym, newargs, mapmargs,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
        symnumerator, symdenominator, Formatting
@@ -177,12 +177,12 @@ end
 #wrapout(x) = x  # defined in wrapout.jl
 
 function wrapout(mx::Mxpr)
-    nargs = newargs()
-    for x in margs(mx)
-        push!(nargs,wrapout(x))
-    end
-#    mxprcf(mhead(mx), map(wrapout, margs(mx)))  # In v0.6, this chooses most efficient Array type. We want Any.
-    mxprcf(mhead(mx), nargs)
+    # nargs = newargs()
+    # for x in margs(mx)
+    #     push!(nargs,wrapout(x))
+    # end
+    mxprcf(mhead(mx), mapmargs(wrapout, margs(mx)))  # In v0.6, this chooses most efficient Array type. We want Any.
+#    mxprcf(mhead(mx), nargs)
 end
 
 function wrapout(s::Symbol)
