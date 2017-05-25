@@ -13,6 +13,11 @@ symatatest = SymataPlainTest()
 # "context_test.sj",
 function runalltests()
     for f in (
+              "ntable_test.sj",
+              "flowcontrol_test.sj",
+              "input_test.sj",
+              "output_test.sj",
+              "numeric_test.sj",
               "sympy_test.sj",
               "pattern_test.sj",
               "integral_derivative_test.sj",
@@ -29,17 +34,12 @@ function runalltests()
               "up_downvalue_test.sj",
               "linalg_test.sj",
               "string_test.sj",
-              "numeric_test.sj",
               "julia_interface_test.sj",
               "latex_test.sj",
-              "output_test.sj",
-              "input_test.sj",
         "measurement_test.sj", # No idea why emacs indents like this.
         "io_test.sj",
         #        "comparison_test.sj"
         "newcomparison_test.sj",
-        "flowcontrol_test.sj",
-        "ntable_test.sj",
         "predicate_test.sj",
         "trig_test.sj",
         ## FIXME! reimplement the following after change in comparison code

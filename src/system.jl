@@ -53,7 +53,8 @@ pauses (i.e.sleeps) for `x` seconds.
 
 @mkapprule AbsoluteTime :nargs => 0
 
-@doap AbsoluteTime() = float(now() - DateTime(1900))/1000
+## FIXME: works in v0.6. Will break for earlier versions
+@doap AbsoluteTime() = Dates.value(now() - DateTime(1900))/1000
 
 ### DateList
 
