@@ -587,6 +587,8 @@ remove all values and `DownValues` associated with `x,y,z`.
 
 The symbols are removed from the symbol table and will not appear in the list returned
 by `UserSyms()`.
+
+`Apply(ClearAll, UserSyms())` clears all user symbols.
 """
 
 # FIXME. remove SymPy properties from symbol
