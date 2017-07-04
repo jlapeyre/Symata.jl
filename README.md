@@ -13,6 +13,14 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Symata](http://pkg.julialang.org/badges/Symata_0.5.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.5)
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 
+### About versions
+
+Passes all test with Julia v0.5. Mostly works with Julia v0.6-rc2
+
+Symata is sufficiently complex to make keeping up with changes to Julia
+an enormous task, requiring much more than simply changing syntax.
+I won't update Symata until after the Julia API stabilizes with 1.0.
+
 ### Symata is
 
 - a language for symbolic computations and mathematics, where, for
