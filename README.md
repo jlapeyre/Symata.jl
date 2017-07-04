@@ -15,7 +15,10 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 
 ### About versions
 
-Passes all test with Julia v0.5. Mostly works with Julia v0.6-rc2
+Passes all test with Julia v0.5.
+
+Branch v0.6-a of Symata works with at least Julia v0.6-rc2, although more
+slowly and with some features disabled.
 
 Symata is sufficiently complex to make keeping up with changes to Julia
 an enormous task, requiring much more than simply changing syntax.
