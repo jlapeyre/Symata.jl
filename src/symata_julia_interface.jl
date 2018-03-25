@@ -149,7 +149,7 @@ whose element type is the minimum required to holds the arguments of `expr`.
     typejoin_array(a::Array)
 
 return the typejoin of all elements in `a`.
-I saw this in Base somewher. Probably more efficient there.
+I saw this in Base somewhere. Probably more efficient there.
 """
 function typejoin_array(a)
     length(a) == 0 && return Any
@@ -196,11 +196,11 @@ end
 
 
 const MTOJSYM_COMPILE = Dict(
-                             :Times => :mmul,
-                             :Plus => :mplus,
-                             :Power => :mpow,
-                             :Abs => :mabs
-                             )
+    :Times => :mmul,
+    :Plus => :mplus,
+    :Power => :mpow,
+    :Abs => :mabs,
+)
 
 mtojsym_compile(s::Symbol) =  get(MTOJSYM_COMPILE, s, mtojsym(s))
 
@@ -219,6 +219,11 @@ end
 function mxpr_to_expr(mx::Mxpr,aux::MtoECompile)
     head = mtojsym_compile(mhead(mx))
     mxpr_to_expr_body(head,mx,aux)
+end
+
+# convert List to Julia array
+function mxpr_to_expr(mx::Mxpr{:List},aux::MtoECompile)
+    Expr(:vect, [mxpr_to_expr(x,aux) for x in margs(mx)]...)
 end
 
 function mxpr_to_expr(mx::Mxpr,aux::MtoEPlain)
@@ -328,7 +333,7 @@ just like any Julia macro for inserting code, except that the code is generated 
 
 The following evaluates Symata code, translates the result to Julia and uses it as the body of a Julia function.
 ```
-f1(z) = @symExpr Together(PolyLog(-1,z)+(1-z))
+julia> f1(z) = @symExpr Together(PolyLog(-1,z) + (1-z))
 ```
 """
 macro symExpr(expr)
