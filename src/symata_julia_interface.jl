@@ -200,7 +200,6 @@ const MTOJSYM_COMPILE = Dict(
     :Plus => :mplus,
     :Power => :mpow,
     :Abs => :mabs,
-#    :List => :vect This does not work
 )
 
 mtojsym_compile(s::Symbol) =  get(MTOJSYM_COMPILE, s, mtojsym(s))
