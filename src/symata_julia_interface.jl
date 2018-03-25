@@ -149,7 +149,7 @@ whose element type is the minimum required to holds the arguments of `expr`.
     typejoin_array(a::Array)
 
 return the typejoin of all elements in `a`.
-I saw this in Base somewher. Probably more efficient there.
+I saw this in Base somewhere. Probably more efficient there.
 """
 function typejoin_array(a)
     length(a) == 0 && return Any
@@ -167,14 +167,14 @@ function apprules(mx::Mxpr{:Pack})
     do_pack(T,a)
 end
 
-do_pack(T,sjobj) = copy!(Array(T,length(sjobj)), sjobj)
+do_pack(T,sjobj) = copy!(Array{T}(length(sjobj)), sjobj)
 
 #### Translate Symata to Julia
 
 ##
 # Wrap Expr to prevent Symata from evaluating it.
 
-abstract AbstractMtoE
+@compat abstract type AbstractMtoE end
 
 type MtoECompile <: AbstractMtoE
 end
@@ -196,11 +196,12 @@ end
 
 
 const MTOJSYM_COMPILE = Dict(
-                             :Times => :mmul,
-                             :Plus => :mplus,
-                             :Power => :mpow,
-                             :Abs => :mabs
-                             )
+    :Times => :mmul,
+    :Plus => :mplus,
+    :Power => :mpow,
+    :Abs => :mabs,
+#    :List => :vect This does not work
+)
 
 mtojsym_compile(s::Symbol) =  get(MTOJSYM_COMPILE, s, mtojsym(s))
 
@@ -219,6 +220,11 @@ end
 function mxpr_to_expr(mx::Mxpr,aux::MtoECompile)
     head = mtojsym_compile(mhead(mx))
     mxpr_to_expr_body(head,mx,aux)
+end
+
+# convert List to Julia array
+function mxpr_to_expr(mx::Mxpr{:List},aux::MtoECompile)
+    Expr(:vect, [mxpr_to_expr(x,aux) for x in margs(mx)]...)
 end
 
 function mxpr_to_expr(mx::Mxpr,aux::MtoEPlain)
@@ -399,7 +405,7 @@ function wrap_symata(var0,expr0::Mxpr)   # Why are arguments reversed here ? Is 
 end
 
 function wrap_symata(expr0::Mxpr,vars0...)
-    vars = Array(Symbol,length(vars0))
+    vars = Array{Symbol}(length(vars0))
     expr = expr0
     for i in 1:length(vars0)
         (vars[i],expr) = localize_variable(vars0[i],expr)
