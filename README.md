@@ -16,10 +16,11 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 
 ### About versions
 
-For Julia v0.5, install branch `jv0.5only`. All tests should pass
+For Julia v0.5, install branch `jv0.5only`. No development is done on this branch,
+only fixes for changing dependencies.
 
-For Julia v0.6.2, install the branch `master`. Compared to v0.5, this starts more slowly,
-runs more slowly, and has features disabled. Some tests fail.
+For Julia v0.6.2, install the branch `master`. Compared to v0.5,
+a few features disabled. Three percent of the tests fail.
 
 Symata is sufficiently complex to make keeping up with changes to Julia
 an enormous task, requiring much more than simply changing syntax.
