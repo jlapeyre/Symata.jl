@@ -1,6 +1,6 @@
 #!/home/lapeyre/.julia/v0.6/Conda/deps/usr/bin/python
 
-# This file is copied from the sympy distribution.
+# This file is a modified copy of a file in the sympy distribution.
 
 # XXX: Don't put a newline here, or it will add an extra line with
 # isympy --help
