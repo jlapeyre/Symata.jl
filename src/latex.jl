@@ -26,7 +26,7 @@ latexstring(args...) = latexstring(string(args...))
 macro L_str(s, flags...) latexstring(s) end
 macro L_mstr(s, flags...) latexstring(s) end
 
-import Base: write, endof, getindex, sizeof, search, rsearch, isvalid, next, length, bytestring, IOBuffer, pointer
+import Base: write, endof, getindex, sizeof, search, rsearch, isvalid, next, length, IOBuffer, pointer
 @compat import Base.show
 
 write(io::IO, s::MyLaTeXString) = write(io, s.s)
@@ -38,7 +38,7 @@ function show(io::IO, s::MyLaTeXString)
     Base.print_quoted_literal(io, s.s)
 end
 
-bytestring(s::MyLaTeXString) = bytestring(s.s)
+Base.string(s::MyLaTeXString) = string(s.s)
 endof(s::MyLaTeXString) = endof(s.s)
 next(s::MyLaTeXString, i::Int) = next(s.s, i)
 length(s::MyLaTeXString) = symlength(s.s)

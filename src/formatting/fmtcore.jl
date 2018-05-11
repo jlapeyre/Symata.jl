@@ -67,7 +67,7 @@ _signchar(x::Number, s::Char) = x < 0 ? '-' :
                                 s == '+' ? '+' :
                                 s == ' ' ? ' ' : '\0'
 
-function _pfmt_int{Op}(out::IO, sch::Char, ip::Compat.ASCIIString, zs::Integer, ax::Integer, op::Op)
+function _pfmt_int{Op}(out::IO, sch::Char, ip::String, zs::Integer, ax::Integer, op::Op)
     # print sign
     if sch != '\0'
         write(out, sch)
