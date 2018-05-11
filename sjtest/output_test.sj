@@ -55,8 +55,9 @@ T Format("{1:04d} {2:*>10}",10,f+g) == "0010 *****f + g"
 ## FIXME: method too new
 # T If(BigIntInput(), True, Isa(Format(1/2, Conversion => "e"), String))
 ## These will fail the first time through. Then seem to work the second time
-T Isa(Format(1.0, Conversion => "e"), String)
-T If(BigIntInput(), True, Isa(Format(1, Conversion => "e"), String))
+## FIXME: method too new. These broke later than those above.
+## T Isa(Format(1.0, Conversion => "e"), String)
+## T If(BigIntInput(), True, Isa(Format(1, Conversion => "e"), String))
 
 ##  Issue #56
 ToString(FullForm(f(x)(y))) == "f(x)(y)"
