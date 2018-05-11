@@ -78,10 +78,10 @@ end
 ### Format expression
 
 type FormatExpr
-    prefix::Compat.UTF8String
-    suffix::Compat.UTF8String
+    prefix::String
+    suffix::String
     entries::Vector{FormatEntry}
-    inter::Vector{Compat.UTF8String}
+    inter::Vector{String}
 end
 
 _raise_unmatched_lbrace() = error("Unmatched { in format expression.")
@@ -100,7 +100,7 @@ function find_next_entry_open(s::AbstractString, si::Int)
         pre = replace(pre, "{{", '{')
         pre = replace(pre, "}}", '}')
     end
-    return (p, convert(Compat.UTF8String, pre))
+    return (p, convert(String, pre))
 end
 
 function find_next_entry_close(s::AbstractString, si::Int)
@@ -115,10 +115,10 @@ function FormatExpr(s::AbstractString)
     slen = length(s)
 
     # init
-    prefix = convert(Compat.UTF8String, "")
-    suffix = convert(Compat.UTF8String, "")
+    prefix = convert(String, "")
+    suffix = convert(String, "")
     entries = FormatEntry[]
-    inter = Compat.UTF8String[]
+    inter = String[]
 
     # scan
     (p, prefix) = find_next_entry_open(s, 1)

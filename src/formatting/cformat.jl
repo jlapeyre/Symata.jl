@@ -1,12 +1,12 @@
-formatters = Dict{ Compat.ASCIIString, Function }()
+formatters = Dict{ String, Function }()
 
-function sprintf1( fmt::Compat.ASCIIString, x )
+function sprintf1( fmt::String, x )
     global formatters
     f = generate_formatter( fmt )
     f( x )
 end
 
-function generate_formatter( fmt::Compat.ASCIIString )
+function generate_formatter( fmt::String )
     global formatters
     if haskey( formatters, fmt )
         return formatters[fmt]
@@ -78,7 +78,7 @@ function generate_formatter( fmt::Compat.ASCIIString )
     f
 end
 
-function addcommas( s::Compat.ASCIIString )
+function addcommas( s::String )
     len = length(s)
     t = ""
     for i in 1:3:len
@@ -105,7 +105,7 @@ function generate_format_string(;
         signed::Bool=false,
         positivespace::Bool=false,
         alternative::Bool=false,
-        conversion::Compat.ASCIIString="f" #aAdecEfFiosxX
+        conversion::String="f" #aAdecEfFiosxX
         )
     s = "%"
     if commas
@@ -155,7 +155,7 @@ function format{T<:Real}( x::T;
         tryden::Int = 0, # if 2 or higher, try to use this denominator, without losing precision
         suffix::AbstractString="", # useful for units/%
         autoscale::Symbol=:none, # :metric, :binary or :finance
-        conversion::Compat.ASCIIString=""
+        conversion::String=""
         )
     checkwidth = commas
     if conversion == ""
