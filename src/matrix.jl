@@ -21,6 +21,9 @@ end
 
 @mkapprule Inverse :nargs => 1
 
+## FIXME: something changed somewhere.
+##  so that sympy_matrix_to_sj(pyres) does not return a Symata expression. Maybe in PyCall ?
+
 @sjdoc Inverse """
     Inverse(m)
 
