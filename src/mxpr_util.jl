@@ -25,6 +25,7 @@ of type `MxprArgs`, a copy is *not* made. If `a` is of type `ListT`,
 `tolist` is the identity.
 """
 tolist(a::AbstractArray) = MListA(tomargs(a))
+tolist(p::Pair) = [first(p), last(p)]
 tolist(a::ListT) = a
 
 ### TODO: decide whether this copies or not.
