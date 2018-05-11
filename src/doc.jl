@@ -178,7 +178,7 @@ macro sjseealso_group(syms...)
     local na
     for src in syms
         if ! haskey(SJSEEALSO,src)
-            na = Array(Any,0)
+            na = Array{Any}(0)
             SJSEEALSO[src] = na
         else
             na = SJSEEALSO[src]
@@ -223,10 +223,10 @@ Maybe this should be a function
 """
 macro sjexamp(sym,strs...)
     if ! haskey(SJEXAMPLES,sym)
-        SJEXAMPLES[sym] = Array(Any,0)
+        SJEXAMPLES[sym] = Array{Any}(0)
     end
     exs = SJEXAMPLES[sym]
-    ar = Array(Any,0)
+    ar = Array{Any}(0)
     for i in 1:length(strs)
         push!(ar,eval(strs[i]))
     end
@@ -438,7 +438,7 @@ the examples are printed along with the documentation string, but are not evalua
 Returns a list of all example topics.
 """
 
-@mkapprule Example  nargs => 0:2
+@mkapprule Example  :nargs => 0:2
 
 @doap Example() = mxprcf(:List,Any[sort(collect(keys(SJEXAMPLES)))...])
 @doap Example(topic) = do_examples(mx[1])  ## <-- mx[1] is topic ?

@@ -20,6 +20,15 @@
 ## TODO use this syntax :options = (:opt1 => default1, ...)
 ## TODO: assert type or ranges for keyword arguments (and positional arguments)
 
+# """
+#     OrMore(start)
+
+# Unit range representing `start` and no upper bound.
+# """
+# immutable OrMore{T<:Real} <: AbstractUnitRange
+#     start::T
+# end
+
 function parse_nargs(ex)
     if isa(ex,Expr) && ex.head == :(:) && ex.args[2] == :Inf
         return UnitRangeInf(ex.args[1])
@@ -27,25 +36,42 @@ function parse_nargs(ex)
     return eval(ex)
 end
 
+## v0.6.0 bug.
+## FIXME: Some things are being sent here to evaluate, eg 1:Inf
+## that should not be evaluated. 1:Inf should be parsed above, not evaluated
 eval_app_directive(ex) = eval(x)
 
 function eval_app_directive(ex::Expr)
-    if ex.head == :( => ) &&
-        isa(ex.args[1],Symbol)
-        return ex.args[1] => eval(ex.args[2])
-    end
+    if iscall(ex, :(=>)) &&  isa(ex.args[2],Symbol)
+        return ex.args[2] => eval(ex.args[3])
+    end        
     eval(ex)
 end
 
-# get_arg_dict constructs a Dict from the macro aguments.
+
+"""
+ get_arg_dict(args)
+constructs a Dict from the macro aguments.
+"""
 function get_arg_dict(args)
     d = Dict{Symbol,Any}()
     local pe
     for p in args
-        if isa(p,Expr) && p.args[1] == :nargs
-            pres = parse_nargs(p.args[2])
+        # if iscall(p, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
+        #     p = Expr(:(=>), p.args[2], p.args[3])
+        # end
+        if isa(p,Expr) && p.head == :(=>)
+            p = Expr(:call, :(=>), p.args[1], p.args[2])
+        end
+       # println("  ***** get_arg_dict: doing p = $p")
+       #  println("  Length is ", length(p.args))
+       #  println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
+        if iscall(p, :(=>)) && p.args[2] == :nargs
+#            println("***** get_arg_dict: p is Expr and nargs")
+            pres = parse_nargs(p.args[3])
             pe = :nargs => pres
         else
+#            println("***** get_arg_dict: p is NOT Expr and nargs")
             pe = eval_app_directive(p)
         end
         d[pe[1]] = pe[2]
@@ -61,6 +87,10 @@ function get_arg_dict_options(args)
     end
     d
 end
+
+# FIXME: we are relying on a bug that has been fixed
+#  Change in macro hygiene on 0.6? #19587
+#  Also, https://discourse.julialang.org/t/macro-problem-with-v0-6/1581
 
 macro mkapprule(inargs...)
     head = inargs[1]   ## head is the symbol for which we are writing rules    
@@ -87,7 +117,9 @@ macro mkapprule(inargs...)
     else
         rargs = Any[]
     end
+#    println("********  Getting args $rargs")
     specs = get_arg_dict(rargs)
+#    println("********  Success Got specs")
     if haskey(specs, :options)
         optd = get_arg_dict_options(specs[:options])
         if haskey(specs, :nargs)
@@ -231,7 +263,11 @@ apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
-do_GenHead(mx,f::Function) = f(margs(mx)...)
+# For v0.6
+do_GenHead(mx,f::Function) = Base.invokelatest(f,margs(mx)...)
+
+# For version v0.5
+#do_GenHead(mx,f::Function) = f(margs(mx)...)
 
 
 # Assume operator version of an Symata "function". Eg, Map

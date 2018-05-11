@@ -167,7 +167,7 @@ latex_text(s) =  "\\text{" * string(s)  * "}"
 function latex_string_mathop(ins)
     s = string(ins)
     isempty(s) && return ""
-    islower(s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
+    all(islower,s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
     latex_text(s)
 end
 
@@ -243,9 +243,9 @@ function latex_string(opt, mx::Mxpr{:Power})
 end
 
 function separate_negative_powers(facs)
-    other = Array(Any,0)
-    negpows = Array(Any,0)
-    rationals = Array(Any,0)
+    other = Array{Any}(0)
+    negpows = Array{Any}(0)
+    rationals = Array{Any}(0)
     for x in facs
         t = typeof(x)
         if t <: Rational
@@ -262,8 +262,8 @@ function separate_negative_powers(facs)
 end
 
 function get_nums_dens(other, negpows, rationals)
-    nums = Array(Any,0)
-    dens = Array(Any,0)
+    nums = Array{Any}(0)
+    dens = Array{Any}(0)
     for x in rationals
         if numerator(x) != 1 push!(nums, numerator(x)) end
         push!(dens, denominator(x))

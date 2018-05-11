@@ -56,7 +56,7 @@ get_attributesList(sj::SJSymbol) = tolistfixed(get_attributes(sj))
 
 ### SetAttributes
 
-@mkapprule SetAttributes nargs => 2  """
+@mkapprule SetAttributes :nargs => 2  """
     SetAttributes(sym,attr)
 
 add `attr` to the list of attributes for `sym`.
@@ -97,7 +97,7 @@ end
 
 removes `attr` from the list of attributes of symbol `sym`.
 """
-@mkapprule ClearAttributes nargs => 2
+@mkapprule ClearAttributes :nargs => 2
 
 @doap ClearAttributes(sym,attr) = (unset_attribute(sym,attr); Null)
 
@@ -142,7 +142,9 @@ do_unprotect(mx,a) = false
 add the `Protected` attribute to the lists of attributes for the symbols `z1, z2, ...`.
 """
 
-@mkapprule Protect nargs => 1:Inf  nodefault => true
+# FIXME: Following broke after updating to v0.6.0-rc2 from an older v0.6.0
+#@mkapprule Protect :nargs => 1:Inf  :nodefault => true
+@mkapprule Protect :nodefault => true
 
 @doap function Protect(args...)
     nargs = newargs()
@@ -319,7 +321,7 @@ setdelayed(mx,lhs::Mxpr, rhs::Mxpr{:Module}) = setdelayed(mx,lhs,localize_module
 increments the value of `n` by `1` and returns the old value.
 """
 
-@mkapprule Increment nargs => 1
+@mkapprule Increment :nargs => 1
 
 @doap function Increment(x::SJSym)
     @checkunbound(mx,x,xval)
@@ -344,7 +346,7 @@ end
 decrements the value of `n` by `1` and returns the old value.
 """
 
-@mkapprule Decrement nargs => 1
+@mkapprule Decrement :nargs => 1
 
 #function do_Decrement(mx, x::SJSym)
 @doap function Decrement(x::SJSym)
@@ -371,7 +373,7 @@ set `a` to `a * b` and returns the new value. This is currently
 faster than `a = a * b` for numbers.
 """
 
-@mkapprule TimesBy nargs => 2
+@mkapprule TimesBy :nargs => 2
 
 function do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val)
     @checkunbound(mx,x,xval)
@@ -398,7 +400,7 @@ sets `a` to `a + b` and returns the new value. This is currently
 faster than `a = a + b` for numbers.
 """
 
-@mkapprule AddTo nargs => 2
+@mkapprule AddTo :nargs => 2
 
 function do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val)
     @checkunbound(mx,x,xval)
@@ -443,7 +445,7 @@ apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_S
 ## TODO: completely redesign this
 ### Contexts
 
-@mkapprule Contexts  nargs => 0:1
+@mkapprule Contexts  :nargs => 0:1
 
 @sjdoc Contexts """
     Contexts()
@@ -456,7 +458,7 @@ return a `List` of all contexts.
 # end
 
 
-@mkapprule ContextSymbols  nargs => 1
+@mkapprule ContextSymbols  :nargs => 1
 
 @sjdoc ContextsSymbols """
     Contexts(context)
@@ -526,7 +528,7 @@ converts the string `str` to a symbol. For example if `a` is `1`,
 then Symbol("a") returns `1`.
 """
 
-@mkapprule Symbol nargs => 1
+@mkapprule Symbol :nargs => 1
 
 # function apprules(mx::Mxpr{:Symbol})
 #     dosymbol(mx,mx[1])
@@ -585,6 +587,8 @@ remove all values and `DownValues` associated with `x,y,z`.
 
 The symbols are removed from the symbol table and will not appear in the list returned
 by `UserSyms()`.
+
+`Apply(ClearAll, UserSyms())` clears all user symbols.
 """
 
 # FIXME. remove SymPy properties from symbol
@@ -606,7 +610,7 @@ end
 creates a unique symbol.
 """
 
-@mkapprule Unique nargs => 0:1
+@mkapprule Unique :nargs => 0:1
 
 @doap Unique() = (s = gensym(); setsymval(s,s); s)
 
@@ -617,7 +621,7 @@ creates a unique symbol.
 
 returns the name of `symbol` as a string.
 """
-@mkapprule SymbolName nargs => 1
+@mkapprule SymbolName :nargs => 1
 @doap SymbolName(x::SJSym) = string(x)
 
 ### DownValues
@@ -748,7 +752,7 @@ return a `List` of symbols that have not been imported from the `System` namespa
 This is all user defined symbols (unless you have imported symbols from elsewhere).
 """
 
-@mkapprule UserSyms  nargs => 0
+@mkapprule UserSyms  :nargs => 0
 
 @doap UserSyms() = tolistfixed(usersymbols())
 
@@ -758,7 +762,7 @@ This is all user defined symbols (unless you have imported symbols from elsewher
 return the name of the current context.
 """
 
-@mkapprule CurrentContext nargs => 0
+@mkapprule CurrentContext :nargs => 0
 
 # This does not return a context or module type, because we need to
 # keep types out of the language as much as possible. Everything is

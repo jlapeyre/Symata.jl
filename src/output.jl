@@ -1,9 +1,11 @@
 module SymataIO
 
+using Compat
+
 import Base: show
 
 import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
-       getsym, symname, mhead, margs,  getoptype, mtojsym,
+       getsym, symname, mhead, margs,  getoptype, mtojsym, newargs, mapmargs,
        mxpr, mxprcf, Infinity, getkerneloptions, unicode_output, Qsym,
        CurrentContext, wrapout, using_unicode_output, comparison_translation,
        symnumerator, symdenominator, Formatting
@@ -104,7 +106,7 @@ de_gensym(x) = x
 
 #### Wrap output
 
-abstract AbstractWO
+@compat abstract type AbstractWO end
 
 needsparen(y::AbstractWO) = needsparen(y.x)
 
@@ -175,8 +177,12 @@ end
 #wrapout(x) = x  # defined in wrapout.jl
 
 function wrapout(mx::Mxpr)
-#    mxprcf(wrapout(mhead(mx)), map(wrapout, margs(mx)))
-    mxprcf(mhead(mx), map(wrapout, margs(mx)))
+    # nargs = newargs()
+    # for x in margs(mx)
+    #     push!(nargs,wrapout(x))
+    # end
+    mxprcf(mhead(mx), mapmargs(wrapout, margs(mx)))  # In v0.6, this chooses most efficient Array type. We want Any.
+#    mxprcf(mhead(mx), nargs)
 end
 
 function wrapout(s::Symbol)
@@ -209,6 +215,7 @@ Base.show(io::IO, s::SSJSym) = show_symbol(io, symname(s))
 #Base.show(io::IO, s::SJSym) = show_symbol(io,s)
 
 function show_symbol(io::IO, s::SJSym)
+#    println("*** showing $s")
     if haskey(unicode_output, s) && using_unicode_output()
         Base.show_unquoted(io,unicode_output[s])
     else

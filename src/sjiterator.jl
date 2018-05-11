@@ -7,7 +7,7 @@
 
 ## Standard iterator used, for instance, by Do
 
-abstract AbstractSJIter
+@compat abstract type AbstractSJIter end
 
 type SJIter1{T<:Real} <: AbstractSJIter
     imax::T
@@ -105,7 +105,7 @@ end
 
 ## Iterators used by Range
 
-abstract AbstractSJIterA
+@compat abstract type AbstractSJIterA end
 
 type SJIterA1{T<:Real} <: AbstractSJIterA
     imax::T

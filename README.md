@@ -13,6 +13,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Symata](http://pkg.julialang.org/badges/Symata_0.5.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.5)
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 
+
 ### About versions
 
 Passes all test with Julia v0.5.

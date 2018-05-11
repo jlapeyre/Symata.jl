@@ -19,7 +19,7 @@ Match() = Match(capturealloc())
 
 #### BlankT
 
-abstract Blanks
+@compat abstract type Blanks end
 
 # BlankT is a "compiled" version of Mxpr{:Blank}
 # This prevents process_blank_head from being called repeatedly, for what that is worth.
@@ -59,7 +59,10 @@ end
 
 getBlankhead(pvar::Blanks) = pvar.head
 
-patterntoBlank(mx::Mxpr) = mxpra(patterntoBlank(mhead(mx)), map(x -> patterntoBlank(x), margs(mx)))
+function patterntoBlank(mx::Mxpr)
+    mxpra(patterntoBlank(mhead(mx)),
+          mapmargs(x -> patterntoBlank(x), margs(mx)))
+end
 patterntoBlank(x) = x
 
 # Nov 2016, added isa(head,Symbol) in order to handle [x__Integer]
@@ -726,7 +729,7 @@ function replaceall(ex,rule::Rules)
     res !== false && return res  # return if we had success
     if is_Mxpr(ex)               # no success so we try at lower levels.
         ex = mxpr(replaceall(mhead(ex),rule),
-                    map((x)->replaceall(x,rule),margs(ex))...)
+                    mapmargs((x)->replaceall(x,rule),margs(ex))...)
     end
     ex                # if lower levels changed nothing, this is the same as the input ex.
 end

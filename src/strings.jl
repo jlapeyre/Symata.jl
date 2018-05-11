@@ -72,13 +72,13 @@ return string `s` with characters in reverse order.
 ### UpperCaseQ
 
 @mkapprule UpperCaseQ :nargs => 1
-@doap UpperCaseQ(s::String) = isupper(s)
+@doap UpperCaseQ(s::String) = all(isupper,s)
 
 
 ### LowerCaseQ
 
 @mkapprule LowerCaseQ :nargs => 1
-@doap LowerCaseQ(s::String) = islower(s)
+@doap LowerCaseQ(s::String) = all(islower,s)
 
 ### ToCharacterCode
 

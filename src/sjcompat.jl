@@ -59,3 +59,10 @@ if ! isdefined(:numerator)
 else
     symnumerator(args...) = numerator(args...)
 end
+
+if isdefined(Base, :invokelatest)
+    invokelatest(args...) = Base.invokelatest(args...)
+else
+    invokelatest(args...) = args[1](args[2:end]...)
+end
+

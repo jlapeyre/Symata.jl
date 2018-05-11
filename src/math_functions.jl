@@ -376,8 +376,8 @@ end
 
 # Faster if we don't do interpolation
 function write_sympy_apprule(sjf, sympyf, nargs::Int)
-    callargs = Array(AbstractString,0)
-    sympyargs = Array(AbstractString,0)
+    callargs = Array{AbstractString}(0)
+    sympyargs = Array{AbstractString}(0)
     for i in 1:nargs
         xi = "x" * string(i)
         push!(callargs, xi)
@@ -916,7 +916,7 @@ end
 @mkapprule Conjugate :nargs => 1
 
 @doap Conjugate(z::Number) = conj(z)
-@doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, map( x -> mxpr(:Conjugate, x), margs(z))...)
+@doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, mapmargs( x -> mxpr(:Conjugate, x), margs(z))...)
 @doap Conjugate(z::Mxpr) = z |> sjtopy |> sympy[:conjugate] |> pytosj
 
 ### Exp
@@ -1423,6 +1423,7 @@ end
 do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
 
 @doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
+@doap Power(b::SJSym, expt::Integer) = b == :E ? dopowerE(mx, expt) : mx
 dopowerE{T<:AbstractFloat}(mx, expt::T) = exp(expt)
 dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
 

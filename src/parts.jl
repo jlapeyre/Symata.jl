@@ -97,8 +97,8 @@ return a list of part specifications (indices) of positions in
 return a list of part indices at which subexpression `subx` occurs in expression `ex`.
 """
 function find_positions(ex,subx)
-    posns = Array(Array{Int,1},0)
-    lev = Array(Int,100)
+    posns = Array{Array{Int,1}}(0)
+    lev = Array{Int}(100)
     clev::Int = 1
     lev[clev] = 0
     capt = capturealloc()
@@ -304,7 +304,7 @@ apply `spec1` at level `1`, `spec2` at level `2`...
 """
 @mkapprule Take
 @doap Take(x::Mxpr, rawspecs...) = take(x,map(sequencespec, rawspecs)...)
-take(x, onespec, specs...) = mxpr(mhead(x),map(t -> take(t,specs...), margs(take(x,onespec)))...)
+take(x, onespec, specs...) = mxpr(mhead(x),mapmargs(t -> take(t,specs...), margs(take(x,onespec)))...)
 take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0?(1:spec.n):(length(x)+spec.n+1:end)]...)
 take(x,spec::SequenceUpToN) = mxpr(mhead(x), margs(x)[1:min(spec.n,length(x))]...)
 take(x,spec::SequenceNOnly) = mxpr(mhead(x), margs(x)[posnegi(x,spec.n)])
@@ -474,7 +474,7 @@ Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
 end
 
 function _doreplaceall(mx,expr,rs::Mxpr{:List})
-    rsa = Array(Any,0)
+    rsa = Array{Any}(0)
     for i in 1:length(rs)
         if isa(rs[i],Rules)
             push!(rsa, rs[i])
@@ -508,7 +508,7 @@ perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 ## FIXME: use get to get keywords
 #function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
 @doap function ReplaceRepeated(expr,rs::Mxpr{:List}; kws...)
-    rsa = Array(Any,0)
+    rsa = Array{Any}(0)
     for r in rs
         if isa(r,Rules)
             push!(rsa, r)

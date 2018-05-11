@@ -77,7 +77,7 @@ function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
     return ret, partial[range], should_complete
 end
 
-const sorted_builtins = Array(Compat.String,0)
+const sorted_builtins = Array{Compat.String}(0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b
@@ -364,7 +364,11 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     ############################### Stage I ################################
 
     # This will provide completions for REPL and help mode
-    replc = REPLCompletionProvider(repl)
+    if VERSION > v"0.5"
+        replc = REPLCompletionProvider()
+    else
+        replc = REPLCompletionProvider(repl)
+    end
 
     # Completions for Symata
     symata_replc = SymataCompletionProvider(repl)
@@ -432,8 +436,13 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         prompt_prefix = hascolor ? repl.shell_color : "",
         prompt_suffix = hascolor ?
             (repl.envcolors ? Base.input_color : repl.input_color) : "",
-        keymap_func_data = repl,
-        complete = ShellCompletionProvider(repl),
+                        keymap_func_data = repl,
+## FIXME: add branch, or accomodate v0.5
+                        #       if VERSION > v"0.5" 
+         complete = ShellCompletionProvider(),
+       # else
+       #   complete = ShellCompletionProvider(repl)
+       # end,
         # Transform "foo bar baz" into `foo bar baz` (shell quoting)
         # and pass into Base.repl_cmd for processing (handles `ls` and `cd`
         # special)

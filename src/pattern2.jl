@@ -3,11 +3,11 @@
 
 ### Types for patterns
 
-abstract AbstractBlanks
+@compat abstract type AbstractBlanks end
 
-abstract ABlank  <: AbstractBlanks
-abstract ABlankSequence <: AbstractBlanks
-abstract ABlankNullSequence <: AbstractBlanks
+@compat abstract type ABlank  <: AbstractBlanks end
+@compat abstract type ABlankSequence <: AbstractBlanks end
+@compat abstract type ABlankNullSequence <: AbstractBlanks end
 
 type BlankNoHead <: ABlank end
 type BlankWithHead{T} <: ABlank
@@ -24,10 +24,10 @@ type BlankNullSequenceWithHead{T} <: ABlankNullSequence
     head::T
 end
 
-typealias BlanksNoHead  Union{BlankNoHead,BlankSequenceNoHead,BlankNullSequenceNoHead}
-typealias BlanksWithHead  Union{BlankWithHead,BlankSequenceWithHead,BlankNullSequenceWithHead}
+const BlanksNoHead = Union{BlankNoHead,BlankSequenceNoHead,BlankNullSequenceNoHead}
+const BlanksWithHead = Union{BlankWithHead,BlankSequenceWithHead,BlankNullSequenceWithHead}
 
-topattern(mx::Mxpr) = mxpra(topattern(mhead(mx)), map(x -> topattern(x), margs(mx)))
+topattern(mx::Mxpr) = mxpra(topattern(mhead(mx)), mapmargs(x -> topattern(x), margs(mx)))
 topattern(x) = x
 
 ## replace this later with BlankT. after removing the old BlankT
@@ -58,7 +58,7 @@ end
 
 Capt() = Capt(Dict{SJSym,Any}())
 
-abstract AbstractMatchData
+@compat abstract type  AbstractMatchData end
 
 type SearchRange
     start::Int
@@ -140,7 +140,7 @@ MatchDataFO(expr,pat,capt) = MatchDataFO(_matchdatain(expr,pat,capt))
 
 ####
 
-abstract AbstractMatchIndex
+@compat abstract type AbstractMatchIndex end
 
 #abstract MatchIndexCompound <: AbstractMatchIndex
 
@@ -163,7 +163,7 @@ getstop(mi::MatchIndexSingle) = mi.i
 
 ####
 
-abstract AbstractMatchType
+@compat abstract type AbstractMatchType end
 
 type MatchOne{T<:AbstractMatchIndex} <: AbstractMatchType
     a::T

@@ -45,7 +45,7 @@ and returns an array of the Symata expressions.
 Note that the phrases *Symata expression* and *Julia expression* here include numbers, symbols, etc.
 """
 function symparsestring(s)
-    mxprs = Array(Any,0)
+    mxprs = Array{Any}(0)
     s = sjpreprocess_string(s)
     i = 1
     local sjretval
@@ -163,7 +163,10 @@ function parseblank(s::AbstractString)
 end
 
 # Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
-parsepattern(ex) = mxpr(:Pattern,map(extomx,ex.args))
+function parsepattern(ex)
+    nargs = newargs(length(ex.args))
+    mxpr(:Pattern,map!(extomx,nargs,ex.args))
+end
 
 extomxarr!(ain,aout) =  foreach( x -> push!(aout,extomx(x)), ain )
 
@@ -338,6 +341,31 @@ is_power(ex::Expr) = iscall(ex, :^)
 
 is_sqrt(ex::Expr) = iscall(ex,:Sqrt)
 
+## Needed for Julia v0.6.0. Pairs are parsed differently in different
+## versions of Julia (as are many expressions).
+## The change for Pair is here: https://github.com/JuliaLang/julia/pull/20327
+## Goal is to encapsulate interpretation in one place. Here.
+# """
+#     is_pair(ex)
+# """
+# function is_pair(ex::Expr)
+#     if iscall(ex, :(=>), 3) # In Julia v0.6
+#         return true
+#     elseif ex.head == :(=>) && length(ex.args) == 2
+#         return true
+#     end
+#     return false
+# end
+
+# """
+#     rewrite_pair(ex::Expr)
+# Input is v6.0 Expr for :( a => b ). Output
+# is v5.0 Expr for :( a => b ).
+# """
+# function rewrite_pair(ex::Expr)
+#     Expr(:(=>),ex.args[2],ex.args[3])
+# end
+
 ## save time, don't make Symata meval convert //(a,b) to rational
 ## we should also detect sums/products of like numbers, etc. and
 ## combine them. No* Sometimes we want to Hold expressions involving numbers.
@@ -392,6 +420,11 @@ rewrite_comparison(ex::Expr) = ex
 # Concrete example: a - b --> a + -b.
 # We definitely need to dispatch on a hash query, or types somehow
 # Other rewrites needed, but not done.
+
+"""
+    rewrite_expr(ex::Expr)
+preprocesses input Expr before converting to Mxpr.
+"""
 function rewrite_expr(ex::Expr)
     for i in 1:length(ex.args)
         x = ex.args[i]
@@ -418,6 +451,9 @@ function rewrite_expr(ex::Expr)
         ex = Expr(:call, :^, :E, ex.args[2])
     elseif iscall(ex,:Sqrt,2) # This should happen at Mxpr level, and be optimized
         ex = Expr(:call, :^, ex.args[2], Expr(:call,:(//), 1,2))
+    elseif iscall(ex, :(=>), 3)  # Convert v0.6 Pair to v0.5 Pair.
+        ex = Expr(:(=>), ex.args[2], ex.args[3])
+#        ex = Expr(:call, :(=>), ex.args[1], ex.args[2])
     elseif is_rational(ex)
         return eval(ex)  # TODO: don't do eval, use //
     elseif is_complex(ex)
