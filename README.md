@@ -9,8 +9,6 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Coverage Status](https://coveralls.io/repos/github/jlapeyre/Symata.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/Symata.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
-[![Symata](http://pkg.julialang.org/badges/Symata_0.4.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.4)
-[![Symata](http://pkg.julialang.org/badges/Symata_0.5.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.5)
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 
 
@@ -19,8 +17,8 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 For Julia v0.5, install branch `jv0.5only`. No development is done on this branch,
 only fixes for changing dependencies.
 
-For Julia v0.6.2, install the branch `master`. Compared to v0.5,
-a few features disabled. Three percent of the tests fail.
+For Julia v0.6.2, install the lastest tagged version. Compared to the `jv0.5only`
+branch a few features disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
 
 Symata is sufficiently complex to make keeping up with changes to Julia
 an enormous task, requiring much more than simply changing syntax.
