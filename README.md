@@ -18,7 +18,7 @@ For Julia v0.5, install branch `jv0.5only`. No development is done on this branc
 only fixes for changing dependencies.
 
 For Julia v0.6.2, install the lastest tagged version. Compared to the `jv0.5only`
-branch a few features disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
+branch, a few features are disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
 
 Symata is sufficiently complex to make keeping up with changes to Julia
 an enormous task, requiring much more than simply changing syntax.
