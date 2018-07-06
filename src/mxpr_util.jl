@@ -1,13 +1,12 @@
+
+## NOTE: It appears that collect always copies. convert does nothing if they type is already correct.
+## Goal here is apply collect when it is needed. But not needlessly copy an array
 """
     tomargs(a::Vector)
 
 converts `a` to type `MxprArgs`. `tomargs` is the identity
 if `a` is of type `MxprArgs`.
 """
-
-## NOTE: It appears that collect always copies. convert does nothing if they type is already correct.
-
-## Goal here is apply collect when it is needed. But not needlessly copy an array
 tomargs(a::Vector) = convert(MxprArgs,a)
 tomargs(a::AbstractVector) = convert(MxprArgs,collect(MxprArgT,a)) ## convert should be redundant here
 tomargs(a::MxprArgs) = a
@@ -140,13 +139,13 @@ is equivalent to mxpr(:List,a...)
 is equivalent to mxpra(:List,a...)
 """
 
+## This is not really utility, should be in mxpr.jl
 @doc """
     MPlus(a...)
 
 is equivalent to mxpr(:Plus,a...)
 """
 
-## This is not really utility, should be in mxpr.jl
 for sym in ( :List, :Plus, :Times, :Power, :Blank )
     f = Symbol(:M,sym)
     fa = Symbol(:M,sym,:A)

@@ -11,6 +11,7 @@
 is the dictionary containing documentation for Symata symbols.
 """
 const SJDOCS = Dict{Symbol,Any}()
+import Base.Markdown
 
 """
     @sjdoc sym::Symbol str::String
@@ -54,15 +55,15 @@ end
 ## Help for builtin types print documentation for fields, or at least lists them.
 ## How can we do this ?
 
+
+### NOTE: Julia apparently allows any object for T. But, maybe we still need GenHead
+
 """
     Mxpr{T}
 
 is the type representing Symata expressions. If `T` is a symbol it is also the head of the Symata
 expression. Otherwise, `T` is the type `GenHead`. In any case, the head is stored in the field `head`.
 """
-
-### NOTE: Julia apparently allows any object for T. But, maybe we still need GenHead
-
 mutable struct Mxpr{T}
     """
        head
@@ -78,14 +79,12 @@ mutable struct Mxpr{T}
     typ::DataType
 end
 
-#Mxpr{T}(args...) = Mxpr{T,Any}(args...)
-
 const SJSymAttrs = Dict{Symbol,Bool}
 const SJSymDVs =  Array{Any,1}
 const SJSymuVs =  Array{Any,1}
 @inline newattributes() = SJSymAttrs()
-@inline newdownvalues() = Array{Any}(0)
-@inline newupvalues() = Array{Any}(0)
+@inline newdownvalues() = Array{Any}(undef, 0)
+@inline newupvalues() = Array{Any}(undef, 0)
 
 # Almost all symbols use Any for parameter T.  We experimented a bit
 # with a value of Int for some symbols It may be better to have no
@@ -327,7 +326,7 @@ function symval(s::Qsym)
     val
 end
 
-doc"""
+@doc doc"""
     symval(s::SSJSym)
 
 Return the value bound to the Symata symbol `s`.
@@ -467,7 +466,7 @@ end
 
 function clear_downvalues(s::SJSym)
     clear_downvalue_definitions(s)
-    getssym(s).downvalues = Array{Any}(0)
+    getssym(s).downvalues = Array{Any}(undef, 0)
 end
 
 downvalues(s::SJSymbol) = getssym(s).downvalues
@@ -516,7 +515,7 @@ end
 
 function clear_upvalues(s::SJSym)
     clear_upvalue_definitions(s)
-    getssym(s).upvalues = Array{Any}(0)
+    getssym(s).upvalues = Array{Any}(undef, 0)
 end
 
 function jlistupvaluedefs(sym::SJSym)
@@ -614,14 +613,14 @@ const Symbolic = Union{Mxpr,SJSym}
 return an empty container to hold the arguments in an `Mxpr`. This is
 currently `Array{Any,1}`.
 """
-@inline newargs() = Array{MxprArgType}(0)
+@inline newargs() = Array{MxprArgType}(undef, 0)
 
 """
     newargs(n::Integer)
 
 return a container with n elements to hold arguments for an `Mxpr`.
 """
-@inline newargs(n::Integer) = Array{Any}(n)
+@inline newargs(n::Integer) = Array{Any}(undef, n)
 
 """
     newargs(m::Mxpr)

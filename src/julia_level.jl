@@ -19,7 +19,7 @@ for f in (:cos, :sin, :abs, :tan, :exp, :log, (:acos, :ArcCos) , (:asin, :ArcSin
         uf = f[2]
         f = f[1]
     else
-        uf = Symbol(ucfirst(string(f)))
+        uf = Symbol(uppercasefirst(string(f)))
     end
     @eval ($uf)(x::AbstractFloat) = ($f)(x)
     @eval ($uf)(x::AbstractArray{T}) where {T<:AbstractFloat} = ($f)(x)
@@ -34,7 +34,7 @@ end
 const Pi = :Pi
 export Pi
 
-const E = e     # could make this the symbol ?
+const E = Base.MathConstants.e     # could make this the symbol ?
 export E
 
 #### Arithmetic operators

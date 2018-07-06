@@ -30,8 +30,8 @@
 # end
 
 function parse_nargs(ex)
-    if isa(ex,Expr) && ex.head == :(:) && ex.args[2] == :Inf
-        return UnitRangeInf(ex.args[1])
+    if is_range(ex) && range_stop(ex) == :Inf
+        return UnitRangeInf(range_start(ex))
     end
     return eval(ex)
 end
@@ -98,7 +98,7 @@ macro mkapprule(inargs...)
     n = length(args)
     headstr = string(head)
     fns = Symbol("do_" * headstr)
-    mxarg = parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
+    mxarg = Meta.parse("mx::Mxpr{:" * headstr * "}") # something easier worked too, but I did not realize it
     local apprulecall
     apprulecall = :(apprules($mxarg) = $fns(mx, margs(mx)...))
     defmx = :( mx )
@@ -106,7 +106,7 @@ macro mkapprule(inargs...)
     local rargs
     if n > 1  ## there are some directives
         docstringind = findfirst(x -> isa(x,String), args)
-        if docstringind > 0
+        if docstringind != nothing
             sjdocfun(head,args[docstringind])
             deleteat!(args,docstringind)
         end
@@ -213,7 +213,7 @@ macro doap(func)
             new_func_name = Symbol("do_",sj_func_name) #  Headname --> do_Headname
             sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}
         else
-            symerror("Can't interpret ", sj_func_name)
+            symerror("doap: Can't interpret ", sj_func_name0)
         end
     else                                                       # got Headname(x,y)
         sj_func_name = sj_func_name0
@@ -223,7 +223,7 @@ macro doap(func)
     local quote_sj_func_name
     if isa(sj_func_name,Symbol)
         quote_sj_func_name = QuoteNode(sj_func_name)         # :Headname from prototype like Headname(args...)
-    elseif isa(sj_func_name,Expr)
+    elseif isa(sj_func_name, Expr)
         quote_sj_func_name = QuoteNode(sj_func_name.args[1]) # :Headname from prototype like Headname{T,V}(args...)
     else
         symerror("doap: Can't interpret ", sj_func_name)

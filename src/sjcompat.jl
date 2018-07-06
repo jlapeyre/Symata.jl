@@ -19,7 +19,7 @@ end
 
 #### readstring
 
-if ! isdefined(:readstring)
+if ! @isdefined(readstring)
     function readstring(fname::AbstractString)
        stream = open(fname, "r")
        str = readall(stream)
@@ -30,30 +30,32 @@ end
 
 #### view
 
-if ! isdefined(:view)
+if ! @isdefined(view)
     view(args...) = slice(args...)
 end
 
 #### bytestring_beforecursor
 
-if isdefined(Base.REPL, :bytestring_beforecursor)
-    symata_beforecursor(args...) = Base.REPL.bytestring_beforecursor(args...)
-else
-    symata_beforecursor(args...) = Base.REPL.beforecursor(args...)
-end
+# for v0.7-beta
+# if isdefined(Base.REPL, :bytestring_beforecursor)
+#     symata_beforecursor(args...) = Base.REPL.bytestring_beforecursor(args...)
+# else
+import Base.REPL  # try to avoid warning
+symata_beforecursor(args...) = REPL.beforecursor(args...)
+#end
 
 ### denominator
 
 ## We can probably use Compat here
 
-if ! isdefined(:denominator)
+if ! @isdefined(denominator)
     denominator(args...) = den(args...)
     symdenominator(args...) = den(args...)
 else
     symdenominator(args...) = denominator(args...)
 end
 
-if ! isdefined(:numerator)
+if ! @isdefined(numerator)
     numerator(args...) = num(args...)
     symnumerator(args...) = num(args...)
 else

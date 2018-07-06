@@ -59,17 +59,17 @@ function Symata_start()
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
 
-    if isdefined(:STDOUT)
+    if @isdefined(:STDOUT)
         setsymval(:STDOUT, STDOUT)
     else
         warn("**** CANT FIND STDOUT")
     end
-    if isdefined(:STDERR)
+    if @isdefined(:STDERR)
         setsymval(:STDERR, STDERR)
     else
         warn("**** CANT FIND STDERR")
     end
-    if isdefined(:DevNull)
+    if @isdefined(:DevNull)
         setsymval(:DevNull, DevNull)
     end
 

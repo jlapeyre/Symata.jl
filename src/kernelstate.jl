@@ -34,7 +34,7 @@ function _versioninfo()
     catch
         println("sympy version unavailable")
     end
-    if isdefined(:SymataSyntax) && _init_symatasyntax()
+    if @isdefined(SymataSyntax) && _init_symatasyntax()
         println(_vpad("symatasyntax ver."), SymataSyntax.SYMATASYNTAX_VERSION)
         try
             println(_vpad("mathics version") * SymataSyntax.mathics[:__version__])

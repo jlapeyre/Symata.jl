@@ -212,7 +212,7 @@ return `True` if `x` is an inexact number. Inexact numbers are floating
 point numbers and floating point complex numbers.
 """
 @doap InexactNumberQ(x::AbstractFloat) = true
-@doap InexactNumberQ(x::Complex{T}) where {T<:AbstractFloat} = true
+@doap InexactNumberQ(x::Complex{<:AbstractFloat}) = true
 @doap InexactNumberQ(x) = false
 
 ### IntegerQ

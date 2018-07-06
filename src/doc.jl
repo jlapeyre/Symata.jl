@@ -178,7 +178,7 @@ macro sjseealso_group(syms...)
     local na
     for src in syms
         if ! haskey(SJSEEALSO,src)
-            na = Array{Any}(0)
+            na = Array{Any}(undef, 0)
             SJSEEALSO[src] = na
         else
             na = SJSEEALSO[src]
@@ -223,10 +223,10 @@ Maybe this should be a function
 """
 macro sjexamp(sym,strs...)
     if ! haskey(SJEXAMPLES,sym)
-        SJEXAMPLES[sym] = Array{Any}(0)
+        SJEXAMPLES[sym] = Array{Any}(undef, 0)
     end
     exs = SJEXAMPLES[sym]
-    ar = Array{Any}(0)
+    ar = Array{Any}(undef, 0)
     for i in 1:length(strs)
         push!(ar,eval(strs[i]))
     end

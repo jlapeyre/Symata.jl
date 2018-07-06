@@ -305,6 +305,7 @@ function extomx(ex::Expr)
     mx = mxpr(nhead,newa)  # Create the Mxpr
 end
 
+
 """
     iscall(ex::Expr)
 
@@ -341,6 +342,18 @@ is_division(ex::Expr) = iscall(ex, :/,3)
 is_power(ex::Expr) = iscall(ex, :^)
 
 is_sqrt(ex::Expr) = iscall(ex,:Sqrt)
+
+# This may need to be refined    
+is_range(ex::Expr) = iscall(ex,:(:),3)
+is_range(args...) = false
+
+"""
+    range_start(ex::Expr)
+
+return the start value assume `ex` evaluates to a `Range`.
+"""
+range_start(ex::Expr) = ex.args[2]
+range_stop(ex::Expr) = ex.args[3]
 
 ## Needed for Julia v0.6.0. Pairs are parsed differently in different
 ## versions of Julia (as are many expressions).

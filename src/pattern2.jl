@@ -37,7 +37,7 @@ topattern(b::Mxpr{:BlankNullSequence}) = isempty(b) ? BlankNullSequenceNoHead() 
           BlankNullSequenceWithHead(_make_blank_head(b,margs(b)...))
 
 _make_blank_head(b,head,args...) = error("More than one argument in Blank.")
-_make_blank_head(b,head::Symbol) = isdefined(head) ? eval(head) : head
+_make_blank_head(b,head::Symbol) = @isdefined(head) ? eval(head) : head
 _make_blank_head(b,head) = head
 
 
