@@ -26,7 +26,7 @@ _tycls(c::Char) =
     (c == 's') ? 's' :
     error("Invalid type char $(c)")
 
-immutable FormatSpec
+struct FormatSpec
     cls::Char    # category: 'i' | 'f' | 'c' | 's'
     typ::Char
     fill::Char
@@ -158,11 +158,11 @@ end
 
 ## formatted printing using a format spec
 
-type _Dec end
-type _Oct end
-type _Hex end
-type _HEX end
-type _Bin end
+mutable struct _Dec end
+mutable struct _Oct end
+mutable struct _Hex end
+mutable struct _HEX end
+mutable struct _Bin end
 
 _srepr(x) = repr(x)
 _srepr(x::AbstractString) = x
@@ -176,7 +176,7 @@ function printfmt(io::IO, fs::FormatSpec, x)
     cls = fs.cls
     ty = fs.typ
     if cls == 'i'
-        ix = @compat Integer(x)
+        ix = Integer(x)
         ty == 'd' || ty == 'n' ? _pfmt_i(io, fs, ix, _Dec()) :
         ty == 'x' ? _pfmt_i(io, fs, ix, _Hex()) :
         ty == 'X' ? _pfmt_i(io, fs, ix, _HEX()) :
@@ -194,7 +194,7 @@ function printfmt(io::IO, fs::FormatSpec, x)
     elseif cls == 's'
         _pfmt_s(io, fs, _srepr(x))
     else # cls == 'c'
-        _pfmt_s(io, fs, @compat Char(x))
+        _pfmt_s(io, fs, Char(x))
     end
 end
 

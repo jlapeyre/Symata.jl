@@ -22,7 +22,7 @@
 # At the moment We have one type of test. It just records the number
 # of passes and fails and prints the result.
 
-@compat abstract type Symata_Test end
+abstract type Symata_Test end
 
 """
     Symata_NullTest <: Symata_Test
@@ -30,17 +30,17 @@
 A test passed to `read_Symata_file` that causes the contents
 of the file to be read as ordinary Symata code, with no test syntax.
 """
-type Symata_NullTest <: Symata_Test
+mutable struct Symata_NullTest <: Symata_Test
 end
 
-@compat abstract type AbstractSymataPlainTest <: Symata_Test end
+abstract type AbstractSymataPlainTest <: Symata_Test end
 
-type SymataPlainTest <: AbstractSymataPlainTest
+mutable struct SymataPlainTest <: AbstractSymataPlainTest
     total::Int
     pass::Int
 end
 
-type SymataPlainPrintTest <: AbstractSymataPlainTest
+mutable struct SymataPlainPrintTest <: AbstractSymataPlainTest
     total::Int
     pass::Int
 end

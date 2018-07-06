@@ -5,7 +5,7 @@
 
 object storing information during matching
 """
-type Match
+mutable struct Match
     ex        # expression to match
     parent    # parent of ex
     special   # if non-null, use special for replacement rather than ex
@@ -19,7 +19,7 @@ Match() = Match(capturealloc())
 
 #### BlankT
 
-@compat abstract type Blanks end
+abstract type Blanks end
 
 # BlankT is a "compiled" version of Mxpr{:Blank}
 # This prevents process_blank_head from being called repeatedly, for what that is worth.
@@ -30,7 +30,7 @@ Match() = Match(capturealloc())
 # name of flexibility and eschewing premature optimization.
 #
 # head -- a head that must match (or :All)
-type BlankT{T}  <: Blanks
+mutable struct BlankT{T}  <: Blanks
     head::T
 end
 
@@ -48,12 +48,12 @@ const blank_head_dict = Dict(    :String => :AbstractString,
 
 
 # Not yet implemented
-type BlankSequenceT{T}  <: Blanks
+mutable struct BlankSequenceT{T}  <: Blanks
     head::T
 end
 
 # Not yet implemented
-type BlankNullSequenceT{T}  <: Blanks
+mutable struct BlankNullSequenceT{T}  <: Blanks
     head::T
 end
 
@@ -689,7 +689,7 @@ function replace_ptob(ex,r::Rules,capt)
     res === false ? (false,ex) : (true,res)
 end
 
-type ReplaceData
+mutable struct ReplaceData
     rule
 end
 
@@ -810,7 +810,7 @@ function replacerepeated(ex, rules::Array; kws...)
     return res1
 end
 
-replacerepeated{T<:Rules}(ex, therule::T; kws...) =  replacerepeated(ex,Rules[therule]; kws...)
+replacerepeated(ex, therule::T; kws...) where {T<:Rules} =  replacerepeated(ex,Rules[therule]; kws...)
 
 
 nothing

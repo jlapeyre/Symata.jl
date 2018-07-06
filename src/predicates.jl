@@ -6,7 +6,7 @@ is_SJSym(x) = isa(x,SJSym)
 is_Mxpr(x) = isa(x,Mxpr)
 
 ## I think we should prefer isa(Mxpr{:Sym}) here
-is_Mxpr{T}(mx::Mxpr{T},s::Symbol) = T == s
+is_Mxpr(mx::Mxpr{T},s::Symbol) where {T} = T == s
 is_Mxpr(x,s::Symbol) = false
 
 ## Ruleq or ruleq ? need lc somewhere to signify it is lower level
@@ -36,7 +36,7 @@ is_Float(x) = isa(x,AbstractFloat)
 ## isassigned, for arrays
 ## isequal
 ## isempty (instead of length == 0)
-is_imaginary_integer{T<:Integer}(z::Complex{T}) = real(z) == 0
+is_imaginary_integer(z::Complex{T}) where {T<:Integer} = real(z) == 0
 is_imaginary_integer(x) = false
 
 atomq(x) = ! isa(x,Mxpr)
@@ -212,7 +212,7 @@ return `True` if `x` is an inexact number. Inexact numbers are floating
 point numbers and floating point complex numbers.
 """
 @doap InexactNumberQ(x::AbstractFloat) = true
-@doap InexactNumberQ{T<:AbstractFloat}(x::Complex{T}) = true
+@doap InexactNumberQ(x::Complex{T}) where {T<:AbstractFloat} = true
 @doap InexactNumberQ(x) = false
 
 ### IntegerQ
@@ -374,7 +374,7 @@ return `True` if `expr` does not match `pattern` on levels specified by `levelsp
 operator form.
 """
 
-type FreeQData
+mutable struct FreeQData
     pattern
     gotmatch::Bool
 end
@@ -441,7 +441,7 @@ end
     mx
 end
 
-@doap function Element{T}(x::Complex{T},sym::Symbol)
+@doap function Element(x::Complex{T},sym::Symbol) where T
     sym == :Integers && return false
     sym == :Rationals && return false
     sym == :Reals && return false

@@ -10,6 +10,7 @@
 macro h_str(s)
     try
         check_autoload(Symbol(strip(s)))
+    catch
     end
     reg = eval(Expr(:macrocall, Symbol("@r_str"), strip(s), "i"))
     print_matching_topics(reg)
@@ -114,8 +115,8 @@ end
 
 #### extomx  translate a Julia expression ex, to an SJuia expression mx
 
-extomx{T<:Integer}(x::T) = getkerneloptions(:bigint_input) ? BigInt(x) : x
-extomx{T<:AbstractFloat}(x::T) = getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
+extomx(x::T) where {T<:Integer} = getkerneloptions(:bigint_input) ? BigInt(x) : x
+extomx(x::T) where {T<:AbstractFloat} = getkerneloptions(:bigfloat_input) ? BigFloat(rationalize(x)) : x
 extomx(x) = x
 
 # This system needs to be rationalized.

@@ -2,7 +2,7 @@
 
 ### Argument specification
 
-immutable ArgSpec
+struct ArgSpec
     argidx::Int
     hasfilter::Bool
     filter::Function
@@ -32,7 +32,7 @@ function make_argspec(s::AbstractString, pos::Int)
         else
             iarg = ifil > 1 ? parse(Int,s[1:ifil-1]) : -1
             hasfil = true
-            ff = eval(@compat Symbol(s[ifil+2:end]))
+            ff = eval(Symbol(s[ifil+2:end]))
         end
     end
 
@@ -55,7 +55,7 @@ end
 
 ### Format entry
 
-immutable FormatEntry
+struct FormatEntry
     argspec::ArgSpec
     spec::FormatSpec
 end
@@ -77,7 +77,7 @@ end
 
 ### Format expression
 
-type FormatExpr
+mutable struct FormatExpr
     prefix::String
     suffix::String
     entries::Vector{FormatEntry}
@@ -160,10 +160,10 @@ function printfmt(io::IO, fe::FormatExpr, args...)
 end
 
 printfmt(io::IO, fe::AbstractString, args...) = printfmt(io, FormatExpr(fe), args...)
-@compat printfmt(fe::Union{AbstractString,FormatExpr}, args...) = printfmt(STDOUT, fe, args...)
+printfmt(fe::Union{AbstractString,FormatExpr}, args...) = printfmt(STDOUT, fe, args...)
 
-@compat printfmtln(io::IO, fe::Union{AbstractString,FormatExpr}, args...) = (printfmt(io, fe, args...); println(io))
-@compat printfmtln(fe::Union{AbstractString,FormatExpr}, args...) = printfmtln(STDOUT, fe, args...)
+printfmtln(io::IO, fe::Union{AbstractString,FormatExpr}, args...) = (printfmt(io, fe, args...); println(io))
+printfmtln(fe::Union{AbstractString,FormatExpr}, args...) = printfmtln(STDOUT, fe, args...)
 
-@compat format(fe::Union{AbstractString,FormatExpr}, args...) =
+format(fe::Union{AbstractString,FormatExpr}, args...) =
     sprint(printfmt, fe, args...)

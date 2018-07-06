@@ -173,7 +173,7 @@ end
 # Assume a < b in canonical order
 # This is the only place we are testing meta data in Mxpr giving which
 # symbols it depends on.
-function expand_binomial{T<:Integer}(a,b,n::T)
+function expand_binomial(a,b,n::T) where T<:Integer
     args = newargs(n+1)
     args[1] = canonpower(a,n)
     mergesyms(args[1],a)
@@ -223,7 +223,7 @@ function _expand_mulpowers(fac,b1,e1,b2,e2)
     return doeval(mmul(fac,mmul(m1,m2)))    # flatcannon is enough because of nested call.
 end
 
-function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
+function _expand_mulpowers(fac,b1::T,e1,b2::V,e2) where {T<:ExpNoCanon, V<:ExpNoCanon}
     m1 = b1^e1
     m2 = b2^e2
     setfixed(m1)
@@ -233,7 +233,7 @@ function _expand_mulpowers{T<:ExpNoCanon, V<:ExpNoCanon}(fac,b1::T,e1,b2::V,e2)
     return mxpr(:Times, fac, m1, m2)
 end
 
-function _expand_mulpowers{T<:ExpNoCanon}(fac,b1::T,e1,b2,e2)
+function _expand_mulpowers(fac,b1::T,e1,b2,e2) where T<:ExpNoCanon
     m1 = b1^e1
     m2 = canonpower(b2,e2)
     setfixed(m1)
@@ -243,7 +243,7 @@ function _expand_mulpowers{T<:ExpNoCanon}(fac,b1::T,e1,b2,e2)
     return flatcanon!(mxpr(:Times, fac, m1, m2))
 end
 
-function _expand_mulpowers{T<:ExpNoCanon}(fac,b1,e1,b2::T,e2)
+function _expand_mulpowers(fac,b1,e1,b2::T,e2) where T<:ExpNoCanon
     m1 = canonpower(b1,e1)
     m2 = b2^e2
     setfixed(m1)

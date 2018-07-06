@@ -13,7 +13,7 @@
 # dvs = @sym DownValues(g)
 
 #
-function has_pattern{T}(mx::Mxpr{T})
+function has_pattern(mx::Mxpr{T}) where T
     for i in 1:length(mx)
         res = has_pattern(mx[i])
         res[1] == true && return res

@@ -46,7 +46,7 @@ end
 
 @doap Apply(h,mxa::Mxpr) = mxpra(h,margs(mxa))
 
-@doap function Apply{T<:Number}(h::SJSym,arr::AbstractArray{T})
+@doap function Apply(h::SJSym,arr::AbstractArray{T}) where T<:Number
     h == :Plus && return convert(T,sum(arr))
     h == :Times && return convert(T,prod(arr))
     mx
@@ -100,7 +100,7 @@ They may also be compiled from Symata expressions
 f = Compile([x], x^2)
 ```
 """
-@doap Head{T<:Function}(f::T) = :CompiledFunction
+@doap Head(f::T) where {T<:Function} = :CompiledFunction
 
 ### Isa
 
@@ -234,7 +234,7 @@ end
     sum(x -> symlength(x), expr)
 end
 
-type MapData
+mutable struct MapData
     action
 end
 
@@ -359,7 +359,7 @@ end
     _doCases(levelspec,expr,pat)
 end
 
-type CasesData
+mutable struct CasesData
     new_args
     jp
     capt
@@ -501,7 +501,7 @@ evalifdelayed(r::Mxpr{:RuleDelayed}) = doeval(rhs(r))
 returns a copy of `expr` with the `i`th part replaced by `repl`
 """
 
-@doap ReplacePart{T<:Union{RulesT,ListT}}(expr::Mxpr,arg::T) = replacepart1(mx,expr,arg)
+@doap ReplacePart(expr::Mxpr,arg::T) where {T<:Union{RulesT,ListT}} = replacepart1(mx,expr,arg)
 
 @curry_second ReplacePart
 
@@ -565,7 +565,7 @@ depth of the entire expression, rather than from each leaf.
 """
 
 
-type LevelData
+mutable struct LevelData
     levellist
     action
 end

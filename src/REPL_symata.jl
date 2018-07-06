@@ -19,7 +19,7 @@ import Base.REPL: display
 # This prompt is used for the dumb terminal
 const symataprompt = "symata > "
 
-type SymataCompletionProvider <: CompletionProvider
+mutable struct SymataCompletionProvider <: CompletionProvider
     r::LineEditREPL
 end
 
@@ -141,7 +141,7 @@ function symata_completions(string, pos)
     ok && return ret
 
     # Make sure that only bslash_completions is working on strings
-    inc_tag==:string && return Compat.UTF8String[], 0:-1, false
+    inc_tag==:string && return String[], 0:-1, false
 
      if inc_tag == :other && should_method_complete(partial)
         frange, method_name_end = find_start_brace(partial)
@@ -152,14 +152,14 @@ function symata_completions(string, pos)
             return complete_methods(ex), start(frange):method_name_end, false
         end
     elseif inc_tag == :comment
-        return Compat.UTF8String[], 0:-1, false
+        return String[], 0:-1, false
     end
 
     dotpos = rsearch(string, '.', pos)
     startpos = nextind(string, rsearch(string, non_identifier_chars, pos))
 
     ffunc = (mod,x)->true
-    suggestions = Compat.UTF8String[]
+    suggestions = String[]
     startpos == 0 && (pos = -1)
     dotpos <= startpos && (dotpos = startpos - 1)
     s = string[startpos:pos]
@@ -201,8 +201,8 @@ function RunSymataREPL(repl::LineEditREPL)
     hp.mode_mapping[:symata] = symata_prompt
     symata_prompt.hist = hp
 
-    const enter_symata_key = '='
-    const symata_keymap = Dict{Any,Any}(
+    enter_symata_key = '='
+    symata_keymap = Dict{Any,Any}(
            enter_symata_key => function (s,args...)
             if isempty(s)
                 if !haskey(s.mode_state,symata_prompt)
@@ -274,6 +274,7 @@ function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
                 if isa(e,InterruptException)
                     try # raise the debugger if present
                         ccall(:jl_raise_debugger, Int, ())
+                    catch
                     end
                     line = ""
                     interrupted = true
@@ -364,11 +365,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     ############################### Stage I ################################
 
     # This will provide completions for REPL and help mode
-    if VERSION > v"0.5"
-        replc = REPLCompletionProvider()
-    else
-        replc = REPLCompletionProvider(repl)
-    end
+    replc = REPLCompletionProvider()
 
     # Completions for Symata
     symata_replc = SymataCompletionProvider(repl)
@@ -402,7 +399,6 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         symata_respond(Symata_parse_REPL_line,
                       repl, symata_prompt) # stay in symjulia
 
-    if VERSION >= v"0.5"
     # Setup help mode
     help_mode = Prompt("help?> ",
         prompt_prefix = hascolor ? repl.help_color : "",
@@ -413,23 +409,6 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         # When we're done transform the entered line into a call to help("$line")
         on_done = respond(Docs.helpmode, repl, julia_prompt))
 
-    else
-            help_mode = Prompt("help?> ",
-        prompt_prefix = hascolor ? repl.help_color : "",
-        prompt_suffix = hascolor ?
-            (repl.envcolors ? Base.input_color : repl.input_color) : "",
-        keymap_func_data = repl,
-        complete = replc,
-        # When we're done transform the entered line into a call to help("$line")
-        on_done = respond(repl, julia_prompt) do line
-            line = strip(line)
-            haskey(Docs.keywords, Symbol(line)) ? # Special-case keywords, which won't parse
-                :(Base.Docs.@repl $(Symbol(line))) :
-                Base.syntax_deprecation_warnings(false) do
-                    parse("Base.Docs.@repl $line", raise=false)
-                end
-        end)
-    end
 
     # Set up shell mode
     shell_mode = Prompt("shell> ";
@@ -464,11 +443,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
             hist_path = find_hist_file()
             f = open(hist_path, true, true, true, false, false)
             finalizer(replc, replc->close(f))
-            if VERSION >= v"0.6.0-dev.999"  # FIXME. which version introduced this ?
-                hist_from_file(hp, f, hist_path)
-            else
-                hist_from_file(hp, f)
-            end
+            hist_from_file(hp, f, hist_path)
         catch e
             print_response(repl, e, catch_backtrace(), true, Base.have_color)
             println(outstream(repl))
@@ -490,9 +465,9 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         extra_repl_keymap = [extra_repl_keymap]
     end
 
-    const enter_symata_key = '='
+    enter_symata_key = '='
 
-    const repl_keymap = Dict{Any,Any}(
+    repl_keymap = Dict{Any,Any}(
          enter_symata_key => function (s,args...)
             if isempty(s) || position(LineEdit.buffer(s)) == 0
                 if !haskey(s.mode_state,symata_prompt)

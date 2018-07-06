@@ -112,7 +112,7 @@ function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
 end
 
 # We annotate Dict here to fix BoundsError bug in Integrate(x)
-function do_Integrate_kws{T<:Dict}(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...)
+function do_Integrate_kws(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...) where T<:Dict
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
     pyintegral = sympy[:integrate](pymx,pyvarspecs...; kws...)

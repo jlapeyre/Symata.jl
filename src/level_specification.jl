@@ -2,22 +2,22 @@
 
 ## TODO: Heads => True
 
-@compat abstract type LevelSpec end
+abstract type LevelSpec end
 
-immutable LevelSpecToDepth  <: LevelSpec
+struct LevelSpecToDepth  <: LevelSpec
     level::Int
 end
 
-immutable LevelSpecAtDepth  <: LevelSpec
+struct LevelSpecAtDepth  <: LevelSpec
     level::Int
 end
 
-immutable LevelSpecRange  <: LevelSpec
+struct LevelSpecRange  <: LevelSpec
     start::Int
     stop::Int
 end
 
-immutable LevelSpecAll  <: LevelSpec
+struct LevelSpecAll  <: LevelSpec
     includezero::Bool
 end
 
@@ -82,7 +82,7 @@ end
 
 #### Structure for performing action at levels
 
-type LevelAction
+mutable struct LevelAction
     data::Any            # application-specific data
     doaction::Function   # function takes arguments (data,expr)
     levelind::Int

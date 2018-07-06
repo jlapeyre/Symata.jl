@@ -53,7 +53,7 @@ end
 # becoming slower. We try using a stripped-down meval1 from
 # alteval.jl, time is .43 with no gc.
 
-function do_table{T<:Integer}(imax::T,isym,ex)
+function do_table(imax::T,isym,ex) where T<:Integer
     args = newargs(imax)
     sisym = getssym(isym)
 #    setsymval(sisym,1)

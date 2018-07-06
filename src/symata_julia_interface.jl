@@ -174,12 +174,12 @@ do_pack(T,sjobj) = copy!(Array{T}(length(sjobj)), sjobj)
 ##
 # Wrap Expr to prevent Symata from evaluating it.
 
-@compat abstract type AbstractMtoE end
+abstract type AbstractMtoE end
 
-type MtoECompile <: AbstractMtoE
+mutable struct MtoECompile <: AbstractMtoE
 end
 
-type MtoEPlain <: AbstractMtoE
+mutable struct MtoEPlain <: AbstractMtoE
 end
 
 mxpr_to_expr(x,aux::AbstractMtoE) = x

@@ -8,7 +8,7 @@ import Symata.SymataIO: WOComplexReal, WOComplexInteger, WOSymbol, WOBool, show_
 # But, there is something magic here that makes IJulia render the strings
 # as LaTeX. I don't yet know where it is.
 
-immutable MyLaTeXString <: AbstractString
+struct MyLaTeXString <: AbstractString
     s::String
 end
 
@@ -27,11 +27,11 @@ macro L_str(s, flags...) latexstring(s) end
 macro L_mstr(s, flags...) latexstring(s) end
 
 import Base: write, endof, getindex, sizeof, search, rsearch, isvalid, next, length, IOBuffer, pointer
-@compat import Base.show
+import Base.show
 
 write(io::IO, s::MyLaTeXString) = write(io, s.s)
-@compat show(io::IO, ::MIME"application/x-latex", s::MyLaTeXString) = write(io, s)
-@compat show(io::IO, ::MIME"text/latex", s::MyLaTeXString) = write(io, s)
+show(io::IO, ::MIME"application/x-latex", s::MyLaTeXString) = write(io, s)
+show(io::IO, ::MIME"text/latex", s::MyLaTeXString) = write(io, s)
 
 function show(io::IO, s::MyLaTeXString)
     print(io, "L")
@@ -46,7 +46,7 @@ getindex(s::MyLaTeXString, i::Int) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Integer) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Real) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::UnitRange{Int}) = getindex(s.s, i)
-getindex{T<:Integer}(s::MyLaTeXString, i::UnitRange{T}) = getindex(s.s, i)
+getindex(s::MyLaTeXString, i::UnitRange{T}) where {T<:Integer} = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::AbstractVector) = getindex(s.s, i)
 sizeof(s::MyLaTeXString) = sizeof(s.s)
 search(s::MyLaTeXString, c::Char, i::Integer) = search(s.s, c, i)
@@ -56,16 +56,9 @@ pointer(s::MyLaTeXString) = pointer(s.s)
 IOBuffer(s::MyLaTeXString) = IOBuffer(s.s)
 
 # conversion to pass MyLaTeXString to ccall arguments
-if VERSION >= v"0.4.0-dev+3710"
-    import Base.unsafe_convert
-else
-    import Base.convert
-    const unsafe_convert = Base.convert
-end
-@compat unsafe_convert(T::Union{Type{Ptr{UInt8}},Type{Ptr{Int8}}}, s::MyLaTeXString) = convert(T, s.s)
-if VERSION >= v"0.4.0-dev+4603"
-    unsafe_convert(::Type{Cstring}, s::MyLaTeXString) = unsafe_convert(Cstring, s.s)
-end
+import Base.unsafe_convert
+unsafe_convert(T::Union{Type{Ptr{UInt8}},Type{Ptr{Int8}}}, s::MyLaTeXString) = convert(T, s.s)
+unsafe_convert(::Type{Cstring}, s::MyLaTeXString) = unsafe_convert(Cstring, s.s)
 
 ################################################################################
 
@@ -339,7 +332,7 @@ function latex_string(opt, x::WORational)
     latex_string(opt, r)
 end
 
-function latex_string{T<:Real}(opt, z::Rational{T})
+function latex_string(opt, z::Rational{T}) where T<:Real
     "\\frac{" * latex_string(opt, numerator(z)) * "}{" * latex_string(opt, denominator(z)) * "}"
 end
 

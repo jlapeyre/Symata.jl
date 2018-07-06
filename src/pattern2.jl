@@ -3,24 +3,24 @@
 
 ### Types for patterns
 
-@compat abstract type AbstractBlanks end
+abstract type AbstractBlanks end
 
-@compat abstract type ABlank  <: AbstractBlanks end
-@compat abstract type ABlankSequence <: AbstractBlanks end
-@compat abstract type ABlankNullSequence <: AbstractBlanks end
+abstract type ABlank  <: AbstractBlanks end
+abstract type ABlankSequence <: AbstractBlanks end
+abstract type ABlankNullSequence <: AbstractBlanks end
 
-type BlankNoHead <: ABlank end
-type BlankWithHead{T} <: ABlank
+mutable struct BlankNoHead <: ABlank end
+mutable struct BlankWithHead{T} <: ABlank
     head::T
 end
 
-type BlankSequenceNoHead <: ABlankSequence end
-type BlankSequenceWithHead{T} <: ABlankSequence
+mutable struct BlankSequenceNoHead <: ABlankSequence end
+mutable struct BlankSequenceWithHead{T} <: ABlankSequence
     head::T
 end
 
-type BlankNullSequenceNoHead <: ABlankNullSequence end
-type BlankNullSequenceWithHead{T} <: ABlankNullSequence
+mutable struct BlankNullSequenceNoHead <: ABlankNullSequence end
+mutable struct BlankNullSequenceWithHead{T} <: ABlankNullSequence
     head::T
 end
 
@@ -44,30 +44,30 @@ _make_blank_head(b,head) = head
 #### Matching1
 
 pmatch(b::BlanksNoHead,ex) = true
-pmatch{T<:DataType}(b::BlankWithHead{T},ex) = isa(ex,b.head)
-pmatch{T<:DataType}(b::BlankSequenceWithHead{T},ex) = isa(ex,b.head)
-pmatch{T<:DataType}(b::BlankNullSequenceWithHead{T},ex) = isa(ex,b.head)
+pmatch(b::BlankWithHead{T},ex) where {T<:DataType} = isa(ex,b.head)
+pmatch(b::BlankSequenceWithHead{T},ex) where {T<:DataType} = isa(ex,b.head)
+pmatch(b::BlankNullSequenceWithHead{T},ex) where {T<:DataType} = isa(ex,b.head)
 pmatch(b::BlanksWithHead,ex) = isa(ex,Mxpr{b.head})
 pmatch(b::AbstractBlanks,ex) = symerror("match: Can't match Blank of type ", typeof(b))
 
 #### Matching
 
-type Capt
+mutable struct Capt
     c::Dict{SJSym,Any}
 end
 
 Capt() = Capt(Dict{SJSym,Any}())
 
-@compat abstract type  AbstractMatchData end
+abstract type  AbstractMatchData end
 
-type SearchRange
+mutable struct SearchRange
     start::Int
     stop::Int
 end
 
 SearchRange(r::UnitRange) = SearchRange(r.start, r.stop)
 
-type MatchDataIn
+mutable struct MatchDataIn
     _expr::Mxpr
     _indr::SearchRange
     _pat ## pattern in general sense
@@ -75,22 +75,22 @@ type MatchDataIn
 end
 
 ## Neither flat nor orderless
-type MatchData <: AbstractMatchData
+mutable struct MatchData <: AbstractMatchData
     d::MatchDataIn
 end
 
 ## flat
-type MatchDataF <: AbstractMatchData
+mutable struct MatchDataF <: AbstractMatchData
     d::MatchDataIn
 end
 
 ## orderless
-type MatchDataO <: AbstractMatchData
+mutable struct MatchDataO <: AbstractMatchData
     d::MatchDataIn
 end
 
 ## flat and orderless
-type MatchDataFO <: AbstractMatchData
+mutable struct MatchDataFO <: AbstractMatchData
     d::MatchDataIn
 end
 
@@ -140,15 +140,15 @@ MatchDataFO(expr,pat,capt) = MatchDataFO(_matchdatain(expr,pat,capt))
 
 ####
 
-@compat abstract type AbstractMatchIndex end
+abstract type AbstractMatchIndex end
 
 #abstract MatchIndexCompound <: AbstractMatchIndex
 
-type MatchIndexSingle <: AbstractMatchIndex
+mutable struct MatchIndexSingle <: AbstractMatchIndex
     i::Int
 end
     
-type MatchIndexAbstractArray{T<:AbstractArray} <: AbstractMatchIndex
+mutable struct MatchIndexAbstractArray{T<:AbstractArray} <: AbstractMatchIndex
     a::T
 end
 
@@ -163,27 +163,27 @@ getstop(mi::MatchIndexSingle) = mi.i
 
 ####
 
-@compat abstract type AbstractMatchType end
+abstract type AbstractMatchType end
 
-type MatchOne{T<:AbstractMatchIndex} <: AbstractMatchType
+mutable struct MatchOne{T<:AbstractMatchIndex} <: AbstractMatchType
     a::T
 end
 
 MatchOne(a) = MatchOne(MatchIndex(a))
 
-type MatchNone <: AbstractMatchType
+mutable struct MatchNone <: AbstractMatchType
 end
 
-type MatchFail <: AbstractMatchType
+mutable struct MatchFail <: AbstractMatchType
 end
 
-immutable MatchSequence{T<:AbstractMatchIndex} <: AbstractMatchType
+struct MatchSequence{T<:AbstractMatchIndex} <: AbstractMatchType
     a::T
 end
 
 MatchSequence(a) = MatchSequence(MatchIndex(a))
 
-immutable MatchNullSequence{T<:AbstractMatchIndex} <: AbstractMatchType
+struct MatchNullSequence{T<:AbstractMatchIndex} <: AbstractMatchType
     a::T
 end
 

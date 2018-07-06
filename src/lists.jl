@@ -38,7 +38,7 @@ replace the `Head` of expression `ex` with `List`.
 concatenate arguments of expressions with the same `Head`, returning an expression with the same `Head`.
 """
 
-@doap function Join{T}(args::Mxpr{T}...)
+@doap function Join(args::Mxpr{T}...) where T
     nargs = newargs()
     foreach( x -> append!(nargs,margs(x)), args)
     mxpra(mhead(args[1]),nargs)
@@ -227,7 +227,7 @@ function _do_Range_fill(args, n, ::Type{Int})
     return args
 end
 
-function _do_Range_fill{T<:Real}(args, n, ::Type{T})
+function _do_Range_fill(args, n, ::Type{T}) where T<:Real
 #    j = one(T)
     n1 = one(T)
     n2 = convert(T,n)
@@ -241,7 +241,7 @@ end
 
 
 # Fails for rationals. and counting is wrong
-function do_Range{T<:Real,V<:Real}(iter::SJIterA2{T,V})
+function do_Range(iter::SJIterA2{T,V}) where {T<:Real,V<:Real}
     nd = round(Int,mplus(iter.imax,-iter.imin) + 1)  # Try bug fix!
     if nd > 1
         args = newargs(iter.num_iters)
@@ -297,7 +297,7 @@ function _do_Range_A2(args,b,r,n)
 end
 
 # seems to be little penalty for mplus instead of +
-function do_Range{T<:Real,V<:Real,W<:Real}(iter::SJIterA3{T,V,W})
+function do_Range(iter::SJIterA3{T,V,W}) where {T<:Real,V<:Real,W<:Real}
     n = iter.num_iters
     args = newargs(n)
     j = iter.imin
@@ -385,7 +385,7 @@ function apprules(mx::Mxpr{:OldRange})
 end
 
 # separate functions are *essential* for type stability and efficiency.
-function range_args1{T<:Integer}(n::T)
+function range_args1(n::T) where T<:Integer
     args = newargs(n);
     @inbounds for i in one(n):n
         args[i] = i
@@ -393,7 +393,7 @@ function range_args1{T<:Integer}(n::T)
     return args
 end
 
-function range_args1{T<:AbstractFloat}(n::T)
+function range_args1(n::T) where T<:AbstractFloat
     ni = floor(Int,n)
     args = newargs(ni);
     @inbounds for i in 1:ni
@@ -476,7 +476,7 @@ function _constantarray(expr,ns::Array)
     _constantarray(a,ns[2:end])
 end
 
-function _constantarray{T<:Union{Number,SJSym,String}}(expr::T,n::Integer)
+function _constantarray(expr::T,n::Integer) where T<:Union{Number,SJSym,String}
     nargs = newargs(n)
     fill!(nargs,expr)
     a = mxpra(:List,nargs)

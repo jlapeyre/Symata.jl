@@ -41,7 +41,7 @@ function Symata_start()
         color_set || (global have_color = false)
     else
 #        term = Terminals.TTYTerminal(get(ENV,"TERM",@windows? "" : "dumb"),STDIN,STDOUT,STDERR)
-        term = Terminals.TTYTerminal(get(ENV,"TERM", @compat @static is_windows() ? "" : "dumb"),STDIN,STDOUT,STDERR)
+        term = Terminals.TTYTerminal(get(ENV,"TERM", @static is_windows() ? "" : "dumb"),STDIN,STDOUT,STDERR)
         global is_interactive = true
         color_set || (global have_color = Terminals.hascolor(term))
         Base.eval(parse("global have_color = " * string(have_color)))  # get colors for warn and error
@@ -115,7 +115,7 @@ end
 
 symata_repl_history() = symata_repl_mode().hist
 
-function  set_symata_prompt{T<:AbstractString}(s::T)
+function  set_symata_prompt(s::T) where T<:AbstractString
     symata_have_dumb_terminal() && return # not implemented yet
     (Symata.symata_repl_mode().prompt = s)
 end

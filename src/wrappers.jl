@@ -25,8 +25,8 @@
 
 ### sjgamma
 
-sjgamma{T<:AbstractFloat}(x::T) = gamma(x)
-sjgamma{T<:AbstractFloat}(x::Complex{T}) = gamma(x)
+sjgamma(x::T) where {T<:AbstractFloat} = gamma(x)
+sjgamma(x::Complex{T}) where {T<:AbstractFloat} = gamma(x)
 sjgamma(a) = a |> sjtopy |> sympy_gamma |> pytosj
 sjgamma(a,z) = sympy_gamma(sjtopy(a),sjtopy(z)) |> pytosj
 
@@ -38,8 +38,8 @@ sympy_erf(x,y) = sympy[:erf2](x,y)
 
 ### sjerf
 
-sjerf{T<:AbstractFloat}(x::T) = erf(x)
-sjerf{T<:AbstractFloat}(x::Complex{T}) = erf(x)
+sjerf(x::T) where {T<:AbstractFloat} = erf(x)
+sjerf(x::Complex{T}) where {T<:AbstractFloat} = erf(x)
 sjerf(a) = a |> sjtopy |> sympy_erf |> pytosj
 sjerf(a,z) = sympy_erf(sjtopy(a),sjtopy(z)) |> pytosj
 
@@ -61,16 +61,16 @@ function sjlog(b::AbstractFloat,x::Real)
     x <= 0 ? log(b,complex(x,zero(x))) : log(b,x)
 end
 
-sjlog{T<:AbstractFloat}(b::AbstractFloat,z::Complex{T}) = log(b,z)
+sjlog(b::AbstractFloat,z::Complex{T}) where {T<:AbstractFloat} = log(b,z)
 function sjlog(b::AbstractFloat,x::Complex)
     log(b,complex(x,zero(x)))
 end
 
-sjlog{T<:AbstractFloat}(z::Complex{T}) = log(z)
-sjlog{T<:AbstractFloat}(b::Number,z::Complex{T}) = log(b,z)
-sjlog{T<:AbstractFloat}(b::Complex{T}, z::AbstractFloat) = log(b,z)
-sjlog{T<:AbstractFloat,V<:AbstractFloat}(b::Complex{T},z::Complex{V}) = log(b,z)
-sjlog{T<:AbstractFloat}(b::Complex{T}, z::Number) = log(b,z)
+sjlog(z::Complex{T}) where {T<:AbstractFloat} = log(z)
+sjlog(b::Number,z::Complex{T}) where {T<:AbstractFloat} = log(b,z)
+sjlog(b::Complex{T}, z::AbstractFloat) where {T<:AbstractFloat} = log(b,z)
+sjlog(b::Complex{T},z::Complex{V}) where {T<:AbstractFloat,V<:AbstractFloat} = log(b,z)
+sjlog(b::Complex{T}, z::Number) where {T<:AbstractFloat} = log(b,z)
 
 sjlog(x)  =  x |> sjtopy |> sympy[:log] |> pytosj
 

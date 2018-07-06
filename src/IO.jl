@@ -126,7 +126,7 @@ read and evaluate Symata expressions from file `filename`.
     Try putting empty lines between expressions if you get errors on reading.
 """
 
-do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_Symata_file(fname)
+do_Get(mx::Mxpr{:Get}, fname::T) where {T<:AbstractString} =  read_Symata_file(fname)
 
 ### ReadString
 
@@ -138,7 +138,7 @@ do_Get{T<:AbstractString}(mx::Mxpr{:Get}, fname::T) =  read_Symata_file(fname)
 reads `filename` and returns the contents as a `String`.
 """
 
-do_ReadString{T<:AbstractString}(mx::Mxpr{:ReadString}, fname::T) = readstring(fname)
+do_ReadString(mx::Mxpr{:ReadString}, fname::T) where {T<:AbstractString} = readstring(fname)
 
 # Write Symata expression as strings that can be used as input to define
 # objects and properties.
@@ -233,8 +233,8 @@ append definitions associated with the objects in `list` to `filename`.
 `Save` writes defnitions given by `Definition`.
 """
 
-do_Save{T<:AbstractString}(mx::Mxpr{:Save}, fname::T, sym::SJSym) = save_definition(fname, [sym])
-do_Save{T<:AbstractString}(mx::Mxpr{:Save}, fname::T, syms::Mxpr{:List}) = save_definition(fname, margs(syms))
+do_Save(mx::Mxpr{:Save}, fname::T, sym::SJSym) where {T<:AbstractString} = save_definition(fname, [sym])
+do_Save(mx::Mxpr{:Save}, fname::T, syms::Mxpr{:List}) where {T<:AbstractString} = save_definition(fname, margs(syms))
 
 function save_definition(fname, syms)
     io = open(fname, "a")  # check stuff !
@@ -270,7 +270,7 @@ do_Open(mx::Mxpr{:Open}, args...) = open(args...)
 closes the `IO` stream `str`.
 """
 
-do_Close{T<:IO}(mx::Mxpr{:Close}, str::T) = (close(str); Null)
+do_Close(mx::Mxpr{:Close}, str::T) where {T<:IO} = (close(str); Null)
 
 
 ### STDOUT, STDERR.  These two symbols are set it client_symata.jl after the REPL is created.

@@ -59,7 +59,7 @@ end
 
 Holds flags and counters for monitoring evaluation.
 """
-type Meval
+mutable struct Meval
     entrycount::Int             # For trace
     trace_ev_flag::Bool         # Trace()
     trace_upvalues_flag::Bool   # TraceUpValues()
@@ -203,7 +203,7 @@ end
 
 ##### More evaluation things
 
-type SavedOutput
+mutable struct SavedOutput
     expr::Any
 end
 
@@ -253,7 +253,7 @@ global do_we_print_outstring = true
 
 ##### Break
 
-type FlowFlags
+mutable struct FlowFlags
     breakflag::Bool
     throwflag::Bool
 end

@@ -1,36 +1,36 @@
-@compat abstract type SequenceSpec end
+abstract type SequenceSpec end
 
 #  All all elements
-type SequenceAll <: SequenceSpec
+mutable struct SequenceAll <: SequenceSpec
 end
 
 #  None  no elements
-type SequenceNone <: SequenceSpec
+mutable struct SequenceNone <: SequenceSpec
 end
 
 #  n  elements 1 through n
-immutable SequenceN{T<:Integer} <: SequenceSpec
+struct SequenceN{T<:Integer} <: SequenceSpec
     n::T
 end
 
 #  UpTo[n] elements 1 up to at most n
-immutable SequenceUpToN{T<:Integer} <: SequenceSpec
+struct SequenceUpToN{T<:Integer} <: SequenceSpec
     n::T
 end
 
 #  [n]  element n only
-immutable SequenceNOnly{T<:Integer} <: SequenceSpec
+struct SequenceNOnly{T<:Integer} <: SequenceSpec
     n::T
 end
 
 #  [m,n] elements m through n
-immutable SequenceMN{T<:Integer,V<:Integer} <: SequenceSpec
+struct SequenceMN{T<:Integer,V<:Integer} <: SequenceSpec
     m::V    
     n::T
 end
 
 #  [m,n] elements m through n, step s
-immutable SequenceMNS{T<:Integer,V<:Integer,W<:Integer} <: SequenceSpec
+struct SequenceMNS{T<:Integer,V<:Integer,W<:Integer} <: SequenceSpec
     m::V
     n::T    
     s::W

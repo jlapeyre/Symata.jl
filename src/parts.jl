@@ -9,7 +9,7 @@ posnegi(nmax::Integer,n::Integer) = n >= 0 ? n : nmax + n + 1
 posnegi(x,n::Integer) = n
 posnegi(x,a) = a
 
-function get_part_one_ind{V<:Union{Mxpr,Array}}(texpr::V,ind::Integer)
+function get_part_one_ind(texpr::V,ind::Integer) where V<:Union{Mxpr,Array}
     ind = posnegi(texpr,ind)
     texpr = ind == 0 ? mhead(texpr) : texpr[ind]
     return texpr
@@ -305,7 +305,7 @@ apply `spec1` at level `1`, `spec2` at level `2`...
 @mkapprule Take
 @doap Take(x::Mxpr, rawspecs...) = take(x,map(sequencespec, rawspecs)...)
 take(x, onespec, specs...) = mxpr(mhead(x),mapmargs(t -> take(t,specs...), margs(take(x,onespec)))...)
-take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0?(1:spec.n):(length(x)+spec.n+1:end)]...)
+take(x,spec::SequenceN)     = mxpr(mhead(x), margs(x)[spec.n>=0 ? (1:spec.n) : (length(x)+spec.n+1:end)]...)
 take(x,spec::SequenceUpToN) = mxpr(mhead(x), margs(x)[1:min(spec.n,length(x))]...)
 take(x,spec::SequenceNOnly) = mxpr(mhead(x), margs(x)[posnegi(x,spec.n)])
 take(x,spec::SequenceMN)    = mxpr(mhead(x), margs(x)[posnegi(x,spec.m):posnegi(x,spec.n)]...)
@@ -330,7 +330,7 @@ take(x,spec::SequenceAll)   = mxpr(mhead(x), margs(x)...)
 @mkapprule Drop
 @doap Drop(x::Mxpr, rawspecs...) = drop(x,map(sequencespec, rawspecs)...)
 drop(x, onespec, specs...) = mxpr(mhead(x),map(t -> drop(t,specs...), margs(drop(x,onespec)))...)
-drop(x,spec::SequenceN) = mxpr(mhead(x), margs(x)[spec.n>0?(((spec.n)+1):end):(1:length(x)+spec.n)]...)
+drop(x,spec::SequenceN) = mxpr(mhead(x), margs(x)[spec.n>0 ? (((spec.n)+1):end) : (1:length(x)+spec.n)]...)
 drop(x,spec::SequenceUpToN) = drop(x,SequenceN(spec.n))
 
 function drop(x,spec::SequenceNOnly)
@@ -503,7 +503,7 @@ end
 perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 """
 
-@doap ReplaceRepeated{T<:Rules}(expr,r::T; kws...) = replacerepeated(expr,r; kws...)
+@doap ReplaceRepeated(expr,r::T; kws...) where {T<:Rules} = replacerepeated(expr,r; kws...)
 
 ## FIXME: use get to get keywords
 #function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)

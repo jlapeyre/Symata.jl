@@ -2,9 +2,7 @@
 
 using Primes
 
-if VERSION >= v"0.5-"
-    import Combinatorics: permutations, partitions
-end
+import Combinatorics: permutations, partitions
 
 import Polynomials
 import Combinatorics

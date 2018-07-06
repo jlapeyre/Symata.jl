@@ -174,14 +174,14 @@ jslexless(x::Mxpr{:Times}, y::Mxpr) = jslexless(x[end],y)
 jslexless(x::Mxpr, y::Mxpr{:Times}) = jslexless(x,y[end])
 
 jslexless(x::Qsym, y::Qsym) = (x.context == y.context) ? jslexless(x.name, y.name) : jslexless(x.context, y.context)
-function jslexless{T}(x::T, y::Qsym)
+function jslexless(x::T, y::Qsym) where T
     true
 end
-function jslexless{T}(x::Qsym, y::T)
+function jslexless(x::Qsym, y::T) where T
     false
 end
 
-const istrcmp =  @compat @static is_windows() ? :_strnicmp : :strcasecmp
+const istrcmp =  @static is_windows() ? :_strnicmp : :strcasecmp
 
 # cmp(a::Symbol, b::Symbol) is in base/string.jl
 # Mma does case insensitive ordering of symbols, we do too
@@ -204,7 +204,7 @@ jslexless(x::Mxpr, y::SJSym) = false
 # Otherwise repeat, comparing next-to-last elements, etc.
 # If all terms compared are equal, the shorter of
 # x and y is the least.
-function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
+function jslexless(x::Mxpr{T},y::Mxpr{T}) where T
     x === y && return false
     ax = margs(x)
     ay = margs(y)
@@ -224,13 +224,13 @@ function jslexless{T}(x::Mxpr{T},y::Mxpr{T})
     return lx < ly
 end
 
-jslexless{T,V}(x::Mxpr{T},y::Mxpr{V}) = T < V
+jslexless(x::Mxpr{T},y::Mxpr{V}) where {T,V} = T < V
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
 _jslexless(x::DataType, y::DataType) = x <: y
-_jslexless{T}(x::T,y::T) = lexless(x,y)  # use Julia definitions
-jslexless{T}(x::T,y::T) =  _jslexless(x,y)
+_jslexless(x::T,y::T) where {T} = lexless(x,y)  # use Julia definitions
+jslexless(x::T,y::T) where {T} =  _jslexless(x,y)
 # We have defined an order for different types
-jslexless{T,V}(x::T,y::V) = mxtypeorder(T) < mxtypeorder(V)
+jslexless(x::T,y::V) where {T,V} = mxtypeorder(T) < mxtypeorder(V)
 
 ## Step 2. Sort expression according to jslexless.
 
@@ -331,7 +331,7 @@ distribute_minus_one(x) = x
 #### canonexpr!
 
 
-immutable Times_analysis
+struct Times_analysis
     gotFloat::Bool
     isZero::Bool
     isIndeterminate::Bool

@@ -4,15 +4,15 @@
 # or meval. The recursion limit is normally around 1000. We throw the exception
 # and catch it in symataevaluate where the evaluation starts.
 
-type RecursionLimitError <: Exception
+mutable struct RecursionLimitError <: Exception
     msg::AbstractString
     mx::Mxpr
 end
 
 # We don't have these working yet. We just use error for now
-@compat abstract type SymataParseErr <: Exception end
+abstract type SymataParseErr <: Exception end
 
-type NoTranslationError <: SymataParseErr
+mutable struct NoTranslationError <: SymataParseErr
     head
     expr
 end
@@ -60,9 +60,9 @@ end
 
 #### Argument check warnings
 
-@compat abstract type ArgCheckErr <: Exception end
+abstract type ArgCheckErr <: Exception end
 
-type ExactNumArgsErr <: ArgCheckErr
+mutable struct ExactNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
 
@@ -91,7 +91,7 @@ end
 
 ##### RangeNumArgsErr
 
-type RangeNumArgsErr <: ArgCheckErr
+mutable struct RangeNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
 
@@ -122,7 +122,7 @@ end
 
 ##### RangeNumArgsInfErr
 
-type RangeNumArgsInfErr <: ArgCheckErr
+mutable struct RangeNumArgsInfErr <: ArgCheckErr
     msg::AbstractString
 end
 
@@ -154,7 +154,7 @@ end
 
 ###### TwoNumArgsErr
 
-type TwoNumArgsErr <: ArgCheckErr
+mutable struct TwoNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
 
@@ -174,7 +174,7 @@ end
 
 ###### MoreNumArgsErr
 
-type MoreNumArgsErr <: ArgCheckErr
+mutable struct MoreNumArgsErr <: ArgCheckErr
     msg::AbstractString
 end
 

@@ -25,7 +25,7 @@ end
 
 # Use Halley's root-finding method to find x = lambertw(z) with
 # initial point x.
-function _lambertw{T<:Number}(z::T, x::T)
+function _lambertw(z::T, x::T) where T<:Number
     two_t = convert(T,2)
     lastx = x
     lastdiff = 0.0
@@ -50,12 +50,12 @@ end
 
 # Real x, k = 0
 # fancy initial condition does not seem to help speed.
-function lambertwk0{T<:Real}(x::T)
+function lambertwk0(x::T) where T<:Real
     x == Inf && return Inf
-    const one_t = one(T)
-    const oneoe = -one_t/convert(T,e)
+    one_t = one(T)
+    oneoe = -one_t/convert(T,e)
     x == oneoe && return -one_t
-    const itwo_t = 1/convert(T,2)
+    itwo_t = 1/convert(T,2)
     oneoe <= x || @baddomain
     if x > one_t
         lx = log(x)
@@ -68,8 +68,8 @@ function lambertwk0{T<:Real}(x::T)
 end
 
 # Real x, k = -1
-function _lambertwkm1{T<:Real}(x::T)
-    const oneoe = -one(T)/convert(T,e)
+function _lambertwkm1(x::T) where T<:Real
+    oneoe = -one(T)/convert(T,e)
     x == oneoe && return -one(T)
     oneoe <= x || @baddomain
     x == zero(T) && return -convert(T,Inf)
@@ -108,14 +108,14 @@ julia> lambertw(Complex(-10.0,3.0), 4)
     The constant `LAMBERTW_USE_NAN` at the top of the source file controls whether arguments
     outside the domain throw `DomainError` or return `NaN`. The default is `DomainError`.
 """
-function lambertw{T<:Real, V<:Integer}(x::T, k::V)
+function lambertw(x::T, k::V) where {T<:Real, V<:Integer}
     k == 0 && return lambertwk0(x)
     k == -1 && return _lambertwkm1(x)
     @baddomain  # more informative message like below ?
 #    error("lambertw: real x must have k == 0 or k == -1")
 end
 
-function lambertw{T<:Integer, V<:Integer}(x::T, k::V)
+function lambertw(x::T, k::V) where {T<:Integer, V<:Integer}
     if k == 0
         x == 0 && return float(zero(x))
         x == 1 && return convert(typeof(float(x)),LambertW.omega) # must be more efficient way
@@ -126,7 +126,7 @@ end
 ### Complex z ###
 
 # choose initial value inside correct branch for root finding
-function lambertw{T<:Real, V<:Integer}(z::Complex{T}, k::V)
+function lambertw(z::Complex{T}, k::V) where {T<:Real, V<:Integer}
     rT = typeof(real(z))
     one_t = one(rT)
     if abs(z) <= one_t/convert(rT,e)
@@ -156,15 +156,15 @@ function lambertw{T<:Real, V<:Integer}(z::Complex{T}, k::V)
     _lambertw(z,w)
 end
 
-lambertw{T<:Integer, V<:Integer}(z::Complex{T}, k::V) = lambertw(float(z),k)
+lambertw(z::Complex{T}, k::V) where {T<:Integer, V<:Integer} = lambertw(float(z),k)
 
 # lambertw(e + 0im,k) is ok for all k
-function lambertw{T<:Integer}(::Irrational{:e}, k::T)
+function lambertw(::Irrational{:e}, k::T) where T<:Integer
     k == 0 && return 1
     @baddomain
 end
 
-lambertw{T<:Number}(x::T) = lambertw(x,0)
+lambertw(x::T) where {T<:Number} = lambertw(x,0)
 
 ### omega constant ###
 
@@ -174,7 +174,7 @@ const omega_const_bf_ = parse(BigFloat,"0.56714329040978387299996866221035554975
 
 # maybe compute higher precision. converges very quickly
 function omega_const(::Type{BigFloat})
-  @compat  precision(BigFloat) <= 256 && return omega_const_bf_
+  precision(BigFloat) <= 256 && return omega_const_bf_
     myeps = eps(BigFloat)
     oc = omega_const_bf_
     for i in 1:100
@@ -329,7 +329,7 @@ function wser(p,x)
 end
 
 # These may need tuning.
-function wser{T<:Real}(p::Complex{T},z)
+function wser(p::Complex{T},z) where T<:Real
     x = abs(z)
     x < 4e-11 && return wser3(p)
     x < 1e-5 && return wser7(p)
@@ -379,13 +379,13 @@ julia> convert(Float64,(lambertw(-BigFloat(1)/e + BigFloat(10)^(-18),-1) + 1))
     The loss of precision in `lambertw` is analogous to the loss of precision
     in computing the `sqrt(1-x)` for `x` close to `1`.
 """
-function lambertwbp{T<:Number}(x::T,k::Int)
+function lambertwbp(x::T,k::Int) where T<:Number
     k == 0 && return _lambertw0(x)
     k == -1 && return _lambertwm1(x)
     error("expansion about branch point only implemented for k = 0 and -1")
 end
 
-lambertwbp{T<:Number}(x::T) = _lambertw0(x)
+lambertwbp(x::T) where {T<:Number} = _lambertw0(x)
 
 # Base.@vectorize_1arg Number lambertw
 # Base.@vectorize_2arg Number lambertw

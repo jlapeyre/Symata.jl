@@ -116,7 +116,7 @@ just calls `deepcopy`.
 """
 recursive_copy(x) = deepcopy(x)
 
-sjcopy{T<:Union{AbstractString,Symbol}}(s::T) = identity(s)
+sjcopy(s::T) where {T<:Union{AbstractString,Symbol}} = identity(s)
 sjcopy(x) = copy(x)
 
 """

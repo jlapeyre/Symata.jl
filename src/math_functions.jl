@@ -113,8 +113,8 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
 
 # Do NDigits by hand for now!
 @mkapprule NDigits :nargs => 1:2
-@doap NDigits{T<:Integer,V<:Integer}(n::T,b::V) = ndigits(n,b)
-@doap NDigits{T<:Integer}(n::T) = ndigits(n)
+@doap NDigits(n::T,b::V) where {T<:Integer,V<:Integer} = ndigits(n,b)
+@doap NDigits(n::T) where {T<:Integer} = ndigits(n)
 @doap NDigits(n) = mx
 @doap NDigits(n,b) = mx
 
@@ -488,7 +488,7 @@ set_sjtopy(:Erf, :sympy_erf)
 
 @mkapprule InverseErf :nargs => 1:2
 
-@doap InverseErf{T<:AbstractFloat}(x::T) = x < 1 && x > -1 ? erfinv(x) : mx
+@doap InverseErf(x::T) where {T<:AbstractFloat} = x < 1 && x > -1 ? erfinv(x) : mx
 @doap InverseErf(x) = pytosj(sympy[:erfinv](sjtopy(x)))
 @doap InverseErf(x,y) = pytosj(sympy[:erf2inv](sjtopy(x),sjtopy(y)))
 
@@ -564,10 +564,10 @@ end
 do_N(x::Float64,dig) = x  # Mma does this
 do_N(x,dig) = x
 do_N(x) = x
-do_N{T<:AbstractFloat}(n::T) = n
-do_N{T<:Real}(n::T) = float(n)
-do_N{T<:Real}(n::Complex{T}) = complex(float(real(n)), float(imag(n)))
-do_N{T<:Real,V<:Integer}(n::T,p::V)  = float_with_precision(n,p)
+do_N(n::T) where {T<:AbstractFloat} = n
+do_N(n::T) where {T<:Real} = float(n)
+do_N(n::Complex{T}) where {T<:Real} = complex(float(real(n)), float(imag(n)))
+do_N(n::T,p::V) where {T<:Real,V<:Integer}  = float_with_precision(n,p)
 
 # p is number of decimal digits of precision
 # Julia doc says set_bigfloat_precision uses
@@ -618,7 +618,7 @@ function make_Mxpr_N()
 
     _Nbody = _make_N_body(:(do_N(args[1],p)), :(do_N(args[i],p)) )
     @eval begin
-        function do_N{T<:Integer}(mx::Mxpr,p::T)
+        function do_N(mx::Mxpr,p::T) where T<:Integer
             $_Nbody
             res
         end
@@ -651,7 +651,7 @@ function do_N(s::SJSym)
     return s
 end
 
-function do_N{T<:Integer}(s::SJSym,pr::T)
+function do_N(s::SJSym,pr::T) where T<:Integer
     if s == :Pi || s == :π
         return float_with_precision(pi,pr)
     elseif s == :E
@@ -786,8 +786,8 @@ The conversion is done when the expression is parsed, so it is much faster than 
 # mkapprule requires that the first parameter do_Complex be annotated with the Mxpr type.
 
 @mkapprule Complex
-do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T,b::T) = complex(a,b)
-do_Complex{T<:Number}(mx::Mxpr{:Complex},a::T) = complex(a)
+do_Complex(mx::Mxpr{:Complex},a::T,b::T) where {T<:Number} = complex(a,b)
+do_Complex(mx::Mxpr{:Complex},a::T) where {T<:Number} = complex(a)
 
 @sjdoc Rational """
     Rational(a,b), or a/b
@@ -890,22 +890,22 @@ set floating point numbers smaller in magnitude than `eps` in `expr` to zero.
 do_Chop(mx::Mxpr{:Chop}, x) = zchop(x)
 do_Chop(mx::Mxpr{:Chop}, x, zeps) = zchop(x,zeps)
 const chop_eps = 1e-14
-zchop{T<:AbstractFloat}(x::T, eps=chop_eps) = abs(x) > eps ? x : 0  # don't follow abstract type
-zchop{T<:Number}(x::T, eps=chop_eps) = x
-zchop{T<:AbstractFloat}(x::Complex{T}, eps=chop_eps) = complex(zchop(real(x),eps),zchop(imag(x),eps))
-zchop{T<:AbstractArray}(a::T, eps=chop_eps) = (b = similar(a); for i in 1:length(a) b[i] = zchop(a[i],eps) end ; b)
-zchop!{T<:AbstractArray}(a::T, eps=chop_eps) = (for i in 1:length(a) a[i] = zchop(a[i],eps) end ; a)
+zchop(x::T, eps=chop_eps) where {T<:AbstractFloat} = abs(x) > eps ? x : 0  # don't follow abstract type
+zchop(x::T, eps=chop_eps) where {T<:Number} = x
+zchop(x::Complex{T}, eps=chop_eps) where {T<:AbstractFloat} = complex(zchop(real(x),eps),zchop(imag(x),eps))
+zchop(a::T, eps=chop_eps) where {T<:AbstractArray} = (b = similar(a); for i in 1:length(a) b[i] = zchop(a[i],eps) end ; b)
+zchop!(a::T, eps=chop_eps) where {T<:AbstractArray} = (for i in 1:length(a) a[i] = zchop(a[i],eps) end ; a)
 zchop(x::Expr,eps=chop_eps) = Expr(x.head,zchop(x.args)...)
 zchop(x) = x
 zchop(x,eps) = x
 
-function zchop{T<:Mxpr}(mx::T)
+function zchop(mx::T) where T<:Mxpr
     nargs = similar(margs(mx))
     for i in 1:length(nargs) nargs[i] = zchop(mx[i]) end
     mxpr(mhead(mx), nargs)
 end
 
-function zchop{T<:Mxpr}(mx::T,zeps)
+function zchop(mx::T,zeps) where T<:Mxpr
     nargs = similar(margs(mx))
     for i in 1:length(nargs) nargs[i] = zchop(mx[i],zeps) end
     mxpr(mhead(mx), nargs)
@@ -929,11 +929,11 @@ apprules(mx::Mxpr{:Exp}) = mxpr(:Power,:E,mx[1])
 # TODO: handle 3rd argument
 #### Mod
 @mkapprule  Mod  :nargs => 2
-do_Mod{T<:Integer, V<:Integer}(mx::Mxpr{:Mod}, x::T, y::V) = mod1(x,y)
+do_Mod(mx::Mxpr{:Mod}, x::T, y::V) where {T<:Integer, V<:Integer} = mod1(x,y)
 
 #### DivRem
 @mkapprule  DivRem  :nargs => 2
-do_DivRem{T<:Integer, V<:Integer}(mx::Mxpr{:DivRem}, x::T, y::V) = mxprcf(:List,divrem(x,y)...)
+do_DivRem(mx::Mxpr{:DivRem}, x::T, y::V) where {T<:Integer, V<:Integer} = mxprcf(:List,divrem(x,y)...)
 
 
 #### Abs
@@ -946,7 +946,7 @@ the absolute value of `z`.
 
 @mkapprule Abs :nargs => 1
 
-@doap Abs{T<:Number}(n::T) = mabs(n)
+@doap Abs(n::T) where {T<:Number} = mabs(n)
 
 @doap function Abs(x)
     x |> sjtopy |> sympy[:Abs] |> pytosj
@@ -959,7 +959,7 @@ function do_Abs(mx::Mxpr{:Abs}, pow::Mxpr{:Power})
 end
 
 # SymPy does not do this one
-doabs_pow{T<:Real}(mx,b,e::T) = mxpr(:Power,mxpr(:Abs,b),e)
+doabs_pow(mx,b,e::T) where {T<:Real} = mxpr(:Power,mxpr(:Abs,b),e)
 
 function doabs_pow(mx,b,e)
     mx[1] |> sjtopy |> sympy[:Abs] |> pytosj
@@ -990,7 +990,7 @@ end
 # end
 
 # TODO Fix canonical routines so that 1.0 * a is not simplifed to a
-function doabsmone{T<:Real}(mx,prod,f::T)
+function doabsmone(mx,prod,f::T) where T<:Real
     args = copy(margs(prod))
     shift!(args)
     if length(args) == 1
@@ -1007,7 +1007,7 @@ end
 
 do_Sign(mx::Mxpr{:Sign}, x::Number) = sign_number(x)
 
-function sign_number{T<:Real}(z::Complex{T})
+function sign_number(z::Complex{T}) where T<:Real
     av = mpow(real(z*conj(z)),-1//2)
     av == 1 ? z : mxprcf(:Times, z,  av)
 end
@@ -1367,7 +1367,7 @@ end
 @mkapprule CubeRoot :nargs => 1
 
 @doap CubeRoot(x::AbstractFloat) = cbrt(x)
-@doap function CubeRoot{T<:Union{Integer,Rational}}(x::T)
+@doap function CubeRoot(x::T) where T<:Union{Integer,Rational}
     x == 0 && return 0
     x > 0 && return mpow(x,1//3)
     -mpow(-x,1//3)
@@ -1420,12 +1420,12 @@ end
 
 @mkapprule Power :nargs => 2
 
-do_Power{T<:Integer, V<:Symbolic}(mx::Mxpr{:Power}, b::V, n::T) = n == 1 ? b : n == 0 ? one(n) : mx
+do_Power(mx::Mxpr{:Power}, b::V, n::T) where {T<:Integer, V<:Symbolic} = n == 1 ? b : n == 0 ? one(n) : mx
 
 @doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
 @doap Power(b::SJSym, expt::Integer) = b == :E ? dopowerE(mx, expt) : mx
-dopowerE{T<:AbstractFloat}(mx, expt::T) = exp(expt)
-dopowerE{T<:AbstractFloat}(mx, expt::Complex{T}) = exp(expt)
+dopowerE(mx, expt::T) where {T<:AbstractFloat} = exp(expt)
+dopowerE(mx, expt::Complex{T}) where {T<:AbstractFloat} = exp(expt)
 
 function dopowerE(mx, expt)
     syexpt = sjtopy(expt)
@@ -1439,23 +1439,23 @@ function dopowerE(mx, expt)
 end
 
 # Don't handle this yet.
-do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Rational{V}) = mx
-do_Power{T<:Integer,V<:Integer}(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{Rational{V}}) = mx
+do_Power(mx::Mxpr{:Power},   b::Complex{T},expt::Rational{V}) where {T<:Integer,V<:Integer} = mx
+do_Power(mx::Mxpr{:Power},   b::Complex{T},expt::Complex{Rational{V}}) where {T<:Integer,V<:Integer} = mx
 
-do_Power{T<:Number,V<:Number}(mx::Mxpr{:Power},   b::T,expt::V) = mpow(b,expt)
+do_Power(mx::Mxpr{:Power},   b::T,expt::V) where {T<:Number,V<:Number} = mpow(b,expt)
 
 # For some reason, we need this integer rule. For instance for (a^2)^2 --> a^4
-do_Power{T<:Integer}(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
-do_Power{T<:Real}(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) = mpow(base(b), mmul(exp,expt(b)))
+do_Power(mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) where {T<:Integer} = mpow(base(b), mmul(exp,expt(b)))
+do_Power(   mx::Mxpr{:Power}, b::Mxpr{:Power}, exp::T) where {T<:Real} = mpow(base(b), mmul(exp,expt(b)))
 
 do_Power(mx::Mxpr{:Power},   b::Mxpr{:Power}, exp) = is_Number(expt(b)) ? mpow(base(b), mmul(expt(b),exp)) : mx
 
-do_Power{T<:AbstractFloat}(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) = b == :E ? exp(expt) : mx
+do_Power(mx::Mxpr{:Power},   b::SJSym,expt::Complex{T}) where {T<:AbstractFloat} = b == :E ? exp(expt) : mx
 
-do_Power{T<:Integer}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
-do_Power{T<:Number}(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) = mpow(b,expt)
+do_Power(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) where {T<:Integer} = mpow(b,expt)
+do_Power(mx::Mxpr{:Power},   b::Mxpr{:DirectedInfinity},expt::T) where {T<:Number} = mpow(b,expt)
 
-function do_Power{T<:Integer, V<:Rational}(mx::Mxpr{:Power},b::T,expt::V)
+function do_Power(mx::Mxpr{:Power},b::T,expt::V) where {T<:Integer, V<:Rational}
     mpow(b,expt)
 end
 
@@ -1465,7 +1465,7 @@ do_Power(mx,b,e) = mx
 ### // (Rational)
 
 apprules(mx::Mxpr{://}) = makerat(mx,mx[1],mx[2])
-makerat{T<:Number}(mx::Mxpr{://},n::T,d::T) = n//d
+makerat(mx::Mxpr{://},n::T,d::T) where {T<:Number} = n//d
 makerat(mx,n,d) = mx
 
 ### BI
@@ -1500,19 +1500,19 @@ convert `n` a maximum precision representation, typically
 
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
-dobigint{T<:Number}(mx,x::T) = BigInt(x)
-dobigint{T<:AbstractString}(mx,x::T) = parse(BigInt,x)
+dobigint(mx,x::T) where {T<:Number} = BigInt(x)
+dobigint(mx,x::T) where {T<:AbstractString} = parse(BigInt,x)
 
 apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
-dobigfloat{T<:Number}(mx,x::T) = BigFloat(x)
-dobigfloat{T<:AbstractString}(mx,x::T) = parse(BigFloat,x)
+dobigfloat(mx,x::T) where {T<:Number} = BigFloat(x)
+dobigfloat(mx,x::T) where {T<:AbstractString} = parse(BigFloat,x)
 
 ### Big
 
 apprules(mx::Mxpr{:Big}) = do_Big(mx,mx[1])
 do_Big(mx,x) = mx
-do_Big{T<:Number}(mx,x::T) = big(x)
+do_Big(mx,x::T) where {T<:Number} = big(x)
 
 ### Minus
 

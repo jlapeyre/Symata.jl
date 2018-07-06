@@ -1,17 +1,17 @@
-type A
+mutable struct A
     x::Int
 end
 
-type B
+mutable struct B
     x::Int
 end
 
-type C
+mutable struct C
     x::Int
 end
 
-typealias AB Union(A,B)
-typealias BC Union(B,C)
+const AB = Union(A,B)
+const BC = Union(B,C)
 
 f(x::AB) = 1
 g(x::BC) = 2

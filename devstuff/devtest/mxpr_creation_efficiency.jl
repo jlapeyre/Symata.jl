@@ -78,7 +78,7 @@ end
 ## Here we copy Mxpr type and creation and modify it
 
 # Test mxpr
-type TMxpr{T}
+mutable struct TMxpr{T}
     head::Any          # making this Any instead of SJSym slows things a bit
     args::MxprArgs
     fixed::Bool
@@ -89,7 +89,7 @@ type TMxpr{T}
     typ::DataType
 end
 
-typealias TFreeSyms Dict{Symbol,Bool}
+const TFreeSyms = Dict{Symbol,Bool}
 tnewsymsdict() = TFreeSyms() # Dict{Symbol,Bool}()  # create dict for field syms of Mxpr
 
 @inline setage(tmx::TMxpr) = tmx.age = increvalage()

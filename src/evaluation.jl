@@ -232,9 +232,9 @@ end
 #     simple::Bool
 # end
 
-@compat abstract type AbstractEvaluateOptions end
+abstract type AbstractEvaluateOptions end
 
-type EvaluateJuliaSyntax <: AbstractEvaluateOptions
+mutable struct EvaluateJuliaSyntax <: AbstractEvaluateOptions
 end
 
 function prompt(opt::EvaluateJuliaSyntax)
@@ -247,7 +247,7 @@ end
 
 simple(opt::EvaluateJuliaSyntax) = false
 
-type EvaluateJuliaSyntaxSimple <: AbstractEvaluateOptions
+mutable struct EvaluateJuliaSyntaxSimple <: AbstractEvaluateOptions
 end
 
 simple(opt::EvaluateJuliaSyntaxSimple) = true
@@ -413,10 +413,10 @@ function infseval(s::SJSym)
 end
 # Any type that other than SJSym (ie Symbol) or Mxpr is not meval'd.
 @inline infseval(x) = x
-@inline infseval{T<:Real}(x::Complex{T}) = x.im == zero(x.im) ? x.re : x
+@inline infseval(x::Complex{T}) where {T<:Real} = x.im == zero(x.im) ? x.re : x
 
-infseval{T<:Integer}(x::Complex{Rational{T}}) = meval(x)
-infseval{T<:Integer}(x::Rational{T}) = meval(x)
+infseval(x::Complex{Rational{T}}) where {T<:Integer} = meval(x)
+infseval(x::Rational{T}) where {T<:Integer} = meval(x)
 
 meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 
@@ -429,11 +429,11 @@ meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 #################################################################################
 
 # These are normally not called, but rather are caught by infseval.
-@inline meval{T<:Real}(x::Complex{T}) = x.im == 0 ? x.re : x
+@inline meval(x::Complex{T}) where {T<:Real} = x.im == 0 ? x.re : x
 
-meval{T<:Integer}(x::Rational{T}) = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
+meval(x::Rational{T}) where {T<:Integer} = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
 
-meval{T<:Void}(x::T) = Null
+meval(x::T) where {T<:Void} = Null
 
 meval(x) = x
 

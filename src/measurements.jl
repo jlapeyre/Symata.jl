@@ -42,7 +42,7 @@ because it counts all nodes in the tree, not only terminal nodes.
 """
 leaf_count(x) = 1
 leaf_count(x::Complex) = 3
-leaf_count{T<:Rational}(x::Complex{T}) = 7
+leaf_count(x::Complex{T}) where {T<:Rational} = 7
 leaf_count(x::Rational) = 3
 leaf_count(mx::Mxpr) = sum(leaf_count,margs(mx)) + 1  #   1 for the Head
 
@@ -57,7 +57,7 @@ leaf_count(mx::Mxpr) = sum(leaf_count,margs(mx)) + 1  #   1 for the Head
 
 jssizeof(x) = sizeof(x)
 # I think they are 64 bit chunks
-jssizeof{T<:BigInt}(x::T) = 8 * x.alloc
+jssizeof(x::T) where {T<:BigInt} = 8 * x.alloc
 jssizeof(a::Symbol) = Int(ccall(:strlen, Int32, (Ptr{UInt8},), a))
 byte_count(x) = jssizeof(x)
 function byte_count(mx::Mxpr)
@@ -134,7 +134,7 @@ returns a list of the dimensions of `expr`.
 @mkapprule Dimensions :nargs => 1:2
 @doap Dimensions(x) = 0
 
-type DimensionsData
+mutable struct DimensionsData
     dims::Array{Int,1}
     level::Int
     head

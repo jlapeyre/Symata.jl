@@ -8,7 +8,7 @@ using Primes
 #  12/6 --> 2, not 2.0
 #  13/6 --> 13//6
 #  (13//6) * 6 --> 13
-rat_to_int{T<:Integer}(r::Rational{T}) = r.den == 1 ? r.num : r
+rat_to_int(r::Rational{T}) where {T<:Integer} = r.den == 1 ? r.num : r
 
 @doc """
     mmul(x,y), mpow(x,y), mplus(x,y), mminus(x), mminus(x,y)
@@ -28,15 +28,15 @@ arithmetic funtions for Symata. These are similar to `*`, `^`, `+`, etc. n Julia
 @doc (@doc arithmetic) mminus
 
 
-mmul{T<:Integer}(x::Int, y::Rational{T}) = (res = x * y; return res.den == 1 ? res.num : res )
+mmul(x::Int, y::Rational{T}) where {T<:Integer} = (res = x * y; return res.den == 1 ? res.num : res )
 
-mmul{T<:Integer,V<:Integer}(x::Complex{V}, y::Rational{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
-mmul{T<:Integer,V<:Integer}(x::Rational{V}, y::Complex{T}) = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
+mmul(x::Complex{V}, y::Rational{T}) where {T<:Integer,V<:Integer} = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
+mmul(x::Rational{V}, y::Complex{T}) where {T<:Integer,V<:Integer} = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
 
 ## ???
 ## mmul{T<:Integer,U<:Rational}(x::Complex{T}, y::Complex{U}) = mmul(y,x)
 
-function mmul{T<:Integer,U<:Rational}(x::Complex{U}, y::Complex{T})
+function mmul(x::Complex{U}, y::Complex{T}) where {T<:Integer,U<:Rational}
     res = x * y
     isa(res,Complex) && return res
     res.den == 1 && return res.num
@@ -44,7 +44,7 @@ function mmul{T<:Integer,U<:Rational}(x::Complex{U}, y::Complex{T})
 end
 
 ## Julia returns different types depending on the order of x and y
-function mmul{T<:Integer,U<:Rational}(x::Complex{T}, y::Complex{U})
+function mmul(x::Complex{T}, y::Complex{U}) where {T<:Integer,U<:Rational}
     res = x * y
     if isa(res,Complex)
         imag(res).num != 0 && return res
@@ -53,17 +53,17 @@ function mmul{T<:Integer,U<:Rational}(x::Complex{T}, y::Complex{U})
     res
 end
 
-mmul{T<:Integer}(x::Rational{T}, y::Int) = (res = x * y; return res.den == 1 ? res.num : res )
+mmul(x::Rational{T}, y::Int) where {T<:Integer} = (res = x * y; return res.den == 1 ? res.num : res )
 
 # Oct 2016. Added generic mxpr(:Times,x,y). Does not break tests.
 # Why ? This allows Compiled (ie. Julia) functions to take far more arguments.
 # FIXME. Use mmul in Symata code instead of *. We want to remove undesired methods for *
-mmul{T<:Number, V<:Number}(x::T,y::V) = x * y
+mmul(x::T,y::V) where {T<:Number, V<:Number} = x * y
 mmul(x,y) = mxpr(:Times, x, y)
 
-mplus{T<:Integer,V<:Integer}(x::Rational{T}, y::Rational{V}) = rat_to_int(x+y)
+mplus(x::Rational{T}, y::Rational{V}) where {T<:Integer,V<:Integer} = rat_to_int(x+y)
 
-mplus{T<:Number, V<:Number}(x::T,y::V) = x + y
+mplus(x::T,y::V) where {T<:Number, V<:Number} = x + y
 mplus(x,y) = mxpr(:Plus, x, y)
 
 mminus(x) = mxpr(:Times,-1,x)
@@ -73,8 +73,8 @@ mminus(x,y) = mxpr(:Plus, x, mxpr(:Times,-1,y))
 mminus(x::Number,y::Number) = x-y
 
 # mdiv is apparently used in do_Rational, but this should never be used now.
-mdiv{T<:Integer,V<:Integer}(x::T, y::V) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
-mdiv{T<:Integer}(x::Int, y::Rational{T}) = (res = x / y; return res.den == 1 ? res.num : res )
+mdiv(x::T, y::V) where {T<:Integer,V<:Integer} =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
+mdiv(x::Int, y::Rational{T}) where {T<:Integer} = (res = x / y; return res.den == 1 ? res.num : res )
 
 mdiv(x::Number,y::Number) = x/y
 mdiv(x,y) = mxpr(:Times,x, mxpr(:Power,y,-1))
@@ -110,22 +110,22 @@ end
 
 _mpow(x,y) =  mxpr(:Power, x, y)
 
-function _mpow{T<:Integer,V<:AbstractFloat}(x::T,y::V)
+function _mpow(x::T,y::V) where {T<:Integer,V<:AbstractFloat}
     x >= 0 && return convert(V,x)^y
     res = convert(Complex{V},x)^y
     imag(res) == 0 && return real(res)
     res
 end
 
-_mpow{T<:Integer,V<:AbstractFloat}(x::Complex{T},y::V) = convert(Complex{V},x)^y
+_mpow(x::Complex{T},y::V) where {T<:Integer,V<:AbstractFloat} = convert(Complex{V},x)^y
 
-_mpow{T<:Integer,V<:Integer}(x::T,y::V) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
-_mpow{T<:Real}(x::Symata.Mxpr{:DirectedInfinity}, y::T) = y > 0 ? x : 0
+_mpow(x::T,y::V) where {T<:Integer,V<:Integer} = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
+_mpow(x::Symata.Mxpr{:DirectedInfinity}, y::T) where {T<:Real} = y > 0 ? x : 0
 
-_mpow{T<:Real}(x::Symata.Mxpr{:DirectedInfinity}, y::Complex{T}) = y.re > 0 ? x : 0
+_mpow(x::Symata.Mxpr{:DirectedInfinity}, y::Complex{T}) where {T<:Real} = y.re > 0 ? x : 0
 
 # could be more efficient: cospi(exp) + im * sinpi(exp)
-_mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp
+_mpow(b::T,exp::V) where {T<:AbstractFloat,V<:Number} = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp
 
 # FIXME: This code and function do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational)
 # in apprules are in conflict.
@@ -133,7 +133,7 @@ _mpow{T<:AbstractFloat,V<:Number}(b::T,exp::V) = b < 0 ? (cospi(exp) + im * sinp
 # Note: do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational) is disabled.
 # We could research how to do this instead of rolling our own. But, this seems to
 # work.
-function _mpow{T<:Integer, V<:Integer}(x::T,y::Rational{V})
+function _mpow(x::T,y::Rational{V}) where {T<:Integer, V<:Integer}
     x == 1 && return x
     local gotneg::Bool
     if x < 0
@@ -196,18 +196,18 @@ end
 
 # The following expression will call this method:  (-27/64)^(2/3) == 9/16*((-1)^(2/3))
 # Also called by Norm([1,I/2])
-_mpow{T<:Integer, V<:Integer}(x::Rational{T}, y::Rational{V}) =  mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
+_mpow(x::Rational{T}, y::Rational{V}) where {T<:Integer, V<:Integer} =  mxpr(:Times,mpow(x.num,y), mxpr(:Power,mpow(x.den,y), -1))
 
 ### Code below handles z^n for z complex and n real.
 
 # Is there not an automatic way ?
-_divide_pow{T<:AbstractFloat}(x::T,y::T) = x/y
-_divide_pow{T<:AbstractFloat}(x::Complex{T},y::T) = x/y
-_divide_pow{T<:Integer}(x::T,y::T) = x//y
-_divide_pow{T<:Integer}(x::Complex{T},y::T) = x//y
-_divide_pow{T<:Integer}(x::Complex{Rational{T}},y::Rational{T}) = x//y
+_divide_pow(x::T,y::T) where {T<:AbstractFloat} = x/y
+_divide_pow(x::Complex{T},y::T) where {T<:AbstractFloat} = x/y
+_divide_pow(x::T,y::T) where {T<:Integer} = x//y
+_divide_pow(x::Complex{T},y::T) where {T<:Integer} = x//y
+_divide_pow(x::Complex{Rational{T}},y::Rational{T}) where {T<:Integer} = x//y
 
-function _mpow{T<:Real,V<:Union{AbstractFloat, Integer}}(base::Complex{T}, expt::V)
+function _mpow(base::Complex{T}, expt::V) where {T<:Real,V<:Union{AbstractFloat, Integer}}
     expt >= 0 && return base^expt
     if expt == -one(expt)
         if base == complex(zero(real(base)),one(real(base)))
@@ -232,7 +232,7 @@ mabs(x::Number) = abs(x)
 mabs(x) = mxpr(:Abs, x)
 
 # TODO.  T Rational
-function mabs{T<:Integer}(x::Complex{T})
+function mabs(x::Complex{T}) where T<:Integer
     r,i = reim(x)
     sq = r*r + i*i
     x = isqrt(sq)
@@ -248,7 +248,7 @@ end
 
 # mpow for Rational is wrong often wrong.
 # so this will be broken, too.
-function mabs{T<:Integer}(x::Complex{Rational{T}})
+function mabs(x::Complex{Rational{T}}) where T<:Integer
     r,i = reim(x)
     sq = mplus(mmul(r,r),mmul(i,i))
     return mpow(sq,1//2)

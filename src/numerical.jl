@@ -1,6 +1,4 @@
-if VERSION >= v"0.6-"
-    import QuadGK: quadgk
-end
+import QuadGK: quadgk
 
 
 ## TODO: move this code somewhere more appropriate

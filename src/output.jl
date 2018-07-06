@@ -48,7 +48,7 @@ function outsym(s)
     os
 end
 
-type FullFormData
+mutable struct FullFormData
     lfunc::String
     rfunc::String
 end
@@ -85,11 +85,11 @@ symata_to_mma_fullform_string(x) = print_with_function_to_string(mmafullform, wr
 # This puts unecessary parens on prefix functions.
 #needsparen(x::Mxpr) = length(x) > 1
 needsparen(x::Mxpr) = (length(x) > 1  && getoptype(mhead(x)) == :infix)
-needsparen{T<:Integer}(x::Rational{T}) = true
+needsparen(x::Rational{T}) where {T<:Integer} = true
 
 needsparen(x::Real) =  x < 0
-needsparen{T<:Integer}(x::Complex{T}) = (real(x) != 0)
-needsparen{T<:Real}(x::Complex{T}) = true
+needsparen(x::Complex{T}) where {T<:Integer} = (real(x) != 0)
+needsparen(x::Complex{T}) where {T<:Real} = true
 
 needsparen(x) = false
 
@@ -106,44 +106,44 @@ de_gensym(x) = x
 
 #### Wrap output
 
-@compat abstract type AbstractWO end
+abstract type AbstractWO end
 
 needsparen(y::AbstractWO) = needsparen(y.x)
 
-immutable WOSymbol <: AbstractWO
+struct WOSymbol <: AbstractWO
     x::Symbol
 end
 
-immutable WOBool <: AbstractWO
+struct WOBool <: AbstractWO
     x::Bool
 end
 
-immutable WORational{T}  <: AbstractWO
+struct WORational{T}  <: AbstractWO
     x::T
 end
 
-immutable WOComplexInteger{T}  <: AbstractWO
+struct WOComplexInteger{T}  <: AbstractWO
     x::T
 end
-wrapout{T<:Integer}(x::Complex{T})=  WOComplexInteger(x)
+wrapout(x::Complex{T}) where {T<:Integer}=  WOComplexInteger(x)
 Base.show(io::IO, ws::WOComplexInteger) = show_complexinteger(io, ws.x)
 
-immutable WOComplexReal{T}  <: AbstractWO
+struct WOComplexReal{T}  <: AbstractWO
     x::T
 end
-wrapout{T<:Real}(x::Complex{T}) = WOComplexReal(x)
+wrapout(x::Complex{T}) where {T<:Real} = WOComplexReal(x)
 Base.show(io::IO,ws::WOComplexReal) = show_complexreal(io, ws.x)
 
-immutable WOComplexRational{T}  <: AbstractWO
+struct WOComplexRational{T}  <: AbstractWO
     x::T
 end
-wrapout{T<:Integer}(x::Complex{Rational{T}}) = WOComplexRational(x)
+wrapout(x::Complex{Rational{T}}) where {T<:Integer} = WOComplexRational(x)
 Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
 
 needsparen(x::WORational) = true
 needsparen(x::WOComplexRational) = true
 
-immutable WOAbstractFloat{T}  <: AbstractWO
+struct WOAbstractFloat{T}  <: AbstractWO
     x::T
 end
 wrapout(x::AbstractFloat) = WOAbstractFloat(x)
@@ -253,7 +253,7 @@ function Base.show(io::IO, x::Mxpr{:Subscript})
 end
 
 # We display real part if it is 0.0
-function show_complexreal{T<:Real}(io::IO, z::Complex{T})
+function show_complexreal(io::IO, z::Complex{T}) where T<:Real
 #    show(io,real(z))
     show_float(io,real(z))    
     print(io," + ")
@@ -263,7 +263,7 @@ function show_complexreal{T<:Real}(io::IO, z::Complex{T})
 end
 
 # Do not display real part if it is 0
-function show_complexinteger{T<:Integer}(io::IO, z::Complex{T})
+function show_complexinteger(io::IO, z::Complex{T}) where T<:Integer
     if real(z) != 0
         show(io,real(z))
         print(io," + ")
@@ -281,7 +281,7 @@ function show_complexinteger{T<:Integer}(io::IO, z::Complex{T})
     end
 end
 
-function show_complexrational{T<:Integer}(io::IO, z::Complex{Rational{T}})
+function show_complexrational(io::IO, z::Complex{Rational{T}}) where T<:Integer
     if real(z) != 0
         show_rational(io,real(z))
         print(io," + ")

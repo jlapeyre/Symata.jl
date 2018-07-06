@@ -37,7 +37,7 @@ end
 pauses (i.e.sleeps) for `x` seconds.
 """
 @mkapprule Pause  :nargs => 1
-@doap Pause{T<:Real}(x::T) = sleep(x)
+@doap Pause(x::T) where {T<:Real} = sleep(x)
 
 ## Partial implementations of these...
 

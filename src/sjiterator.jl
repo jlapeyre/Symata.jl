@@ -7,25 +7,25 @@
 
 ## Standard iterator used, for instance, by Do
 
-@compat abstract type AbstractSJIter end
+abstract type AbstractSJIter end
 
-type SJIter1{T<:Real} <: AbstractSJIter
+mutable struct SJIter1{T<:Real} <: AbstractSJIter
     imax::T
 end
 
-type SJIter2{T<:Real} <: AbstractSJIter
+mutable struct SJIter2{T<:Real} <: AbstractSJIter
     i::Symbol
     imax::T
 end
 
-type SJIter3{T,V} <: AbstractSJIter
+mutable struct SJIter3{T,V} <: AbstractSJIter
     i::Symbol
     imin::T
     imax::V
     num_iters::Int
 end
 
-type SJIter4{T,V,W} <: AbstractSJIter
+mutable struct SJIter4{T,V,W} <: AbstractSJIter
     i::Symbol
     imin::T
     imax::V
@@ -33,7 +33,7 @@ type SJIter4{T,V,W} <: AbstractSJIter
     num_iters::Int
 end
 
-type SJIterList <: AbstractSJIter
+mutable struct SJIterList <: AbstractSJIter
     i::Symbol
     list::Array{Any,1}
 end
@@ -47,7 +47,7 @@ function make_sjiter(mx::Mxpr{:List})
     make_sjiter(mx,margs(mx))
 end
 
-function make_sjiter{T}(mx,args::Array{T,1})
+function make_sjiter(mx,args::Array{T,1}) where T
     len = length(args)
     len < 1 && itererror(mx)
     if len == 1
@@ -105,27 +105,27 @@ end
 
 ## Iterators used by Range
 
-@compat abstract type AbstractSJIterA end
+abstract type AbstractSJIterA end
 
-type SJIterA1{T<:Real} <: AbstractSJIterA
+mutable struct SJIterA1{T<:Real} <: AbstractSJIterA
     imax::T
     num_iters::Int
 end
 
-type SJIterA2{T,V} <: AbstractSJIterA
+mutable struct SJIterA2{T,V} <: AbstractSJIterA
     imin::T
     imax::V
     num_iters::Int
 end
 
-type SJIterA3{T,V,W} <: AbstractSJIterA
+mutable struct SJIterA3{T,V,W} <: AbstractSJIterA
     imin::T
     imax::V
     di::W
     num_iters::Int
 end
 
-itererrora{T<:Array}(a::T,s::AbstractString) = symerror(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
+itererrora(a::T,s::AbstractString) where {T<:Array} = symerror(mxpr(:List,a), " does not have the form of a (single variable) iterator. ",s)
 itererrora(mx::Mxpr,s::AbstractString) = symerror(mx, " does not have the form of a (single variable) iterator. ",s)
 
 make_sjitera(x) = itererrora(x)
@@ -134,7 +134,7 @@ function make_sjitera(mx::Mxpr{:List})
     make_sjiter(margs(mx))
 end
 
-function make_sjitera{T}(args::Array{T,1})
+function make_sjitera(args::Array{T,1}) where T
     len = length(args)
     len < 1 && itererrora(args)
     if len == 1

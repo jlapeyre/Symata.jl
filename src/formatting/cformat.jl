@@ -11,7 +11,7 @@ function generate_formatter( fmt::String )
     if haskey( formatters, fmt )
         return formatters[fmt]
     end
-    func = @compat Symbol("sprintf_", replace(base64encode(fmt), "=", "!"))
+    func = Symbol("sprintf_", replace(base64encode(fmt), "=", "!"))
 
     if !contains( fmt, "'" )
         test = Base.Printf.parse( fmt )
@@ -36,7 +36,7 @@ function generate_formatter( fmt::String )
         end
         if in( conversion, "sfF" )
             code = quote
-                function $func{T<:Real}( x::T )
+                function $func( x::T ) where T<:Real
                     s = @sprintf( $fmtactual, x )
                     # commas are added to only the numerator
                     if T <: Rational && endswith( $fmtactual, "s" )
@@ -137,7 +137,7 @@ function generate_format_string(;
     s * conversion
 end
 
-function format{T<:Real}( x::T;
+function format( x::T;
         width::Int=-1,
         precision::Int= -1,
         leftjustified::Bool=false,
@@ -156,7 +156,7 @@ function format{T<:Real}( x::T;
         suffix::AbstractString="", # useful for units/%
         autoscale::Symbol=:none, # :metric, :binary or :finance
         conversion::String=""
-        )
+        ) where T<:Real
     checkwidth = commas
     if conversion == ""
         if T <: AbstractFloat || T <: Rational && precision != -1

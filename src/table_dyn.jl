@@ -9,14 +9,14 @@
 ## Also, this is copied from older code. There are probably no inefficiencies introduced.
 ## But, it is more complicated than it needs to be
 
-@compat abstract type TableEval end
+abstract type TableEval end
 
-immutable TableSetEval{T,V} <: TableEval
+struct TableSetEval{T,V} <: TableEval
     expr::T
     sym::V
 end
 
-immutable TableNoSetEval{T} <: TableEval
+struct TableNoSetEval{T} <: TableEval
     expr::T
 end
 
@@ -126,7 +126,7 @@ function nosetandeval(expr)
     r
 end
 
-function intable{T<:Real,V<:Real}(expr0,iter::SJIter3{T,V})
+function intable(expr0,iter::SJIter3{T,V}) where {T<:Real,V<:Real}
     (sym, expr) = (iter.i,expr0)
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
@@ -148,7 +148,7 @@ function _table3(model,imin,imax,args)
     end
 end
 
-function intable{T<:Real, V<:Real, W<:Real}(expr0, iter::SJIter4{T,V,W})
+function intable(expr0, iter::SJIter4{T,V,W}) where {T<:Real, V<:Real, W<:Real}
     (sym, expr) = (iter.i,expr0)
     imax = iter.imax  # why do we not evaluate here
     imin = iter.imin
@@ -171,7 +171,7 @@ function intable{T<:Real, V<:Real, W<:Real}(expr0, iter::SJIter4{T,V,W})
 end
 
 # Symbolic value and increment
-function intable{T, V, W}(expr0, iter::SJIter4{T,V,W})
+function intable(expr0, iter::SJIter4{T,V,W}) where {T, V, W}
     (sym, expr) = (iter.i,expr0)
     imax = iter.imax
     imin = iter.imin
@@ -205,7 +205,7 @@ function tableloop2(sym, expr, imax)
     args
 end
 
-function table3{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
+function table3(expr,iter::SJIter3{T,V}) where {T<:Real,V<:Real}
     imax = doeval(iter.imax) # maybe this should be done earlier. When iter is created ?
     imin = doeval(iter.imin)
     args = newargs(imax-imin+1)

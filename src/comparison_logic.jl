@@ -27,7 +27,7 @@ function sameq(args...)
     true
 end
 
-immutable Compare
+struct Compare
     result
     known::Bool
 end
@@ -309,11 +309,11 @@ function old_do_Comparison(mx::Mxpr{:Comparison},args...)
     return true
 end
 
-function do_Comparison{T<:Number,V<:Number}(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::V)
+function do_Comparison(mx::Mxpr{:Comparison},a::T,comp::SJSym,b::V) where {T<:Number,V<:Number}
     _do_Comparison(a,comp,b)
 end
 
-function _do_Comparison{T<:Number, V<:Number}(a::T, comp::SJSym, b::V)
+function _do_Comparison(a::T, comp::SJSym, b::V) where {T<:Number, V<:Number}
     if comp == :<    # Test For loop shows this is much faster than evaling Expr
         return a < b
     elseif comp == :>
@@ -334,7 +334,7 @@ end
 
 ## FIXME Uh this is just copied from above. This is required to disambiguate
 # from the catchall below
-function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::T)
+function _do_Comparison(a::T, comp::SJSym, b::T) where T<:Number
     if comp == :<    # Test For loop shows this is much faster than evaling Expr
         return a < b
     elseif comp == :>
@@ -354,14 +354,14 @@ function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::T)
 end
 
 # This catches some cases
-function _do_Comparison{T<: Number}(mx::Mxpr{:DirectedInfinity}, comp::SJSym, n::T)
+function _do_Comparison(mx::Mxpr{:DirectedInfinity}, comp::SJSym, n::T) where T<: Number
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
     return nothing
 end
 
-function _do_Comparison{T<: Number}(n::T, comp::SJSym, mx::Mxpr{:DirectedInfinity})
+function _do_Comparison(n::T, comp::SJSym, mx::Mxpr{:DirectedInfinity}) where T<: Number
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -386,7 +386,7 @@ end
 
 # a == a  --> True, etc.  for unbound a
 #function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::T)
-function _do_Comparison{T<:Union{Mxpr,SJSym,AbstractString,DataType}, V<:Union{Mxpr,SJSym,AbstractString,DataType}}(a::T,comp::SJSym,b::V)
+function _do_Comparison(a::T,comp::SJSym,b::V) where {T<:Union{Mxpr,SJSym,AbstractString,DataType}, V<:Union{Mxpr,SJSym,AbstractString,DataType}}
     if comp == :(==)
         res = a == b
         res && return res
@@ -432,18 +432,18 @@ function _do_Comparison(a::Mxpr,comp::SJSym,b::SJSym)
     return nothing
 end
 
-_do_Comparison{T<:SJReal}(a::SJSym, comp::SJSym, b::T) = nothing
-_do_Comparison{T<:Union{Mxpr,AbstractString,DataType}}(a::T, comp::SJSym, b::SJSym) = nothing
+_do_Comparison(a::SJSym, comp::SJSym, b::T) where {T<:SJReal} = nothing
+_do_Comparison(a::T, comp::SJSym, b::SJSym) where {T<:Union{Mxpr,AbstractString,DataType}} = nothing
 
-function _do_Comparison{T<:SJReal}(a::T, comp::SJSym, b::Mxpr)
+function _do_Comparison(a::T, comp::SJSym, b::Mxpr) where T<:SJReal
     nothing
 end
 
-function _do_Comparison{T<:SJReal}(a::Mxpr, comp::SJSym, b::T)
+function _do_Comparison(a::Mxpr, comp::SJSym, b::T) where T<:SJReal
     nothing
 end
 
-function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::Bool)
+function _do_Comparison(a::T, comp::SJSym, b::Bool) where T<:Number
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -465,9 +465,9 @@ function _do_Comparison(a, comp::SJSym, b::Bool)
 end
 
 _do_Comparison(a::Qsym, comp::Symbol, b::Bool) = nothing
-_do_Comparison{T<:Number}(a::Qsym, comp::SJSym, b::T) = nothing
+_do_Comparison(a::Qsym, comp::SJSym, b::T) where {T<:Number} = nothing
 
-function _do_Comparison{T<:Number}(a, comp::SJSym, b::T)
+function _do_Comparison(a, comp::SJSym, b::T) where T<:Number
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -476,7 +476,7 @@ end
 
 # Note the asymmetry between this and previous method.
 # This one, at least, is correct. and catches 2 < b
-function _do_Comparison{T<:Number}(a::T, comp::SJSym, b::SJSym)
+function _do_Comparison(a::T, comp::SJSym, b::SJSym) where T<:Number
     comp == :(==) && return false
     comp == :(!=) && return true
     comp == :(===) && return false
@@ -487,12 +487,12 @@ end
 # _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp::SJSym, n::T) = false
 
 # Fix bug in (a == b) != False in mxp_test.sj, and similar expressions
-function  _do_Comparison{T<:Bool, V<:Mxpr}(mx::V, comp, n::T)
+function  _do_Comparison(mx::V, comp, n::T) where {T<:Bool, V<:Mxpr}
     comp == :(!=) && return true
     return false
 end
 
-function  _do_Comparison{T<:Number, V<:Mxpr}(mx::V, comp, n::T)
+function  _do_Comparison(mx::V, comp, n::T) where {T<:Number, V<:Mxpr}
     if typeof(comp) != SJSym
         symerror("_do_Comparison: Comparing with $comp, of type ", typeof(comp))
     else
@@ -531,7 +531,7 @@ _do_Comparison(a::Mxpr, comp::SJSym, b::String) = false
 # Break them out into a function
 # NB. Mma leaves  a < a unevaluated.
 # This is probably good because a may be of a type for which there is no order
-function _do_Comparison{T<:Qsym}(a::T, comp::SJSym, b::T)
+function _do_Comparison(a::T, comp::SJSym, b::T) where T<:Qsym
     (comp == :(==) || comp == :(>=) || comp == :(<=))  && return a == b ? true : nothing
     comp == :(!=) && return a == b ?  false : nothing
     comp == :(===) && return a == b

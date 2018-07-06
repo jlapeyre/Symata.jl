@@ -24,7 +24,7 @@
 # slowly but adds them much more quickly.
 
 # Flatten one level only
-function flatten!{T}(mx::T)
+function flatten!(mx::T) where T
     needsflat::Bool = false
     for x in margs(mx)
         if isa(x,T)
@@ -52,7 +52,7 @@ maybeflatten!(x) = x
 
 
 # Flatten to all levels
-function flatten_recursive!{T}(mx::T)
+function flatten_recursive!(mx::T) where T
     needsflat::Bool = false
     for x in margs(mx)
         if isa(x,T)
@@ -74,14 +74,14 @@ function flatten_recursive!{T}(mx::T)
     return mxpr(mhead(mx),na)
 end
 
-type FlattenData
+mutable struct FlattenData
     level::Int
     maxlevel::Int
     head::Symbol  # We may want type Any, for heads that are not Symbols
 end
 
 # Flatten from level 1 to level n
-function flatten_recursive!{T}(mx::Mxpr{T}, n::Integer)
+function flatten_recursive!(mx::Mxpr{T}, n::Integer) where T
     d = FlattenData(1,n,T)
     _flatten_recursive!(mx,d)
 end

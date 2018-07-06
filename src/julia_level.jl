@@ -22,8 +22,8 @@ for f in (:cos, :sin, :abs, :tan, :exp, :log, (:acos, :ArcCos) , (:asin, :ArcSin
         uf = Symbol(ucfirst(string(f)))
     end
     @eval ($uf)(x::AbstractFloat) = ($f)(x)
-    @eval ($uf){T<:AbstractFloat}(x::AbstractArray{T}) = ($f)(x)
-    @eval ($uf){T<:AbstractFloat}(x::Complex{T}) = ($f)(x)
+    @eval ($uf)(x::AbstractArray{T}) where {T<:AbstractFloat} = ($f)(x)
+    @eval ($uf)(x::Complex{T}) where {T<:AbstractFloat} = ($f)(x)
     @eval ($uf)(x) = apprules(mxpr($(QuoteNode(uf)),x))
     @eval export $uf
 end

@@ -288,7 +288,7 @@ function pytosj(x)
     maybetrace_pytosj(x)
 end
 
-type SympyTrace
+mutable struct SympyTrace
     trace::Bool
 end
 const SYMPYTRACE = SympyTrace(false)
@@ -383,7 +383,7 @@ end
 ####   Main _pytosj method
 ####
 ## expr[:__class__] is a bit faster and does fewer allocations
-function _pytosj{T <: PyCall.PyObject}(expr::T)
+function _pytosj(expr::T) where T <: PyCall.PyObject
     res = get(SYMPY_USER_SYMBOLS_REVERSE, expr,false) ## This is much faster, but may not be significant
     res !== false && return res
     pytype = expr[:__class__]
@@ -446,7 +446,7 @@ function _pytosj(expr::Dict)
     return ndict
 end
 
-function _pytosj{T}(expr::Array{T,1})
+function _pytosj(expr::Array{T,1}) where T
     return pytosj_map(:List, expr)
 end
 
@@ -592,10 +592,10 @@ end
 
 #### HypergeometricPFQ
 
-do_HypergeometricPFQ{W<:AbstractFloat}(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) =
+do_HypergeometricPFQ(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) where {W<:AbstractFloat} =
     eval_hypergeometric(mx,p,q,z)
 
-do_HypergeometricPFQ{W<:AbstractFloat}(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::Complex{W}) =
+do_HypergeometricPFQ(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::Complex{W}) where {W<:AbstractFloat} =
     eval_hypergeometric(mx,p,q,z)
 
 function eval_hypergeometric(mx, p, q, z)
@@ -643,10 +643,10 @@ function _sjtopy(mx::Mxpr{:MeijerG})
     pyhead((_sjtopy(p[1]), _sjtopy(p[2])), (_sjtopy(q[1]), _sjtopy(q[2])), _sjtopy(z))
 end
 
-do_MeijerG{W<:AbstractFloat}(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) =
+do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) where {W<:AbstractFloat} =
     eval_meijerg(mx,p,q,z)
 
-do_MeijerG{W<:AbstractFloat}(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z::Complex{W}) =
+do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z::Complex{W}) where {W<:AbstractFloat} =
     eval_meijerg(mx,p,q,z)
 
 function eval_meijerg(mx, p, q, z)
@@ -768,7 +768,7 @@ end
 
 @doap Min() = Infinity
 
-_sjtopy{T<:Integer}(mx::Rational{T}) = sympy[:Rational](numerator(mx),denominator(mx))
+_sjtopy(mx::Rational{T}) where {T<:Integer} = sympy[:Rational](numerator(mx),denominator(mx))
 
 _sjtopy(mx::Number) = mx
 
@@ -778,7 +778,7 @@ function _sjtopy(s::Qsym)
 end
 
 # For our LaplaceTransform code, (etc.)
-_sjtopy{T}(a::Array{T,1}) =  map(_sjtopy, a)
+_sjtopy(a::Array{T,1}) where {T} =  map(_sjtopy, a)
 
 _sjtopy(expr::PyCall.PyObject) = expr
 

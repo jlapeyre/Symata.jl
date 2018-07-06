@@ -282,7 +282,7 @@ function do_doloop(expr,iter::SJIter2)
     Null
 end
 
-function do_doloop{T<:Real,V<:Real}(expr,iter::SJIter3{T,V})
+function do_doloop(expr,iter::SJIter3{T,V}) where {T<:Real,V<:Real}
     isym = get_localized_symbol(iter.i)
     ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak
@@ -314,7 +314,7 @@ function do_doloop(expr,iter::SJIter3)
     Null
 end
 
-function do_doloop{T<:Real, V<:Real, W<:Real}(expr, iter::SJIter4{T,V,W})
+function do_doloop(expr, iter::SJIter4{T,V,W}) where {T<:Real, V<:Real, W<:Real}
     isym = get_localized_symbol(iter.i)
     ex = substitute_symbol(deepcopy(expr),iter.i,isym)
     @unsetbreak

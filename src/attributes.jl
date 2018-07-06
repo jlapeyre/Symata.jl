@@ -61,7 +61,7 @@ clear_attributes(sj::Qsym) =  empty!(getssym(sj).attr)
 ### i.e. the interface is above this line
 
 # Return true if head of mx has attribute attr
-function get_attribute{T}(mx::Mxpr{T}, attr::Symbol)
+function get_attribute(mx::Mxpr{T}, attr::Symbol) where T
     get_attribute(T,attr)
 end
 

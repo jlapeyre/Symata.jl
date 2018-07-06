@@ -1,4 +1,4 @@
-immutable SIndex
+struct SIndex
     inds::Array{Int,1}
     lims::Array{Int,1}    
 end

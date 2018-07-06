@@ -1,4 +1,4 @@
-type SymataAutoload
+mutable struct SymataAutoload
     triggers::Dict
     isloaded::Bool
 end

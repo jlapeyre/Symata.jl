@@ -42,7 +42,7 @@ const SymString  = Union{Symbol,String}
 
 like `UnitRange`, but the upper limit is "infinity"
 """
-immutable UnitRangeInf{T<:Real}  <: AbstractUnitRange{T}
+struct UnitRangeInf{T<:Real}  <: AbstractUnitRange{T}
     start::T
 end
 
@@ -63,7 +63,7 @@ expression. Otherwise, `T` is the type `GenHead`. In any case, the head is store
 
 ### NOTE: Julia apparently allows any object for T. But, maybe we still need GenHead
 
-type Mxpr{T}
+mutable struct Mxpr{T}
     """
        head
     the `head` of the Symata expression.
@@ -108,9 +108,9 @@ const SJSymuVs =  Array{Any,1}
 ## It will almost certainly be more efficient for most symbols to store up/downvalues, attributes, and definition
 ## In an external structure. Or, to somehow leave these them unallocated till needed.
 ## For symbols with downvalues, getting a field might be faster than looking up in a table.
-@compat abstract type AbstractSJSym end
+abstract type AbstractSJSym end
 
-type SSJSym{T}  <: AbstractSJSym
+mutable struct SSJSym{T}  <: AbstractSJSym
     val::Array{T,1}
     attr::SJSymAttrs
     downvalues::SJSymDVs
@@ -119,7 +119,7 @@ type SSJSym{T}  <: AbstractSJSym
     definition::Mxpr
 end
 
-immutable Qsym
+struct Qsym
     context::Symbol
     name::Symbol
 end
@@ -167,7 +167,7 @@ function get_context_symtab(s::Qsym)
     get_context_symtab(s.context)
 end
 
-type CurrentContextT
+mutable struct CurrentContextT
     name::Symbol
     symtab::SymTab
 end
@@ -199,7 +199,7 @@ end
 #### Evalage
 
 ## Counter for timestamps ("age") of instances of SSJSym and Mxpr
-type Evalage
+mutable struct Evalage
     t::UInt64
 end
 const evalage = Evalage(0)
@@ -276,7 +276,7 @@ const SJSymbol = Union{SJSym,Qsym}
 "Generic" head. The parameter `x` in any `Mxpr{x}` is either a symbol or `GenHead`.
 The actual head is stored in a field of the `Mxpr`.
 """
-type GenHead
+mutable struct GenHead
 end
 
 # We have a choice to carry the symbol name in the type parameter or a a field,
@@ -287,7 +287,7 @@ end
 @inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
-function symname{T}(s::SSJSym{T})
+function symname(s::SSJSym{T}) where T
     s.val[1]
 end
 
@@ -567,7 +567,7 @@ end
 
 get_system_ssym(s::Symbol) = getssym(:System, s)
 
-getssym{T<:AbstractString}(ss::T) = getssym(Symbol(ss))
+getssym(ss::T) where {T<:AbstractString} = getssym(Symbol(ss))
 
 function delete_sym(s::Symbol)
     delete!(CurrentContext.symtab,s)

@@ -78,11 +78,11 @@ end
 
 set_attributes(sym::SJSymbol, attr::SJSym) = check_set_attributes(sym,attr)
 
-function set_attributes{T<:Array}(sym::SJSymbol, attrs::T)
+function set_attributes(sym::SJSymbol, attrs::T) where T<:Array
     foreach(a -> check_set_attributes(sym,a), attrs)
 end
 
-function set_attributes{T<:Array}(syms::T, attr::SJSym)
+function set_attributes(syms::T, attr::SJSym) where T<:Array
     foreach(sym -> check_set_attributes(sym,attr), syms)
 end
 
@@ -328,7 +328,7 @@ increments the value of `n` by `1` and returns the old value.
     do_increment1(mx,x,xval)
 end
 
-function do_increment1{T<:Number}(mx,x,xval::T)
+function do_increment1(mx,x,xval::T) where T<:Number
     setsymval(x,mplus(xval,1))  # maybe + is ok here.
     return xval
 end
@@ -380,7 +380,7 @@ function do_TimesBy(mx::Mxpr{:TimesBy}, x::SJSym,val)
     do_TimesBy1(mx,x,xval,val)
 end
 
-function do_TimesBy1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
+function do_TimesBy1(mx,x,xval::T, val::V) where {T<:Number,V<:Number}
     r = mmul(xval,val)
     setsymval(x,r)
     return r
@@ -407,7 +407,7 @@ function do_AddTo(mx::Mxpr{:AddTo},x::SJSym,val)
     do_AddTo1(mx,x,xval,val)
 end
 
-function do_AddTo1{T<:Number,V<:Number}(mx,x,xval::T, val::V)
+function do_AddTo1(mx,x,xval::T, val::V) where {T<:Number,V<:Number}
     r = mplus(xval,val)
     setsymval(x,r)
     return r
@@ -440,7 +440,7 @@ representation is printed.
 @sjseealso_group(Dump,DumpHold)
 
 # DumpHold does not evaluate args before dumping
-apprules{T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}}(mx::T) = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
+apprules(mx::T) where {T<:Union{Mxpr{:Dump},Mxpr{:DumpHold}}} = for a in margs(mx) is_SJSym(a) ? dump(getssym(a)) : dump(a) end
 
 ## TODO: completely redesign this
 ### Contexts

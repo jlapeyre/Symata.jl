@@ -39,7 +39,7 @@ an option specifiying that solutions including Gaussian integers should be retur
 
 # Convert Mxpr to sympy, pulling out Rule(a,b) to dict of keyword args.
 # That is, we separate keyword args from positional argss
-function sjtopy_kw{T<:Mxpr}(mx::T, kws)
+function sjtopy_kw(mx::T, kws) where T<:Mxpr
 #    println("Looking for kw $kws")
     args = margs(mx)
     nargs = newargs()
@@ -55,7 +55,7 @@ function sjtopy_kw{T<:Mxpr}(mx::T, kws)
     nargs
 end
 
-function sjtopy_kw{T<:Mxpr}(mx::T)
+function sjtopy_kw(mx::T) where T<:Mxpr
     kws = Dict()  # type ? probably symbols
     nargs  = sjtopy_kw(mx, kws)
     return (nargs, kws)
@@ -96,7 +96,7 @@ end
 # Separate the Rule()'s from other arguments in an Mxpr expression
 # Store keywords in a Dict so they can by passed as keword arguments.
 # These do the same as above, but no conversion to sympy.
-function separate_rules{T<:Mxpr}(mx::T, kws)
+function separate_rules(mx::T, kws) where T<:Mxpr
     args = margs(mx)
     nargs = newargs()
     for i in 1:length(args)
@@ -112,7 +112,7 @@ function separate_rules{T<:Mxpr}(mx::T, kws)
     nargs
 end
 
-function separate_rules{T<:Mxpr}(mx::T)
+function separate_rules(mx::T) where T<:Mxpr
     kws = Dict()  # type ? probably symbols
     nargs  = separate_rules(mx, kws)
     return (nargs, kws)
@@ -124,7 +124,7 @@ end
 # that are not meant to be keywords.
 # kws -- Dict of legal keywords with their default values.
 # Only Rules with keywords in kws will be extracted
-function separate_known_rules{T<:Mxpr}(mx::T, kws)
+function separate_known_rules(mx::T, kws) where T<:Mxpr
     args = margs(mx)
     nargs = newargs()
     for i in 1:length(args)
