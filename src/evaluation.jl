@@ -186,7 +186,7 @@ parse and evaluate `s` as a Symata expression. From Julia, this prints the stack
 If the same expression entered at the Symata command line, the stack trace will not be printed.
 """
 function debugmxpr(s::String)
-    symataevaluate(parse(s))
+    symataevaluate(Meta.parse(s))
 end
 
 """
@@ -196,7 +196,7 @@ is the number of previous outputs to bind to `O`, `OO`, etc.
 """
 const number_of_Os = 10
 
-const Os = Array{SJSym}(0)
+const Os = Array{SJSym}(undef, 0)
 for i in 1:number_of_Os
     push!(Os, Symbol("O"^i))
 end
@@ -218,7 +218,7 @@ macro bind_Os()
         newex = :(
                   if (length(Output) - $i + 1) >= 1
                        oexp = mxpr(:Out, get_line_number() - $i + 1)
-                       set_system_symval(parse($sym), oexp)
+                       set_system_symval(Meta.parse($sym), oexp)
                        set_sysattributes($sym)
                   end
                      )
@@ -433,7 +433,7 @@ meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 
 meval(x::Rational{T}) where {T<:Integer} = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
 
-meval(x::T) where {T<:Void} = Null
+meval(x::T) where {T<:Nothing} = Null
 
 meval(x) = x
 
@@ -575,7 +575,7 @@ function meval_arguments(mx::Mxpr{:List})
         end
     end
     if got_nothing
-        ninds = Array{Int}(0)
+        ninds = Array{Int}(undef, 0)
         for i in 1:len
             if nargs[i] == :Nothing
                 push!(ninds,i)
@@ -667,7 +667,7 @@ end
 # Mma. So we can't add lists of numbers at that point.
 
 function threadlistable(mx::Mxpr)
-    pos = Array{Int}(0)      # should avoid this
+    pos = Array{Int}(undef, 0)      # FIXME should avoid this
     lenmx = length(mx)
     lenlist::Int = -1
     h = mhead(mx)

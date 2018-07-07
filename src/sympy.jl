@@ -150,7 +150,7 @@ function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
         st = string(jf)
-        sjf = ucfirst(st)
+        sjf = uppercasefirst(st)
     elseif length(x) == 2
         (jf,sjf) = x
     else
@@ -229,7 +229,7 @@ end
 function populate_py_to_mx_dict()
     # If this is Dict{Any,Any}, then nothing is translated until the
     # catchall branch at the end of sympyt2mxpr. Why ?
-    eval(parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
+    eval(Meta.parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
     for onepair in (
                     (sympy[:Add], :Plus),
                     (sympy[:Mul], :Times),
@@ -488,7 +488,7 @@ function mk_mx_to_py_funcs()
             end
         else
             try
-                obj = eval(parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly
+                obj = eval(Meta.parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly
             catch
                 continue
             end
@@ -508,7 +508,7 @@ function sjtopy(args...)
         return res
     end
     res = _sjtopy(args)
-    (res...)
+    (res...,)
 end
 
 function _sjtopy(z::Complex)
@@ -667,7 +667,7 @@ end
 
 function _sjtopy(t::Tuple)
     @sjdebug(3,"Tuple ", mx)
-    (map(_sjtopy,t)...)
+    (map(_sjtopy,t)...,)
 end
 
 
@@ -740,7 +740,7 @@ lowercase initial is deprecated.
     propstrs = map( (x) -> " $x=true ", props)
     propstr = join(propstrs, ", ")
     evalstr = "sympy[:Symbol](\"$ss\", $propstr)"
-    sym = eval(parse(evalstr))
+    sym = eval(Meta.parse(evalstr))
     SYMPY_USER_SYMBOLS[s] = sym
     s
 end
@@ -799,8 +799,8 @@ in the Symata module ` __init__` function.
 """
 function init_sympy()
     import_sympy()
-    eval(parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
-    eval(parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
+    eval(Meta.parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
+    eval(Meta.parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
     make_sympy_to_symata()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
@@ -876,7 +876,7 @@ end
 @mkapprule PyDoc :nargs => 1
 
 function do_PyDoc(mx::Mxpr{:PyDoc},sym)
-    try eval(parse("println(sympy[:$(string(sym))][:__doc__])"))
+    try eval(Meta.parse("println(sympy[:$(string(sym))][:__doc__])"))
     catch
         Null
     end

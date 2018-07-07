@@ -38,15 +38,18 @@ const MxprArgT  = Any
 const FreeSyms = Dict{Symbol,Bool}
 const SymString  = Union{Symbol,String}
 
+# FIXME. This is inconsistent with interface of AbstractUnitRange{T}. Can't 'show' it.
 """
     UnitRangeInf
 
 like `UnitRange`, but the upper limit is "infinity"
 """
-struct UnitRangeInf{T<:Real}  <: AbstractUnitRange{T}
+struct UnitRangeInf{T<:Real} #    <: AbstractUnitRange{T}
     start::T
+    stop::Symbol
 end
 
+UnitRangeInf(start) = UnitRangeInf(start, :Inf)
 
 # AbstractMxpr is not used for anything
 # abstract AbstractMxpr
@@ -702,6 +705,7 @@ end
     end
 end
 
+
 """
      getpart(mx::Mxpr,ind1::Integer,ind2::Integer,...)
 
@@ -713,7 +717,8 @@ Note that `0` only makes sense as the last index.
 
 Negative indices are not supported here. That is, we assume they have already been converted to positive
 """
-getpart(mx::Mxpr,ind) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
+getpart(mx::Mxpr, ind::Integer) = (ind == 0 ? mhead(mx) : margs(mx)[ind])
+getpart(mx::Mxpr, ind::Symbol) = symthrow(DomainError("Can't use a Symbol as index. ind=$ind"))
 getpart(mx::Mxpr, ind1, ind2) = getpart(getpart(mx,ind1),ind2)
 getpart(mx::Mxpr, ind1, ind2, inds...) = getpart(getpart(getpart(mx,ind1),ind2), inds...)
 
@@ -796,7 +801,7 @@ if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise.
 """
 function mxpr(s::SJSym,iargs...)
     args = newargs(length(iargs))
-    copy!(args,iargs)
+    copyto!(args,iargs)
     return mxpr(s,args)
 end
 
@@ -892,14 +897,14 @@ end
 function mxpr(s,iargs...)
     len = length(iargs)
     args = newargs(len)
-    copy!(args,iargs)
+    copyto!(args,iargs)
     mxpra(s,args)
 end
 
 # set fixed point and clean bits
 @inline function mxprcf(s::SJSym,iargs...)
     args = newargs(length(iargs))
-    copy!(args,iargs)
+    copyto!(args,iargs)
     mxprcf(s,args)
 end
 
@@ -1176,12 +1181,16 @@ const FloatRC  = Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
 ### Iterator, etc.
 
-for s in (:(Base.pop!), :(Base.shift!), :(Base.unshift!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
+for s in (:(Base.pop!), :(Base.popfirst!), :(Base.pushfirst!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
 
+@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
 Base.length(mx::Mxpr) = length(margs(mx))
-
+@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
+getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
+@inline Base.endof(mx::Mxpr) = endof(margs(mx))
+Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 
@@ -1189,9 +1198,3 @@ setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 ## Also the iterator over mx relies on this behavior.
 ## But, with more than one index, getindex checks for index of zero (heads)
 ## It is probably faster to use the 
-@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
-getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
-
-#@inline Base.endof(mx::Mxpr) = length(mx)
-@inline Base.endof(mx::Mxpr) = endof(margs(mx))
-@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))

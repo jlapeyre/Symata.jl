@@ -127,7 +127,7 @@ let _bnpartitions = Dict{Int,BigInt}()
             np = 0
             sgn = 1
             for k = 1:n
-                np += sgn * (bnpartitions(n-k*(3k-1)>>1) + bnpartitions(n-k*(3k+1)>>1))
+                np += sgn * (bnpartitions(n - (k * (3k - 1)) >> 1) + bnpartitions(n - (k * (3k + 1)) >> 1))
                 sgn = -sgn
             end
             _bnpartitions[convert(Int,n)] = np

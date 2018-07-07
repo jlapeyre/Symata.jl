@@ -72,11 +72,11 @@ end
 
 
 fullform(io::IO,x,data::FullFormData) = show(io,x)
-fullform(x,data::FullFormData) = fullform(STDOUT,x,data)
-fullform(x) = fullform(STDOUT,x,juliafullformdata)
+fullform(x,data::FullFormData) = fullform(stdout,x,data)
+fullform(x) = fullform(stdout,x,juliafullformdata)
 
 mmafullform(io::IO,x) = fullform(io,x,mmafullformdata)
-mmafullform(x) = mmafullform(STDOUT,x)
+mmafullform(x) = mmafullform(stdout,x)
 
 Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1],juliafullformdata)
 

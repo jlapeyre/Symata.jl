@@ -35,7 +35,7 @@ evalmath(x) = Symata.eval(x)
 # Typical symbols for Julia, Symata, SymPy
 function mtr(sym::Symbol)
     s = string(sym)
-    sjf = ucfirst(s)
+    sjf = uppercasefirst(s)
     (sym, Symbol(sjf), sym)
 end
 
@@ -185,34 +185,34 @@ function make_math()
 
     for x in no_julia_function_one_arg
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf)))
         write_sympy_apprule(x[1],x[2],1)
     end
 
 
     for x in no_julia_function_two_args
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 2)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 2)))
         write_sympy_apprule(x[1],x[2],2)
     end
 
     for x in no_julia_function_four_args
         nargs = 4
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf :nargs => $nargs)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => $nargs)))
         write_sympy_apprule(x[1],x[2],nargs)
     end
 
     for x in no_julia_function_three_args
         nargs = 3
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf :nargs => $nargs)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => $nargs)))
         write_sympy_apprule(x[1],x[2],nargs)
     end
 
     for x in no_julia_function_two_or_three_args
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf)))
         write_sympy_apprule(x[1],x[2],2)
         write_sympy_apprule(x[1],x[2],3)
     end
@@ -220,7 +220,7 @@ function make_math()
 
     for x in no_julia_function_one_or_two_int
         sjf = x[1]
-        eval(macroexpand( :( @mkapprule $sjf)))
+        eval(macroexpand(Symata, :( @mkapprule $sjf)))
         write_sympy_apprule(x[1],x[2],1)
         write_sympy_apprule(x[1],x[2],2)
     end
@@ -235,7 +235,7 @@ function make_math()
     # Ok, this works. We need to clean it up
     for x in single_arg_float_complex
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 1 )))
         write_julia_numeric_rule(jf,sjf,"AbstractFloat")
         write_julia_numeric_rule(jf,sjf,"CAbstractFloat")
         if length(x) == 3
@@ -246,7 +246,7 @@ function make_math()
 
     for x in single_arg_float
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 1 )))
         write_julia_numeric_rule(jf,sjf,"AbstractFloat")
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],1)
@@ -256,7 +256,7 @@ function make_math()
 
     for x in single_arg_float_int
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 1 )))
         write_julia_numeric_rule(jf,sjf,"Real")
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],1)
@@ -266,7 +266,7 @@ function make_math()
     # This is all numbers, I suppose
     for x in single_arg_float_int_complex
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 1 )))
         write_julia_numeric_rule(jf,sjf,"Real")
         write_julia_numeric_rule(jf,sjf,"CReal")
         if length(x) == 3
@@ -276,7 +276,7 @@ function make_math()
 
     for x in single_arg_int
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 1 :argtypes => [Integer] )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 1 :argtypes => [Integer] )))
         write_julia_numeric_rule(jf,sjf,"Integer")
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],1)
@@ -285,7 +285,7 @@ function make_math()
 
     for x in two_arg_int
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 2 )))
         write_julia_numeric_rule(jf,sjf,"Integer", "Integer")
         if length(x) == 3
             write_sympy_apprule(sjf,x[3],2)
@@ -295,7 +295,7 @@ function make_math()
     # Mma allows one arg, as well
     for x in one_or_two_args1
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand(:( @mkapprule $sjf )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf )))
         write_julia_numeric_rule(jf,sjf,"Integer", "AbstractFloat")
         write_julia_numeric_rule(jf,sjf,"Integer", "CAbstractFloat")
         if length(x) == 3
@@ -305,13 +305,13 @@ function make_math()
 
     for x in two_arg_float
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 2 )))
         write_julia_numeric_rule(jf,sjf,"AbstractFloat", "AbstractFloat")
     end
 
     for x in two_arg_float_and_float_or_complex
         jf,sjf = only_get_sjstr(x...)
-        eval(macroexpand( :( @mkapprule $sjf :nargs => 2 )))
+        eval(macroexpand(Symata, :( @mkapprule $sjf :nargs => 2 )))
         write_julia_numeric_rule(jf,sjf,"AbstractFloat", "AbstractFloat")
         write_julia_numeric_rule(jf,sjf,"AbstractFloat", "CAbstractFloat")
         write_julia_numeric_rule(jf,sjf,"Integer", "AbstractFloat")
@@ -331,8 +331,9 @@ function write_julia_numeric_rule(jf, sjf, types...)
                                 (types[i][1] == 'C' ? complex_type(Typei(i)) : Typei(i))
                                     for i in 1:length(types)], ", ")
     callargs = join(AbstractString[ "x" * string(i) for i in 1:length(types)], ", ")
-    appstr = "do_$sjf{$annot}(mx::Mxpr{:$sjf},$protargs) = $jf($callargs)"
-    eval(parse(appstr))
+#    appstr = "do_$sjf{$annot}(mx::Mxpr{:$sjf},$protargs) = $jf($callargs)"
+    appstr = "do_$sjf(mx::Mxpr{:$sjf},$protargs) where {$annot} = $jf($callargs)"    
+    eval(Meta.parse(appstr))
 end
 
 function only_get_sjstr(jf,sjf,args...)
@@ -341,7 +342,7 @@ end
 
 function only_get_sjstr(jf)
     st = string(jf)
-    sjf = Symbol(ucfirst(st))
+    sjf = Symbol(uppercasefirst(st))
     return jf, sjf
 end
 
@@ -352,7 +353,7 @@ end
 
 function get_sjstr(jf)
     st = string(jf)
-    sjf = String(ucfirst(st))
+    sjf = String(uppercasefirst(st))
     do_common(sjf)
     return jf, sjf
 end
@@ -362,8 +363,8 @@ end
 function do_common(sjf)
     aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "do_$sjf(mx::Mxpr{:$sjf},x...) = mx"
-    evalmath(parse(aprs))
-    evalmath(parse(aprs1))
+    evalmath(Meta.parse(aprs))
+    evalmath(Meta.parse(aprs1))
     set_attribute(Symbol(sjf),:Protected)
     set_attribute(Symbol(sjf),:Listable)
 end
@@ -376,8 +377,8 @@ end
 
 # Faster if we don't do interpolation
 function write_sympy_apprule(sjf, sympyf, nargs::Int)
-    callargs = Array{AbstractString}(0)
-    sympyargs = Array{AbstractString}(0)
+    callargs = Array{AbstractString}(undef, 0)
+    sympyargs = Array{AbstractString}(undef, 0)
     for i in 1:nargs
         xi = "x" * string(i)
         push!(callargs, xi)
@@ -389,11 +390,11 @@ function write_sympy_apprule(sjf, sympyf, nargs::Int)
                try
                  (sympy[:$sympyf]($sstr) |> pytosj)
                catch e
-                 showerror(e)
+                 showerror(stdout, e)
                  mx
                end
             end"
-    evalmath(parse(aprpy))
+    evalmath(Meta.parse(aprpy))
 end
 
 
@@ -406,8 +407,8 @@ function set_up_sympy_default(sjf, sympyf)
                    mx
                end
            end"
-    evalmath(parse(aprs))
-    evalmath(parse(aprs1))
+    evalmath(Meta.parse(aprs))
+    evalmath(Meta.parse(aprs1))
     set_attribute(Symbol(sjf),:Protected)
     set_attribute(Symbol(sjf),:Listable)
 end
@@ -745,7 +746,7 @@ return `[Abs(z),Arg(z)]`.
 # # dispatch on type of f. Maybe this is worth something.
 # function do_Re_imag_int(m,f)
 #     nargs = copy(margs(m))
-#     shift!(nargs)
+#     popfirst!(nargs)
 #     if length(nargs) == 1
 #         return mxpr(:Times,-imag(f),mxpr(:Im,nargs))
 #     else
@@ -763,7 +764,7 @@ return `[Abs(z),Arg(z)]`.
 
 # function do_Im_imag_int(m,f)
 #     nargs = copy(margs(m))
-#     shift!(nargs)
+#     popfirst!(nargs)
 #     if length(nargs) == 1
 #         return mxpr(:Times,imag(f),mxpr(:Re,nargs))
 #     else
@@ -981,7 +982,7 @@ end
 
 # function doabsmone{T<:Integer}(mx,prod,f::T)
 #     args = copy(margs(prod))
-#     shift!(args)
+#     popfirst!(args)
 #     if length(args) == 1
 #         return mxpr(:Abs,args)
 #     else
@@ -992,7 +993,7 @@ end
 # TODO Fix canonical routines so that 1.0 * a is not simplifed to a
 function doabsmone(mx,prod,f::T) where T<:Real
     args = copy(margs(prod))
-    shift!(args)
+    popfirst!(args)
     if length(args) == 1
         res = mxpr(:Times,one(f),mxpr(:Abs,args))
     else
@@ -1501,12 +1502,12 @@ convert `n` a maximum precision representation, typically
 apprules(mx::Mxpr{:BI}) = dobigint(mx,mx[1])
 dobigint(mx,x) = mx
 dobigint(mx,x::T) where {T<:Number} = BigInt(x)
-dobigint(mx,x::T) where {T<:AbstractString} = parse(BigInt,x)
+dobigint(mx,x::T) where {T<:AbstractString} = Meta.parse(BigInt,x)
 
 apprules(mx::Mxpr{:BF}) = dobigfloat(mx,mx[1])
 dobigfloat(mx,x) = mx
 dobigfloat(mx,x::T) where {T<:Number} = BigFloat(x)
-dobigfloat(mx,x::T) where {T<:AbstractString} = parse(BigFloat,x)
+dobigfloat(mx,x::T) where {T<:AbstractString} = Meta.parse(BigFloat,x)
 
 ### Big
 

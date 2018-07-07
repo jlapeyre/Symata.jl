@@ -32,7 +32,7 @@ function Symata_eval_string(s)
     i = 1
     local sjretval
     while !done(s,i)
-        Base.syntax_deprecation_warnings(false) do
+        symata_syntax_deprecation_warnings(false) do
             expr, i = parse(s,i)
         end
         sjretval =
@@ -65,7 +65,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
     reading_test::Bool = false
     incomplete_flag::Bool = false
     incomplete_message = ""
-    local line_number
+    local incomplete_line_number = 0
     for (line_number,line) = enumerate(eachline(f))
         pline = sjpreprocess_string(line)
         if typeof(test) != Symata_NullTest && length(pline) > 1 && pline[1:2] == "T "
@@ -79,7 +79,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
         end
         expr =
             try
-                Base.syntax_deprecation_warnings(false) do
+                symata_syntax_deprecation_warnings(false) do
                     parse(eline)
                 end
             catch
@@ -88,6 +88,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
         if typeof(expr) ==  Expr && expr.head == :incomplete
             incomplete_flag = true
             incomplete_message = expr.args[1]
+            incomplete_line_number = line_number
             continue
         end
         sjretval =
@@ -354,7 +355,7 @@ end
 # from functions. But,this might catch all
 # of the nothings from causing printing
 # ...No. this did not help
-apprules(expr::Void) = :Null
+apprules(expr::Nothing) = :Null
 
 ### TempName
 

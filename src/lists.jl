@@ -220,7 +220,7 @@ function do_Range(iter::SJIterA1)  # iter is parameterized, so we hope type of n
 end
 
 function _do_Range_fill(args, n, ::Type{Int})
-    copy!(args,1:n)
+    copyto!(args,1:n)
   # @inbounds @simd for i in 1:n
   #                    args[i] = i
   #                 end
@@ -231,7 +231,7 @@ function _do_Range_fill(args, n, ::Type{T}) where T<:Real
 #    j = one(T)
     n1 = one(T)
     n2 = convert(T,n)
-    copy!(args,n1:n2)
+    copyto!(args,n1:n2)
     # @inbounds for i in 1:n
     #    args[i] = j
     #    j += 1
@@ -517,8 +517,8 @@ returns a list of the keys in `Dict` `d`.
 """
 
 apprules(mx::Mxpr{:Keys}) = do_keys(mx,mx[1])
-do_keys(mx,d::Associative) = mxpr(:List,collect(Any,keys(d))...)
-do_keys(mx,x) = (symwarn("Can't return keys of $x"); mx)
+do_keys(mx, d::AbstractDict) = mxpr(:List,collect(Any,keys(d))...)
+do_keys(mx, x) = (symwarn("Can't return keys of $x"); mx)
 
 ### Values
 
@@ -529,8 +529,8 @@ return a list of the values in `Dict` `d`.
 """
 
 apprules(mx::Mxpr{:Values}) = do_values(mx,mx[1])
-do_values(mx,d::Associative) = mxpr(:List,collect(Any,values(d))...)
-do_values(mx,x) = (symwarn("Can't return values of $mx"); mx)
+do_values(mx, d::AbstractDict) = mxpr(:List,collect(Any,values(d))...)
+do_values(mx, x) = (symwarn("Can't return values of $mx"); mx)
 
 ### Splat
 

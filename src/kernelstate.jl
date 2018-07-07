@@ -230,7 +230,7 @@ end
 function push_output(expr)
     n0 = getkerneloptions(:history_length)
     while length(Output) >= n0
-        shift!(Output)
+        popfirst!(Output)
     end
     push!(Output,SavedOutput(expr))
     nothing
@@ -473,7 +473,7 @@ function _set_historylength(n::Integer)
     oldn = getkerneloptions(:history_length)
     setkerneloptions(:history_length, n)
     for i in 1:(length(Output)-n)
-        shift!(Output)
+        popfirst!(Output)
     end
     oldn
 end

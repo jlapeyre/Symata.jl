@@ -29,6 +29,8 @@
 #     start::T
 # end
 
+import MacroTools
+
 function parse_nargs(ex)
     if is_range(ex) && range_stop(ex) == :Inf
         return UnitRangeInf(range_start(ex))
@@ -63,18 +65,20 @@ function get_arg_dict(args)
         if isa(p,Expr) && p.head == :(=>)
             p = Expr(:call, :(=>), p.args[1], p.args[2])
         end
-       # println("  ***** get_arg_dict: doing p = $p")
-       #  println("  Length is ", length(p.args))
-       #  println("  isaExpr: ", isa(p,Expr), ", type is ", typeof(p.args[1]), ", val is ", p.args[1])
         if iscall(p, :(=>)) && p.args[2] == :nargs
-#            println("***** get_arg_dict: p is Expr and nargs")
             pres = parse_nargs(p.args[3])
             pe = :nargs => pres
         else
-#            println("***** get_arg_dict: p is NOT Expr and nargs")
             pe = eval_app_directive(p)
         end
-        d[pe[1]] = pe[2]
+        if isa(pe, Tuple)
+            for pe1 in pe
+                d[pe1[1]] = pe1[2]
+            end
+        else
+#        println("\n", pe, "\n")
+            d[pe[1]] = pe[2]
+        end
     end
     d
 end
@@ -85,7 +89,7 @@ function get_arg_dict_options(args)
         pe = eval(p)
         d[pe[1]] = pe[2]
     end
-    d
+    return d
 end
 
 # FIXME: we are relying on a bug that has been fixed
@@ -94,7 +98,7 @@ end
 
 macro mkapprule(inargs...)
     head = inargs[1]   ## head is the symbol for which we are writing rules    
-    args = [inargs...]
+    args = [inargs...] ## FIXME: Why ?
     n = length(args)
     headstr = string(head)
     fns = Symbol("do_" * headstr)
@@ -117,9 +121,7 @@ macro mkapprule(inargs...)
     else
         rargs = Any[]
     end
-#    println("********  Getting args $rargs")
     specs = get_arg_dict(rargs)
-#    println("********  Success Got specs")
     if haskey(specs, :options)
         optd = get_arg_dict_options(specs[:options])
         if haskey(specs, :nargs)
@@ -204,40 +206,59 @@ end
 These macros write methods that look like this: `do_Headname(mx::Mxpr{:Headname},x,y) ...` 
 Note that this means you must not make a conflicting definition or use of `mx` in the body of @doap.
 """
-macro doap(func)
-    prototype = func.args[1].args                      # eg.  Headname{T,V}(x::T,y::V) or Headname(x,y::Int), etc.
-    sj_func_name0 = prototype[1]                       #      Headname{T,V}, or Headname
-    if isa(sj_func_name0, Expr)                        # got  Headname{T,V}
-        if ( sj_func_name0.head == :curly )
-            sj_func_name = sj_func_name0.args[1]       #   get Headname
-            new_func_name = Symbol("do_",sj_func_name) #  Headname --> do_Headname
-            sj_func_name0.args[1] = new_func_name      #  replace Headname{T,V} -> do_Headname{T,V}
+macro olddoap(func)
+    signature = func.args[1].args    # Headname{T,V}(x::T,y::V) or Headname(x,y::Int), etc.
+    sj_func_name0 = signature[1]     # Headname{T,V}, or Headname
+    if isa(sj_func_name0, Expr)      # expect Headname{T,V}
+        if ( sj_func_name0.head == :curly ) # Headname{T,V} is expression with head :curly
+            sj_func_name = sj_func_name0.args[1]       # Headname
+            new_func_name = Symbol("do_", sj_func_name) # Headname --> do_Headname
+            sj_func_name0.args[1] = new_func_name      # Headname{T,V} -> do_Headname{T,V}
         else
-            symerror("doap: Can't interpret ", sj_func_name0)
+            symerror("doap: Expecting curly braces. Can't interpret ", sj_func_name0)
         end
-    else                                                       # got Headname(x,y)
+    else                                            # got Headname(x,y)
         sj_func_name = sj_func_name0
-        new_func_name = Symbol("do_",sj_func_name)             # do_Headname
-        prototype[1] = new_func_name                           # replace Headname --> do_Headname
+        new_func_name = Symbol("do_", sj_func_name) # do_Headname
+        signature[1] = new_func_name                # Headname --> do_Headname
     end
-    local quote_sj_func_name
-    if isa(sj_func_name,Symbol)
-        quote_sj_func_name = QuoteNode(sj_func_name)         # :Headname from prototype like Headname(args...)
+#    local quote_sj_func_name
+    if isa(sj_func_name, Symbol)
+        quote_sj_func_name = QuoteNode(sj_func_name)         # :Headname from signature like Headname(args...)
     elseif isa(sj_func_name, Expr)
-        quote_sj_func_name = QuoteNode(sj_func_name.args[1]) # :Headname from prototype like Headname{T,V}(args...)
+        quote_sj_func_name = QuoteNode(sj_func_name.args[1]) # :Headname from signature like Headname{T,V}(args...)
     else
         symerror("doap: Can't interpret ", sj_func_name)
     end
-    mxarg =  :( mx::Mxpr{$quote_sj_func_name}  )             # mx::Mxpr{:Headname}
-    nind = 2 ## kws appear last in the argument list in Julia syntax. But, they are moved to the front in the AST
-    if length(prototype) > 1   ## So, we have to detect this.
-        if isa(prototype[2],Expr) && prototype[2].head == :parameters
+    mxarg = :( mx::Mxpr{$quote_sj_func_name}  )             # mx::Mxpr{:Headname}
+    nind = 2 # kws appear last in the argument list in Julia syntax. But, they are moved to the front in the AST
+    if length(signature) > 1  # So, we have to detect this.
+        if isa(signature[2],Expr) && signature[2].head == :parameters
             nind = 3
         end
     end
-    insert!(prototype,nind, mxarg)                              # insert mx::Mxpr{:Headname} as the first argument in prototype
+    insert!(signature, nind, mxarg)                              # insert mx::Mxpr{:Headname} as the first argument in signature
     :(($(esc(func))))                                        # return the rewritten function
 end
+
+# function _doap(ex::Expr)
+#     d = MacroTools.splitdef(ex)
+#     quotename = QuoteNode(d[:name])    
+#     d[:name] = Symbol("do_", d[:name])
+#     pushfirst!(d[:args], :(mx::Mxpr{$quotename})
+#     return MacroTools.combinedef(d)
+# end
+
+macro doap(ex)
+    d = MacroTools.splitdef(ex)
+    quotename = QuoteNode(d[:name])
+#    println(d[:name])
+    d[:name] = Symbol("do_", d[:name])
+    pushfirst!(d[:args], :(mx::Mxpr{$quotename}))
+    newfunc = MacroTools.combinedef(d)
+    :(($(esc(newfunc))))
+end
+
 
 #### Default apprule
 ##  This is for a head that is (almost always) not a "system" symbol, but rather user defined

@@ -116,7 +116,7 @@ function unpacktoList(obj)
     setcanon(mx)
     return mx
 end
-do_unpack(obj) = copy!(newargs(length(obj)),obj)
+do_unpack(obj) = copyto!(newargs(length(obj)),obj)
 
 ## We copy this and change it a bit to tolistoflists in mxpr_utils
 function do_unpack(dict::Dict)
@@ -167,7 +167,7 @@ function apprules(mx::Mxpr{:Pack})
     do_pack(T,a)
 end
 
-do_pack(T,sjobj) = copy!(Array{T}(length(sjobj)), sjobj)
+do_pack(T,sjobj) = copyto!(Array{T}(length(undef, sjobj)), sjobj)
 
 #### Translate Symata to Julia
 
@@ -261,7 +261,7 @@ function freesyms!(ex::Expr, syms)
     foreach( x -> freesyms!(x,syms), a)
 end
 
-freesyms!(s::Symbol, syms) = (if ! isdefined(s) syms[s] = 1 end)
+freesyms!(s::Symbol, syms) = (if ! @isdefined(s) syms[s] = 1 end)
 freesyms!(x,syms) = nothing
 
 @mkapprule Compile """

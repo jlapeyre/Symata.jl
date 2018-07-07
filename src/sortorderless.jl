@@ -181,7 +181,7 @@ function jslexless(x::Qsym, y::T) where T
     false
 end
 
-const istrcmp =  @static is_windows() ? :_strnicmp : :strcasecmp
+const istrcmp =  @static Sys.iswindows() ? :_strnicmp : :strcasecmp
 
 # cmp(a::Symbol, b::Symbol) is in base/string.jl
 # Mma does case insensitive ordering of symbols, we do too
@@ -557,14 +557,14 @@ for (op,name,id) in  ((:Plus,:compactplus!,0),(:Times,:compactmul!,1))
             isa(a[1],Number) || return mx
             sum0 = a[1]
             while length(a) > 1
-                shift!(a)
+                popfirst!(a)
                 isa(a[1],Number) || break
                 sum0 = ($fop)(sum0,a[1])
             end
             @mdebug(3, $name, ": done while loop, a=$a, sum0=$sum0")
             (length(a) == 0 || isa(a[1],Number)) && return sum0
             $(fop == :mmul ? :(sum0 == 0 && return handle_coefficient_is_zero(mx,sum0)) : :())
-            sum0 != $id && unshift!(a,sum0)
+            sum0 != $id && pushfirst!(a, sum0)
             @mdebug(3, $name, ": checking length: ",a)
             length(a) == 1 && return a[1]
             @mdebug(3, $name, ": returning at end")
@@ -595,7 +595,7 @@ numeric_expt(x) = 1
 # TODO: Tests fail unless we copy. But, there may be a way around this
 function _rest!(mx::Mxpr)
     res=copy(mx)  # could be slow
-    shift!(margs(res))
+    popfirst!(margs(res))
     return length(res) == 1 ? res[1] : res
 end
 
@@ -725,7 +725,7 @@ function newcollectmmul!(mx::Mxpr)
     n = 1
     count = 0
     coeffcount = 0
-    cumterms = Array{Any}(0)
+    cumterms = Array{Any}(undef, 0)
     while n < length(a)
         isa(a[n],Number) && (n += 1; continue)
         (success,fac) = _matchfacs2a(a[n],a[n+1],cumterms)

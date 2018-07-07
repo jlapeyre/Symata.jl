@@ -107,7 +107,7 @@ end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
     pymx = sjtopy(expr)
-    pyintegral = sympy[:integrate](pymx; kws)
+    pyintegral = sympy[:integrate](pymx, kws)
     return pytosj(pyintegral)
 end
 

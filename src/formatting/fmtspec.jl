@@ -168,7 +168,8 @@ _srepr(x) = repr(x)
 _srepr(x::AbstractString) = x
 _srepr(x::Char) = string(x)
 
-if isdefined(:Enum)
+## FIXME: which module do we expect :Enum to be defined in ?
+if isdefined(Formatting, :Enum)
     _srepr(x::Enum) = string(x)
 end
 

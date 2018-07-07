@@ -145,6 +145,8 @@ end
 
 ## setpart2! does the same, but I think it  is better and simpler and doesnt seem to be broken
 
+## getpart is used only here. it is defined in mxpr.jl. It is probably not fast
+## maybe getpart2 above is faster and handles more cases.
 """
     setpart!(mx::Mxpr,val,inds...)
 
@@ -153,9 +155,6 @@ set the part of `mx` indexed by `inds` to `val`.
 The last index equal to zero means the head of the subexpression specified by the previous indices.
 Because most heads are effectively immutable, we must replace the final subexpression in this case.
 """
-
-## getpart is used only here. it is defined in mxpr.jl. It is probably not fast
-## maybe getpart2 above is faster and handles more cases.
 function setpart!(mx::Mxpr,val,inds...)
     if length(inds) == 0
 #        return mxpr(val,margs(mx))

@@ -52,7 +52,7 @@ function symparsestring(s)
     local sjretval
     local expr
     while !done(s,i)
-        Base.syntax_deprecation_warnings(false) do
+        symata_syntax_deprecation_warnings(false) do
             expr, i = parse(s,i)
         end
         sjretval =
@@ -107,7 +107,7 @@ end
 
 function sjpreprocess_string(line::AbstractString)
     for (k,v) in PREPROCESS_SYMBOL_TRANSLATION
-        line = replace(line, k, v)
+        line = replace(line, k => v)
     end
     return line
 end
@@ -129,7 +129,7 @@ function extomx(s::Symbol)
     s == :True && return true
     s == :False && return false
     ss = string(s)
-    return contains(ss,"_")  ? parseblank(ss) : getsym(jtomsym(s))
+    return occursin("_", ss)  ? parseblank(ss) : getsym(jtomsym(s))
 end
 
 ## Underscore is not allowed in symbols. Instead,
@@ -261,7 +261,7 @@ function extomx(ex::Expr)
     elseif ohead == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         if length(a) == 2
             if isa(a[1], Symbol) && isa(a[2], Expr) &&   # FIXME use isa() here
-                (a[2].args)[1] == :(?)
+                (a[2].args)[1] == :(?) # FIXME deprecated. Cannot be used as an identifier. Will fail parsing soon.
                 ptargs = a[2].args
                 length(ptargs) != 2 && error("extomx: too many args to PatternTest")
                 pt = ptargs[2]

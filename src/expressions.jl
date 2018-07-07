@@ -304,6 +304,12 @@ set_sysattributes(:Count)
     count( x -> match_no_capture(x,jp,m), args)
 end
 
+@doap function Count(arr::AbstractArray, pat)
+    jp = patterntoBlank(pat)
+    m = Match()  # allocating Match here is not faster than allocating capt here.
+    count(x -> match_no_capture(x, jp, m), arr)
+end
+
 ## julia count is much faster than an explicit loop
 @doap Count(expr::Mxpr,pat::Union{Number,Symbol,String}) = count(x -> x == pat, margs(expr))
 

@@ -7,7 +7,7 @@ for s in (:complex, :basic, :modulus, :gaussian, :force, :deep, :none,
           :minimal, :warn, :simplify, :rational, :manual, :implicit,
           :particular, :quick, :cubics, :quartics, :quintics)
 
-    KeywordDict[Symbol(ucfirst(string(s)))] = s
+    KeywordDict[Symbol(uppercasefirst(string(s)))] = s
 end
 KeywordDict[:Conditions] = :conds
 

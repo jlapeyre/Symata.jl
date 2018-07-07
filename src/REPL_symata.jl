@@ -1,4 +1,5 @@
-import Base: LineEdit, REPL, Terminals
+import Base: REPL, Terminals
+import Base.REPL: LineEdit, REPLCompletions
 
 import Base.LineEdit: CompletionProvider, transition
 
@@ -8,7 +9,7 @@ REPLHistoryProvider, find_hist_file, print_response, outstream, hist_from_file, 
 history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface, reset, send_to_backend,
  backend, prepare_next, reset_state, ends_with_semicolon
 
-import Base.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
+import Base.REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
 find_start_brace, complete_path
 
 import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
@@ -65,7 +66,8 @@ end
 
 function Symata_parse_REPL_line(line)
     line = sjpreprocess_interactive(line)
-    Base.syntax_deprecation_warnings(false) do
+# FIXME: upgrade syntax_deprecation_warnings for v0.7
+    symata_syntax_deprecation_warnings(false) do
         Base.parse_input_line("@Symata.sym " * line)
     end
 end
@@ -77,7 +79,8 @@ function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
     return ret, partial[range], should_complete
 end
 
-const sorted_builtins = Array{Compat.String}(0)
+# FIXME: this should not be global
+const sorted_builtins = Array{Compat.String}(undef, 0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b
@@ -100,7 +103,7 @@ end
 
 function remove_completion_symbols(syms...)
     for sym in syms
-        deleteat!(sorted_builtins,findin(sorted_builtins,(string(sym),)))
+        deleteat!(sorted_builtins, findall((in)(sorted_builtins), (string(sym),)))
     end
     nothing
 end
@@ -119,7 +122,7 @@ end
 function symata_completions(string, pos)
     # First parse everything up to the current position
     partial = string[1:pos]
-    inc_tag = Base.syntax_deprecation_warnings(false) do
+    inc_tag = symata_syntax_deprecation_warnings(false) do
         Base.incomplete_tag(parse(partial, raise=false))
     end
     if inc_tag in [:cmd, :string]
@@ -145,7 +148,7 @@ function symata_completions(string, pos)
 
      if inc_tag == :other && should_method_complete(partial)
         frange, method_name_end = find_start_brace(partial)
-        ex = Base.syntax_deprecation_warnings(false) do
+        ex = symata_syntax_deprecation_warnings(false) do
             parse(partial[frange] * ")", raise=false)
         end
         if isa(ex, Expr) && ex.head==:call
@@ -532,7 +535,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
             oldpos = start(input)
             firstline = true
             while !done(input, oldpos) # loop until all lines have been executed
-                ast, pos = Base.syntax_deprecation_warnings(false) do
+                ast, pos = symata_syntax_deprecation_warnings(false) do
                     Base.parse(input, oldpos, raise=false)
                 end
                 if (isa(ast, Expr) && (ast.head == :error || ast.head == :continue || ast.head == :incomplete)) ||

@@ -211,7 +211,7 @@ function ematch(pat::Mxpr{:Pattern}, m::Match)
     ex = m.ex
     captures = m.capt
     if symlength(pat) == 2
-        (name,pattern) = (margs(pat)...)
+        (name,pattern) = (margs(pat)...,)
         success_flag::Bool = ematch(pattern,m)
         local capture_success_flag::Bool
         if success_flag

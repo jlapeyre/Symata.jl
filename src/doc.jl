@@ -358,7 +358,7 @@ function sj_add_history(s::AbstractString)
     sj_add_history(symata_repl_history(), s)
 end
 
-function sj_add_history(hist::Base.REPL.REPLHistoryProvider, s::AbstractString)
+function sj_add_history(hist::REPL.REPLHistoryProvider, s::AbstractString)
     str = rstrip(Compat.String(s))
     isempty(strip(str)) && return
     mode = :symata

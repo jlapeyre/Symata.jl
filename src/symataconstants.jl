@@ -43,6 +43,7 @@ for s in ( :_moosq2, :_oosq2 , :Pisq, :ComplexInfinity, :Infinity, :MinusInfinit
     @eval setcanon($s)
 end
 
+using Base.Dates
 for s in ( :BigInt, :BigFloat, :Float64, :Int64, :Int, :DateTime, :DataType, :Char, :String)
     sq = QuoteNode(s)
     @eval setsymval($sq,$s)

@@ -197,7 +197,8 @@ macro mdebug(level, a...)
     end
 end
 
-using Base.Test
+#using Base.Test
+import Base.Test
 using Symata
 
 # For use in ../test/
@@ -211,5 +212,5 @@ macro testex(expr)
         retresult = false
     end
     retresult || symwarn("Test failed: ", mx, " evaluated to ", retresult)
-    Expr(:macrocall,Symbol("@test"),retresult)
+    Expr(:macrocall, Meta.parse("Test.@test"), retresult)
 end

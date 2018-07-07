@@ -12,7 +12,7 @@ import IJulia: ans, In, Out, clear_history
 
 pushdisplay(IJulia.InlineDisplay())
 
-ccall(:jl_exit_on_sigint, Void, (Cint,), 0)
+ccall(:jl_exit_on_sigint, Nothing, (Cint,), 0)
 
 # the size of truncated output to show should not depend on the terminal
 # where the kernel is launched, since the display is elsewhere

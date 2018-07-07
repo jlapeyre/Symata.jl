@@ -23,6 +23,12 @@ import Base: text_colors,  default_color_input,  default_color_answer,
 
 # See base/client.jl
 
+## for v0.6, we used Base.syntax_deprecation_warnings
+## 1) This function is not present in v0.7
+## 2) The deprecated syntax will probably be removed soon.
+## So, we make this a noop for the time being
+symata_syntax_deprecation_warnings(f, args...) = f()
+
 function Symata_start()
     opts = Base.JLOptions()
     startup               = (opts.startupfile != 2)
@@ -36,12 +42,11 @@ function Symata_start()
     global active_repl
     global active_repl_backend
 
-    if !isa(STDIN,TTY)
-        global is_interactive |= !isa(STDIN,Union{File,IOStream})
+    if !isa(stdin, TTY)
+        global is_interactive |= !isa(stdin, Union{File,IOStream})
         color_set || (global have_color = false)
     else
-#        term = Terminals.TTYTerminal(get(ENV,"TERM",@windows? "" : "dumb"),STDIN,STDOUT,STDERR)
-        term = Terminals.TTYTerminal(get(ENV,"TERM", @static is_windows() ? "" : "dumb"),STDIN,STDOUT,STDERR)
+        term = Terminals.TTYTerminal(get(ENV,"TERM", @static Sys.iswindows() ? "" : "dumb"), stdin, stdout, stderr)
         global is_interactive = true
         color_set || (global have_color = Terminals.hascolor(term))
         Base.eval(parse("global have_color = " * string(have_color)))  # get colors for warn and error
@@ -59,29 +64,29 @@ function Symata_start()
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
 
-    if @isdefined(:STDOUT)
-        setsymval(:STDOUT, STDOUT)
+    if @isdefined(stdout)
+        setsymval(:STDOUT, stdout)
     else
         warn("**** CANT FIND STDOUT")
     end
-    if @isdefined(:STDERR)
-        setsymval(:STDERR, STDERR)
+    if @isdefined(stderr)
+        setsymval(:STDERR, stderr)
     else
         warn("**** CANT FIND STDERR")
     end
-    if @isdefined(:DevNull)
-        setsymval(:DevNull, DevNull)
+    if @isdefined(devnull)
+        setsymval(:DevNull, devnull)
     end
 
-    if !isa(STDIN,TTY)
+    if !isa(stdin,TTY)
         # note: currently IOStream is used for file STDIN
-        if isa(STDIN,File) || isa(STDIN,IOStream)
+        if isa(stdin,File) || isa(stdin,IOStream)
             # reading from a file, behave like include
-            eval(Main,parse_input_line(readstring(STDIN)))
+            eval(Main,parse_input_line(readstring(stdin)))
         else
             # otherwise behave repl-like
-            while !eof(STDIN)
-                eval_user_input(parse_input_line(STDIN), true)
+            while !eof(stdin)
+                eval_user_input(parse_input_line(stdin), true)
             end
         end
     else
