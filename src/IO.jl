@@ -178,11 +178,11 @@ end
 ## FIXME: The correct way is not this way. Instead  Definition(f) does not evaluate to anything.
 ## rather displaying the form Definition(f) prints the definitions
 function do_Definition(mx::Mxpr{:Definition}, sym::SymString)
-    write_definition(STDOUT,sym)
+    write_definition(stdout, sym)
     Null
 end
 
-write_definition(sym) = write_definition(STDOUT,sym)
+write_definition(sym) = write_definition(stdout, sym)
 
 function write_definition(io::IO, sym)
     gotdef = write_definition_no_attributes(io,sym)
@@ -193,7 +193,7 @@ function write_definition(io::IO, sym)
     return gotdef
 end
 
-write_definition_no_attributes(sym) = write_definition_no_attributes(STDOUT,sym)
+write_definition_no_attributes(sym) = write_definition_no_attributes(stdout, sym)
 function write_definition_no_attributes(io::IO, sym)
     gotdef = maybeprint(io,getdefinition(Symbol(sym)))
     dvdefs = jlistdownvaluedefs(sym)
@@ -344,7 +344,7 @@ returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
 """
 @doap function In(n::Integer)
     if isymata_mode()
-        doeval(eval(Expr(:macrocall,Symbol("@sym"), parse(Main.IJulia.In[n]))))
+        doeval(eval(Expr(:macrocall, Symbol("@sym"), Meta.parse(Main.IJulia.In[n]))))
     else
         :Null
     end

@@ -167,7 +167,7 @@ function apprules(mx::Mxpr{:Pack})
     do_pack(T,a)
 end
 
-do_pack(T,sjobj) = copyto!(Array{T}(length(undef, sjobj)), sjobj)
+do_pack(T,sjobj) = copyto!(Array{T}(undef, length(sjobj)), sjobj)
 
 #### Translate Symata to Julia
 
@@ -404,7 +404,7 @@ function wrap_symata(var0,expr0::Mxpr)   # Why are arguments reversed here ? Is 
 end
 
 function wrap_symata(expr0::Mxpr,vars0...)
-    vars = Array{Symbol}(length(vars0))
+    vars = Array{Symbol}(undef, length(vars0))
     expr = expr0
     for i in 1:length(vars0)
         (vars[i],expr) = localize_variable(vars0[i],expr)

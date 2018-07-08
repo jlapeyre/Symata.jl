@@ -9,7 +9,7 @@ macro checkunbound(mx,x,sv)
     esc( quote
            $sv = symval($x)   # could replace with isbound($x)
            if $sv == $x
-             warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
+             @warn("The symbol " * string($x) * " does not have a value, so it's value cannot be changed")
              setfixed($mx)
              return $mx
           end

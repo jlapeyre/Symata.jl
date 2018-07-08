@@ -11,7 +11,7 @@ function generate_formatter( fmt::String )
     if haskey( formatters, fmt )
         return formatters[fmt]
     end
-    func = Symbol("sprintf_", replace(base64encode(fmt), "=", "!"))
+    func = Symbol("sprintf_", replace(Base64.base64encode(fmt), "=", "!"))
 
     if !contains( fmt, "'" )
         test = Base.Printf.parse( fmt )

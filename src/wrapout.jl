@@ -12,6 +12,8 @@ for f in ( :print, :println, :string, :warn, :error, :throw)
     end
 end
 
+
+
 @doc """
    symprintln(expr)
 

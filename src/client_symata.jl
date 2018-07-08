@@ -15,7 +15,7 @@ import Base.REPL
 
 import Base: text_colors,  default_color_input,  default_color_answer,
        color_normal, input_color, answer_color, repl_cmd,
-       display_error, eval_user_input, syntax_deprecation_warnings, parse_input_line, incomplete_tag,
+       display_error, eval_user_input, parse_input_line, incomplete_tag,
        try_include, process_options, load_machine_file, repl_hooks,
        atreplinit, _atreplinit
 

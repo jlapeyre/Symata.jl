@@ -370,7 +370,7 @@ function sj_add_history(hist::REPL.REPLHistoryProvider, s::AbstractString)
     entry = """
     # time: $(Libc.strftime("%Y-%m-%d %H:%M:%S %Z", time()))
     # mode: $mode
-    $(Base.replace(str, r"^"ms, "\t"))
+    $(Base.replace(str, r"^"ms => "\t"))
     """
     # TODO: write-lock history file
     seekend(hist.history_file)

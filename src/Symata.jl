@@ -5,8 +5,11 @@ using Compat
 import Compat.String
 import Compat.view
 import MacroTools
+import LambertW
+import SpecialFunctions
 import Base.REPL
 import Base: setindex!, getindex, replace
+import Base64
 
 export @symExpr, @extomx
 
@@ -118,8 +121,16 @@ end
 @inc("function.jl")
 
 function __init__()
-    # do_init()
+   # do_init()
 end
+
+export symata
+
+"""
+    symata()
+
+"""
+symata() = do_init()
 
 function do_init()
     println("*************  Entering __init__**************")

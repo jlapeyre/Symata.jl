@@ -99,7 +99,7 @@ function set_pytosj(py,sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMPY_TO_SYMATA_FUNCTIONS,spy)
-        warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
+        @warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
     SYMPY_TO_SYMATA_FUNCTIONS[spy] = ssj
@@ -862,7 +862,7 @@ macro try_sympyfunc(pycall, errstr, return_val_err)
                   (false,pyerr)
                  end
                  if sflag == false
-                 warn($errstr)
+                 @warn($errstr)
                    setkerneloptions(:sympy_error, _pyres)
                    return $(esc(return_val_err))
                  end

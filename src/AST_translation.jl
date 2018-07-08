@@ -145,7 +145,7 @@ end
 ## Mma does  Fullform[a::b] --> MessageName[a, "b"]. We could take
 ## :: for Pattern
 function parseblank(s::AbstractString)
-    a = split(s,['_'], keep=true)
+    a = split(s,['_'], keepempty=true)
     length(a) > 4 && error("parseblank: Illegal Pattern expression '$s'")
     if length(a) == 2
         blanktype = :Blank

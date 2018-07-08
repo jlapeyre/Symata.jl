@@ -159,6 +159,6 @@ end
 end
 
 @doap function Flatten(x::Mxpr,spec::ListT)
-    warn("Flatten: unimplemented feature")
-    mx
+    @warn("Flatten: unimplemented feature")
+    return mx
 end

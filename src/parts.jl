@@ -97,8 +97,8 @@ return a list of part specifications (indices) of positions in
 return a list of part indices at which subexpression `subx` occurs in expression `ex`.
 """
 function find_positions(ex,subx)
-    posns = Array{Array{Int,1}}(0)
-    lev = Array{Int}(100)
+    posns = Array{Array{Int,1}}(undef, 0)
+    lev = Array{Int}(undef, 100)
     clev::Int = 1
     lev[clev] = 0
     capt = capturealloc()
@@ -473,7 +473,7 @@ Define function `op(expr)` that returns `ReplaceAll(expr,rule)`.
 end
 
 function _doreplaceall(mx,expr,rs::Mxpr{:List})
-    rsa = Array{Any}(0)
+    rsa = Array{Any}(undef, 0)
     for i in 1:length(rs)
         if isa(rs[i],Rules)
             push!(rsa, rs[i])
@@ -507,7 +507,7 @@ perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
 ## FIXME: use get to get keywords
 #function do_ReplaceRepeated(mx::Mxpr{:ReplaceRepeated},expr,rs::Mxpr{:List}; kws...)
 @doap function ReplaceRepeated(expr,rs::Mxpr{:List}; kws...)
-    rsa = Array{Any}(0)
+    rsa = Array{Any}(undef, 0)
     for r in rs
         if isa(r,Rules)
             push!(rsa, r)

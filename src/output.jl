@@ -98,7 +98,7 @@ needsparen(x) = false
 de_gensym(x) = x
 # function de_gensym{T<:AbstractString}(str::T)
 #     if str[1] == '#' && str[2] == '#'  # De-gensym local variables for display
-#         return split(str,['#'],keep=false)[1]
+#         return split(str,['#'],keepempty=false)[1]
 #     else
 #         return str
 #     end

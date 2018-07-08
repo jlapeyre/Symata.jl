@@ -97,8 +97,8 @@ function find_next_entry_open(s::AbstractString, si::Int)
     # println("open at $p")
     pre = p > 0 ? s[si:p-1] : s[si:end]
     if !isempty(pre)
-        pre = replace(pre, "{{", '{')
-        pre = replace(pre, "}}", '}')
+        pre = replace(pre, "{{" => '{')
+        pre = replace(pre, "}}" => '}')
     end
     return (p, convert(String, pre))
 end

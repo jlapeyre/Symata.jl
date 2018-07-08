@@ -63,7 +63,7 @@ function record_SJTest(test::AbstractSymataPlainTest, fname, linenumber, res)
     if res == true
         test.pass += 1
     else
-        warn("Test failed in $fname, line $linenumber")
+        @warn("Test failed in $fname, line $linenumber")
     end
 end
 

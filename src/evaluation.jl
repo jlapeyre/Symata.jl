@@ -305,7 +305,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
     end    
     if is_throw()
         if is_Mxpr(mx,:Throw)
-            warn("Uncaught Throw")
+            @warn("Uncaught Throw")
             clear_throw()
         else
             symwarn("Throw flag set, but expression is not throw.",  mx)
@@ -321,10 +321,10 @@ function trysymataevaluate(mxin)
         doeval(mxin)
     catch e
         if isa(e,ArgCheckErr)
-            warn(e.msg)
+            @warn(e.msg)
             return mxin
         elseif isa(e,RecursionLimitError)
-            warn(e.msg)
+            @warn(e.msg)
             e.mx
         else
             println(e)
