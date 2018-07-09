@@ -234,14 +234,14 @@ function show_rational(io::IO, x::Rational)
     show(io, symdenominator(x))
 end
 
-# Yes, it is Base.REPLCompletions.latex_symbols
+# Yes, it is REPL.REPLCompletions.latex_symbols
 function Base.show(io::IO, x::Mxpr{:Subscript})
     if using_unicode_output()
         try
             s1 = string(x[1].x) # unwrap symbol
             for i in 2:length(x)
                 y = typeof(x[i]) <: AbstractWO ? string(x[i].x) : string(x[i])
-                s1 *=  Base.REPLCompletions.latex_symbols["\\_" * y]
+                s1 *=  REPL.REPLCompletions.latex_symbols["\\_" * y]
             end
             show(io, wrapout(Symbol(s1)))
         catch

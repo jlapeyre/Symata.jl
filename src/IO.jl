@@ -33,7 +33,7 @@ function Symata_eval_string(s)
     local sjretval
     while !done(s,i)
         symata_syntax_deprecation_warnings(false) do
-            expr, i = parse(s,i)
+            expr, i = Meta.parse(s,i)
         end
         sjretval =
             try
@@ -80,7 +80,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
         expr =
             try
                 symata_syntax_deprecation_warnings(false) do
-                    parse(eline)
+                    Meta.parse(eline)
                 end
             catch
                 error("Syntax error in file $f, line $line_number: '", chomp(pline), "'")

@@ -113,7 +113,7 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
 
 # Do NDigits by hand for now!
 @mkapprule NDigits :nargs => 1:2
-@doap NDigits(n::T,b::V) where {T<:Integer,V<:Integer} = ndigits(n,b)
+@doap NDigits(n::T,b::V) where {T<:Integer,V<:Integer} = ndigits(n, b)
 @doap NDigits(n::T) where {T<:Integer} = ndigits(n)
 @doap NDigits(n) = mx
 @doap NDigits(n,b) = mx
@@ -332,7 +332,7 @@ function write_julia_numeric_rule(jf, sjf, types...)
                                     for i in 1:length(types)], ", ")
     callargs = join(AbstractString[ "x" * string(i) for i in 1:length(types)], ", ")
 #    appstr = "do_$sjf{$annot}(mx::Mxpr{:$sjf},$protargs) = $jf($callargs)"
-    appstr = "do_$sjf(mx::Mxpr{:$sjf},$protargs) where {$annot} = $jf($callargs)"    
+    appstr = "do_$sjf(mx::Mxpr{:$sjf},$protargs) where {$annot} = $jf($callargs)"
     eval(Meta.parse(appstr))
 end
 
@@ -512,8 +512,8 @@ set_sysattributes(:IntegerDigits, :Listable)
 _intdig(args) = MList(reverse!(args)...) |> setfixed
 
 @doap IntegerDigits(n::Integer) = digits(n) |> _intdig
-@doap IntegerDigits(n::Integer,b::Integer) = digits(n,convert(Int,b)) |> _intdig
-@doap IntegerDigits(n::Integer,b::Integer,p::Integer) = digits(n,convert(Int,b),convert(Int,p)) |> _intdig
+@doap IntegerDigits(n::Integer,b::Integer) = digits(n, base=convert(Int, b)) |> _intdig
+@doap IntegerDigits(n::Integer,b::Integer,p::Integer) = digits(n, base=convert(Int, b), convert(Int, p)) |> _intdig
 
 @mkapprule Log :nargs => 1:2
 
@@ -639,30 +639,30 @@ equal to `(1+Sqrt(5))/2`.
 # We need to use dispatch as well, not conditionals
 function do_N(s::SJSym)
     if s == :Pi || s == :π
-        return float(pi)
+        return float(MathConstants.pi)
     elseif s == :E
-        return float(e)
+        return float(MathConstants.e)
     elseif s == :EulerGamma
-        return float(eulergamma)
+        return float(MathConstants.eulergamma)
     elseif s == :GoldenRatio
-        return float(golden)
+        return float(MathConstants.golden)
     elseif s == :Catalan
-        return float(catalan)
+        return float(MathConstants.catalan)
     end
     return s
 end
 
 function do_N(s::SJSym,pr::T) where T<:Integer
     if s == :Pi || s == :π
-        return float_with_precision(pi,pr)
+        return float_with_precision(MathConstants.pi, pr)
     elseif s == :E
-        return float_with_precision(e,pr)
+        return float_with_precision(MathConstants.e, pr)
     elseif s == :EulerGamma
-        return float_with_precision(eulergamma,pr)
+        return float_with_precision(MathConstants.eulergamma, pr)
     elseif s == :GoldenRatio
-        return float_with_precision(golden,pr)
+        return float_with_precision(MathConstants.golden, pr)
     elseif s == :Catalan
-        return float_with_precision(catalan,pr)
+        return float_with_precision(MathConstants.catalan, pr)
     end
     return s
 end
@@ -1155,72 +1155,6 @@ returns `sin(π x)`. This is more accurate than `Sin(Pi*x)` for
 floating point `x`.
 """
 
-### MittagLefflerE
-
-@sjdoc MittagLefflerE """
-    MittagLeffler(α,β,z)
-
-    MittagLeffler(α,z)
-
-represents the Mittag-Leffler function.
-"""
-
-## FIXME: organize this more like polylog is organized
-## in general, we need a way to combine effective pattern matching with efficient dispatch.
-## i.e. we want fewer `isa(...)`s.
-## Maybe one of the Julia matching packages will do this for us.
-## PatternDispatch.jl ?
-## Match.jl appears to not write functions taking advantage of multiple dispatch
-## Stefan mentioned something about ameliorating ambiguity hell in v0.6.
-##
-## for alpha == 0 , must have abs(z) < 1
-## Mma does not return conditions, I think.
-## We could optionally return conditions.
-
-@mkapprule MittagLefflerE :nargs => 2:3
-
-@doap MittagLefflerE(α,z) = mittagleffler(mx,α,z)
-
-@doap function MittagLefflerE(α,β,z)
-    β == 1  && return mittagleffler(mx,α,z)
-    mittagleffler(mx,α,β,z)
-end
-
-function mittagleffler(mx,α,z)
-    α == 1//2 && return Exp(mpow(z,2)) * Erfc(mminus(z))
-    α == -1//2 && return Exp(mpow(z,2)) * Erfc(z)
-    α == 0 && return mpow(mminus(1,z),-1)
-    α == 1 && return Exp(z)
-    α == 2 && return Cosh(Sqrt(z))
-    ## Following was workaround for a bug due to change in definitions and scope of *, etc.
-    ## Bug is fixed, workaround not needed.
-    #    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + mmul(2,Exp(-mpow(z,1//3)/2)) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
-    α == 3 && return (1//3)* (Exp(mpow(z,(1//3))) + 2*Exp(-mpow(z,1//3)/2) * Cos(Sqrt(3)/2 * mpow(z,1//3)))
-    α == 4 && return (1//2)* ( Cosh(mpow(z,1//4)) + Cos(mpow(z,1//4)))
-    if (isa(α,Number) && isa(z, Number)) &&
-        (isa(α,AbstractFloat) || isa(z, FloatRC))
-        return MittLeff.mittleff(float(α),float(z))
-    end
-    z == 0 && return mpow(Gamma(β),-1)
-    mx
-end
-
-## ... or, maybe MacroTools.jl ?
-function mittagleffler(mx,α,β,z)
-    if (isa(α,AbstractFloat) || isa(β,AbstractFloat) || isa(z, FloatRC)) &&
-        (isa(α,Number) && isa(β,Number) && isa(z, Number))
-       return MittLeff.mittleff(float(α),float(β),float(z))
-    end
-    z == 0 && return mpow(Gamma(β),-1)
-    if α == 1
-        β == 2 && return (mmul(mplus(Exp(z),-1),mpow(z,-1)))
-        return (mpow(:E,z)*mpow(z,mminus(1,β)) * mxpr(:GammaRegularized, mminus(β,1),0,z))
-    end
-    α == 2 && β == 2 && return mmul(Sinh(mpow(z,1//2)), mpow(mpow(z,1//2),-1))
-    mx
-end
-
-
 ### ProductLog
 
 @mkapprule ProductLog :nargs => 1:2
@@ -1256,13 +1190,12 @@ is the Dirichlet eta function.
 """
 
 @mkapprule DirichletEta  :nargs => 1
-@doap DirichletEta(x::FloatRC) = eta(x)
+@doap DirichletEta(x::FloatRC) = SpecialFunctions.eta(x)
 @doap DirichletEta(x::Number) = _dirichlet_eta(x)
 @doap DirichletEta(x::Integer) = x == 1 ? Log2 : _dirichlet_eta(x)
 @doap DirichletEta(x) = _dirichlet_eta(x)
-_dirichlet_eta(x::Number) = (1-mpow(2,(1-x)))*Zeta(x)
-_dirichlet_eta(x) = mminus(1, mpow(2, mminus(1,x)))*Zeta(x)
-
+_dirichlet_eta(x::Number) = (1 - mpow(2, (1 - x))) * Zeta(x)
+_dirichlet_eta(x) = mminus(1, mpow(2, mminus(1, x))) * Zeta(x)
 
 ### PolyLog
 

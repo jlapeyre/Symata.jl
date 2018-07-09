@@ -336,8 +336,7 @@ T Replace(C , [x_,[y__]] => [x,y], [2]) == [a,[[a1,a12,b12,c12],[b2,a22,b22,c22]
 
 ClearAll(a,b,f,C)
 
-## FIXME: This is wrong.
-Replace([a, b, c, d, e, f], [x__, y__] => {{x}, {y}}) == [[a,b,c,d,e,f],[y]]
+Replace([a, b, c, d, e, f], [x__, y__] => [[x], [y]]) == [[a,b,c,d,e,f],[y]]
 
 # Try replacement at each level. Once, we descend to a level, replacement is attempted on all elements at
 # that level.

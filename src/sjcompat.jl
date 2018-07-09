@@ -46,7 +46,7 @@ symreplace(s::AbstractString, pat, f) = replace(s, pat => f)
 # if isdefined(Base.REPL, :bytestring_beforecursor)
 #     symata_beforecursor(args...) = Base.REPL.bytestring_beforecursor(args...)
 # else
-import Base.REPL  # try to avoid warning
+import REPL  # try to avoid warning
 symata_beforecursor(args...) = REPL.beforecursor(args...)
 #end
 

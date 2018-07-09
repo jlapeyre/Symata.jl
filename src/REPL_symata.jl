@@ -1,26 +1,25 @@
-import Base: REPL, Terminals
-import Base.REPL: LineEdit, REPLCompletions
+# import Base: REPL, Terminals
+# import Base.REPL: LineEdit, REPLCompletions
+import REPL.LineEdit.transition
 
-import Base.LineEdit: CompletionProvider, transition
-
-import Base.REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon,
+import REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon,
 REPLCompletionProvider, return_callback, Prompt, respond, ShellCompletionProvider,
 REPLHistoryProvider, find_hist_file, print_response, outstream, hist_from_file, hist_getline,
 history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface, reset, send_to_backend,
  backend, prepare_next, reset_state, ends_with_semicolon
 
-import Base.REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
+import REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
 find_start_brace, complete_path
 
-import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
+import REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
-import Base.REPL: display
+import REPL: display
 
 # This prompt is used for the dumb terminal
 const symataprompt = "symata > "
 
-mutable struct SymataCompletionProvider <: CompletionProvider
+mutable struct SymataCompletionProvider <: REPL.CompletionProvider
     r::LineEditREPL
 end
 
@@ -72,10 +71,10 @@ function Symata_parse_REPL_line(line)
     end
 end
 
-function Base.LineEdit.complete_line(c::SymataCompletionProvider, s)
+function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
     partial = symata_beforecursor(s.input_buffer)
     full = LineEdit.input_string(s)
-    ret, range, should_complete = symata_completions(full, endof(partial))
+    ret, range, should_complete = symata_completions(full, lastindex(partial))
     return ret, partial[range], should_complete
 end
 
@@ -228,8 +227,8 @@ function RunSymataREPL(repl::LineEditREPL)
     nothing
 end
 
-
-import Base.REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
+## Why repeated all over the place ?
+import REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
    LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
 
 function symata_run_repl(repl::AbstractREPL, consumer = x->nothing)

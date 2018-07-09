@@ -171,7 +171,6 @@ end
 
 extomxarr!(ain,aout) =  foreach( x -> push!(aout,extomx(x)), ain )
 
-
 # We currently have two kinds of symbols.
 # 1) Those tagged by Julia symbols, forming a single namespace
 # 2) Those tagged by a.b or Qsym(a,b) in which a is a context or namespace.
@@ -201,7 +200,6 @@ function parse_quoted(ex::Expr,newa)
     # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
     symwarn(":( ) for Julia code is deprecated. Use J( ) instead")
     head = :Jxpr           # This allows running Julia code from within Symata.
-#    println(ex)
     push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                            # But, this is the same effect as evaling ex
     return head

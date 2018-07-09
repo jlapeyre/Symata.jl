@@ -1,7 +1,8 @@
 ClearAll(approxeq, f, f1, x)
 
 # Check that someone does not pick up the global (Symata) binding
-x = 1.0
+# upgrade 0.7 . Why did the following happen ?
+#x = 1.0
 
 approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
 
@@ -47,6 +48,7 @@ T approxeq(mygamma(3.0), Gamma(3.0))
 T approxeq(mygamma(4.0), Gamma(4.0))
 T approxeq(mygamma(5.0), Gamma(5.0))
 
+ClearAll(f,f1,x)
 
 f = Compile(1/(1+x))
 f1 = Compile([x], 1/(1+x))

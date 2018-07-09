@@ -87,7 +87,7 @@ function symata_complete_request(socket, msg)
     if isymata_mode()
         comps, positions = symata_completions(code[codestart:end], cursorpos-codestart+1)
     else
-        comps, positions = Base.REPLCompletions.completions(code[codestart:end], cursorpos-codestart+1)
+        comps, positions = REPL.REPLCompletions.completions(code[codestart:end], cursorpos-codestart+1)
     end
     positions += codestart-1
     if isempty(positions) # true if comps to be inserted without replacement

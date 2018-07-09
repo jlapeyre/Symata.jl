@@ -524,7 +524,7 @@ end
 ## FIXME: this can probably be simplified, but we we would need to test it.
 function _sjtopy(mx::Mxpr{:List})
     @sjdebug(3,"List ", mx)
-    a = Array{Any}(0)
+    a = Array{Any}(undef, 0)
     rs = map(_sjtopy, mx.args)
     for el in rs
         push!(a,el)
@@ -779,9 +779,7 @@ end
 
 # For our LaplaceTransform code, (etc.)
 _sjtopy(a::Array{T,1}) where {T} =  map(_sjtopy, a)
-
 _sjtopy(expr::PyCall.PyObject) = expr
-
 _sjtopy(x::AbstractString) =  x
 
 # Default conversion. Don't error, but only warn. Then return x so that we

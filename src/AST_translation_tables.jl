@@ -62,12 +62,12 @@ const JTOMSYM  =
 
 const JTOMSYM_ONEWAY  =
     Dict(
-      :vcat => :List,
-      :vect => :List,
-      :ref => :Part,
-      :cell1d => :List,   # curly brackets, but deprecated by julia
-      :comparison => :Comparison,
-         )
+        :vcat => :List,
+        :vect => :List,
+        :ref => :Part,
+        :cell1d => :List,   # curly brackets, but deprecated by julia
+        :comparison => :Comparison,
+    )
 
 # FIXME  NB Alternatives: This is nary, but not Flat. So we need to parse
 # a | b | c as Alternatives(a,b,c) rather than nested Alternatives as we do now.
@@ -117,15 +117,10 @@ const comparison_translation = Dict(
                                     )
 
 
-## Make compatible with v0.4
-# if VERSION >= v"0.5"
-#     const inverse_comparison_translation = Dict((x[2],x[1]) for x in collect(comparison_translation))
-# else
 const inverse_comparison_translation = Dict{Symbol,Symbol}()
 for x in comparison_translation
     inverse_comparison_translation[x[2]] = x[1]
 end
-#end
 
 # Output. Reverse dict for printing if unicode printing is enabled
 const unicode_output = Dict{Symbol,Symbol}()
@@ -215,12 +210,9 @@ function getoptype(x::Symbol)
     return :prefix
 end
 
-
-
 #### Comparison symbols
 
 # This is only used in AST_tranlation.jl to make a Comparison Mxpr.
-
 const COMPARISONSYMBOLS = Dict{Symbol,Bool}()
 
 for op in ( :(==), :(<), :(>), :(>=), :(<=), :(===),

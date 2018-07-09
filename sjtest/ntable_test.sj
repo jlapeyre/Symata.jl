@@ -1,5 +1,7 @@
 #### SJIter1
 
+ClearAll(f,x,i)
+
 T  Table(x,[0]) == []
 T  Table(x,[3]) == [x,x,x]
 

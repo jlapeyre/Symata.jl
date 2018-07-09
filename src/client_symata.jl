@@ -1,14 +1,16 @@
-import Base: LineEdit, REPL, Terminals
+#import Base: LineEdit, REPL, Terminals
+import REPL
+import REPL: LineEdit, Terminals
+import REPL.LineEdit.CompletionProvider
 
-import Base.LineEdit: CompletionProvider
-import Base.REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon, print_response
-import Base.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
+import REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon, print_response
+import REPL.REPLCompletions
+import REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
 find_start_brace, complete_path
 
 import Base: TTY
 
-import Base.Terminals
-import Base.REPL
+import REPL.Terminals
 
 # import Base: possible_formatting_symbols, available_text_colors_docstring, available_text_colors,
 #        default_color_info, default_color_warn, repl_color, info_color, warn_color
@@ -16,8 +18,7 @@ import Base.REPL
 import Base: text_colors,  default_color_input,  default_color_answer,
        color_normal, input_color, answer_color, repl_cmd,
        display_error, eval_user_input, parse_input_line, incomplete_tag,
-       try_include, process_options, load_machine_file, repl_hooks,
-       atreplinit, _atreplinit
+       repl_hooks, atreplinit, _atreplinit
 
 ##################################################
 
@@ -49,7 +50,7 @@ function Symata_start()
         term = Terminals.TTYTerminal(get(ENV,"TERM", @static Sys.iswindows() ? "" : "dumb"), stdin, stdout, stderr)
         global is_interactive = true
         color_set || (global have_color = Terminals.hascolor(term))
-        Base.eval(parse("global have_color = " * string(have_color)))  # get colors for warn and error
+        Base.eval(Meta.parse("global have_color = " * string(have_color))) # get colors for warn and error
         quiet || REPL.banner(term,term)
         if term.term_type == "dumb"
             active_repl = BasicREPL(term)
@@ -100,8 +101,8 @@ end
 # This is another fine mess you've gotten us into.
 function symata_have_dumb_terminal()
     (! isdefined_base_active_repl()) && (! isdefined_symata_active_repl()) && return true
-    (isdefined_base_active_repl() && typeof(Base.active_repl) == Base.REPL.BasicREPL) ||
-    (isdefined_symata_active_repl() && typeof(Symata.active_repl) == Base.REPL.BasicREPL)
+    (isdefined_base_active_repl() && typeof(Base.active_repl) == REPL.BasicREPL) ||
+    (isdefined_symata_active_repl() && typeof(Symata.active_repl) == REPL.BasicREPL)
 end
 
 isdefined_base_active_repl() = isdefined(Base, :active_repl)

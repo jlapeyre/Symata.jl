@@ -79,7 +79,7 @@ end
 Evaluate Julia expressions `expr1`, `expr2`, ... in Julia and return the final result.
 """
 
-@sjseealso_group(J,Jexpr,Compile,SymataCall)
+@sjseealso_group(J, Jexpr, Compile, SymataCall)
 
 # @doap Jxpr{T<:Union{Expr,Symbol,Number}}(ex::T) = eval(ex)
 # @doap Jxpr(x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
@@ -182,10 +182,10 @@ end
 mutable struct MtoEPlain <: AbstractMtoE
 end
 
-mxpr_to_expr(x,aux::AbstractMtoE) = x
+mxpr_to_expr(x, aux::AbstractMtoE) = x
 
 # Don't really want to do this with everything !
-function mxpr_to_expr(s::Symbol,aux::AbstractMtoE)
+function mxpr_to_expr(s::Symbol, aux::AbstractMtoE)
     s
 #    Symbol(lowercase(string(s)))
 end
@@ -256,13 +256,18 @@ function freesyms(x)
     sort(collect(keys(syms)))
 end
 
-function freesyms!(ex::Expr, syms)
+function freesyms!(ex::Expr, syms::Dict)
     a = ( ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args )
-    foreach( x -> freesyms!(x,syms), a)
+    foreach(x -> freesyms!(x,syms), a)
 end
 
-freesyms!(s::Symbol, syms) = (if ! @isdefined(s) syms[s] = 1 end)
-freesyms!(x,syms) = nothing
+function freesyms!(s::Symbol, syms)
+    if ! isdefined(Symata,s)
+        syms[s] = 1
+    end
+end
+    
+freesyms!(x, syms) = nothing
 
 @mkapprule Compile """
     f = Compile(expr)
@@ -302,13 +307,13 @@ Out(3) = 31
 """
 @doap function Compile(a::Mxpr{:List}, body )
     aux = MtoECompile()
-    eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x,aux) for x in margs(a)]...) , mxpr_to_expr(body,aux)))
+    Core.eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x,aux) for x in margs(a)]...) , mxpr_to_expr(body,aux)))
 end
 
 @doap function Compile(body)
     aux = MtoECompile()
     jbody = mxpr_to_expr(body,aux)
-    eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
+    Core.eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
 end
 
 ####  ToJuliaExpression
@@ -397,7 +402,8 @@ function wrap_symata(var0,expr0::Mxpr)   # Why are arguments reversed here ? Is 
 #    deepunsetfixed(expr)
     function (x)
         setsymval(var,x)
-        #        deepunsetfixed(expr) # this seems wasteful. When called from NIntegrate, it is not needed. Don't know why.
+        # deepunsetfixed(expr)
+        # this seems wasteful. When called from NIntegrate, it is not needed. Don't know why.
         # because we needed HoldAll
         doeval(expr)
     end

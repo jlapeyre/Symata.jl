@@ -39,8 +39,6 @@ end
 #
 lcheckhash(x) = x      # do nothing
 
-const MXDEBUGLEVEL = -1 # debug level, larger means more verbose. -1 is off
-
 # We should generate our own  (why did I write this ?)
 
 """

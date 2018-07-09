@@ -7,9 +7,12 @@ import Compat.view
 import MacroTools
 import LambertW
 import SpecialFunctions
-import Base.REPL
+import REPL
+import Markdown
+import InteractiveUtils
 import Base: setindex!, getindex, replace
 import Base64
+
 
 export @symExpr, @extomx
 
@@ -43,9 +46,8 @@ export name, typename
 # These are for IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
-macro inc(filename)
-    :( println("--- loading ", $filename); include($filename) )
-end
+## Set const debugging parametres at compile-time in debug.jl
+include("debug.jl")
 
 @inc("version.jl")
 @inc("util.jl")
@@ -104,9 +106,8 @@ end
 @inc("wrappers.jl")
 @inc("keyword_translation.jl")
 @inc("sympy.jl")
-@inc("mittleff.jl")
-# @inc("LambertW.jl")  # get this from package
 @inc("math_functions.jl")
+# @inc("mittleff_glue.jl") moved mittag-leffler to external dependence. But, it's not registered.
 @inc("functionzeros.jl")
 @inc("sympy_application.jl")
 @inc("alternate_syntax.jl")
@@ -139,7 +140,7 @@ function do_init()
     have_ijulia = isdefined(Main, :IJulia)
     init_sympy()
     println("*************  sympy initialized **************")
-    if ! isdefined(Base.Test, :testset_forloop)
+    if ! isdefined(Test, :testset_forloop)
         eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
     end
     println("*************  using Symata **************")

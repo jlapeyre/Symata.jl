@@ -270,7 +270,7 @@ convert string `str` to an expression.
 """
 
 @mkapprule ToExpression nargs => 1:3
-@doap ToExpression(s::String) = symataevaluate(parse(s), EvaluateJuliaSyntaxSimple())
+@doap ToExpression(s::String) = symataevaluate(Meta.parse(s), EvaluateJuliaSyntaxSimple())
 @doap ToExpression(x) = x
 set_sysattributes("ToExpression")
 

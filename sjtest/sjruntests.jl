@@ -57,7 +57,8 @@ function runalltests()
         )
         runtest(symatatest,f)
         println(stderr, "Done testing $f")
-        Symata.symataevaluate(Meta.parse("Apply(ClearAll, UserSyms())"), Symata.EvaluateJuliaSyntaxSimple())
+        Symata.symataevaluate(Meta.parse("Apply(ClearAll, UserSyms())"),
+                              Symata.EvaluateJuliaSyntaxSimple())
     end
 end
 

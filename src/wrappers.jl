@@ -25,8 +25,8 @@
 
 ### sjgamma
 
-sjgamma(x::T) where {T<:AbstractFloat} = gamma(x)
-sjgamma(x::Complex{T}) where {T<:AbstractFloat} = gamma(x)
+sjgamma(x::T) where {T<:AbstractFloat} = SpecialFunctions.gamma(x)
+sjgamma(x::Complex{T}) where {T<:AbstractFloat} = SpecialFunctions.gamma(x)
 sjgamma(a) = a |> sjtopy |> sympy_gamma |> pytosj
 sjgamma(a,z) = sympy_gamma(sjtopy(a),sjtopy(z)) |> pytosj
 

@@ -227,8 +227,10 @@ end
 jslexless(x::Mxpr{T},y::Mxpr{V}) where {T,V} = T < V
 # Following methods will only be called on all non-Symbolic types. (not Symbol or Mxpr)
 _jslexless(x::DataType, y::DataType) = x <: y
-_jslexless(x::T,y::T) where {T} = lexless(x,y)  # use Julia definitions
-jslexless(x::T,y::T) where {T} =  _jslexless(x,y)
+# FIXE: Delete after testing on v0.7
+#_jslexless(x::T,y::T) where {T} = lexless(x,y)  # use Julia definitions
+_jslexless(x::T,y::T) where {T} = isless(x, y)  # use Julia definitions
+jslexless(x::T,y::T) where {T} =  _jslexless(x, y)
 # We have defined an order for different types
 jslexless(x::T,y::V) where {T,V} = mxtypeorder(T) < mxtypeorder(V)
 

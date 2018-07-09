@@ -3,8 +3,8 @@ os:
   - linux
   - osx
 julia:
-  - 0.6
-#  - nightly
+  - nightly
+#  - 0.6
 git:
     depth: 99999
 env:

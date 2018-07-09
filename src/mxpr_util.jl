@@ -155,8 +155,6 @@ for sym in ( :List, :Plus, :Times, :Power, :Blank )
     @eval ($fa)(a) = mxpra($s,a)    
 end
 
-
-
 ###
 
 # This is applied at toplevel after expression has been constructed.
@@ -164,7 +162,7 @@ end
 # generally.
 function apply_upvalues_to_args!(mx::Mxpr)
     syms = listsyms(mx)
-    goodsyms = Array{SJSym}(0)
+    goodsyms = Array{SJSym}(undef, 0)
     for sym in syms
         if has_upvalues(sym)
             push!(goodsyms,sym)
@@ -186,16 +184,6 @@ function deep_apply_upvalues!(mx::Mxpr,sym)
 end
 deep_apply_upvalues!(x,sym) = x
 
-
-####
-
-macro mdebug(level, a...)
-    if level <= MXDEBUGLEVEL
-        :((println($(a...));println()))
-    else
-        nothing
-    end
-end
 
 #using Base.Test
 import Base.Test

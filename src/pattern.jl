@@ -69,7 +69,7 @@ patterntoBlank(x) = x
 # FIXME: Check if we can avoid modifying the input paramter
 function process_blank_head(head)
     head = get(blank_head_dict, head, head)
-    ehead = ( isa(head,Symbol) &&  @isdefined(head) )  ? eval(head) : head  # Symbol may eval to DataType
+    ehead = (isa(head,Symbol) &&  isdefined(Symata, head))  ? eval(head) : head  # Symbol may eval to DataType
     head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
 end
 

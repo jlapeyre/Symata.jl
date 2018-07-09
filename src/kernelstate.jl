@@ -2,7 +2,6 @@
 #### But, early_kernelstate.jl contains things that must be defined first.
 
 # We need to find a place to put VersionInfo
-
 @mkapprule VersionInfo :nargs => 0:1
 
 @sjdoc VersionInfo """
@@ -44,11 +43,10 @@ function _versioninfo()
     end
 end
 
-
 @doap function VersionInfo(s::SJSym)
     if s == :All
         _versioninfo()
-        Base.versioninfo()
+        InteractiveUtils.versioninfo()
     else
         mx
     end

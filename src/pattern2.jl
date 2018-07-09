@@ -156,7 +156,7 @@ MatchIndex(a::AbstractArray) = MatchIndexAbstractArray(a)
 MatchIndex(a::Int) = MatchIndexSingle(a)
 
 getstart(mi::MatchIndexAbstractArray) = start(mi.a)
-getstop(mi::MatchIndexAbstractArray) = endof(mi.a)
+getstop(mi::MatchIndexAbstractArray) = lastindex(mi.a)
 
 getstart(mi::MatchIndexSingle) = mi.i
 getstop(mi::MatchIndexSingle) = mi.i

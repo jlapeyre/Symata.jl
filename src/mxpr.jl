@@ -11,7 +11,7 @@
 is the dictionary containing documentation for Symata symbols.
 """
 const SJDOCS = Dict{Symbol,Any}()
-import Base.Markdown
+#import Base.Markdown
 
 """
     @sjdoc sym::Symbol str::String
@@ -329,11 +329,12 @@ function symval(s::Qsym)
     val
 end
 
-@doc doc"""
-    symval(s::SSJSym)
+# FIXME: this is causing a Markdown deprecation warning
+# @doc doc"""
+#     symval(s::SSJSym)
 
-Return the value bound to the Symata symbol `s`.
-"""
+# Return the value bound to the Symata symbol `s`.
+# """
 function symval(s::SSJSym)
     s.val[1]
 end
@@ -1189,7 +1190,7 @@ end
 Base.length(mx::Mxpr) = length(margs(mx))
 @inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
 getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
-@inline Base.endof(mx::Mxpr) = endof(margs(mx))
+@inline Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
 Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)

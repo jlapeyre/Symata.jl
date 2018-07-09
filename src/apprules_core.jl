@@ -97,7 +97,7 @@ end
 #  Also, https://discourse.julialang.org/t/macro-problem-with-v0-6/1581
 
 macro mkapprule(inargs...)
-    head = inargs[1]   ## head is the symbol for which we are writing rules    
+    head = inargs[1]   ## head is the symbol for which we are writing rules
     args = [inargs...] ## FIXME: Why ?
     n = length(args)
     headstr = string(head)
@@ -156,7 +156,13 @@ macro mkapprule(inargs...)
     else
         defaultmethod = :($fns($mxarg, args...) = $defmx)
     end
+    if VERBOSE_DOAP
+        verbosedoap = :(println($headstr))
+    else
+        verbosedoap = nothing
+    end
     esc(quote
+        $verbosedoap
         set_sysattributes($headstr)
         $apprulecall
         $defaultmethod
@@ -252,7 +258,6 @@ end
 macro doap(ex)
     d = MacroTools.splitdef(ex)
     quotename = QuoteNode(d[:name])
-#    println(d[:name])
     d[:name] = Symbol("do_", d[:name])
     pushfirst!(d[:args], :(mx::Mxpr{$quotename}))
     newfunc = MacroTools.combinedef(d)
