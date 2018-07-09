@@ -14,10 +14,10 @@ T  approxeq( NIntegrate(x, [x,0,3])[1], 4.5)
 
 # Explicitly compile Symata to Julia function
 ## FIXME: method too new
-#T  approxeq( NIntegrate(Compile(x^2), [0,2])[1], 8.0/3)
+#T  approxeq( NIntegrate(Compile([x], x^2), [0,2])[1], 8.0/3)
 
 ## FIXME: method too new
-# ex = Compile(x^2)
+# ex = Compile([x], x^2)
 # T  approxeq( NIntegrate(ex, [0,2])[1], 8.0/3)
 
 # Wrap Symata expression
@@ -50,16 +50,16 @@ T approxeq(mygamma(5.0), Gamma(5.0))
 
 ClearAll(f,f1,x)
 
-f = Compile(1/(1+x))
-f1 = Compile([x], 1/(1+x))
+# FIXME: Remove this. We require explicit parameter list.
+# f = Compile(1/(1+x))
+# f1 = Compile([x], 1/(1+x))
+# T f(2) == f1(2)
 
-T f(2) == f1(2)
-
-f = Compile(E^x)
+f = Compile([x], E^x)
 
 T approxeq(f(1), N(E))
 
-f = Compile(Cos(Pi*x))
+f = Compile([x], Cos(Pi*x))
 
 T approxeq(f(1), -1)
 

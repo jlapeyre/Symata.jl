@@ -245,29 +245,6 @@ end
 
 #### Compile
 
-"""
-    freesyms(ex::Expr)
-
-return a list of unbound symbols at any depth in expression `ex`.
-"""
-function freesyms(x)
-    syms = Dict()
-    freesyms!(x,syms)
-    sort(collect(keys(syms)))
-end
-
-function freesyms!(ex::Expr, syms::Dict)
-    a = ( ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args )
-    foreach(x -> freesyms!(x,syms), a)
-end
-
-function freesyms!(s::Symbol, syms)
-    if ! isdefined(Symata,s)
-        syms[s] = 1
-    end
-end
-    
-freesyms!(x, syms) = nothing
 
 @mkapprule Compile """
     f = Compile(expr)
@@ -310,11 +287,47 @@ Out(3) = 31
     Core.eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x,aux) for x in margs(a)]...) , mxpr_to_expr(body,aux)))
 end
 
-@doap function Compile(body)
-    aux = MtoECompile()
-    jbody = mxpr_to_expr(body,aux)
-    Core.eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
+# This is not reliable. It is not worth the complexity of fixing it, I think.
+# We require an explicit list of variables, instead.
+# We could look at Attributes, Protected, etc. and just use plain variables.
+# @doap function Compile(body)
+#     aux = MtoECompile()
+#     jbody = mxpr_to_expr(body,aux)
+#     Core.eval(Main, Expr(:function, Expr(:tuple, freesyms(jbody)...), jbody))
+# end
+
+## NOTE: freesyms is unrelated to getfreesyms and setfreesyms
+"""
+    freesyms(ex::Expr)
+
+return a list of Symata-unbound symbols at any depth in expression `ex`, by
+walking through the expression. This may not be useful anymore.
+"""
+function freesyms(x)
+    syms = Dict()
+    freesyms!(x, syms)
+    sort(collect(keys(syms)))
 end
+
+function freesyms!(ex::Expr, syms::Dict)
+    a = ( ex.head == :call ?  view(ex.args,2:length(ex.args)) : ex.args )
+    foreach(x -> freesyms!(x,syms), a)
+end
+
+# We have been using isdefined for a long time,
+# but this is incorrect. We want isbound, which
+# checks for Symata binding.
+# Neither is correct. For instance, E is not Symata bound.
+# E is bound in Julia Main. (we did it). So, the fact
+# that this was worked for several examples, is fortuitous.
+function freesyms!(s::Symbol, syms)
+#    if ! isdefined(Symata,s)
+    if ! isbound(s)
+        syms[s] = 1
+    end
+end
+
+freesyms!(x, syms) = nothing
 
 ####  ToJuliaExpression
 
