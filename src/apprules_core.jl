@@ -15,7 +15,7 @@
 #                                            to rules, which is how we implement keyword argumentss.
 # nodefault => true    Don't write the default rule for any number of arguments of any type.
 # A string is assumed to be the Symata docstring and is passed to @sjdoc.
-# 
+#
 
 ## TODO use this syntax :options = (:opt1 => default1, ...)
 ## TODO: assert type or ranges for keyword arguments (and positional arguments)
@@ -46,7 +46,7 @@ eval_app_directive(ex) = eval(x)
 function eval_app_directive(ex::Expr)
     if iscall(ex, :(=>)) &&  isa(ex.args[2],Symbol)
         return ex.args[2] => eval(ex.args[3])
-    end        
+    end
     eval(ex)
 end
 
@@ -209,7 +209,7 @@ end
 @doap function Headname{T<:SomeType}(x,y::T) = ...
 ```
 
-These macros write methods that look like this: `do_Headname(mx::Mxpr{:Headname},x,y) ...` 
+These macros write methods that look like this: `do_Headname(mx::Mxpr{:Headname},x,y) ...`
 Note that this means you must not make a conflicting definition or use of `mx` in the body of @doap.
 """
 macro olddoap(func)
@@ -249,7 +249,7 @@ end
 
 # function _doap(ex::Expr)
 #     d = MacroTools.splitdef(ex)
-#     quotename = QuoteNode(d[:name])    
+#     quotename = QuoteNode(d[:name])
 #     d[:name] = Symbol("do_", d[:name])
 #     pushfirst!(d[:args], :(mx::Mxpr{$quotename})
 #     return MacroTools.combinedef(d)
@@ -290,7 +290,19 @@ do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
 # For v0.6
-do_GenHead(mx,f::Function) = Base.invokelatest(f,margs(mx)...)
+#do_GenHead(mx, f::Function) = Base.invokelatest(f, margs(mx)...)
+# NOTE: In the case of Functions, mx.head == f
+# So, f is redunant
+function do_GenHead(mx, f::Function)
+    # @info "do_GenHead"
+    # @show mx.head
+    # println(margs(mx))
+    return Base.invokelatest(mx.head, margs(mx)...)
+# #    res = (mx.head)(margs(mx)...)
+#     res = f(margs(mx)...)
+#     @show res
+#     return res
+end
 
 # For version v0.5
 #do_GenHead(mx,f::Function) = f(margs(mx)...)

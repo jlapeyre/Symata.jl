@@ -49,7 +49,7 @@ getindex(s::MyLaTeXString, i::UnitRange{Int}) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::UnitRange{T}) where {T<:Integer} = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::AbstractVector) = getindex(s.s, i)
 sizeof(s::MyLaTeXString) = sizeof(s.s)
-search(s::MyLaTeXString, c::Char, i::Integer) = search(s.s, c, i)
+symsearch(s::MyLaTeXString, c::Char, i::Integer) = symsearch(s.s, c, i)
 rsearch(s::MyLaTeXString, c::Char, i::Integer) = rsearch(s.s, c, i)
 isvalid(s::MyLaTeXString, i::Integer) = isvalid(s.s, i)
 pointer(s::MyLaTeXString) = pointer(s.s)
@@ -160,7 +160,7 @@ latex_text(s) =  "\\text{" * string(s)  * "}"
 function latex_string_mathop(ins)
     s = string(ins)
     isempty(s) && return ""
-    all(islower,s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
+    all(islowercase, s[1]) && return s  # if Head begins lower case print in math italic, e.g. f(x)
     latex_text(s)
 end
 
@@ -236,16 +236,16 @@ function latex_string(opt, mx::Mxpr{:Power})
 end
 
 function separate_negative_powers(facs)
-    other = Array{Any}(0)
-    negpows = Array{Any}(0)
-    rationals = Array{Any}(0)
+    other = Array{Any}(undef, 0)
+    negpows = Array{Any}(undef, 0)
+    rationals = Array{Any}(undef, 0)
     for x in facs
         t = typeof(x)
         if t <: Rational
             push!(rationals,x)
         elseif t <: WORational
             push!(rationals,x.x)
-        elseif t == Mxpr{:Power} && typeof(exponent(x)) <: Number && exponent(x) < 0
+        elseif t == Mxpr{:Power} && exponent(x) isa Number && exponent(x) < 0  # Complex exponents ?
             push!(negpows,x)
         else
             push!(other,x)
@@ -255,8 +255,8 @@ function separate_negative_powers(facs)
 end
 
 function get_nums_dens(other, negpows, rationals)
-    nums = Array{Any}(0)
-    dens = Array{Any}(0)
+    nums = Array{Any}(undef, 0)
+    dens = Array{Any}(undef, 0)
     for x in rationals
         if numerator(x) != 1 push!(nums, numerator(x)) end
         push!(dens, denominator(x))

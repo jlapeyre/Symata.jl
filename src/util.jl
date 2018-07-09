@@ -34,14 +34,14 @@ macro runtime_include(fname, initfunc)
                     try
                         info("loading ", $fpath)
                         if ! isfile($fpath)
-                            warn("unable to find '", $fpath, "'")
+                            @warn("unable to find '", $fpath, "'")
                         end
                         @eval include($fpath)
                         polys_inited = true
                         return true
                     catch e
-                        warn(e)
-                        warn("Unable to load '", $fpath, "'")
+                        @warn(e)
+                        @warn("Unable to load '", $fpath, "'")
                         return false
                     end
                 end
@@ -64,14 +64,14 @@ end
 #         try
 #             info("loading polynomial functions")
 #             if ! isfile(_poly_path)
-#                 warn("unable to find '$_poly_path'")
+#                 @warn("unable to find '$_poly_path'")
 #             end
 #             @eval include($(_poly_path)) # The functions are in the Symata module.
 #             polys_inited = true
 #             return true
 #         catch e
-#             warn(e)
-#             warn("Unable to load 'PolynomialSequences'.")
+#             @warn(e)
+#             @warn("Unable to load 'PolynomialSequences'.")
 #             return false
 #         end
 #     end

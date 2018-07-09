@@ -72,20 +72,19 @@ return string `s` with characters in reverse order.
 ### UpperCaseQ
 
 @mkapprule UpperCaseQ :nargs => 1
-@doap UpperCaseQ(s::String) = all(isupper,s)
+@doap UpperCaseQ(s::String) = all(isuppercase, s)
 
 
 ### LowerCaseQ
 
 @mkapprule LowerCaseQ :nargs => 1
-@doap LowerCaseQ(s::String) = all(islower,s)
+@doap LowerCaseQ(s::String) = all(islowercase, s)
 
 ### ToCharacterCode
 
 @mkapprule ToCharacterCode :nargs => 1
 @doap ToCharacterCode(s::Char) = Int(s)
 @doap ToCharacterCode(s::String) = MListA(MxprArgT[Int(c) for c in s])
-
 
 ### FromCharacterCode
 
@@ -99,7 +98,7 @@ return string `s` with characters in reverse order.
 end
 
 _fromcharactercode_list(s) = String([Char(i) for i in s])
-    
+
 ### LetterNumber
 
 @mkapprule LetterNumber :nargs => 1
@@ -114,7 +113,6 @@ end
 
 @mkapprule DigitQ :nargs =>1
 @doap DigitQ(s::Union{Char,AbstractString}) = isdigit(s)
-
 
 ### StringSplit
 

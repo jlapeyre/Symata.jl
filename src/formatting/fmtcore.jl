@@ -246,7 +246,7 @@ function _pfmt_e(out::IO, fs::FormatSpec, x::AbstractFloat)
     end 
 
     # print
-    ec = isupper(fs.typ) ? 'E' : 'e'
+    ec = isuppercase(fs.typ) ? 'E' : 'e'
     wid = fs.width
     if wid <= xlen
         _pfmt_floate(out, sch, 0, u, fs.prec, e, ec)

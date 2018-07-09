@@ -104,7 +104,7 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
 #  (:factorial,:Factorial, :factorial), <--- we do this by hand
 
     const single_arg_int = [(:isqrt,:ISqrt),(:ispow2,:IsPow2),(:nextpow2,:NextPow2),(:prevpow2,:PrevPow2),
-                      (:isprime,:PrimeQ)
+                      (:isprime,:PrimeQ), (:(~), :BitNot)
                         ]
 
 
@@ -113,7 +113,7 @@ const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:Inverse
 
 # Do NDigits by hand for now!
 @mkapprule NDigits :nargs => 1:2
-@doap NDigits(n::T,b::V) where {T<:Integer,V<:Integer} = ndigits(n, b)
+@doap NDigits(n::T,b::V) where {T<:Integer,V<:Integer} = ndigits(n, base=b)
 @doap NDigits(n::T) where {T<:Integer} = ndigits(n)
 @doap NDigits(n) = mx
 @doap NDigits(n,b) = mx
@@ -1304,20 +1304,20 @@ end
 @doap function CubeRoot(x::T) where T<:Union{Integer,Rational}
     x == 0 && return 0
     x > 0 && return mpow(x,1//3)
-    -mpow(-x,1//3)
+    return -mpow(-x,1//3)
 end
 
 @doap function CubeRoot(x::Complex)
     symwarn("CubeRoot::preal: The parameter $x should be real valued.")
-    mx
+    return mx
 end
 
 @doap function CubeRoot(x::Mxpr)
-    mxpr(:Surd,x,3)
+    return mxpr(:Surd,x,3)
 end
 
 @doap function CubeRoot(x::Symbol)
-    mxpr(:Surd,x,3)
+    return mxpr(:Surd,x,3)
 end
 
 ### Surd
@@ -1329,7 +1329,7 @@ end
         symwarn("Surd::noneg: Surd is not defined for even roots of negative values.")
         return mx
     end
-    _surd(mx,x,n)
+    return _surd(mx,x,n)
 end
 
 function _surd(mx,x::Real,n)
@@ -1451,3 +1451,4 @@ do_Big(mx,x::T) where {T<:Number} = big(x)
 ### Minus
 
 apprules(mx::Mxpr{:Minus}) = is_Number(mx[1]) ? -mx[1] : mmul(-1, mx[1])
+

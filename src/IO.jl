@@ -101,7 +101,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                 end
                 res
             catch e
-                warn("SJ Error reading file $f,  line $line_number\n")
+                @warn("SJ Error reading file $f,  line $line_number\n")
                 rethrow(e)
             finally
                 eline = ""

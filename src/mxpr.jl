@@ -1191,7 +1191,6 @@ Base.length(mx::Mxpr) = length(margs(mx))
 @inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
 getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
 @inline Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
-Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 

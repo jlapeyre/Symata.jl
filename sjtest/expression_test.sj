@@ -1,7 +1,7 @@
  ClearAll(a,b)
 
-T Chop(Abs(Apply(Plus,J(linspace(1,10,100))) - 550.0)) == 0
-T Chop(Abs(Apply(Times,J(linspace(1,3.0,10))) - 583.0397134081362)) == 0
+T Chop(Abs(Apply(Plus,J(range(1, stop=10, length=100))) - 550.0)) == 0
+T Chop(Abs(Apply(Times,J(range(1, stop=3.0, length=10))) - 583.0397134081362)) == 0
 
   mx = ExpandA((a+b)^3)
 T  mx == Plus(Power(a,3),Times(3,Power(a,2),b),Times(3,a,Power(b,2)),Power(b,3))

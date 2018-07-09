@@ -65,7 +65,8 @@ remove temporary symbols, ie all beginnig with "##", from the symbol table.
     syms = usersymbols()
     for sym in syms
         ss = string(sym)
-        if length(ss) > 2 && ss[1:2] == "##"
+#        if length(ss) > 2 && ss[1:2] == "##"
+        if  occursin(r"^##", ss)
             delete_sym(Symbol(sym))
         end
     end

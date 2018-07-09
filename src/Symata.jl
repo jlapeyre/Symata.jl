@@ -10,8 +10,9 @@ import SpecialFunctions
 import REPL
 import Markdown
 import InteractiveUtils
-import Base: setindex!, getindex, replace
+import Base: setindex!, getindex, replace # FIXME: use fully qualified names
 import Base64
+import Dates
 
 
 export @symExpr, @extomx
@@ -30,7 +31,7 @@ export debugmxpr
 import some symbols from `Symata` into `Main` that are useful for development.
 """
 function devimport()
-    eval(Main, parse("""
+    Core.eval(Main, parse("""
        import Symata: @testex, symval, symname, setsymval, @aex, meval, doeval, infseval, getpart, setpart!,
                       sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
 """))
@@ -100,6 +101,7 @@ include("debug.jl")
 @inc("algebra.jl")
 @inc("expanda.jl")
 @inc("flatten.jl")
+@inc("lexcmp.jl")
 @inc("sortorderless.jl")
 @inc("module.jl")
 @inc("strings.jl")
@@ -122,33 +124,31 @@ include("debug.jl")
 @inc("function.jl")
 
 function __init__()
-   # do_init()
+#    println("*************  Entering __init__**************")    
+    do_init()
 end
-
-export symata
 
 """
     symata()
 
 """
 symata() = do_init()
+export symata
 
 function do_init()
-    println("*************  Entering __init__**************")
-    flush(stdout)
-#    exit()
+#    println("*************  Entering __init__**************")
     have_ijulia = isdefined(Main, :IJulia)
     init_sympy()
-    println("*************  sympy initialized **************")
+#    println("*************  sympy initialized **************")
     if ! isdefined(Test, :testset_forloop)
-        eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
+        Core.eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
     end
-    println("*************  using Symata **************")
+#    println("*************  using Symata **************")
 #    Main.eval( :( using Symata ))
-    println("*************  importing **************")    
+#    println("*************  importing **************")    
     sjimportall(:System, :Main)
     set_current_context(:Main)
-    println("*************  entering loop **************")
+#    println("*************  entering loop **************")
     if have_ijulia
         isymata()
     elseif isinteractive()

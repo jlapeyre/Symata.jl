@@ -14,7 +14,7 @@ T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
 
 
-#### BlankSequence
+### BlankSequence
 
 ClearAll(f,a,b,c)
 
@@ -74,7 +74,7 @@ T rotheadargs( a + b + c + d) == d(Plus,a,b,c)
 rotheadargs1(f_(args__)) := Module([ls = [args]], Last(ls)(f,Splat(Most(ls))))
 T rotheadargs1( a + b + c + d) == d(Plus,a,b,c)
 
-####
+###
 
 ClearAll(a,b,c,d,p,f,d,g)
 
@@ -415,7 +415,7 @@ T ReplaceAll( b^b, a::(_^_) => g(a)) == g(b^b)
 
 # Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
 # Update: we have disabled automatic currying because it interferes with patterns with heads.
-# sjulia > f(a)(b)(c)(d)
+# symata > f(a)(b)(c)(d)
 # f(a,b,c,d)
 
 # tests a fix for bug that caused julia-level error in the following line

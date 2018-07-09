@@ -54,7 +54,7 @@ function Symata_start()
         quiet || REPL.banner(term,term)
         if term.term_type == "dumb"
             active_repl = BasicREPL(term)
-            quiet || warn("Terminal not fully functional")
+            quiet || @warn("Terminal not fully functional")
         else
             active_repl = REPL.LineEditREPL(term, true)
             active_repl.history_file = history_file
@@ -68,12 +68,12 @@ function Symata_start()
     if @isdefined(stdout)
         setsymval(:STDOUT, stdout)
     else
-        warn("**** CANT FIND STDOUT")
+        @warn("**** CANT FIND STDOUT")
     end
     if @isdefined(stderr)
         setsymval(:STDERR, stderr)
     else
-        warn("**** CANT FIND STDERR")
+        @warn("**** CANT FIND STDERR")
     end
     if @isdefined(devnull)
         setsymval(:DevNull, devnull)
@@ -83,7 +83,7 @@ function Symata_start()
         # note: currently IOStream is used for file STDIN
         if isa(stdin,File) || isa(stdin,IOStream)
             # reading from a file, behave like include
-            eval(Main,parse_input_line(readstring(stdin)))
+            Core.eval(Main,parse_input_line(readstring(stdin)))
         else
             # otherwise behave repl-like
             while !eof(stdin)

@@ -49,12 +49,12 @@ SymataPlainTest() = SymataPlainTest(0,0)
 SymataPlainPrintTest() = SymataPlainPrintTest(0,0)
 
 function print_test_results(test::AbstractSymataPlainTest)
-    print_with_color(:green, string(test.pass), " passed.\n")
+    printstyled(string(test.pass), " passed.\n", color=:green)
     failed = test.total - test.pass
     if failed == 0
         println("$failed failed.")
     else
-        print_with_color(:red, "$failed failed.")
+        printstyled("$failed failed.", color=:red)
     end
 end
 
@@ -63,7 +63,7 @@ function record_SJTest(test::AbstractSymataPlainTest, fname, linenumber, res)
     if res == true
         test.pass += 1
     else
-        @warn("Test failed in $fname, line $linenumber")
+        @info(string("Test failed in ", basename(fname), ", line $linenumber"))
     end
 end
 
@@ -99,8 +99,10 @@ be newer and better maintained than the code in the `test` directory.
 runs the tests in `filename` in the directory `sjtest`.
 """
 
-# kws not yet implemented here
+# kws not yet implemented in @doap. Should be easy now that we use MacroTools
 #@doap Tests(;kws...) = run_testsuite(kws...)
+
+const TEST_DIRECTORY = joinpath(dirname(@__FILE__), "..", "sjtest")
 
 do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
 

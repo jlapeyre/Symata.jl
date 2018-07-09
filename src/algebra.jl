@@ -42,7 +42,7 @@ end
 
 function coefficient_times(expr::TimesT, coll)
     expr == coll && return 1
-    posns = findin(expr,coll)
+    posns = Symata.oldfindin(expr,coll)
     isempty(posns) && return 0
     (length(posns) != length(coll)) && return 0
     nargs = deleteat!(copy(margs(expr)),posns)

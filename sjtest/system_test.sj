@@ -1,4 +1,4 @@
-T Head(Now()) == J(DateTime)
+T Head(Now()) == J(Dates.DateTime)
 T Length(DateList()) == 6
 T Isa(AbsoluteTime(),AbstractFloat)
 T AbsoluteTime() > 3.6e9

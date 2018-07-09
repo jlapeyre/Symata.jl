@@ -806,7 +806,7 @@ function replacerepeated(ex, rules::Array; kws...)
         res = res1
     end
     if too_many_iterations
-        warn("ReplaceRepeated: exceed maximum number of iterations $maxits")
+        @warn("ReplaceRepeated: exceed maximum number of iterations $maxits")
     end
     return res1
 end

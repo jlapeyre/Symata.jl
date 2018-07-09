@@ -1,17 +1,18 @@
 module Formatting
 
-    import Base.show
+import Base.show
+import Symata: symsearch, symsearchindex
 
-    export
-        FormatSpec, FormatExpr,
-        printfmt, printfmtln, fmt, format,
-        sprintf1, generate_formatter
+export
+    FormatSpec, FormatExpr,
+    printfmt, printfmtln, fmt, format,
+    sprintf1, generate_formatter
 
-    using Compat
+using Compat
 
-    include("cformat.jl" )
-    include("fmtspec.jl")
-    include("fmtcore.jl")
-    include("formatexpr.jl")
+include("cformat.jl" )
+include("fmtspec.jl")
+include("fmtcore.jl")
+include("formatexpr.jl")
 
 end # module

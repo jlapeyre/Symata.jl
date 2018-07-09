@@ -39,11 +39,11 @@ function init_isymata()
             _set_historylength(10)  # IJulia stores history, as well.
             global do_we_print_outstring = false
         catch
-            warn("Initializing isymata failed")
+            @warn("Initializing isymata failed")
             return
         end
     else
-        warn("IJulia not loaded. Try 'using IJulia'. Try 'Pkg.add(\"IJulia\") if IJulia is not installed.")
+        @warn("IJulia not loaded. Try 'using IJulia'. Try 'Pkg.add(\"IJulia\") if IJulia is not installed.")
         return
     end
     isymata_inited(true)
@@ -55,7 +55,7 @@ end
 #### For use with IJulia v1.3.2
 
 function _init_isymata_v1_3_2()
-    eval( Main.IJulia, quote
+    Core.eval(Main.IJulia, quote
 
           import Symata: latex_display, wrapout, symata_completions, populate_builtins, retrieve_doc, isymata_mode, isymata_mma_mode, using_ijulia_output, doeval, mxpr,
            MyLaTeXString
@@ -141,7 +141,7 @@ end
                             str = symata_expr_to_mma_string(newex)
                             MyLaTeXString("\$\$ " * str *  " \$\$")
                         catch
-                            warn("Unable to format expression in Mathematic syntax.")
+                            @warn("Unable to format expression in Mathematic syntax.")
                             using_ijulia_output() ? latex_display(wrapout(ex)) : wrapout(ex)
                         end
                     else
@@ -222,7 +222,7 @@ function symata_execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-            user_expressions[v] = eval(Main,parse(ex))
+            user_expressions[v] = Core.eval(Main,parse(ex))
         end
 
         for hook in postexecute_hooks
@@ -285,7 +285,7 @@ end
 
 # FIXME: import symbols as in version above, other bitrot
 function _init_isymata()
- eval( Main.IJulia, quote
+ Core.eval(Main.IJulia, quote
 function symata_execute_request(socket, msg)
     code = msg.content["code"]
     @vprintln("EXECUTING ", code)
@@ -350,7 +350,7 @@ function symata_execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-            user_expressions[v] = eval(Main,parse(ex))
+            user_expressions[v] = Core.eval(Main,parse(ex))
         end
 
         for hook in postexecute_hooks

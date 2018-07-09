@@ -26,7 +26,7 @@ function make_argspec(s::AbstractString, pos::Int)
     ff::Function = Base.identity
 
     if !isempty(s)
-        ifil = searchindex(s, "|>")
+        ifil = symsearchindex(s, "|>")
         if ifil == 0
             iarg = parse(Int,s)
         else
@@ -63,7 +63,7 @@ end
 function make_formatentry(s::AbstractString, pos::Int)
     @assert s[1] == '{' && s[end] == '}'
     sc = s[2:end-1]
-    icolon = search(sc, ':')
+    icolon = symsearch(sc, ':')
     if icolon == 0  # no colon
         (argspec, pos) = make_argspec(sc, pos)
         spec = FormatSpec('s')
@@ -88,10 +88,10 @@ _raise_unmatched_lbrace() = error("Unmatched { in format expression.")
 
 function find_next_entry_open(s::AbstractString, si::Int)
     slen = length(s)
-    p = search(s, '{', si)
+    p = symsearch(s, '{', si)
     p < slen || _raise_unmatched_lbrace()
     while p > 0 && s[p+1] == '{'  # escape `{{`
-        p = search(s, '{', p+2)
+        p = symsearch(s, '{', p+2)
         p < slen || _raise_unmatched_lbrace()
     end
     # println("open at $p")
@@ -105,7 +105,7 @@ end
 
 function find_next_entry_close(s::AbstractString, si::Int)
     slen = length(s)
-    p = search(s, '}', si)
+    p = symsearch(s, '}', si)
     p > 0 || _raise_unmatched_lbrace()
     # println("close at $p")
     return p

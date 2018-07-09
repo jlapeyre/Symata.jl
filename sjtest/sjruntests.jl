@@ -2,6 +2,7 @@
 # that start a new expression and begin with "T " are tested The
 # expression should return true or false
 
+## FIXME: remove most of all of these imported symbols. Use fully qualified symbols
 import Symata: runtest, @sym, @ex, @exsimple, setkerneloptions, SymataPlainTest, print_test_results
 
 # Standard test type

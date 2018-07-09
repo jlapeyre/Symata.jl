@@ -16,7 +16,7 @@ T J( eltype(Symata.symval(:a)) == Real )
 a = Pack([1,2,3.0, "cat"])
 T J( eltype(Symata.symval(:a)) == Any )
 
- J( eval(Main, :(b = 1 )))
+ J(Core.eval(Main, :(b = 1 )))
 
 T JVar(b) == 1
 

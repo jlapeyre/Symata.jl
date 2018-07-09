@@ -346,7 +346,7 @@ end
 @doap function Cases(expr,pat::RuleT)
     jp = patterntoBlank(pat)
     a = margs(expr)
-    r = Array{eltype(a)}(0) ## same as newargs
+    r = Array{eltype(a)}(undef, 0) ## same as newargs
     capt = capturealloc()
     for ai in a
         (gotmatch,res) = replace_ptob(ai,jp,capt)

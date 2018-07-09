@@ -142,7 +142,7 @@ mutable struct DimensionsData
 end
 
 @doap function Dimensions(x::Mxpr)
-    data = DimensionsData(Array{Int}(0), 1, mhead(x), false)
+    data = DimensionsData(Array{Int}(undef, 0), 1, mhead(x), false)
     dimensions(x,data)
     MList(data.dims)
 end

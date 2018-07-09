@@ -2,14 +2,13 @@
 
  ClearTemporary()
 
-# Use julia code to create the path to the test file  symata_code.sj
- codefile = J( joinpath(dirname(@__FILE__), "symata_code.sj") )
 # The code defines a function, uses it for a calculation and returns the result
+  codefile = J( joinpath(Symata.TEST_DIRECTORY, "symata_code.sj") )
 T Get(codefile) == [0, cosfixedpoint]
 
 # This is an Symata implementation of ReplaceRepeated
- codefile = J( joinpath(dirname(@__FILE__), "replacerepeated.sj") )
- Get(codefile)
+  codefile = J( joinpath(Symata.TEST_DIRECTORY, "replacerepeated.sj") )
+  Get(codefile)
 T replacerepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
 
  ClearAll(codefile, cosfixedpoint,replacerepeated, x,i, y,a)

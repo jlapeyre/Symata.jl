@@ -7,7 +7,7 @@
 @sjdoc VersionInfo """
     VersionInfo()
 
-return the version numbers of Symata, Julia, and Python.
+Return the version numbers of Symata, Julia, and Python.
 
     VersionInfo(All)
 
@@ -21,17 +21,17 @@ end
 _vpad(s) = rpad(s,19)
 
 function _versioninfo()
-    println(_vpad("symata version"), SYMATA_VERSION)
-    println(_vpad("julia version"), Base.VERSION)
+    println(_vpad("Symata version"), SYMATA_VERSION)
+    println(_vpad("Julia version"), Base.VERSION)
     if isdefined(PyCall, :pyversion)
-        println(_vpad("python version"), pyversion)
+        println(_vpad("Python version"), pyversion)
     else
-        println("no python version available")
+        println("no Python version available")
     end
     try
-        println(_vpad("sympy version") * sympy[:__version__])
+        println(_vpad("SymPy version") * sympy[:__version__])
     catch
-        println("sympy version unavailable")
+        println("SymPy version unavailable")
     end
     if @isdefined(SymataSyntax) && _init_symatasyntax()
         println(_vpad("symatasyntax ver."), SymataSyntax.SYMATASYNTAX_VERSION)
@@ -144,7 +144,7 @@ disable printing CPU time consumed and memory allocated.
 
     Time()
 
-return the current value.
+Return the current value.
 """
 
 @mkapprule Time  :nargs => 0:1
@@ -337,7 +337,7 @@ disable printing SymPy document strings.
 
     ShowSymPyDocs()
 
-return the current state.
+Return the current state.
 """
 
 #### ReturnSymPy
@@ -355,7 +355,7 @@ disable conversion of expressions computed by SymPy to Symata.
 
     ReturnSympy()
 
-return the current state.
+Return the current state.
 """
 
 #### SymPyError
@@ -365,7 +365,7 @@ return the current state.
 @sjdoc SymPyError """
     SymPyError()
 
-returns the most recent SymPy error message. If you see a message warning that
+Return the most recent SymPy error message. If you see a message warning that
 a SymPy error has occurred, you can find the detailed error message.
 """
 
@@ -380,7 +380,7 @@ a SymPy error has occurred, you can find the detailed error message.
 
     Compact()
 
-return the current state.
+Return the current state.
 
 `CompactOutput` has an effect in `InputForm` and `UnicodeForm` output styles, but not in `JupyterForm` output style.
 """
@@ -400,7 +400,7 @@ enable interpreting all integers as arbitrary precision `BigInt`s.
 
     BigIntInput()
 
-return the current state.
+Return the current state.
 
 You can always specify that an integer should be a `BigInt` by giving `BI(n)`.
 """
@@ -409,7 +409,7 @@ You can always specify that an integer should be a `BigInt` by giving `BI(n)`.
 """
     bigintinput()
 
-return true if the "kernel option" for converting input integers to BigInt is set.
+Return true if the "kernel option" for converting input integers to BigInt is set.
 """
 bigintinput() = getkerneloptions(:bigint_input)
 
@@ -428,7 +428,7 @@ enable interpreting all floating point numbers as arbitrary precision `BigFloats
 
     BigFloatInput()
 
-return the current state.
+Return the current state.
 
 You can always specify that a float should be a BigFloat by using BF(n).
 """
@@ -464,7 +464,7 @@ enable storing the `n` most recent output expressions.
 
     HistoryLength()
 
-return the current value.
+Return the current value.
 """
 
 function _set_historylength(n::Integer)
@@ -585,7 +585,7 @@ in a Jupyter notebook, print in typeset mathematics style using latex.
 
     OutputStyle()
 
-return the current output style.
+Return the current output style.
 
 `InputForm` and `UnicodeForm` give output that is valid `Symata` input for the same expression.
 """
@@ -610,7 +610,7 @@ end
 """
     using_unicode_output()
 
-return true if unicode output style is selected. This is mutually exclusive with InputForm output and
+Return true if unicode output style is selected. This is mutually exclusive with InputForm output and
 JupyterForm output styles.
 """
 using_unicode_output() = getkerneloptions(:output_style) == :UnicodeForm

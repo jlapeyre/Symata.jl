@@ -10,8 +10,8 @@ return the Julia value of the Symbol that `x` evaluates to.
 For example, if `a = 1` in Julia and `b = a` in Symata, then `JVar(b)` evaluates to `1`.
 """
 
-@sjseealso_group(Jxpr,JVar)
-apprules(mx::Mxpr{:JVar}) = eval(Main,symname(mx[1]))
+@sjseealso_group(Jxpr, JVar)
+apprules(mx::Mxpr{:JVar}) = Core.eval(Main,symname(mx[1]))
 
 ### SetJ
 
@@ -24,6 +24,7 @@ Variables and functions in Symata are separate from those in Julia, ie, their ta
 """
 
 exportj(lhs::SymString) = exportj(lhs,doeval(lhs))
+## FIXME: find out what we want on the next line and do it properly.
 exportj(lhs::SymString, rhs) = Main.eval(Expr(:(=),symname(Symbol(lhs)),rhs))
 exportj(lhs::SymString, rhs::Symbol) = exportj(lhs,QuoteNode(rhs))
 @doap SetJ(lhs::SymString,rhs) = exportj(lhs,rhs)

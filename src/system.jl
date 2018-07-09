@@ -3,7 +3,7 @@
 ## TODO take 1 arg as well
 @mkapprule Now :nargs => 0
 
-@doap Now() = now()
+@doap Now() = Dates.now()
 
 ### Timing
 
@@ -54,7 +54,7 @@ pauses (i.e.sleeps) for `x` seconds.
 @mkapprule AbsoluteTime :nargs => 0
 
 ## FIXME: works in v0.6. Will break for earlier versions
-@doap AbsoluteTime() = Dates.value(now() - DateTime(1900))/1000
+@doap AbsoluteTime() = Dates.value(Dates.now() - Dates.DateTime(1900))/1000
 
 ### DateList
 
@@ -66,11 +66,11 @@ end
 
 @mkapprule DateList
 
-@doap DateList(x::ListT) = _datelist(DateTime(margs(x)...))
+@doap DateList(x::ListT) = _datelist(Dates.DateTime(margs(x)...))
 
-@doap DateList() = _datelist(now())
+@doap DateList() = _datelist(Dates.now())
 
-#@doap DateList(t::AbstractFloat) = _datelist(DateTime(t))
+#@doap DateList(t::AbstractFloat) = _datelist(Dates.DateTime(t))
 
 ### Run
 

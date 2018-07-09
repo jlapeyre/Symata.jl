@@ -516,7 +516,8 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
             sbuffer = LineEdit.buffer(s)
             curspos = position(sbuffer)
             seek(sbuffer, 0)
-            shouldeval = (nb_available(sbuffer) == curspos && search(sbuffer, UInt8('\n')) == 0)
+            shouldeval = (nb_available(sbuffer) == curspos &&
+                      Symata.symsearch(sbuffer, UInt8('\n')) == 0)
             seek(sbuffer, curspos)
             if curspos == 0
                 # if pasting at the beginning, strip leading whitespace
