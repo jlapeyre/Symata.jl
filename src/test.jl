@@ -58,7 +58,7 @@ function print_test_results(test::AbstractSymataPlainTest)
     end
 end
 
-function record_SJTest(test::AbstractSymataPlainTest, fname, linenumber, res)
+function record_SymataTest(test::AbstractSymataPlainTest, fname, linenumber, res)
     test.total += 1
     if res == true
         test.pass += 1

@@ -66,7 +66,8 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
     incomplete_flag::Bool = false
     incomplete_message = ""
     local incomplete_line_number = 0
-    for (line_number,line) = enumerate(eachline(f))
+    local first_line_number = 0  # line number at which expression being read started
+    for (line_number, line) = enumerate(eachline(f))
         pline = sjpreprocess_string(line)
         if typeof(test) != Symata_NullTest && length(pline) > 1 && pline[1:2] == "T "
             if isa(test, SymataPlainPrintTest) println(pline) end
@@ -97,22 +98,25 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                 res = Symata.symataevaluate(expr, EvaluateJuliaSyntaxSimple())
                 if typeof(test) != Symata_NullTest && reading_test
                     reading_test = false
-                    record_SJTest(test, f, line_number, res)
+                    record_SymataTest(test, f, line_number, res)
                 end
+                first_line_number = line_number + 1  # The first line number of the next expression
                 res
             catch e
-                @warn("SJ Error reading file $f,  line $line_number\n")
+                @warn("Symata: Error reading file $f, line $line_number\n")
                 rethrow(e)
             finally
                 eline = ""
             end
     end
     if incomplete_flag
-        error(incomplete_message, " in file $f line $line_number")
+        @isdefined(line_number) ||
+            error(incomplete_message,
+                  ". Incomplete expression starting near line number $first_line_number in file $f.")
+        error(incomplete_message, " in file $f line $line_number.")
     end
     sjretval
 end
-
 
 ### Get
 
@@ -438,7 +442,7 @@ may always be entered in `FullForm`.
     symprintln(label," ", res)
     x
 end
-    
+
 
 
 ### Julia
