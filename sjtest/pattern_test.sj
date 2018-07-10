@@ -96,7 +96,7 @@ T MatchQ( 1.0, _Integer) == false
 T MatchQ( "zebra", _AbstractString) == true
 T MatchQ( 1.0, _AbstractString) == false
 
-p = _:?(J( x ->  -1 < x < 1 ))
+p = _`J( x ->  -1 < x < 1 )`
 
 T MatchQ(0,p)
 T MatchQ(.5,p)
@@ -107,8 +107,7 @@ ClearAll(p)
 
 Clear(a,b,gg,xx)
 
-
-pi = MatchQ(x_Integer:?(Positive))
+pi = MatchQ(x_Integer`Positive`)
 
 T pi(1)
 T pi(10)
@@ -390,7 +389,7 @@ T Replace( a, r2) == 4
 ClearAll(a,b)
 
 # Match anything except expressions that match the argument to Except().
-Replace([1, 7, "Hi", 3, Indeterminate], Except(_:?(NumericQ)) :> 0, 1)
+Replace([1, 7, "Hi", 3, Indeterminate], Except(_`NumericQ`) :> 0, 1)
 
 # Stop trying rules on an expression after the first succesful match.
 T ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
@@ -418,7 +417,7 @@ T ReplaceAll( b^b, a::(_^_) => g(a)) == g(b^b)
 # symata > f(a)(b)(c)(d)
 # f(a,b,c,d)
 
-# tests a fix for bug that caused julia-level error in the following line
+# Tests a fix for bug that caused julia-level error in the following line
 ex = Hold(f(a)(b)(c)(d))
 T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
@@ -429,7 +428,7 @@ ClearAll(x,ex)
 
 # Currying with Count
 
-countprimes = Count(_:?(PrimeQ))
+countprimes = Count(_`PrimeQ`)
 T  countprimes(Range(100)) == 25
 ClearAll(countprimes)
 
@@ -437,7 +436,7 @@ ClearAll(countprimes)
 #### Cases
 
 # Use a Julia function to list the perfect squares less than 100.
-T  Cases(Range(100), _:?(J( (x) -> typeof(mpow(x,1//2)) <: Integer )) ) == [1,4,9,16,25,36,49,64,81,100]
+T  Cases(Range(100), _`J( (x) -> typeof(mpow(x,1//2)) <: Integer )` ) == [1,4,9,16,25,36,49,64,81,100]
 
 T Cases([1,2.0,3,"dog"], _String) == ["dog"]
 T DeleteCases([1,2.0,3,"dog"], _String) == [1,2.0,3]
@@ -462,7 +461,7 @@ T Cases(_Integer)([1, 1, f(a), 2, 3, y, f(8), 9, f(10)]) == [1,1,2,3,9]
 T MatchQ( [2], [_,_]) == False
 
 # Two unnamed blanks can match different expressions
-T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) == [[1,2],[5,4],[3,3],[a,a]] 
+T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) == [[1,2],[5,4],[3,3],[a,a]]
 
 # Cases returns expression with head List, not the head of input expression.
 T Cases(f(1,2,3,a), _Symbol) == [a]
@@ -515,15 +514,15 @@ T Cases([a, b, 0, 1, 2, x, y], Except(0,_Integer)) == [1,2]
 
 # This works, but only with parens around IntegerQ, otherwise it is interpreted as
 # Optional. Syntax needs work.
-T MatchQ(1, Except(_:?(IntegerQ))) == False
-T MatchQ(a, Except(_:?(IntegerQ)))
+T MatchQ(1, Except(_`IntegerQ`)) == False
+T MatchQ(a, Except(_`IntegerQ`))
 
 ClearAll(dstring,result,r1,r2, a, b, d, c, e, f, m, n, p, x, y, z, rules, k, u, ex, g, h)
 
 T p_ == Pattern(p,Blank())
 T p_q  == Pattern(p,Blank(q))
-T p_Integer:?(PrimeQ) == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
-T p_:?(PrimeQ) == PatternTest(Pattern(p,Blank()),PrimeQ)
+T p_Integer`PrimeQ` == PatternTest(Pattern(p,Blank(Integer)),PrimeQ)
+T p_`PrimeQ` == PatternTest(Pattern(p,Blank()),PrimeQ)
 T _^_ == Power(Blank(),Blank())
 
 # This should evaluate to True, but does not.
@@ -667,7 +666,7 @@ T Head(f(3,3,2)) == f
 
 ClearAll(f)
 
-    
+
 # FIXME.
 # f(x_Integer, y::Repeated(_Symbol)) := [x,y]
 # f(3,a,b) --> [3,a,b], i.e. y should be spliced in.

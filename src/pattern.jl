@@ -232,6 +232,21 @@ end
 
 #### PatternTest
 
+@sjdoc PatternTest """
+    PatternTest
+
+A `PatternTest` is entered using backticks.
+
+Test for positive integers.
+
+    pi = MatchQ(x_Integer`Positive`)
+    pi(10)
+
+Test for numbers between `-1` and `1`.
+
+    p = _`J(x -> -1 < x < 1)`
+"""
+
 function apply_test(ex,test)
     is_Mxpr(test) || symerror("PatternTest: Pattern test to match is not a Mxpr. $cc of type ", typeof(cc))
     test.args[1] = ex           # we reuse a stored Mxpr. Not any longer. We create the Mxpr every time

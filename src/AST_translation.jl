@@ -181,28 +181,45 @@ function rewrite_Jxpr!(a, newa)
     return mxpr(:Jxpr, newa)
 end
 
-function rewrite_colon!(a, newa)
+function parse_pattern(pattern_expr)
+    if isa(pattern_expr, Expr)  # assume it is a Function
+        if pattern_expr.head == :call && length(pattern_expr.args) > 1 && pattern_expr.args[1] == :J
+            #pattern = Core.eval(Symata, pattern_expr.args[2])
+            pattern = eval(pattern_expr.args[2])
+        else
+            pattern = eval(eval(pattern_expr)) # first eval gets Symbol from Expr, Second gives Function.
+        end
+    else
+        pattern = pattern_expr
+    end
+    isa(pattern, Symbol) || isa(pattern, Function) || typeof(pattern) <: Function ||
+        error("extomx: argument to PatternTest must be a Symbol or a Function")
+    return pattern
+end
+
+
+
+function parse_colon!(a, newa)
     local mxhead
-    # @info "rewrite_colon!"
-    # @show a[1]
     if length(a) == 2
         if isa(a[1], Symbol) && isa(a[2], Expr) &&
             (a[2].args)[1] == :(?) # FIXME deprecated. Cannot be used as an identifier. Will fail parsing soon.
             mxhead = :PatternTest
             ptargs = a[2].args
             length(ptargs) != 2 && error("extomx: too many args to PatternTest")
-            pattern = ptargs[2]
-            if isa(pattern,Expr)  # assume it is a Function
-                # @show pattern.args[1]
-                # @show pattern.args[2]
-                if pattern.head == :call && length(pattern.args) > 1 && pattern.args[1] == :J
-#                    @show pattern.args[2]
-                    #pattern = Core.eval(Symata, pattern.args[2])
-                    pattern = eval(pattern.args[2])
-                else
-                    pattern = eval(eval(pattern)) # first eval gets Symbol from Expr, Second gives Function.
-                end
-            end
+            pattern = parse_pattern(ptargs[2])
+#             pattern = ptargs[2]
+#             if isa(pattern,Expr)  # assume it is a Function
+#                 # @show pattern.args[1]
+#                 # @show pattern.args[2]
+#                 if pattern.head == :call && length(pattern.args) > 1 && pattern.args[1] == :J
+# #                    @show pattern.args[2]
+#                     #pattern = Core.eval(Symata, pattern.args[2])
+#                     pattern = eval(pattern.args[2])
+#                 else
+#                     pattern = eval(eval(pattern)) # first eval gets Symbol from Expr, Second gives Function.
+#                 end
+#             end
             isa(pattern, Symbol) || isa(pattern, Function) || typeof(pattern) <: Function ||
                 error("extomx: argument to PatternTest must be a Symbol or a Function")
             push!(newa, extomx(a[1]), pattern)
@@ -229,12 +246,9 @@ function parse_call!(ex, newa)
     a = ex.args
     operator = a[1]
     if operator == :(:)
-#        @info "Doing colon in parsecall"
-        return rewrite_colon!(@view(a[2:end]), newa)
+        return parse_colon!(@view(a[2:end]), newa)
     end
-    mxhead = extomx(operator)  # first arg is the operator
-    # @info "In parse call, mxhead..."
-    # @show mxhead
+    mxhead = extomx(operator)
     if mxhead == :J
         return rewrite_Jxpr!(a, newa)
     end
@@ -246,6 +260,24 @@ end
 function parse_function(ex)
     mxpr(:Function, extomx(ex.args[1]), extomx(ex.args[2].args[2]))
 end
+
+function parse_macrocall(ex, newa)
+    fullmacroname = string(ex.args[1])
+    r = r"^@(.*)_?cmd$"
+    m = match(r, fullmacroname) # check for x`foo` (cmd macro)
+    m == nothing && return(eval(ex)) # Not a cmd macro
+    macroname_with_underscore = m.captures[1]
+    macroname = SubString(macroname_with_underscore, 1, lastindex(macroname_with_underscore)-1)
+#    macroname = macroname_with_underscore[1:lastindex(macroname_with_underscore)-1]
+#    @show macroname
+    cmd_string = ex.args[3]
+#    @show cmd_string
+    pattern_expr = Meta.parse(cmd_string)
+    pattern = parse_pattern(pattern_expr)
+    push!(newa, extomx(Symbol(macroname)), pattern)
+    return mxpr(:PatternTest, newa)
+end
+
 
 """
     iscall(ex::Expr)
@@ -381,7 +413,8 @@ function rewrite_expr(ex::Expr)
     for i in 1:length(ex.args)
         x = ex.args[i]
         if isa(x,Expr) && x.head == :macrocall
-            ex.args[i] = eval(x)
+#            ex.args[i] = eval(x)
+            ex.args[i] = parse_macrocall(x, newargs())
         end
         if haskey(INSYMTRANS,x)
             ex.args[i] = INSYMTRANS[x]
@@ -483,9 +516,10 @@ function extomx(ex::Expr)
     elseif ohead == :(.)  # don't need parens, but this is readable
         return parse_qualified_symbol(ex)
     elseif ohead == :quote
-        mxhead = parse_quoted(ex,newa)
+        mxhead = parse_quoted(ex, newa)
     elseif ohead == :macrocall
-        return eval(ex)  # is this exactly what we want ?
+#        return eval(ex)
+        return parse_macrocall(ex, newa)
     elseif ohead == :string
         mxhead = :StringInterpolation
         extomxarr!(a,newa)

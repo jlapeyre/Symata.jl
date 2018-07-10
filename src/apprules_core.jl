@@ -289,24 +289,16 @@ apprules(mx::Mxpr{GenHead}) = do_GenHead(mx, mhead(mx))
 do_GenHead(mx,h) = mx
 
 # Head is a Julia function. Apply it to the arguments
-# For v0.6
-#do_GenHead(mx, f::Function) = Base.invokelatest(f, margs(mx)...)
+# We use invokelatest always, which is very slow.
 # NOTE: In the case of Functions, mx.head == f
-# So, f is redunant
+# So, f is redundant.
 function do_GenHead(mx, f::Function)
-    # @info "do_GenHead"
-    # @show mx.head
-    # println(margs(mx))
     return Base.invokelatest(mx.head, margs(mx)...)
-# #    res = (mx.head)(margs(mx)...)
-#     res = f(margs(mx)...)
-#     @show res
-#     return res
+#    return (mx.head)(margs(mx)...)
 end
 
 # For version v0.5
 #do_GenHead(mx,f::Function) = f(margs(mx)...)
-
 
 # Assume operator version of an Symata "function". Eg, Map
 # Map(q)([1,2,3])

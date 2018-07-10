@@ -61,7 +61,7 @@ of the file as Symata tests.
 """
 function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest() )
     eline = ""
-    local sjretval
+    local success_flag_return
     reading_test::Bool = false
     incomplete_flag::Bool = false
     incomplete_message = ""
@@ -92,16 +92,16 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
             incomplete_line_number = line_number
             continue
         end
-        sjretval =
+        success_flag_return =
             try
                 incomplete_flag = false
-                res = Symata.symataevaluate(expr, EvaluateJuliaSyntaxSimple())
+                success_flag = Symata.symataevaluate(expr, EvaluateJuliaSyntaxSimple())
                 if typeof(test) != Symata_NullTest && reading_test
                     reading_test = false
-                    record_SymataTest(test, f, line_number, res)
+                    record_SymataTest(test, f, line_number, success_flag)
                 end
                 first_line_number = line_number + 1  # The first line number of the next expression
-                res
+                success_flag
             catch e
                 @warn("Symata: Error reading file $f, line $line_number\n")
                 rethrow(e)
@@ -115,7 +115,7 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                   ". Incomplete expression starting near line number $first_line_number in file $f.")
         error(incomplete_message, " in file $f line $line_number.")
     end
-    sjretval
+    return success_flag_return
 end
 
 ### Get
@@ -354,7 +354,6 @@ returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
     end
 end
 
-
 # We should probably explicitly return Null
 # from functions. But,this might catch all
 # of the nothings from causing printing
@@ -371,7 +370,6 @@ apprules(expr::Nothing) = :Null
 generate a unique temporary file path.
 """
 @doap TempName() = tempname()
-
 
 ### DeleteFile
 
@@ -391,7 +389,7 @@ delete `filename`.
 @sjdoc Format """
     Format(n, options)
 
-formats `n` using the Julia `format` function from `Formatting.jl`.
+Format `n` using the Julia `format` function from `Formatting.jl`.
 Optional arguments to `format` are given in Symata format.
 For example `precision=3` becomes `Precision => 3`.
 
@@ -443,8 +441,6 @@ may always be entered in `FullForm`.
     x
 end
 
-
-
 ### Julia
 
 ## Julia() should be in some other file... which one ?
@@ -452,7 +448,7 @@ end
 @sjdoc Julia """
     Julia()
 
-exit Symata mode and returns to Julia mode from within Jupyter.
+Exit Symata mode and returns to Julia mode from within Jupyter.
 Use `isymata()` from Julia to enter Symata mode again.
 """
 
