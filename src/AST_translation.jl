@@ -87,7 +87,8 @@ const MAGIC_HELP_QUERY_STRING = "HELPQUERY!!"
 const MAGIC_HELP_QUERY_SYMBOL = Symbol(MAGIC_HELP_QUERY_STRING)
 function sjpreprocess_interactive(line::AbstractString)
     if length(line) > 1 && first(line) == '?'  # User wants documentation
-        line =  MAGIC_HELP_QUERY_STRING * ", " * SubString(line, 2, lastindex(line)) # We add a comma so that the julia parse will accept it.
+        line =  MAGIC_HELP_QUERY_STRING * ", " *
+            SubString(line, 2, lastindex(line)) # We add a comma so that the julia parse will accept it.
     end
     sjpreprocess_string(line)
 end

@@ -487,13 +487,13 @@ end
 # We set fixed here, but not for orderless above. Which one is correct ?
 function canonexpr!(mx::Mxpr{:Power})
     mx = do_canon_power!(mx,base(mx),expt(mx)) # Don't want "!" here
-    if isa(mx,TimesT)
+    if isa(mx, TimesT)
         mx = canonexpr!(mx)
     end
     setcanon(mx)
     # m = (a * b * c * d * e *f * g * h)^2  takes 2e-4 s if we don't do setfixed below
     # But, we can't do this: ex = 102^(1/2); ex^2 does not return 102 if we setfixed.
-    if ! isa(mx,PowerT)
+    if ! isa(mx, PowerT)
 #        setfixed(mx)
     end
     return mx
