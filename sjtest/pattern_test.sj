@@ -41,17 +41,18 @@ f(1, [2, 3, 4]) == [1, [2, 3, 4]]
 
 ClearAll(f)
 f(x__) := Length([x])
-T  [f(x, y, z), Head(f())] == [3, f]
+T [f(x, y, z), Head(f())] == [3, f]
 
 approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
 
-g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
+## FIXME: fails because x^1 does not simplify to x
+# g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
 
-T  g(x, 1, 2, 3, 4) == x + x^2 + x^3 + x^4
-T  Head(g(x, 1, 2, 3, 4.0)) == g
-T  Head(g(0, 1, 2, 3, 4)) == g
+T g(x, 1, 2, 3, 4) == x + x^2 + x^3 + x^4
+T Head(g(x, 1, 2, 3, 4.0)) == g
+T Head(g(0, 1, 2, 3, 4)) == g
 ClearAll(f)
-T  ReplaceAll(f(a, b, c), f(x__) => p(x, x, x)) == p(a, b, c, a, b, c, a, b, c)
+T ReplaceAll(f(a, b, c), f(x__) => p(x, x, x)) == p(a, b, c, a, b, c, a, b, c)
 
 # FIXME: does not work
 # h(a___, x_, b___, x_, c___) := hh(x) * h(a, b, c)
@@ -63,8 +64,8 @@ T  ReplaceAll(f(a, b, c), f(x__) => p(x, x, x)) == p(a, b, c, a, b, c, a, b, c)
 T MatchQ([], [__]) == False
 T MatchQ([], [___]) == True
 
-T  MatchQ(Expand(x*(1 + 2*x + 3 * x^2)), Plus(_, __))
-T  MatchQ(x*(1 + 2*x + 3 * x^2), Plus(_, __)) == False
+T MatchQ(Expand(x*(1 + 2*x + 3 * x^2)), Plus(_, __))
+T MatchQ(x*(1 + 2*x + 3 * x^2), Plus(_, __)) == False
 
 ## substitute in heads
 rotheadargs(f_(args__)) := (Last([args])(f, Splat(Most([args]))))
@@ -161,7 +162,7 @@ T f(2,2) == [2]
 T f(2,"cat") == [2,"cat"]
 
 # The entire pattern fails to match
-T  Head(f(2,3)) == f
+T Head(f(2,3)) == f
 
 # The alternatives can contain patterns at any depth
 g(x_, x_ | h(y_String)) := [x,y]
@@ -200,7 +201,7 @@ ClearAll(f,a,x)
 
 a = 2
 f(x_) := Module([a],(a=1,x+a))
-T  f(3) == 4
+T f(3) == 4
 T a == 2
 
 ClearAll(f,a,b,c,d,p,x,gg,xx,n,y)
@@ -231,7 +232,7 @@ ClearAll(pf,x,y,a,b,f)
 
 # A matched expression can be used as a Head
 pf(x_,y_) :=  x(y)
-T  pf(a,b) == a(b)
+T pf(a,b) == a(b)
 
 ClearAll(pf,x,y,a,b)
 
@@ -301,7 +302,7 @@ T ReplaceAll(Hold(x + x) , RuleDelayed(x , 2^2)) == Hold(2 ^ 2 + 2 ^ 2)
 
 ClearAll(x)
 ## Map over a list of lists of rules
-T  x ./ [ [x => 1], [x => 2], [x => 7] ] == [1,2,7]
+T x ./ [ [x => 1], [x => 2], [x => 7] ] == [1,2,7]
 
 T Replace(x^2, x^2 => a + b) == a + b
 T Replace(1 + x^2, x^2 => a + b)  == 1 + x ^ 2
@@ -404,8 +405,8 @@ T ReplaceRepeated(Expand((a+b)^3) , x_Integer => 1)  == a +  a * b + b
 
 # This applies two rules for Log repeatedly to an expression.
 rules = [Log(x_ * y_) => Log(x) + Log(y), Log(x_^k_) => k * Log(x)]
-T  ReplaceRepeated(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * (Log(a) + e * (Log(b) + d * Log(c)))
-T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e))
+T ReplaceRepeated(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * (Log(a) + e * (Log(b) + d * Log(c)))
+T ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e))
 
 # We usually use named patterns only with a single blank, e.g. b_. But, we may associate a
 # name with any pattern expression.
@@ -429,14 +430,14 @@ ClearAll(x,ex)
 # Currying with Count
 
 countprimes = Count(_`PrimeQ`)
-T  countprimes(Range(100)) == 25
+T countprimes(Range(100)) == 25
 ClearAll(countprimes)
 
 
 #### Cases
 
 # Use a Julia function to list the perfect squares less than 100.
-T  Cases(Range(100), _`J((x) -> typeof(mpow(x,1//2)) <: Integer)`) == [1,4,9,16,25,36,49,64,81,100]
+T Cases(Range(100), _`J((x) -> typeof(mpow(x,1//2)) <: Integer)`) == [1,4,9,16,25,36,49,64,81,100]
 
 T Cases([1,2.0,3,"dog"], _String) == ["dog"]
 T DeleteCases([1,2.0,3,"dog"], _String) == [1,2.0,3]
@@ -580,14 +581,14 @@ ClearAll(x,y,a,b,g,f)
 
 #### Condition
 
-T  MatchQ(-2 , Condition(x_ , x < 0))
-T  MatchQ(1 , Condition(x_ , x < 0)) == False
-T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition(x_ , x < 0) => w) == [6,w,3,2,w,w]
+T MatchQ(-2 , Condition(x_ , x < 0))
+T MatchQ(1 , Condition(x_ , x < 0)) == False
+T ReplaceAll([6, -7, 3, 2,-1,-2], Condition(x_ , x < 0) => w) == [6,w,3,2,w,w]
 
 # Note this condition is on the RHS.
-T  ReplaceAll([1,2,3, "cat"], x_Integer => Condition(y, x > 2)) == [1,2,y,"cat"]
+T ReplaceAll([1,2,3, "cat"], x_Integer => Condition(y, x > 2)) == [1,2,y,"cat"]
 
-T  Cases([[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
+T Cases([[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
 
 # Condition on definition
 f(x_) :=  Condition(x^2, x > 3)
@@ -621,19 +622,17 @@ T v([[a,b],[c,d],[e,f]]) == [[a,c,e],[b,d,f]]
 
 #v1(x::[Repeated([_,n_])]) := Transpose(x)
 v1(x::[[_,n_]...]) := Transpose(x)
-T  Head(v1([[a,b],[c,d],[e,f]])) == v1
-T  v1([[a,b],[c,b],[e,b]]) == [[a,c,e],[b,b,b]]
+T Head(v1([[a,b],[c,d],[e,f]])) == v1
+T v1([[a,b],[c,b],[e,b]]) == [[a,c,e],[b,b,b]]
 
 ClearAll(v,v1)
 
-
 # We do not have enough of Norm implemented. But the pattern does work.
-# T  f(x::[Repeated([_, _])]) := Norm(N(x))
+# T f(x::[Repeated([_, _])]) := Norm(N(x))
 
 T MatchQ([a,a,b], [_Symbol...])
 T ! MatchQ([a,a,b,3], [Repeated(_Symbol)])
 T MatchQ([a,a,b,3], [Repeated(_Symbol),_ ])
-
 T ! MatchQ([1,2,3], [Repeated(_Integer,1)])
 T ! MatchQ([1,2,3], [Repeated(_Integer,2)])
 T MatchQ([1,2,3], [Repeated(_Integer,3)])
@@ -665,7 +664,6 @@ T f(3,3,3) == 3
 T Head(f(3,3,2)) == f
 
 ClearAll(f)
-
 
 # FIXME.
 # f(x_Integer, y::Repeated(_Symbol)) := [x,y]

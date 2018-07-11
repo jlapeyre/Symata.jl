@@ -116,7 +116,6 @@ do_ConstantQ(mx::Mxpr{:ConstantQ}, x) = isConstant(x)
 ### AtomQ
 
 @mkapprule AtomQ  :nargs => 1
-
 @sjdoc AtomQ """
     AtomQ(expr)
 
@@ -126,27 +125,27 @@ However, currently, Julia `Array`s can be accessed with `Part`, and return `True
 """
 @doap AtomQ(x) = atomq(x)
 
-### EvenQ
-
-apprules(mx::Mxpr{:EvenQ}) = isa(mx[1],Integer) && iseven(mx[1])
-
-@sjdoc EvenQ """
-    EvenQ(expr)
-
-return `True` if `expr` is an even integer.
-"""
-
 ### OddQ
 
-apprules(mx::Mxpr{:OddQ}) = isa(mx[1],Integer) &&  ! iseven(mx[1])
-
+@mkapprule OddQ  :nargs => 1
+@doap OddQ(x) = isa(x, Integer) && ! iseven(x)
 @sjdoc OddQ """
     OddQ(expr)
 
 return `True` if `expr` is an odd integer.
 """
 
-@sjseealso_group(AtomQ,EvenQ,OddQ)
+### EvenQ
+
+@mkapprule EvenQ  :nargs => 1
+@doap EvenQ(x) = isa(x, Integer) && ! iseven(x)
+@sjdoc EvenQ """
+    EvenQ(expr)
+
+return `True` if `expr` is an even integer.
+"""
+
+@sjseealso_group(AtomQ, EvenQ, OddQ)
 
 ### DirtyQ
 
@@ -218,7 +217,6 @@ point numbers and floating point complex numbers.
 ### IntegerQ
 
 @mkapprule IntegerQ :nargs => 1
-
 @sjdoc IntegerQ """
     IntegerQ(x)
 
@@ -229,7 +227,6 @@ return true if `x` is an `Integer`.
 ### ListQ
 
 @mkapprule ListQ :nargs => 1
-
 @sjdoc ListQ """
     ListQ(x)
 
@@ -241,7 +238,6 @@ return `True` if the `Head` of `x` is `List`.
 ### Positive
 
 @mkapprule Positive :nargs => 1
-
 @sjdoc Positive """
     Positive(x)
 
@@ -255,13 +251,12 @@ Otherwise, return the input expression.
 ### PermuationQ
 
 @mkapprule PermutationQ :nargs => 1
-
 @sjdoc PermutationQ """
     PermutationQ(list)
 
 return `True` if and only if `list` is a permuation of the integers from `1` through `Length(list)`.
 """
-do_PermutationQ(mx::Mxpr{:PermutationQ}, lst::Mxpr{:List}) =  all( t -> typeof(t) <: Union{Integer,AbstractFloat}, margs(lst)) && isperm(margs(lst))
+do_PermutationQ(mx::Mxpr{:PermutationQ}, lst::Mxpr{:List}) =  all(t -> typeof(t) <: Union{Integer,AbstractFloat}, margs(lst)) && isperm(margs(lst))
 
 ### VectorQ
 
@@ -286,7 +281,6 @@ vectorq(x::Mxpr{:List}, test) = isa(test,Function) ? all(t -> test(t), margs(x))
 ### MatrixQ
 
 @mkapprule MatrixQ :nargs => 1:2  :nodefault => true
-
 @sjdoc MatrixQ """
     MatrixQ(m)
 
@@ -325,7 +319,6 @@ matrixq(x,test) = false
 trueq(x::Bool) = x
 trueq(x) = false
 
-
 ### Boole
 
 @mkapprule Boole
@@ -349,13 +342,10 @@ trueq(x) = false
 # """
 
 @mkapprule FreeQ :nargs => 1:3
-
 @doap FreeQ(expr, pattern) = freeq(LevelSpecAll(),expr,pattern)
-
 @doap FreeQ(expr, pattern, inlevelspec)  = freeq(make_level_specification(expr, inlevelspec), expr, pattern)
 
 @curry_second FreeQ
-
 @sjdoc FreeQ """
     FreeQ(expr, pattern)
 
@@ -410,9 +400,7 @@ end
 
 asserts that `x` is an element of the domain `dom`.
 """
-
 @mkapprule Element :nargs => 2
-
 
 @doap function Element(x::Integer,sym::Symbol)
     if sym == :Integers || sym == :Reals || sym == :Rationals || sym == :Complexes ||
