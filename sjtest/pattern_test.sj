@@ -1,8 +1,9 @@
 Apply(ClearAll, UserSyms())
 
-# FIXME: automatic Currying prevents the following from working as expected.
-# we probably need to disable automatic Currying.
-# p = (Pattern(f, Blank()))(x)
+fxQ = MatchQ(f_(x))
+T fxQ(f(x))
+T fxQ(g(x))
+T Not(fxQ(f(y)))
 
 ### Blanks
 
@@ -13,45 +14,44 @@ T _b == Blank(b)
 T __b == BlankSequence(b)
 T ___b == BlankNullSequence(b)
 
-
 ### BlankSequence
 
-ClearAll(f,a,b,c)
+ClearAll(fxQ, f, a, b, c)
 
 f(x__) := [x]
 
 T Head(f()) == f
 T f(1) == [1]
-T f(1,2,3) == [1,2,3]
-T f(a,b,c) == [a,b,c]
-T f(a,b+c) == [a,b+c]
+T f(1, 2, 3) == [1, 2, 3]
+T f(a, b, c) == [a, b, c]
+T f(a, b+c) == [a, b+c]
 
 ClearAll(f)
 f(x__Integer) := [x]
-T Head(f(a,b,c)) == f
-T f(1,2,3) == [1,2,3]
+T Head(f(a, b, c)) == f
+T f(1, 2, 3) == [1, 2, 3]
 
-ClearAll(f,g)
-f(x_, [y__]) := g(x,[y])
-T f(1,[2,3,4]) == g(1,[2,3,4])
+ClearAll(f, g)
+f(x_, [y__]) := g(x, [y])
+T f(1, [2, 3, 4]) == g(1, [2, 3, 4])
 
 ClearAll(f)
-f(x_, y__) := [x,[y]]
-f(1,[2,3,4]) == [1,[2,3,4]]
+f(x_, y__) := [x, [y]]
+f(1, [2, 3, 4]) == [1, [2, 3, 4]]
 
 ClearAll(f)
 f(x__) := Length([x])
-T  [f(x,y,z), Head(f())] == [3,f]
+T  [f(x, y, z), Head(f())] == [3, f]
 
 approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
 
 g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
 
-T  g(x,1,2,3,4) == x + x^2 + x^3 + x^4
-T  Head(g(x,1,2,3,4.0)) == g
-T  Head(g(0,1,2,3,4)) == g
+T  g(x, 1, 2, 3, 4) == x + x^2 + x^3 + x^4
+T  Head(g(x, 1, 2, 3, 4.0)) == g
+T  Head(g(0, 1, 2, 3, 4)) == g
 ClearAll(f)
-T  ReplaceAll( f(a, b, c) ,  f(x__) => p(x, x, x)) == p(a,b,c,a,b,c,a,b,c)
+T  ReplaceAll(f(a, b, c), f(x__) => p(x, x, x)) == p(a, b, c, a, b, c, a, b, c)
 
 # FIXME: does not work
 # h(a___, x_, b___, x_, c___) := hh(x) * h(a, b, c)
@@ -67,34 +67,33 @@ T  MatchQ(Expand(x*(1 + 2*x + 3 * x^2)), Plus(_, __))
 T  MatchQ(x*(1 + 2*x + 3 * x^2), Plus(_, __)) == False
 
 ## substitute in heads
-rotheadargs(f_(args__)) := (Last([args])(f,Splat(Most([args]))))
-T rotheadargs( a + b + c + d) == d(Plus,a,b,c)
+rotheadargs(f_(args__)) := (Last([args])(f, Splat(Most([args]))))
+T rotheadargs(a + b + c + d) == d(Plus, a, b, c)
 
 ## localize variable in heads in module
-rotheadargs1(f_(args__)) := Module([ls = [args]], Last(ls)(f,Splat(Most(ls))))
-T rotheadargs1( a + b + c + d) == d(Plus,a,b,c)
+rotheadargs1(f_(args__)) := Module([ls = [args]], Last(ls)(f, Splat(Most(ls))))
+T rotheadargs1(a + b + c + d) == d(Plus, a, b, c)
 
 ###
 
-ClearAll(a,b,c,d,p,f,d,g)
+ClearAll(a, b, c, d, p, f, d, g)
 
-T ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y)) == f(c) + p(a+b)
+T ReplaceAll(f([a, b]) + f(c), f([x_, y_]) => p(x+y)) == f(c) + p(a+b)
 
+T Apply(List, ReplaceAll(f([a, b]) + f(c), f([x_, y_]) => p(x+y))) == [f(c), p(a + b)]
 
-T Apply(List,ReplaceAll( f([a,b]) + f(c) , f([x_,y_]) => p(x+y))) == [f(c),p(a + b)]
-
-T ReplaceAll([a/b, 1/b^2, 2/b^2] , b^n_ => d(n)) == [a*d(-1),d(-2),2*d(-2)]
+T ReplaceAll([a/b, 1/b^2, 2/b^2], b^n_ => d(n)) == [a*d(-1), d(-2), 2*d(-2)]
 
 # Pattern names do match consistently
-T ReplaceAll( [a,b,[a,b]] , [x_,y_,[x_,y_]] => 1 ) == 1
+T ReplaceAll([a, b, [a, b]], [x_, y_, [x_, y_]] => 1) == 1
 
 # Pattern names do not match consistently
-T ReplaceAll( [b,a,[a,b]] , [x_,y_,[x_,y_]] => 1 ) == [b,a,[a,b]]
+T ReplaceAll([b, a, [a, b]], [x_, y_, [x_, y_]] => 1) == [b, a, [a, b]]
 
-T MatchQ( 1, _Integer) == true
-T MatchQ( 1.0, _Integer) == false
-T MatchQ( "zebra", _AbstractString) == true
-T MatchQ( 1.0, _AbstractString) == false
+T MatchQ(1, _Integer) == true
+T MatchQ(1.0, _Integer) == false
+T MatchQ("zebra", _AbstractString) == true
+T MatchQ(1.0, _AbstractString) == false
 
 # backticks create a PatternTest
 p = _`J(x -> -1 < x < 1)`
@@ -133,23 +132,23 @@ ClearAll(m,x,y)
 a = 1
 
 # Patterns match structurally.
-T MatchQ( a^2, x_^2) == false
-T MatchQ( b^2, x_^2) == true
-T MatchQ( b^2, _^2) == true
+T MatchQ(a^2, x_^2) == false
+T MatchQ(b^2, x_^2) == true
+T MatchQ(b^2, _^2) == true
 T MatchQ(f(b^2), f(x_^2)) == true
 
 # Match expression with Head gg
-T MatchQ( gg(xx) , _gg)
+T MatchQ(gg(xx) , _gg)
 
 # Two blanks do not have to match the same expression
-T MatchQ( a^b, _^_)
+T MatchQ(a^b, _^_)
 
 #### Alternatives
 
 T a | b == Alternatives(a,b)
-T MatchQ( 1, _Integer | _String)
-T MatchQ( "dog", _Integer | _String)
-T ReplaceAll( [a, b, c, d, a, b, b, b],  a | b => x) == [x,x,c,d,x,x,x,x]
+T MatchQ(1, _Integer | _String)
+T MatchQ("dog", _Integer | _String)
+T ReplaceAll([a, b, c, d, a, b, b, b],  a | b => x) == [x,x,c,d,x,x,x,x]
 
 # An unmatched alternative is replaced by Sequence(). Upon evaluation to fixed point, this
 # empty sequence is removed.
@@ -214,7 +213,7 @@ T ReplaceAll(1, 1 => y) == y
 T ReplaceAll(c(1), c => y) == y(1)
 
 ## Replacement within a compoud head
-T ((1 + a)*(1 + b))(x) ./ ( a => 1) == (2(1 + b))(x)
+T ((1 + a)*(1 + b))(x) ./ (a => 1) == (2(1 + b))(x)
 
 ClearAll(c,y)
 
@@ -224,7 +223,7 @@ ClearAll(r1,r2,zz,b,c)
 
 # For each part of the expression, each of the listed rules is tried in turn.
 zz = 10 * b^2 * (c+d)
-T ReplaceAll(zz, List(c => 3,d => 2) ) == 50*b^2
+T ReplaceAll(zz, List(c => 3,d => 2)) == 50*b^2
 
 ClearAll(r1,r2,zz,b,c)
 
@@ -259,19 +258,19 @@ T Count([1,2,3.0] , _Float) == 1
 ClearAll(b)
 
 # Matching literal expressions and various patterns.
-T ReplaceAll( [x,x^2,a,b],  x => 3 ) == [3,9,a,b]
-T ReplaceAll( [x,x^2,x^3,a,b],  x^2  => y) == [x,y,x^3,a,b]
-T ReplaceAll( [x,x^2,x^3,a,b],  x^n_  => f(n) ) == [x,f(2),f(3),a,b]
+T ReplaceAll([x,x^2,a,b],  x => 3) == [3,9,a,b]
+T ReplaceAll([x,x^2,x^3,a,b],  x^2  => y) == [x,y,x^3,a,b]
+T ReplaceAll([x,x^2,x^3,a,b],  x^n_  => f(n)) == [x,f(2),f(3),a,b]
 
 ClearAll(a,b,x,y,z)
 
 # Because we evaluate to a fixed point, the power is distributed across the List.
-T ReplaceAll( [x,x^2,y,z], x => [a,b]) == [[a,b],[a ^ 2,b ^ 2],y,z]
+T ReplaceAll([x,x^2,y,z], x => [a,b]) == [[a,b],[a ^ 2,b ^ 2],y,z]
 
 # Replace the Head of a builtin (protected) symbol
 T ReplaceAll(Sin(x), Sin => Cos) == Cos(x)
 
-T ReplaceAll( 1 + x^2 + x^4 , x^p_ => f(p)) == 1 + f(2) + f(4)
+T ReplaceAll(1 + x^2 + x^4 , x^p_ => f(p)) == 1 + f(2) + f(4)
 
 # This :> is  RuleDelayed, but it makes no difference in this context.
 # The first rule is applied first.
@@ -283,22 +282,22 @@ T ReplaceAll(x , [x :> 1, x :> 3, x :> 7]) ==  1
 
 T ReplaceAll(x => a)([x, x^2, y, z]) == [a, a^2, y, z]
 
-T ReplaceAll( [a,b,c] , List :> f)  == f(a,b,c)
+T ReplaceAll([a,b,c] , List :> f)  == f(a,b,c)
 
 # Hold prevents evaluation of the inner expressions. But, Hold does not prevent pattern
 # matching.
 
-T ReplaceAll( Hold(x + x) , x => 7) == Hold(7 + 7)
+T ReplaceAll(Hold(x + x) , x => 7) == Hold(7 + 7)
 
 # The RHS of the Rule x => 2^2 is evaluated before being applied
-T ReplaceAll( Hold(x + x) , x => 2^2 ) == Hold(4 + 4)
+T ReplaceAll(Hold(x + x) , x => 2^2) == Hold(4 + 4)
 
 # The RHS of the RuleDelayed is not evaluated
-T ReplaceAll( Hold(x + x) , (x :> 2^2) ) == Hold(2 ^ 2 + 2 ^ 2)
+T ReplaceAll(Hold(x + x) , (x :> 2^2)) == Hold(2 ^ 2 + 2 ^ 2)
 
 # These are the same above, but we use the FullForm for Rule and RuleDelayed
-T ReplaceAll( Hold(x + x) , Rule(x, 2^2) ) == Hold(4 + 4)
-T ReplaceAll( Hold(x + x) , RuleDelayed(x , 2^2) ) == Hold(2 ^ 2 + 2 ^ 2)
+T ReplaceAll(Hold(x + x) , Rule(x, 2^2)) == Hold(4 + 4)
+T ReplaceAll(Hold(x + x) , RuleDelayed(x , 2^2)) == Hold(2 ^ 2 + 2 ^ 2)
 
 ClearAll(x)
 ## Map over a list of lists of rules
@@ -340,25 +339,25 @@ Replace([a, b, c, d, e, f], [x__, y__] => [[x], [y]]) == [[a,b,c,d,e,f],[y]]
 
 # Try replacement at each level. Once, we descend to a level, replacement is attempted on all elements at
 # that level.
-T ReplaceAll( x + y , List(x => a, y => b)) == a + b
+T ReplaceAll(x + y , List(x => a, y => b)) == a + b
 
 # Rule evaluates the RHS when it is created.
-result = ReplaceAll( [x,x,x,x,x],  x  => RandomReal() )
+result = ReplaceAll([x,x,x,x,x],  x  => RandomReal())
 T result[1] == result[2] == result[3]
 
 # RuleDelayed does not evaluate the RHS before the rule is applied. So,
 # all elements are replaced with RandomReal(). After evaluation to a fixed
 # point, each element is a different number
-result = ReplaceAll( [x,x,x,x,x],  x  :> RandomReal() )
+result = ReplaceAll([x,x,x,x,x],  x  :> RandomReal())
 T result[1] != result[2] != result[3]
 
 b = 1
 # All elements are replaced with Increment(b). In the next evaluation cycle, each is evaluated once.
-T ReplaceAll( [x,x,x,x,x],  x :> Increment(b)) == [1,2,3,4,5]
+T ReplaceAll([x,x,x,x,x],  x :> Increment(b)) == [1,2,3,4,5]
 
 b = 1
 # Increment(b) is evaluated once before matching, returning 1. 1 then evaluates to itself
-T ReplaceAll( [x,x,x,x,x],  x => Increment(b)) == [1,1,1,1,1]
+T ReplaceAll([x,x,x,x,x],  x => Increment(b)) == [1,1,1,1,1]
 
 # The first matching rule is is used.
 T ReplaceAll([x^2, x^3, x^4] , List(x^3 => u, x^n_ => p(n))) == [p(2),u,p(4)]
@@ -382,11 +381,11 @@ r1 = a => b
 r2 = a :> b
 Clear(b)
 
-T Replace( a, r1) == 3
-T Replace( a, r2) == b
+T Replace(a, r1) == 3
+T Replace(a, r2) == b
  b = 4
-T Replace( a, r1) == 3
-T Replace( a, r2) == 4
+T Replace(a, r1) == 3
+T Replace(a, r2) == 4
 ClearAll(a,b)
 
 # Match anything except expressions that match the argument to Except().
@@ -400,8 +399,8 @@ T ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
 T ReplaceRepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
 
 # ReplaceRepeated replaces until no rule matches.
-T ReplaceAll( Expand( (a+b)^3 ) , x_Integer => 1) == a + 2a*b + b
-T ReplaceRepeated( Expand( (a+b)^3 ) , x_Integer => 1)  == a +  a * b + b
+T ReplaceAll(Expand((a+b)^3) , x_Integer => 1) == a + 2a*b + b
+T ReplaceRepeated(Expand((a+b)^3) , x_Integer => 1)  == a +  a * b + b
 
 # This applies two rules for Log repeatedly to an expression.
 rules = [Log(x_ * y_) => Log(x) + Log(y), Log(x_^k_) => k * Log(x)]
@@ -411,7 +410,7 @@ T  ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e
 # We usually use named patterns only with a single blank, e.g. b_. But, we may associate a
 # name with any pattern expression.
 # Pattern name for complex (compound) pattern
-T ReplaceAll( b^b, a::(_^_) => g(a)) == g(b^b)
+T ReplaceAll(b^b, a::(_^_) => g(a)) == g(b^b)
 
 # Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
 # Update: we have disabled automatic currying because it interferes with patterns with heads.
@@ -423,7 +422,7 @@ ex = Hold(f(a)(b)(c)(d))
 T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
 
 # ReplaceAll descends into subexpressions until it finds a match.
-T ReplaceAll( [[[x]]], x => 3) == [[[3]]]
+T ReplaceAll([[[x]]], x => 3) == [[[3]]]
 
 ClearAll(x,ex)
 
@@ -437,7 +436,7 @@ ClearAll(countprimes)
 #### Cases
 
 # Use a Julia function to list the perfect squares less than 100.
-T  Cases(Range(100), _`J( (x) -> typeof(mpow(x,1//2)) <: Integer )` ) == [1,4,9,16,25,36,49,64,81,100]
+T  Cases(Range(100), _`J((x) -> typeof(mpow(x,1//2)) <: Integer)`) == [1,4,9,16,25,36,49,64,81,100]
 
 T Cases([1,2.0,3,"dog"], _String) == ["dog"]
 T DeleteCases([1,2.0,3,"dog"], _String) == [1,2.0,3]
@@ -459,7 +458,7 @@ T Cases([1, 1, f(a), 2, 3, y, f(8), 9, f(10)], f(x_) => x) == [a,8,10]
 T Cases(_Integer)([1, 1, f(a), 2, 3, y, f(8), 9, f(10)]) == [1,1,2,3,9]
 
 # Catch bug during implementation of BlankSequence
-T MatchQ( [2], [_,_]) == False
+T MatchQ([2], [_,_]) == False
 
 # Two unnamed blanks can match different expressions
 T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) == [[1,2],[5,4],[3,3],[a,a]]
@@ -468,7 +467,7 @@ T Cases([[1, 2], [2], [3, 4, 1], [5, 4], [3, 3], [a,a]], [_, _]) == [[1,2],[5,4]
 T Cases(f(1,2,3,a), _Symbol) == [a]
 
 # Level specifications
-expr = f(1,2,3,a,[b],d,[g,f, h(a, h(b)) , h(h(c))] )
+expr = f(1,2,3,a,[b],d,[g,f, h(a, h(b)) , h(h(c))])
 T Cases(expr , _Symbol) == [a,d]
 T Cases(expr , _Symbol, 1) == [a,d]
 T Cases(expr , _Symbol, [1]) == [a,d]
@@ -503,11 +502,11 @@ ClearAll(a,b,c,d,g,f,h,y,z,expr)
 
 #### Except
 
-T MatchQ( "cat",  Except("dog"))
-T MatchQ( "cat",  Except("cat")) == False
-T MatchQ( "cat",  Except(3,"cat"))
-T MatchQ( "cat",  Except(3,"dog")) == False
-T MatchQ( "cat",  Except("cat","dog")) == False
+T MatchQ("cat",  Except("dog"))
+T MatchQ("cat",  Except("cat")) == False
+T MatchQ("cat",  Except(3,"cat"))
+T MatchQ("cat",  Except(3,"dog")) == False
+T MatchQ("cat",  Except("cat","dog")) == False
 
 T Cases([a, b, 0, 1, 2, x, y], Except(_Integer)) == [a,b,x,y]
 T Cases([1, 0, 2, 0, 3], Except(0)) == [1,2,3]
@@ -581,14 +580,14 @@ ClearAll(x,y,a,b,g,f)
 
 #### Condition
 
-T  MatchQ( -2 , Condition( x_ , x < 0))
-T  MatchQ( 1 , Condition( x_ , x < 0)) == False
-T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition( x_ , x < 0) => w ) == [6,w,3,2,w,w]
+T  MatchQ(-2 , Condition(x_ , x < 0))
+T  MatchQ(1 , Condition(x_ , x < 0)) == False
+T  ReplaceAll([6, -7, 3, 2,-1,-2], Condition(x_ , x < 0) => w) == [6,w,3,2,w,w]
 
 # Note this condition is on the RHS.
-T  ReplaceAll([1,2,3, "cat"], x_Integer => Condition( y, x > 2)) == [1,2,y,"cat"]
+T  ReplaceAll([1,2,3, "cat"], x_Integer => Condition(y, x > 2)) == [1,2,y,"cat"]
 
-T  Cases( [[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
+T  Cases([[a, b], [1, 2, 3], [[d, 6], [d, 10]]], Condition([x_, y_], ! ListQ(x) && ! ListQ(y))) == [[a,b]]
 
 # Condition on definition
 f(x_) :=  Condition(x^2, x > 3)
@@ -611,8 +610,8 @@ T ! MatchQ([a,b,a], [a...])
 T MatchQ([a,a,b], [a...,b])
 T MatchQ([a,a,b,c,c,c], [a..., b, c...])
 
-T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ f(_)... ] => x ) == [[],x,[f(a),f(a,b)],x]
-T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(a...) => x ) == [x,f(a,b),x]
+T ReplaceAll([ [], [f(a),f(b)], [f(a),f(a,b)], [f(a),f(c+d) ]] , [ f(_)... ] => x) == [[],x,[f(a),f(a,b)],x]
+T ReplaceAll([f(a, a), f(a, b), f(a, a, a)], f(a...) => x) == [x,f(a,b),x]
 T Cases([f(a), f(a, b, a), f(a, a, a)], f(a...)) == [f(a),f(a,a,a)]
 T Cases([f(a), f(a, a, b), f(a, b, a), f(a, b, b)], f(a...,b...)) == [f(a,a,b),f(a,b,b)]
 T Cases([f(a), f(a, b, a), f(a, c, a)], f((a | b)...)) == [f(a),f(a,b,a)]
@@ -648,7 +647,7 @@ T ! MatchQ([1,2,3], [Repeated(_Integer,[4,10])])
 T ! MatchQ([1,2,3], [Repeated(_Integer,[1,2])])
 T MatchQ([1,2,3], [Repeated(_Integer,[0,4])])
 T MatchQ([], [Repeated(_Integer,[0,4])])
-T MatchQ([a,b,c,3], [Except(_Integer)..., _Integer] )
+T MatchQ([a,b,c,3], [Except(_Integer)..., _Integer])
 
 # Between 1 and 0, so this fails
 T ! MatchQ([], [Repeated(_Integer,0)])
@@ -705,7 +704,7 @@ T ! freeint([a,f(f(f(3)))], 4)
 
 # Factor out constant
 # No AC matching, although this will work in a few simple cases.
-# f(c_ * x_, x_) := Condition( c * f(x, x) , FreeQ(c, x))
+# f(c_ * x_, x_) := Condition(c * f(x, x) , FreeQ(c, x))
 
 # FIXME: Fails. we are not matching heads.
 # Table(FreeQ(Integrate(x^n, x), Log), [n, -5, 5])

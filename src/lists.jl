@@ -825,7 +825,7 @@ occurs.
         val = get!(d,el,0)
         d[el] = val + 1
     end
-    d
+    return d
 end
 
 ### Select

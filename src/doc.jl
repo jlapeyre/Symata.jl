@@ -3,14 +3,14 @@
 # Documentation is entered in files like this:
 # @sjdoc SomeHead "SomeHead does this."
 
-# @sjseealso( Sym, Sym1, Sym2, etc.)
+# @sjseealso(Sym, Sym1, Sym2, etc.)
 # Sets Seealso's for Sym to Sym1, ...
 
 # @sjseealso_group(Sym1,Sym2,...) set's each symbols see alsos to
 # all of the others.
 
 # Examples are entered like this. All these pairs together constitute and example
-# @sjexamp( SomeHead,
+# @sjexamp(SomeHead,
 #    "first input", "first output",
 #    "second ....
 # Examples are printed along with the document.
@@ -39,8 +39,7 @@ const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 # end
 
 # Called from the macro @sym which parses cli input to see if we have a help query
-# or an expression.
-# no io stream specified when printing here
+# or an expression. There is no io stream specified when printing here
 function check_doc_query(ex)
     if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == MAGIC_HELP_QUERY_SYMBOL
         if length(ex.args) == 1
@@ -63,7 +62,6 @@ function print_doc(qs...)
     for q in qs
         check_autoload(q)        
         if haskey(SJDOCS,q)
-#            display(Markdown.parse(SJDOCS[q]))
             display(SJDOCS[q])
             println()
             format_see_alsos(q)
@@ -77,7 +75,7 @@ function print_doc(qs...)
         end
         if getkerneloptions(:show_sympy_docs) print_sympy_doc(q) end
     end
-    Null
+    return Null
 end
 
 # FIXME. We need to have all doc printing functions return strings.
@@ -111,14 +109,14 @@ function print_sympy_doc(sjsymin::SymString)
             Null
         end
     end
-    Null
+    return Null
 end
 
 function print_matching_topics(r::Regex)
     i = 0
     lastt = :none
-    for (t,doc) in SJDOCS
-        if ismatch(r,string(doc))
+    for (t, doc) in SJDOCS
+        if ismatch(r, string(doc))
             i += 1
             println(t)
             lastt = t
@@ -127,6 +125,7 @@ function print_matching_topics(r::Regex)
     if i == 1
         println(SJDOCS[r])
     end
+    return nothing
 end
 
 function print_all_docs()
@@ -150,23 +149,23 @@ function print_all_docs()
         end
         println()
     end
-    Null
+    return Null
 end
 
 function list_documented_symbols()
     syms = sort!(collect(keys(SJDOCS)))
     len = length(syms)
-    args = newargs()
-    for i in 1:len
+    nargs = newargs()
+    @inbounds for i in 1:len
         if syms[i] == :ans continue end
-        push!(args,syms[i])
+        push!(nargs,syms[i])
     end
-    mxpr(:List,args)
+    return MListA(nargs)
 end
 
 #### See Alsos
 
-# set seealsos. clobbers existing
+# Set seealsos. clobbers existing.
 macro sjseealso(source_sym, targ_syms...)
     SJSEEALSO[source_sym] = Any[targ_syms...]
 end
@@ -200,16 +199,17 @@ function format_see_alsos(sym)
     len = length(sas)
     if len == 1
         println(string(sas[1]),".")
-        return
+        return nothing
     elseif len == 2
         println(string(sas[1]), " and ", string(sas[2]),".")
-        return
+        return nothing
     else
         for i in 1:len-1
             print(string(sas[i]),", ")
         end
         println("and ", string(sas[end]),".")
     end
+    return nothing
 end
 
 #### Examples
@@ -248,6 +248,7 @@ function format_sjexamples(sym)
             format_sjexample(strs)
         end
     end
+    return nothing
 end
 
 
@@ -280,6 +281,7 @@ function format_sjexample(lines)
             end
         end
     end
+    return nothing
 end
 
 # evaluate example code, and push corresponding input strings onto
@@ -311,6 +313,7 @@ function do_example(lines)
             end
         end
     end
+    return nothing
 end
 
 ## evaluate the nth example for symbol sym
@@ -319,13 +322,14 @@ function do_example_n(sym,n)
         exs = SJEXAMPLES[sym]
         if length(exs) < n
             println("There is no example $n for ", string(sym), ".")
-            return
+            return nothing
         else
             do_example(exs[n])
         end
     else
         println("There are no examples for ", string(sym), ".")
     end
+    return nothing
 end
 
 ## evaluate all examples for symbol sym
@@ -339,6 +343,7 @@ function do_examples(sym)
             println()
         end
     end
+    return nothing
 end
 
 ## Information on hierarchy of fields:
@@ -376,6 +381,7 @@ function sj_add_history(hist::REPL.REPLHistoryProvider, s::AbstractString)
     seekend(hist.history_file)
     print(hist.history_file, entry)
     flush(hist.history_file)
+    return nothing
 end
 
 ### Help
@@ -409,13 +415,14 @@ function do_Help(mx::Mxpr{:Help}, r::Mxpr{:Rule})
     if r[1] == :All && r[2] == true
         print_all_docs()
     end
-    Null
+    return Null
 end
 
 do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
 
 function do_Help(mx::Mxpr{:Help},r::T) where T<:Regex
     print_matching_topics(r)
+    return nothing
 end
 
 ### Example

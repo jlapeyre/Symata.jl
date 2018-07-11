@@ -4,13 +4,11 @@
 
 ## FIXME: remove most of all of these imported symbols. Use fully qualified symbols
 import Symata
-import Symata: @sym, @ex, @exsimple, setkerneloptions, SymataPlainTest, print_test_results
+import Symata: @sym, @ex, @exsimple, SymataPlainTest, print_test_results
 
-# Standard test type
+## Standard test type
 ## TODO: set this in test.jl so printing test results is an option
 symatatest = SymataPlainTest()
-
-#@exsimple testUserSyms = True
 
 # "context_test.sj",
 function runalltests()
@@ -38,25 +36,22 @@ function runalltests()
         "string_test.sj",
         "julia_interface_test.sj",
         "latex_test.sj",
-        "measurement_test.sj", # No idea why emacs indents like this.
+        "measurement_test.sj",
         "io_test.sj",
-        #        "comparison_test.sj"
+        # "comparison_test.sj"
         "newcomparison_test.sj",
         "predicate_test.sj",
         "trig_test.sj",
         ## FIXME! reimplement the following after change in comparison code
-        #              "context_test.sj",
+        # "context_test.sj",
         "mxpr_test.sj",
         "algebraic_transformation_test.sj",
         "attribute_test.sj",
         "module_test.sj",
         "orderless_test.sj",
         "arithmetic_test.sj",
-        "somemath_test.sj",
         "expression_test.sj",
-        #        "arithmetic_test.sj", # FIXME: moved to somemath_test.sj. test and remove
-        "spec_fun_test.sj",
-        "simple_expression_test.sj"
+        "spec_fun_test.sj"
     )
         Symata.runtest(symatatest, f)
         println(stderr, "Done testing $f")
@@ -66,7 +61,7 @@ function runalltests()
 end
 
 # Test once with Int as default integer type
-save_biginput_state = setkerneloptions(:bigint_input, false)
+save_biginput_state = Symata.setkerneloptions(:bigint_input, false)
 
 try
     runalltests()
@@ -74,7 +69,7 @@ catch e
     warn("Failed running Symata tests")
     rethrow(e)
 finally
-    setkerneloptions(:bigint_input, save_biginput_state)
+    Symata.setkerneloptions(:bigint_input, save_biginput_state)
 end
 
 # Test once with BigInt as default integer type
