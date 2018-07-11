@@ -10,7 +10,7 @@
 # @doap function Coefficient(args...; kws...)
 #     meth = get(kws,:Method)
 #     if meth == :Sympy
-        
+
 
 
 @doap function Coefficient(expr, x; kws...)

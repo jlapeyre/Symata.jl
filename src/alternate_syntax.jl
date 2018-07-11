@@ -6,13 +6,17 @@ function _init_symatasyntax()
     if ! symatasyntax_inited
         try
             @eval using SymataSyntax
+            global symatasyntax_inited = true
             return true
-        catch
-            error("Unable to load 'SymataSyntax'. If the module is not installed, read https://github.com/jlapeyre/SymataSyntax.jl`")
-            return false
+        catch e
+            @warn("Unable to load 'SymataSyntax'. If the module is not installed, " *
+                  "read https://github.com/jlapeyre/SymataSyntax.jl`.")
+            rethrow(e)
         end
+    else
+        nothing
     end
-    true
+    return true
 end
 
 ### MmaSyntax
@@ -42,7 +46,7 @@ of Mathematica and Wolfram language and all other Wolfram company products.
     if isymata_inited()
         isymata_mma_mode(true)
     else
-        SymataSyntax.mmasyntax_REPL()
+        Base.invokelatest(SymataSyntax.mmasyntax_REPL)
     end
 end
 

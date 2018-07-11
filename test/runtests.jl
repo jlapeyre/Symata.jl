@@ -1,12 +1,13 @@
 using Symata
-using Base.Test
+using Test
 
-import Base.Test: @test
+## FIXME: needed ?
+import Test: @test
 
 @Symata.sym TimeOff()   # don't print hundreds of diagnostic lines
 
 # For debugging
-#@Symata.ex VersionInfo()
+# @Symata.ex VersionInfo()
 
 function runtests()
     eval(parse("@sym Tests()"))

@@ -208,18 +208,6 @@ function parse_colon!(a, newa)
             ptargs = a[2].args
             length(ptargs) != 2 && error("extomx: too many args to PatternTest")
             pattern = parse_pattern(ptargs[2])
-#             pattern = ptargs[2]
-#             if isa(pattern,Expr)  # assume it is a Function
-#                 # @show pattern.args[1]
-#                 # @show pattern.args[2]
-#                 if pattern.head == :call && length(pattern.args) > 1 && pattern.args[1] == :J
-# #                    @show pattern.args[2]
-#                     #pattern = Core.eval(Symata, pattern.args[2])
-#                     pattern = eval(pattern.args[2])
-#                 else
-#                     pattern = eval(eval(pattern)) # first eval gets Symbol from Expr, Second gives Function.
-#                 end
-#             end
             isa(pattern, Symbol) || isa(pattern, Function) || typeof(pattern) <: Function ||
                 error("extomx: argument to PatternTest must be a Symbol or a Function")
             push!(newa, extomx(a[1]), pattern)

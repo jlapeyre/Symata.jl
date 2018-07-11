@@ -96,7 +96,8 @@ T MatchQ( 1.0, _Integer) == false
 T MatchQ( "zebra", _AbstractString) == true
 T MatchQ( 1.0, _AbstractString) == false
 
-p = _`J( x ->  -1 < x < 1 )`
+# backticks create a PatternTest
+p = _`J(x -> -1 < x < 1)`
 
 T MatchQ(0,p)
 T MatchQ(.5,p)

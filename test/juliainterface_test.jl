@@ -1,9 +1,8 @@
 using Symata
-using Base.Test
+using Test
 
 @sym ClearAll(a,r,re,r1,m)
 
-##
 r = mplus(:a, :a)
 
 @test length(r) == 2
