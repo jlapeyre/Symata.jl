@@ -36,9 +36,9 @@ function symparsestring(s)
     i = 1
     local sjretval
     local expr
-    while !done(s,i)
+    while ! (i > ncodeunits(s))
         symata_syntax_deprecation_warnings(false) do
-            expr, i = parse(s,i)
+            expr, i = Meta.parse(s,i)
         end
         sjretval =
             try
@@ -197,32 +197,20 @@ function parse_pattern(pattern_expr)
     return pattern
 end
 
-
-
+# FIXME: refactor after testing
 function parse_colon!(a, newa)
     local mxhead
     if length(a) == 2
-        if isa(a[1], Symbol) && isa(a[2], Expr) &&
-            (a[2].args)[1] == :(?) # FIXME deprecated. Cannot be used as an identifier. Will fail parsing soon.
-            mxhead = :PatternTest
-            ptargs = a[2].args
-            length(ptargs) != 2 && error("extomx: too many args to PatternTest")
-            pattern = parse_pattern(ptargs[2])
-            isa(pattern, Symbol) || isa(pattern, Function) || typeof(pattern) <: Function ||
-                error("extomx: argument to PatternTest must be a Symbol or a Function")
-            push!(newa, extomx(a[1]), pattern)
-        else
-            lhs = extomx(a[1])
-            if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
-                # Maybe : represents too many things.
-                return mxpr(:Optional,lhs,extomx(a[2]))
-            end
-            mxhead = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
-            extomxarr!(a,newa) # We may have to change the syntax
+        lhs = extomx(a[1])
+        if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
+            # Maybe : represents too many things.
+            return mxpr(:Optional, lhs, extomx(a[2]))
         end
+        mxhead = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
+        extomxarr!(a, newa) # We may have to change the syntax
     else
         mxhead = :Span
-        extomxarr!(a,newa)
+        extomxarr!(a, newa)
     end
     return mxpr(mxhead, newa)
 end
@@ -472,32 +460,14 @@ function extomx(ex::Expr)
     elseif ohead == :(:) # Eg the colon here: g(x_Integer:?(EvenQ)) := x
         error("This should never happen. Put assert or something here")
         if length(a) == 2
-            if isa(a[1], Symbol) && isa(a[2], Expr) &&
-                (a[2].args)[1] == :(?) # FIXME deprecated. Cannot be used as an identifier. Will fail parsing soon.
-                ptargs = a[2].args
-                length(ptargs) != 2 && error("extomx: too many args to PatternTest")
-                pt = ptargs[2]
-                if isa(pt,Expr)  # assume it is a Function
-                    if pt.head == :call && length(pt.args) > 1 && pt.args[1] == :J
-                        pt = eval(eval(pt.args[2]))
-                    else
-                        pt = eval(eval(pt)) # first eval gets Symbol from Expr, Second gives Function.
-                    end
-                end
-                isa(pt,Symbol) || isa(pt,Function) || typeof(pt) <: Function ||
-                        error("extomx: argument to PatternTest must be a Symbol or a Function")
-                mxhead = :PatternTest
-                push!(newa,extomx(a[1]),pt)
-            else
-                lhs = extomx(a[1])
-                if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
-                                                                   # Maybe : represents too many things.
-                    return mxpr(:Optional,lhs,extomx(a[2]))
-                end
-                mxhead = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
-                extomxarr!(a,newa) # We may have to change the syntax
+            lhs = extomx(a[1])
+            if typeof(lhs) <: Union{BlankXXX, Mxpr{:Pattern}}  # This is probably not good enough!
+                # Maybe : represents too many things.
+                return mxpr(:Optional,lhs,extomx(a[2]))
             end
-        else
+            mxhead = :Span      # Span syntax like:  a(::10), a(1::2), etc. clash with use of colon above
+            extomxarr!(a,newa) # We may have to change the syntax
+        else   # FIXME: refactor after testing
             mxhead = :Span
             extomxarr!(a,newa)
         end

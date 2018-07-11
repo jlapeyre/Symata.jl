@@ -9,9 +9,11 @@ import Test: @test
 # For debugging
 # @Symata.ex VersionInfo()
 
+# Run Symata language tests
 function runtests()
     eval(parse("@sym Tests()"))
 end
 
+# Run tests for Julia-side interface
 include("juliainterface_test.jl")
 @test (runtests() ; true)

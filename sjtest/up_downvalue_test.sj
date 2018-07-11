@@ -46,9 +46,9 @@ T h(a,b) == 2
       ClearAll(stringgt4,g,gt5,h)
       stringgt4(x_) := StringLength(x) > 4
       gt5(x_) := x > 5
-      g(x_Integer:?(EvenQ)) := x
-      g(x_AbstractString:?(stringgt4)) = "Greater than 4"
-      g(x_AbstractFloat:?(gt5)) = 1
+      g(x_Integer`EvenQ`) := x
+      g(x_AbstractString:`stringgt4`) = "Greater than 4"
+      g(x_AbstractFloat`gt5`) = 1
 T  Head(g(3)) == g
 T  g(4) == 4
 T  Head(g(5)) == g
@@ -56,7 +56,7 @@ T  Head(g("cat")) == g
 T  g("zebra") == "Greater than 4"
 T  Head(g(4.0)) == g
 T  g(6.0) == 1
-     h(x_AbstractFloat:?(J( y -> y < 3) )) = 1
+     h(x_AbstractFloat`J( y -> y < 3)`) = 1
 T  Head(h(2)) == h
 T  Head(h(4)) == h
 T  Head(h(2)) == h

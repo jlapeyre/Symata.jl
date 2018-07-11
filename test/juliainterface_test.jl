@@ -1,14 +1,14 @@
 using Symata
 using Test
 
-@sym ClearAll(a,r,re,r1,m)
+@sym ClearAll(a, r, re, r1, m)
 
 r = mplus(:a, :a)
 
 @test length(r) == 2
 
 ## the addition is unevaluated
-@test (r[1],r[2]) == (:a,:a)
+@test (r[1], r[2]) == (:a,:a)
 
 @test mhead(r) == :Plus
 
@@ -16,7 +16,7 @@ r = mplus(:a, :a)
 re = symeval(r)
 
 @test mhead(re) == :Times
-@test (re[1],re[2]) == (2,:a)
+@test (re[1], re[2]) == (2,:a)
 
 @test mplus(:a, :a) == Plus(:a,:a)
 
@@ -26,7 +26,7 @@ re = symeval(r)
 setsymata(:a, 3)
 @test getsymata(:a) == 3
 
-m = unpacktoList(linspace(0,1,10))
+m = unpacktoList(range(0, stop=1, length=10))
 @test mhead(m) == :List
 @test Length(m) == 10
 
@@ -37,4 +37,3 @@ symparseeval("""
 
 @test getsymata(:zz) == 3
 @test getsymata(:yy) == @sym q + r
-

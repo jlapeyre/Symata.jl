@@ -4,7 +4,7 @@ os:
   - osx
 julia:
   - nightly
-#  - 0.6
+  - 0.7
 git:
     depth: 99999
 env:

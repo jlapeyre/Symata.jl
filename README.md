@@ -14,15 +14,21 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 
 ### About versions
 
+The master branch supports only v0.7 and greater.
+
+For Julia v0.6.3, install the version tagged `v0.3.0`. Compared to the `jv0.5only`
+branch, a few features are disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
+
 For Julia v0.5, install branch `jv0.5only`. No development is done on this branch,
 only fixes for changing dependencies.
 
-For Julia v0.6.2, install the lastest tagged version. Compared to the `jv0.5only`
-branch, a few features are disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
+Most of Symata's functionality in Julia v0.5 is preserved in v0.6.
+Even less functionality was lost in upgrading from v0.6 to v0.7-beta.
+Development will focus on regaining the functionality that Symata had on Julia v0.5.
 
-Symata is sufficiently complex to make keeping up with changes to Julia
-an enormous task, requiring much more than simply changing syntax.
-I won't update Symata (much) until after the Julia API stabilizes with 1.0.
+NOTE: The syntax for `PatternTest` has been changed, but is not reflected in
+many examples, such as the Jupyter notebooks. Do `symata > ? PatternTest`,
+and see "./sjtext/pattern_test.sj" for information on the new syntax.
 
 ### Symata is
 
@@ -154,7 +160,6 @@ You can do tab completion to see a list of functions and symbols.
 ### Jupyter / IJulia
 
 Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
-
 
 ```julia
 In [1]:  using Symata

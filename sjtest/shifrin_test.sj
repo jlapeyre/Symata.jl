@@ -116,9 +116,9 @@ T ReplaceAll( [f(x), g(x), f(x,y), Sin(x+y), f(), f(x,y,z) ] , x_f :> a * x) == 
 testexpr = Expand((1+x)^10)
 T testexpr ./ (Plus => List) ==  [1,10x,45(x^2),120(x^3),210(x^4),252(x^5),210(x^6),120(x^7),45(x^8),10(x^9),x^10]
 
-T testexpr ./ (Plus => List) ./ ( x^(_:?(EvenQ)) => a) == [1,10x,45a,120(x^3),210a,252(x^5),210a,120(x^7),45a,10(x^9),a]
+T testexpr ./ (Plus => List) ./ ( x^(_`EvenQ`) => a) == [1,10x,45a,120(x^3),210a,252(x^5),210a,120(x^7),45a,10(x^9),a]
 
-T testexpr ./ (Plus => List) ./ ( x^(y_:?(EvenQ)) :> f(x^y)) == [1,10x,45f(x^2),120(x^3),210f(x^4),252(x^5),210f(x^6),120(x^7),45f(x^8),10(x^9),f(x^10)]
+T testexpr ./ (Plus => List) ./ ( x^(y_`EvenQ`) :> f(x^y)) == [1,10x,45f(x^2),120(x^3),210f(x^4),252(x^5),210f(x^6),120(x^7),45f(x^8),10(x^9),f(x^10)]
 
 # There is some notation on 110 that I don't yet know
 
