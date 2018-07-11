@@ -1,6 +1,11 @@
 # Some comaptibility things.
 
 # These are deprecated in v0.7 to small routines.
+# symrsearch(s::AbstractString, c::Union{Tuple{Vararg{Char}}, AbstractVector{Char}, Set{Char}},
+#            pos) = something(findprev((in)(c), s, pos), 0)
+# symrsearch(s::AbstractString, c::Char,
+#            pos) = something(findprev((in)(c), s, pos), 0)
+#                                              something(findprev((in)(c), s, pos), 0)
 symsearch(s::AbstractString, c::Char) = something(findfirst(isequal(c), s), 0)
 symsearchindex(s::AbstractString, t::AbstractString) = first(something(findfirst(t, s), 0:-1))
 symsearch(s::AbstractString, c::Char, i::Integer) = something(findnext(isequal(c), s, i), 0)

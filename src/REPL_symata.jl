@@ -63,12 +63,12 @@ end
 #                                     :juliasyntax => symata_parse_julia_syntax_repl_line
 #                                     )
 
-function Symata_parse_REPL_line(line)
-    line = sjpreprocess_interactive(line)
+function Symata_parse_REPL_line(linein)
+    line = sjpreprocess_interactive(linein)
 # FIXME: upgrade syntax_deprecation_warnings for v0.7
-    symata_syntax_deprecation_warnings(false) do
+#    symata_syntax_deprecation_warnings(false) do
         Base.parse_input_line("@Symata.sym " * line)
-    end
+#    end
 end
 
 function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
@@ -122,7 +122,7 @@ function symata_completions(string, pos)
     # First parse everything up to the current position
     partial = string[1:pos]
     inc_tag = symata_syntax_deprecation_warnings(false) do
-        Base.incomplete_tag(parse(partial, raise=false))
+        Base.incomplete_tag(Meta.parse(partial, raise=false))
     end
     if inc_tag in [:cmd, :string]
         m = match(r"[\t\n\r\"'`@\$><=;|&\{]| (?!\\)", reverse(partial))
@@ -157,8 +157,8 @@ function symata_completions(string, pos)
         return String[], 0:-1, false
     end
 
-    dotpos = rsearch(string, '.', pos)
-    startpos = nextind(string, rsearch(string, non_identifier_chars, pos))
+    dotpos = something(findprev(isequal('.'), string, pos), 0)
+    startpos = nextind(string, something(findprev(in(non_identifier_chars), string, pos), 0))
 
     ffunc = (mod,x)->true
     suggestions = String[]

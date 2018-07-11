@@ -42,7 +42,7 @@ const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 # or an expression.
 # no io stream specified when printing here
 function check_doc_query(ex)
-    if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == :?
+    if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == MAGIC_HELP_QUERY_SYMBOL
         if length(ex.args) == 1
             println("Documentation is available for these symbols.")
             print(wrapout(list_documented_symbols()))

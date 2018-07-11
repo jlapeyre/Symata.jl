@@ -83,9 +83,11 @@ const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
 # parse to an AST which is the input to symataevaluate. This is
 # mostly done to rewrite the string into legal Julia syntax.
 # Now, we only look for the help symbol "?"
+const MAGIC_HELP_QUERY_STRING = "HELPQUERY!!"
+const MAGIC_HELP_QUERY_SYMBOL = Symbol(MAGIC_HELP_QUERY_STRING)
 function sjpreprocess_interactive(line::AbstractString)
     if length(line) > 1 && first(line) == '?'  # User wants documentation
-        line = "?," * SubString(line, 2, lastindex(line))          # We add a comma so that the julia parse will accept it.
+        line =  MAGIC_HELP_QUERY_STRING * ", " * SubString(line, 2, lastindex(line)) # We add a comma so that the julia parse will accept it.
     end
     sjpreprocess_string(line)
 end

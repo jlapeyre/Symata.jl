@@ -12,9 +12,6 @@ import Base: TTY
 
 import REPL.Terminals
 
-# import Base: possible_formatting_symbols, available_text_colors_docstring, available_text_colors,
-#        default_color_info, default_color_warn, repl_color, info_color, warn_color
-
 import Base: text_colors,  default_color_input,  default_color_answer,
        color_normal, input_color, answer_color, repl_cmd,
        display_error, eval_user_input, parse_input_line, incomplete_tag,
