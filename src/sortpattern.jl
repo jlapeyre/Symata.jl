@@ -1,10 +1,9 @@
 ## Order downvalues by specificity, or canonically.
-# Probably impossible, in general. We start with
-# getting some common cases correct.
-# But, we get many simple cases wrong.
-
-## associating Julia data structues with downvalues would be
-# more efficient.
+## Probably impossible, in general. We start with
+## getting some common cases correct.
+## But, we get many simple cases wrong.
+## Associating Julia data structures with downvalues would be
+## more efficient.
 
 # @sym ClearAll(g)
 # @sym g(x_^2) := x
@@ -12,8 +11,7 @@
 # @sym g(z^2) := x
 # dvs = @sym DownValues(g)
 
-#
-function has_pattern(mx::Mxpr{T}) where T
+function has_pattern(mx::Mxpr)
     for i in 1:length(mx)
         res = has_pattern(mx[i])
         res[1] == true && return res
@@ -25,7 +23,7 @@ function has_pattern(mx::Mxpr{T}) where T
 end
 
 function has_pattern(x)
-    (false,false)
+    return (false,false)
 end
 
 #  a == f(blah,blah) , b == f(foo,barblah), (or they can be at a deeper level)

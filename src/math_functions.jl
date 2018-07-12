@@ -1354,10 +1354,13 @@ end
 
 @mkapprule Power :nargs => 2
 
-do_Power(mx::Mxpr{:Power}, b::V, n::T) where {T<:Integer, V<:Symbolic} = n == 1 ? b : n == 0 ? one(n) : mx
+do_Power(mx::Mxpr{:Power}, b::Symbolic, n::Integer) = n == 1 ? b : n == 0 ? one(n) : mx
 
 @doap Power(b::SJSym, expt) = b == :E ? dopowerE(mx, expt) : mx
-@doap Power(b::SJSym, expt::Integer) = b == :E ? dopowerE(mx, expt) : mx
+
+@doap Power(b::SJSym, expt::Integer) = expt == 1 ? b : expt == 0 ? one(expt) :
+    b == :E ? dopowerE(mx, expt) : mx
+
 dopowerE(mx, expt::T) where {T<:AbstractFloat} = exp(expt)
 dopowerE(mx, expt::Complex{T}) where {T<:AbstractFloat} = exp(expt)
 

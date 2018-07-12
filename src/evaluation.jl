@@ -137,6 +137,11 @@ julia> @sym a
 ```
 """
 macro sym(ex)   # use this macro from the julia prompt
+    mx = symataevaluate(ex, EvaluateJuliaSyntaxSimple())
+    :(($(esc(mx))))
+end
+
+macro symfull(ex) # use this macro for Symata prompt.
     mx = symataevaluate(ex)
     :(($(esc(mx))))
 end

@@ -114,7 +114,7 @@ function symatamath()
         Base.:^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
         Base.:^(base::SJSym,expt) = mxpr(:Power,base,expt)
     end
-    nothing    
+    nothing
 end
 
 ## Arithmetic methods involving annotated Symata types. These will never conflict with Base Julia,
@@ -158,30 +158,8 @@ Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
 ^(args...) = Base.:^(args...)
 /(args...) = Base.:/(args...)
 
-
 # Already defined elsewhere (... where ?)
 # I = im
 # export I
 
 # TODO: make an infix assignment operator... hm or  macro
-
-## TODO: Is the following useful ? Comment it out or remove it, if not...
-## In general, we don't like an interface that is not being used.
-##
-# Do assigment in Symata and bind to julia symbol of the same name
-# This is kinda broken !
-# ERROR: UndefVarError: n not defined.
-# But, the variable is defined in Main afterall
-# We may not always want to define a variable in Main. But, it is hardcoded
-# Usage:
-# @aex x = 1
-# Assigns x to 1 in symata, and x to :x in main
-macro aex(e)
-    quote
-        @sym $(esc(e))
-    end
-    sym = e.args[1]
-    symstr = string(sym)
-    expr = :( $sym = Symbol($symstr) )
-    Main.eval(expr)   # if we use Main., we get an 'n undefined error', but n is successfully defined.
-end

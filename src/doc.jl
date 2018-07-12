@@ -38,7 +38,7 @@ const SJSEEALSO = Dict{Symbol,Array{Any,1}}()
 #     nothing
 # end
 
-# Called from the macro @sym which parses cli input to see if we have a help query
+# Called from symataevaluate, which parses cli input to see if we have a help query
 # or an expression. There is no io stream specified when printing here
 function check_doc_query(ex)
     if isa(ex,Expr) && ex.head == :tuple && ex.args[1] == MAGIC_HELP_QUERY_SYMBOL
@@ -305,7 +305,7 @@ function do_example(lines)
             end
             println("symata> ", ins)
             ex = parse(ins)
-            res = (eval(Expr(:macrocall,Symbol("@sym"), ex)))
+            res = (eval(Expr(:macrocall,Symbol("@symfull"), ex)))
             if res != nothing println(res) end
             sj_add_history(ins)
             if i < len

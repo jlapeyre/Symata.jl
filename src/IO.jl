@@ -348,7 +348,7 @@ returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
 """
 @doap function In(n::Integer)
     if isymata_mode()
-        doeval(eval(Expr(:macrocall, Symbol("@sym"), Meta.parse(Main.IJulia.In[n]))))
+        doeval(eval(Expr(:macrocall, Symbol("@symfull"), Meta.parse(Main.IJulia.In[n]))))
     else
         :Null
     end

@@ -293,6 +293,13 @@ function symname(s::SSJSym{T}) where T
     s.val[1]
 end
 
+"""
+    symname(s::SJSym)
+
+return the name of the Symata symbol `s`. In the
+current implementation, Symata symbols are Julia `Symbol`s.
+So `syname` is the identity.
+"""
 symname(s::SJSym) = s
 symname(s::Qsym) = s.name
 
@@ -350,24 +357,23 @@ binds `val` to `s` in Symata.
 setsymata(args...) = setsymval(args...)
 
 """
-    setsymval(s::SSJSym,val)
+    setsymval(s::SSJSym, val)
 
 Set (bind) the Symata symbol `s` to `val`.
 """
-function setsymval(s::SSJSym,val)
+function setsymval(s::SSJSym, val)
     s.val[1] = val
     s.age = increvalage()
 end
 
-
 """
-    setsymval(s::SJSymbol,val)
+    setsymval(s::SJSymbol, val)
 
 If `s` is `Symbol`, set the Symata symbol that the Julia symbol `s` is bound to to `val`.
 Note `s` can also be a `Qsym`.
 """
-function setsymval(s::SJSymbol,val)
-    setsymval(getssym(s),val)
+function setsymval(s::SJSymbol, val)
+    setsymval(getssym(s), val)
 end
 
 # function setsymval(qs::Qsym,val)
@@ -408,6 +414,12 @@ clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
 # No other file accesses it directly.
 #############################################################################
 
+"""
+    getsym(s)
+
+Is the identity. This mainly exists to cause confusion
+with `getssym`. Careful! this is not getssym.
+"""
 @inline getsym(s) = s  # careful, this is not getssym
 
 # Try storing values in a Dict instead of a field. Not much difference.
@@ -538,7 +550,9 @@ end
 ## SJSymbol access
 #######################################################
 
-## Retrieve or create new symbol
+"""
+
+"""
 function getssym(s::Symbol)
     if haskey(CurrentContext.symtab,s)
         return CurrentContext.symtab[s]
