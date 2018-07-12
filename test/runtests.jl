@@ -17,4 +17,4 @@ include("mxpr_test.jl")
 function runtests()
     eval(parse("@sym Tests()"))
 end
-#@test (runtests() ; true)
+@test (runtests() ; true)
