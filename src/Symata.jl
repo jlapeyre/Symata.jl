@@ -51,6 +51,7 @@ export isymata, insymata
 ## Set const debugging parametres at compile-time in debug.jl
 include("debug.jl")
 
+@inc("LambertW.jl")  # remove this when Pkg.jl is better developed.
 @inc("version.jl")
 @inc("util.jl")
 @inc("sjcompat.jl")

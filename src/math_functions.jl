@@ -1175,7 +1175,6 @@ end
     pytosj(sympy[:LambertW](sjtopy(z), sjtopy(k)))
 end
 
-
 ### DirichletEta
 
 ## Note: sympy does not automatically transform eta to a function of zeta.
