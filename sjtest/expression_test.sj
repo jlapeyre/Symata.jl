@@ -2,9 +2,9 @@ ClearAll(a,b)
 ClearTemporary()
 
 ClearAll(a,b)
-## FIXME: Following two succeed in v0.5. Fail in later versions of Julia
-# T  b^0 == 1
-# T  b^1 == b
+
+T  b^0 == 1
+T  b^1 == b
 
 T  b*1 == b
 T  1*b == b

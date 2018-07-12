@@ -48,8 +48,8 @@ T (I + 2)^(-3) == 2/125 - 11/125 * I
 # fixed 98e02317aee46e7eceaac47d98c4401ef23682f0
 T (-27/64)^(2/3) == 9/16*((-1)^(2/3))
 
-# FIXME: raises an error in Comparison
-# (9/16)*((-1)^(2/3)) == 3/16
+# fixed error raised in Comparison
+T (((9/16)*((-1)^(2/3)) == 3/16), True)
 
 T 27^(1/2) == 3(3^(1/2))
 
