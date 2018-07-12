@@ -5,7 +5,7 @@ using Compat
 import Compat.String
 import Compat.view
 import MacroTools
-import LambertW
+# import LambertW
 import SpecialFunctions
 import REPL
 import Markdown
