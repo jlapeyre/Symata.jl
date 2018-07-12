@@ -548,6 +548,7 @@ function meval_arguments(mx::Mxpr)
     end
     if  (! isSequenceHold(nhead))  &&  (! isHoldAllComplete(nhead))
         splice_sequences!(nargs)
+        len = length(nargs)
     end
     for i=1:len
         if (isa(nargs[i],Mxpr{:Unevaluated}) && length(nargs[i]) > 0) &&

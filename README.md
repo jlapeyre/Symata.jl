@@ -23,8 +23,8 @@ For Julia v0.5, install branch `jv0.5only`. No development is done on this branc
 only fixes for changing dependencies.
 
 Most of Symata's functionality in Julia v0.5 is preserved in v0.6.
-Even less functionality was lost in upgrading from v0.6 to v0.7-beta.
-Development will focus on regaining the functionality that Symata had on Julia v0.5.
+Almost all functionality lost has been regained in upgrading from v0.6 to v0.7-beta.
+Approximately 200 more tests pass on v0.7-beta than on v0.6.
 
 NOTE: The syntax for `PatternTest` has been changed, but is not reflected in
 many examples, such as the Jupyter notebooks. Do `symata > ? PatternTest`,
