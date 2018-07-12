@@ -54,8 +54,6 @@ function make_level_specification(expr,x)
     symerror("Level specification $x is not of the form n, {n}, or {m, n}.")
 end
 
-#########
-
 # Form [n]
 function _make_level_specification(expr,spec::Mxpr{:List}, n::Integer)
     if n < 0 n += depth(expr) end
@@ -115,9 +113,30 @@ function checkbreak(action)
     end
 end
 
-## breadth first traverse
-macro travcode()
-    return quote
+# macro travcode()
+#     code = quote
+#         elen = length_for_level(expr)
+#         if elen > 0
+#             action.parent = expr
+#             for i in 1:elen
+#                 action.parent = expr
+#                 action.levelind += 1
+#                 action.subind = i
+
+#                 traverse_levels!(action,spec,expr[i])
+#                 if  checkbreak(action)
+#                     return
+#                 end
+#                 action.levelind -= 1
+#             end
+#             #            action.parent = Null
+#         end
+#     end
+#     return code
+# end
+
+const traversecode =
+    quote
         elen = length_for_level(expr)
         if elen > 0
             action.parent = expr
@@ -132,42 +151,42 @@ macro travcode()
                 end
                 action.levelind -= 1
             end
-#            action.parent = Null
+            #            action.parent = Null
         end
     end
-end
 
-function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
+
+@eval function traverse_levels!(action::LevelAction, spec::LevelSpecAtDepth, expr)
     if action.levelind == spec.level
         action.doaction(action.data, expr)
         action.levelbreak && return
     elseif action.levelind < spec.level
-        @travcode
+        $traversecode
     end
 end
 
-function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
+@eval function traverse_levels!(action::LevelAction, spec::LevelSpecToDepth, expr)
     if action.levelind <= spec.level && action.levelind > 0
         action.doaction(action.data, expr)
         checkbreak(action) && return
     end
     if action.levelind < spec.level
-        @travcode
+        $traversecode
     end
 end
 
-function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
+@eval function traverse_levels!(action::LevelAction, spec::LevelSpecRange, expr)
     if action.levelind <= spec.stop && action.levelind >= spec.start
         action.doaction(action.data, expr)
         action.levelbreak && return
     end
     if action.levelind < spec.stop
-        @travcode
+        $traversecode
     end
 end
 
-function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
+@eval function traverse_levels!(action::LevelAction, spec::LevelSpecAll, expr)
     action.doaction(action.data, expr)
     action.levelbreak && return
-    @travcode
+    $traversecode
 end

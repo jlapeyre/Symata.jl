@@ -43,12 +43,12 @@ T h(a,b) == 2
 
 ## Restrictions on patterns. Match head and/or "pattern test"
 
-      ClearAll(stringgt4,g,gt5,h)
-      stringgt4(x_) := StringLength(x) > 4
-      gt5(x_) := x > 5
-      g(x_Integer`EvenQ`) := x
-      g(x_AbstractString:`stringgt4`) = "Greater than 4"
-      g(x_AbstractFloat`gt5`) = 1
+ClearAll(stringgt4, g, gt5, h)
+stringgt4(x_) := StringLength(x) > 4
+gt5(x_) := x > 5
+g(x_Integer`EvenQ`) := x
+g(x_AbstractString`stringgt4`) = "Greater than 4"
+g(x_AbstractFloat`gt5`) = 1
 T  Head(g(3)) == g
 T  g(4) == 4
 T  Head(g(5)) == g

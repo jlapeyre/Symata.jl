@@ -1,7 +1,7 @@
 ## To control debugging information, set these constants and recompile
 
 # debug level, larger means more verbose. -1 is off.
-const MXDEBUGLEVEL = 3
+const MXDEBUGLEVEL = -1
 
 # if true, print filenames as they are included.
 const VERBOSEINCLUDE = false

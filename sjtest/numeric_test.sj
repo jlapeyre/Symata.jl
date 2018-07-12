@@ -65,7 +65,7 @@ T approxeq(f(1), -1)
 
 ClearAll(x)
 
-T ToJuliaString( x^2 + Cos(x), NoSymata => False) == "mplus(mpow(x,2),Cos(x))"
+T ToJuliaString( x^2 + Cos(x), NoSymata => False) == "mplus(mpow(x, 2), Cos(x))"
 T ToJuliaString( x^2 + Cos(x), NoSymata => True) == "x ^ 2 + cos(x)"
 
 ClearAll(approxeq, f, f1, x, a, mygamma, ex)

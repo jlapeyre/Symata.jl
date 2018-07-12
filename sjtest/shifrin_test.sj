@@ -2,14 +2,12 @@
 # by Leonid Shifrin.
 
 # pg 26
-T Map(AtomQ,[x,Sin(x),1+2*I,2/3]) == [True, False, True, True]
-
-ClearAll(f,g,h,x,a,b)
+T Map(AtomQ, [x, Sin(x), 1 + 2 * I, 2 / 3]) == [True, False, True, True]
 
 # pg 27
+ClearAll(f,g,h,x,a,b)
 
 a = z * Sin(x+y)
-
 T Head(a) == Times
 b = f(g)(h)(x)
 T Head(b) == f(g)(h)
@@ -23,33 +21,26 @@ ClearAll(f,g,h,x,a,b)
 # Map(Head, [f,2,Pi,3.14,"abc",2/3,1+I]) == [Symbol,Int64,Symbol,Float64,String,Rational{Int64},Complex{Int64}]
 
 T [Plus(1,2,3,4), Times(1,2,3,4)] == [10,24]
-
 T ReplaceAll( [a,c,d,c], a => b ) == [b,c,d,c]
-
 f(x_) := x^2
-
 T [f(2), f("word"), f(Newton)] == [4,"word"^2, Newton^2]
-
 T DownValues(f) == [HoldPattern(f(x_)) :> (x^2)]
 
 ClearAll(f)
 
 f(x_Integer) := x^2
-
 T Map(Head, [f(2), f("word"), f(Pi), f(Newton)]) == [If(BigIntInput(), BigInt, Int64), f, f, f]
-
 Apply(ClearAll, UserSyms())
 
 # pg 66
 tl = Range(1,20,3)
-T clt =  (x -> Range(5 * x, 5 * x + 4)) % Range(5) ==  [[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[25,26,27,28,29]]
+T clt =  (x -> Range(5 * x, 5 * x + 4)) % Range(5) ==
+    [[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[25,26,27,28,29]]
 
 # pg 79
 
-## FIXME: I think this Shifrin's example is wrong.
-## It should be
-## movingAverage(x_List, m_Integer) := Map(listAverage, neighborLists(x,m))
-
+## FIXME: I think Shifrin's example is wrong.
+## It should be movingAverage(x_List, m_Integer) := Map(listAverage, neighborLists(x,m))
 listAverage(x_List) := (Apply(Plus,x) / Length(x))
 neighborLists(x_List, m_Integer) := Partition(x,Length(x) - 2*m, 1)
 movingAverage(x_List, m_Integer) := listAverage(neighborLists(x,m))
@@ -140,11 +131,13 @@ T Range(100) ./ (Condition( x_Integer, Not(PrimeQ(x))) :> Sequence() ) == [2,3,5
 testlist = [[1,14],[2,6],[10,20],[19,14],[6,3],[17,8],[11,13],[19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[16,7],[7,19],[17,11],[11,13],[20,12],[6,12]]
 exchangerule = Condition( [x_, y_ ] , EvenQ(x) && OddQ(y)) :>  [y,x]
 
-T testlist ./ exchangerule == [[1,14],[2,6],[10,20],[19,14],[3,6],[17,8],[11,13],[19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[7,16],[7,19],[17,11],[11,13],[20,12],[6,12]]
+T testlist ./ exchangerule == [[1,14],[2,6],[10,20],[19,14],[3,6],[17,8],[11,13],
+                               [19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[7,16],[7,19],[17,11],[11,13],[20,12],[6,12]]
 
 
 # pg 121
-T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x)) == [x,2^(1/2),Pi,(2^(-1/2))*(3^(1/2)),(2^(1/2))*(5^(-1/2)),2,Sin(y),2(2^(1/2)),Cos(z)]
+T [x, 2, Pi, 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ (x_Integer | x_Rational  => Sqrt(x)) ==
+    [x, 2^(1/2), Pi, (2^(-1/2))*(3^(1/2)), (2^(1/2))*(5^(-1/2)), 2, Sin(y), 2(2^(1/2)), Cos(z)]
 
 T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( Condition(x_, Isa(x,Integer) || Isa(x,Rational)) => Sqrt(x)) == [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x))
 

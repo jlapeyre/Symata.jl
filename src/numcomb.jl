@@ -1,11 +1,8 @@
 #### Number theory and combinatorics.
 
-using Primes
-
-import Combinatorics: permutations, partitions
-
-import Polynomials
+import Primes
 import Combinatorics
+import Polynomials
 
 ### BinarySearch
 
@@ -30,7 +27,7 @@ returns a list of the indices at which `item` appears in the sorted list `list`.
 give a list of prime factors of `n` and their multiplicities.
 """
 @mkapprule FactorInteger nargs => 1:2
-@doap FactorInteger(x) = tolistoflistsfixed(factor(x))
+@doap FactorInteger(x) = tolistoflistsfixed(Primes.factor(x))
 
 ### PrimeList
 
@@ -42,7 +39,7 @@ return the list of all prime numbers `<= n`.
 
 ## Convert `n` to Int to work around julia bug
 @mkapprule PrimeList nargs => 1
-@doap PrimeList(n::Integer) = tolistfixed(primes(convert(Int,n)))
+@doap PrimeList(n::Integer) = tolistfixed(Primes.primes(convert(Int,n)))
 
 ### Prime
 
@@ -72,7 +69,7 @@ returns the number of primes less than or equal to `n`.
 give a list of all permutations of elements in `expr`.
 """
 
-@doap Permutations(x::Mxpr) = tolistoflistsfixed(permutations(margs(x)))
+@doap Permutations(x::Mxpr) = tolistoflistsfixed(Combinatorics.permutations(margs(x)))
 
 ### IntegerPartitions
 
@@ -83,13 +80,13 @@ give a list of all permutations of elements in `expr`.
 ## Setting "fixed" below increases speed by 3 or 5 times in some tests.
 
 @mkapprule IntegerPartitions
-@doap IntegerPartitions(n::Integer) = tolistoflistsfixed(partitions(n))
+@doap IntegerPartitions(n::Integer) = tolistoflistsfixed(Combinatorics.partitions(n))
 @doap IntegerPartitions(n::Integer, m::Integer) = _integer_partitions_range(n,1,m)
 
 function _integer_partitions_range(n,m1,m2)
-    a = collect(partitions(n,m1))
+    a = collect(Combinatorics.partitions(n,m1))
     for i in (m1+1):m2
-        c = collect(partitions(n,i))
+        c = collect(Combinatorics.partitions(n,i))
         isempty(c) && continue
         append!(a,c)
     end
@@ -97,7 +94,7 @@ function _integer_partitions_range(n,m1,m2)
 end
 
 @doap IntegerPartitions(n::Integer, ls::ListT) = listofintegersq(ls) ?  _integer_partitions_list(mx,n,margs(ls)...) : mx
-_integer_partitions_list(mx,n,m) = tolistoflistsfixed(collect(partitions(n,m)))
+_integer_partitions_list(mx,n,m) = tolistoflistsfixed(collect(Combinatorics.partitions(n,m)))
 _integer_partitions_list(mx,n,m1,m2) = _integer_partitions_range(n,m1,m2)
 _integer_partitions_list(mx,n,m,args...) = mx
 
@@ -107,7 +104,7 @@ _integer_partitions_list(mx,n,m,args...) = mx
 gives the number of integer partitions of `n`.
 """
 
-@doap NumberOfPartitions(n::Integer) = n <= 405 ? length(partitions(n)) : bnpartitions(n)
+@doap NumberOfPartitions(n::Integer) = n <= 405 ? length(Combinatorics.partitions(n)) : bnpartitions(n)
 
 ## copied from partitions.jl. We just add the BigInt dict
 ## If n > 405, we need BigInt.

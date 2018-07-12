@@ -138,7 +138,7 @@ return `True` if `expr` is an odd integer.
 ### EvenQ
 
 @mkapprule EvenQ  :nargs => 1
-@doap EvenQ(x) = isa(x, Integer) && ! iseven(x)
+@doap EvenQ(x) = isa(x, Integer) && iseven(x)
 @sjdoc EvenQ """
     EvenQ(expr)
 

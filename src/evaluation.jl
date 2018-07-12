@@ -142,7 +142,6 @@ macro sym(ex)   # use this macro from the julia prompt
 end
 
 # Simply evaluate. Do not print "Out", or count things, etc.
-
 """
     symtranseval(expr::Any)
 
@@ -172,6 +171,7 @@ end
     macro exsimple(ex::Expr)
 
 translates `ex` to Symata expression and evaluates the result. Most code for interactive sessions disabled.
+`@exsimple` is more conventient than `@sym` at the Julia prompt.
 """
 macro exsimple(ex)   # use this macro from the julia prompt
     mx = symataevaluate(ex, EvaluateJuliaSyntaxSimple())
