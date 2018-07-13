@@ -59,7 +59,7 @@ struct FormatSpec
     end
 end
 
-function show(io::IO, fs::FormatSpec)
+function Base.show(io::IO, fs::FormatSpec)
     println(io, "$(typeof(fs))")
     println(io, "  cls   = $(fs.cls)")
     println(io, "  typ   = $(fs.typ)")

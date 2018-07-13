@@ -1,17 +1,14 @@
 ### Coefficient
 
-## FIXME: Can't specify both
+## FIXME: Can't specify both. Update: may be possible now
 #@mkapprule Coefficient nargs => 2:3  options => Dict(:Method => :SymPy)
 
 @mkapprule Coefficient options => Dict(:Method => :SymPy)
-
 
 ## TODO Merge this with CoefficientSympy
 # @doap function Coefficient(args...; kws...)
 #     meth = get(kws,:Method)
 #     if meth == :Sympy
-
-
 
 @doap function Coefficient(expr, x; kws...)
     res = coefficient0(mx,expr,x)
@@ -26,7 +23,6 @@ end
 
 coefficient0(mx,expr,x::Number) = mx
 coefficient0(mx,expr,x) = coefficient(expr,x)
-
 coefficient(expr::TimesT, x) = coefficient_times(expr,[x])
 
 function coefficient(expr::TimesT, x::TimesT)
@@ -42,7 +38,7 @@ end
 
 function coefficient_times(expr::TimesT, coll)
     expr == coll && return 1
-    posns = Symata.oldfindin(expr,coll)
+    posns = Symata.oldfindin(expr, coll)
     isempty(posns) && return 0
     (length(posns) != length(coll)) && return 0
     nargs = deleteat!(copy(margs(expr)),posns)

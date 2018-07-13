@@ -274,7 +274,8 @@ prompt(opt::EvaluateJuliaSyntaxSimple) = nothing
 """
     symataevaluate(ex::Any, options)
 
-Translate `ex` to Symata and evaluate the result. If `ex` is already of type `Mxpr`, then
+Translate `ex` to Symata and evaluate the result. `ex` is typically an `Expr`,
+or else an "elementary" type, such as a `Number` or `String`. If `ex` is already of type `Mxpr`, then
 the translation is the identity. `ex` may be an object of any type.
 """
 function symataevaluate(ex, options=EvaluateJuliaSyntax())
@@ -362,7 +363,7 @@ global const exitcounts = Int[0,0,0,0]
 """
     infseval(mxin::Mxpr)
 
-apply the evaluation `meval` to `mxin` repeatedly to either a fixed point,
+Apply the evaluation `meval` to `mxin` repeatedly to either a fixed point,
 or the recursion limit.
 """
 function infseval(mxin::Mxpr)
@@ -458,7 +459,7 @@ function meval(mx::Mxpr)
         reset_try_upvalue_count()        
         throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
-    local ind::Compat.String = ""  # some places get complaint that its not defined. other places no !?
+    local ind::String = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ (get_meval_count() - 1)
         println(ind,">>", get_meval_count(), " " , wrapout(mx))

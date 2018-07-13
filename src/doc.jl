@@ -364,8 +364,8 @@ function sj_add_history(s::AbstractString)
 end
 
 function sj_add_history(hist::REPL.REPLHistoryProvider, s::AbstractString)
-    str = rstrip(Compat.String(s))
-    isempty(strip(str)) && return
+    str = rstrip(String(s))
+    isempty(strip(str)) && return ## TODO: efficiency
     mode = :symata
     length(hist.history) > 0 &&  # we could be more clever and not push the same example sequence twice
     mode == hist.modes[end] && str == hist.history[end] && return

@@ -43,7 +43,6 @@ function _apply_plus(mxa::Mxpr)
     return isa(mx,Mxpr) && isempty(mx) ? 0 : mx
 end
 
-
 @doap Apply(h,mxa::Mxpr) = mxpra(h,margs(mxa))
 
 @doap function Apply(h::SJSym,arr::AbstractArray{T}) where T<:Number

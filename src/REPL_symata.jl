@@ -79,7 +79,7 @@ function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
 end
 
 # FIXME: this should not be global
-const sorted_builtins = Array{Compat.String}(undef, 0)
+const sorted_builtins = Array{String}(undef, 0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b

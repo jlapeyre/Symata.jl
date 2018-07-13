@@ -76,7 +76,6 @@ function get_arg_dict(args)
                 d[pe1[1]] = pe1[2]
             end
         else
-#        println("\n", pe, "\n")
             d[pe[1]] = pe[2]
         end
     end
@@ -93,8 +92,8 @@ function get_arg_dict_options(args)
 end
 
 # FIXME: we are relying on a bug that has been fixed
-#  Change in macro hygiene on 0.6? #19587
-#  Also, https://discourse.julialang.org/t/macro-problem-with-v0-6/1581
+# Change in macro hygiene on 0.6? #19587
+# Also, https://discourse.julialang.org/t/macro-problem-with-v0-6/1581
 
 macro mkapprule(inargs...)
     head = inargs[1]   ## head is the symbol for which we are writing rules
@@ -247,14 +246,6 @@ macro olddoap(func)
     :(($(esc(func))))                                        # return the rewritten function
 end
 
-# function _doap(ex::Expr)
-#     d = MacroTools.splitdef(ex)
-#     quotename = QuoteNode(d[:name])
-#     d[:name] = Symbol("do_", d[:name])
-#     pushfirst!(d[:args], :(mx::Mxpr{$quotename})
-#     return MacroTools.combinedef(d)
-# end
-
 macro doap(ex)
     d = MacroTools.splitdef(ex)
     quotename = QuoteNode(d[:name])
@@ -264,9 +255,9 @@ macro doap(ex)
     :(($(esc(newfunc))))
 end
 
+### Default apprule
 
-#### Default apprule
-##  This is for a head that is (almost always) not a "system" symbol, but rather user defined
+# This is for a head that is (almost always) not a "system" symbol, but rather user defined
 
 apprules(x) = x
 
@@ -294,16 +285,14 @@ do_GenHead(mx,h) = mx
 # So, f is redundant.
 function do_GenHead(mx, f::Function)
     return Base.invokelatest(mx.head, margs(mx)...)
-#    return (mx.head)(margs(mx)...)
+#    return (mx.head)(margs(mx)...)  # causes function too new error
 end
 
 # For version v0.5
-#do_GenHead(mx,f::Function) = f(margs(mx)...)
-
+# do_GenHead(mx,f::Function) = f(margs(mx)...)
 # Assume operator version of an Symata "function". Eg, Map
 # Map(q)([1,2,3])
 # But, not all functions use the first operator. Eg for MatchQ it is the second.
-
 # function do_GenHead(mx,head::Mxpr)
 #     mxpr(mhead(head),margs(head)...,copy(margs(mx))...)
 # end

@@ -1,6 +1,6 @@
-# Some comaptibility things.
+# Compatibility functions that are particular to Symata.
 
-# These are deprecated in v0.7 to small routines.
+# The following are deprecated in v0.7 to small routines.
 # symrsearch(s::AbstractString, c::Union{Tuple{Vararg{Char}}, AbstractVector{Char}, Set{Char}},
 #            pos) = something(findprev((in)(c), s, pos), 0)
 # symrsearch(s::AbstractString, c::Char,
