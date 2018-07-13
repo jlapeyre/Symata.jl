@@ -236,27 +236,36 @@ function parse_call!(ex, newa)
 end
 
 ## Translate this separately otherwise the body always inserts a CompoundExpression
-function parse_function(ex)
+"""
+    parse_function(ex::Expr)
+
+Create an object of type `Mxpr{:Function}` from `ex`.
+(Add someting more here.)
+"""
+function parse_function(ex::Expr)
     mxpr(:Function, extomx(ex.args[1]), extomx(ex.args[2].args[2]))
 end
 
-function parse_macrocall(ex, newa)
+"""
+    parse_macrocall(ex::Expr, newa::MxprArgs)
+
+If `ex` is a Julia `cmd` macrocall (i.e. entered with backticks)
+return an object of type `Mxpr{:PatternTest}`. Otherwise Julia-evaluate
+the macrocall.
+"""
+function parse_macrocall(ex::Expr, newa::MxprArgs)
     fullmacroname = string(ex.args[1])
     r = r"^@(.*)_?cmd$"
     m = match(r, fullmacroname) # check for x`foo` (cmd macro)
     m == nothing && return(eval(ex)) # Not a cmd macro
     macroname_with_underscore = m.captures[1]
     macroname = SubString(macroname_with_underscore, 1, lastindex(macroname_with_underscore)-1)
-#    macroname = macroname_with_underscore[1:lastindex(macroname_with_underscore)-1]
-#    @show macroname
     cmd_string = ex.args[3]
-#    @show cmd_string
     pattern_expr = Meta.parse(cmd_string)
     pattern = parse_pattern(pattern_expr)
     push!(newa, extomx(Symbol(macroname)), pattern)
     return mxpr(:PatternTest, newa)
 end
-
 
 """
     iscall(ex::Expr)

@@ -67,7 +67,7 @@ function Symata_parse_REPL_line(linein)
     line = sjpreprocess_interactive(linein)
 # FIXME: upgrade syntax_deprecation_warnings for v0.7
 #    symata_syntax_deprecation_warnings(false) do
-        Base.parse_input_line("@Symata.sym " * line)
+        Base.parse_input_line("@Symata.symfull " * line)
 #    end
 end
 
