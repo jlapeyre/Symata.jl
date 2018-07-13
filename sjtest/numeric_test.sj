@@ -6,8 +6,8 @@ ClearAll(approxeq, f, f1, x)
 
 # Use Function compiled from Julia code
 # FIXME: method too new
-#    f1 = J( x -> x^2)
-#   codefile = J( joinpath(Symata.TEST_DIRECTORY, "numeric_code.sj"))
+#   f1 = J( x -> x^2)
+#   codefile = J( joinpath(Symata.SYMATA_LANG_TEST_PATH, "numeric_code.sj"))
 #   Get(codefile)
 # T approxeq(NIntegrate(f1, [0,2])[1], 8.0/3)
 

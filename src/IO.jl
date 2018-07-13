@@ -7,7 +7,7 @@ end
 ### Println
 
 @sjdoc Println """
-    Println(expr1,expr2,...)
+    Println(expr1, expr2, ...)
 
 print the expressions and a newline.
 """
