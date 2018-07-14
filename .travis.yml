@@ -5,13 +5,12 @@ os:
   - osx
   
 julia:
-  - nightly
   - 0.7
+  - nightly
 
 matrix:
   allow_failures:
     - nightly
-    - os: osx
   
 git:
     depth: 99999
