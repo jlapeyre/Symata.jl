@@ -137,12 +137,12 @@ julia> @sym a
 ```
 """
 macro sym(ex)   # use this macro from the julia prompt
-    mx = _sym_inner(ex)
+    mx = _sym_inner(ex, EvaluateJuliaSyntaxSimple())
     :(($(esc(mx))))
 end
 
 macro symfull(ex) # use this macro for Symata prompt.
-    mx = _sym_inner(ex, EvaluateJuliaSyntaxSimple())
+    mx = _sym_inner(ex)
     :(($(esc(mx))))
 end
 
@@ -239,11 +239,6 @@ macro bind_Os()
     expr
 end
 
-
-# immutable ExFuncOptions
-#     simple::Bool
-# end
-
 abstract type AbstractEvaluateOptions end
 
 mutable struct EvaluateJuliaSyntax <: AbstractEvaluateOptions
@@ -305,7 +300,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
     else
         mx = trysymataevaluate(res)
     end
-    symval(mx) == Null  && return nothing
+    symval(mx) == Null && return nothing
     prompt(options)
     if (! simple(options) ) && isinteractive()  # && is_sjinteractive()
         increment_line_number()
@@ -360,7 +355,7 @@ end
 # Note: lcheckhash is the identity (ie disabled)
 # doeval is infseval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
 
-# We should make this user settable somehow
+# We could make this user settable somehow
 recursion_limit() =  1024
 
 # Diagnostic. Count number of exits from points in infseval
@@ -441,13 +436,9 @@ meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 
 # These are normally not called, but rather are caught by infseval.
 @inline meval(x::Complex{T}) where {T<:Real} = x.im == 0 ? x.re : x
-
 meval(x::Rational{T}) where {T<:Integer} = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
-
-meval(x::T) where {T<:Nothing} = Null
-
+meval(x::Nothing) = Null
 meval(x) = x
-
 meval(s::SJSym) = symval(s) # this is where var subst happens
 
 function meval(qs::Qsym)
@@ -489,11 +480,6 @@ function meval_apply_all_rules(nmx::Mxpr)
         if isListable(nmx) nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
-    # We disable the following. Unlike Flat and Listable and Orderless, OneIdentity is only used for pattern matching.
-    # if get_attribute(res,:OneIdentity) && length(res) == 1
-    #     res = res[1]
-    # end
-
     @mdebug(2, "meval_apply_all_rules: entering apprules: ", res)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
@@ -514,7 +500,6 @@ end
         ## But, then it will not prevent Sequence substitution below
         ## And it is not held is some other forms as well.
         ## So, these would need to be fixed.
-#        return sjcopy(arg[1])
         return sjcopy(arg)
     else
         return doeval(arg)
@@ -566,7 +551,7 @@ function meval_arguments(mx::Mxpr)
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
 end
 
-# We do meval_arguments specially for List, in order to remove occurrances of Nothing
+## We do meval_arguments specially for List, in order to remove occurrances of Nothing
 ## TODO We probably need to worry about Unevaluated, etc. here.
 function meval_arguments(mx::Mxpr{:List})
     nhead = :List

@@ -60,7 +60,7 @@ print_doc(s::AbstractString) = print_doc(Symbol(s))
 function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
     for q in qs
-        check_autoload(q)        
+        check_autoload(q)
         if haskey(SJDOCS,q)
             display(SJDOCS[q])
             println()
@@ -387,7 +387,7 @@ end
 ### Help
 
 @sjdoc Help """
-    Help(sym), Help(\"sym\"), or ? topic 
+    Help(sym), Help(\"sym\"), or ? topic
 
 print documentation for the symbol `sym`. For example `Help(Expand)`.
 Due to parsing restrictions at the repl, for some topics, the input must be a string.

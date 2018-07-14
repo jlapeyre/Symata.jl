@@ -83,6 +83,7 @@ const REVERSE_PREPROCESS_SYMBOL_TRANSLATION = Dict{Symbol,Symbol}(
 # parse to an AST which is the input to symataevaluate. This is
 # mostly done to rewrite the string into legal Julia syntax.
 # Now, we only look for the help symbol "?"
+# sjpreprocess_interactive is called in REPL_symata.jl
 const MAGIC_HELP_QUERY_STRING = "HELPQUERY!!"
 const MAGIC_HELP_QUERY_SYMBOL = Symbol(MAGIC_HELP_QUERY_STRING)
 function sjpreprocess_interactive(line::AbstractString)
