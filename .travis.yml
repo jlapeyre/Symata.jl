@@ -10,7 +10,7 @@ julia:
 
 matrix:
   allow_failures:
-    - nightly
+    - julia: nightly
   
 git:
     depth: 99999
