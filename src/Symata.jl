@@ -10,7 +10,6 @@ import InteractiveUtils
 import Base: setindex!, getindex, replace # FIXME: use fully qualified names
 import Base64
 import Dates
-import LambertW
 
 export @symExpr, @extomx
 export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln,
@@ -44,7 +43,7 @@ export isymata, insymata
 
 ## Set const debugging parametres at compile-time in debug.jl
 include("debug.jl") # must use include here.
-#@inc("LambertW.jl")  # remove this when Pkg.jl is better developed.
+@inc("LambertW.jl")  # remove this when Pkg.jl is better developed.
 @inc("version.jl")
 @inc("util.jl")
 @inc("sjcompat.jl")
