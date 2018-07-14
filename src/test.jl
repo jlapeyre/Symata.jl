@@ -45,8 +45,8 @@ mutable struct SymataPlainPrintTest <: AbstractSymataPlainTest
     pass::Int
 end
 
-SymataPlainTest() = SymataPlainTest(0,0)
-SymataPlainPrintTest() = SymataPlainPrintTest(0,0)
+SymataPlainTest() = SymataPlainTest(0, 0)
+SymataPlainPrintTest() = SymataPlainPrintTest(0, 0)
 
 function print_test_results(test::AbstractSymataPlainTest)
     printstyled(string(test.pass), " passed.\n", color=:green)
@@ -72,13 +72,13 @@ function Symata_test_path()
 end
 
 function runtest(test,fname)
-    path = joinpath(Symata_test_path(), fname)
+    path = joinpath(SYMATA_LANG_TEST_PATH, fname)
     read_Symata_file(path, test)
     nothing
 end
 
 function run_testsuite()
-    startfile = joinpath(Symata_test_path(), "sjruntests.jl")
+    startfile = joinpath(SYMATA_LANG_TEST_PATH, "sjruntests.jl")
     include(startfile)
 end
 
@@ -102,13 +102,11 @@ runs the tests in `filename` in the directory `sjtest`.
 # kws not yet implemented in @doap. Should be easy now that we use MacroTools
 #@doap Tests(;kws...) = run_testsuite(kws...)
 
-const TEST_DIRECTORY = joinpath(dirname(@__FILE__), "..", "sjtest")
-
 do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
 
 ## TODO: need a way to assert type Bool
 function do_Tests(mx::Mxpr{:Tests}, s::String; PrintTests=false)
-    test = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()    
+    test = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()
     runtest(test, s)
 end
 

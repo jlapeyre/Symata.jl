@@ -1,13 +1,15 @@
 ### This is Symata level IO. The code for formatting and printing Mxpr, etc. is in output.jl
 
-function Symata_module_path()
-    joinpath(dirname(@__FILE__), "..")
-end
+## NOTE: symprint and symprintln are defined in wrapout.jl
+
+# function Symata_module_path()
+#     joinpath(dirname(@__FILE__), "..")
+# end
 
 ### Println
 
 @sjdoc Println """
-    Println(expr1,expr2,...)
+    Println(expr1, expr2, ...)
 
 print the expressions and a newline.
 """
@@ -23,30 +25,6 @@ prints the expressions.
 """
 
 apprules(mx::Mxpr{:Print}) = (symprint(margs(mx)...); Null)
-
-# We are using read_Symata_file instead of this.
-# We should probably delete this at some point.
-# Read Symata expressions from a string and evaluate them, one by one.
-function Symata_eval_string(s)
-    s = sjpreprocess_string(s)
-    i = 1
-    local sjretval
-    while !done(s,i)
-        symata_syntax_deprecation_warnings(false) do
-            expr, i = Meta.parse(s,i)
-        end
-        sjretval =
-            try
-                Symata.symataevaluate(expr)
-            catch e
-                symprintln("Reading file: got error ", e)
-            end
-    end
-    sjretval
-end
-
-
-Symata_eval_file(fname) = fname |> readstring |> Symata_eval_string
 
 # TODO. Read more than one expression from a line.
 # TODO. Use a new exception type
@@ -458,3 +436,29 @@ Use `isymata()` from Julia to enter Symata mode again.
     isymata_mode(false)
     set_jupyter_input_prompt_color("green")
 end
+
+## Obsolete
+
+# We are using read_Symata_file instead of this.
+# We should probably delete this at some point.
+# Read Symata expressions from a string and evaluate them, one by one.
+function Symata_eval_string(s)
+    s = sjpreprocess_string(s)
+    i = 1
+    local sjretval
+    while !done(s,i)
+        symata_syntax_deprecation_warnings(false) do
+            expr, i = Meta.parse(s,i)
+        end
+        sjretval =
+            try
+                Symata.symataevaluate(expr)
+            catch e
+                symprintln("Reading file: got error ", e)
+            end
+    end
+    sjretval
+end
+
+## Obsolete
+Symata_eval_file(fname) = fname |> readstring |> Symata_eval_string

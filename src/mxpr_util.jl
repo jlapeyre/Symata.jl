@@ -24,7 +24,7 @@ of type `MxprArgs`, a copy is *not* made. If `a` is of type `ListT`,
 `tolist` is the identity.
 """
 tolist(a::AbstractArray) = MListA(tomargs(a))
-tolist(p::Pair) = [first(p), last(p)]
+tolist(p::Pair) = MListA(MxprArgType[first(p), last(p)])
 tolist(a::ListT) = a
 
 ### TODO: decide whether this copies or not.
@@ -80,7 +80,7 @@ function maplist(f, ls::ListT)
     for (i,x) in enumerate(ls)
         nargs[i] = f(x)
     end
-    MListA(nargs)    
+    MListA(nargs)
 end
 
 """
@@ -152,7 +152,7 @@ for sym in ( :List, :Plus, :Times, :Power, :Blank )
     s = QuoteNode(sym)
     @eval ($f)(a) = mxpr($s,a...)  # Is this really what we want ?
     @eval ($f)(a...) = mxpr($s,a...)
-    @eval ($fa)(a) = mxpra($s,a)    
+    @eval ($fa)(a) = mxpra($s,a)
 end
 
 ###

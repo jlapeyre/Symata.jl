@@ -60,7 +60,7 @@ print_doc(s::AbstractString) = print_doc(Symbol(s))
 function print_doc(qs...)
     length(qs) == 0 && (println("Try Help(sym) for these symbols."); return list_documented_symbols())
     for q in qs
-        check_autoload(q)        
+        check_autoload(q)
         if haskey(SJDOCS,q)
             display(SJDOCS[q])
             println()
@@ -364,8 +364,8 @@ function sj_add_history(s::AbstractString)
 end
 
 function sj_add_history(hist::REPL.REPLHistoryProvider, s::AbstractString)
-    str = rstrip(Compat.String(s))
-    isempty(strip(str)) && return
+    str = rstrip(String(s))
+    isempty(strip(str)) && return ## TODO: efficiency
     mode = :symata
     length(hist.history) > 0 &&  # we could be more clever and not push the same example sequence twice
     mode == hist.modes[end] && str == hist.history[end] && return
@@ -387,7 +387,7 @@ end
 ### Help
 
 @sjdoc Help """
-    Help(sym), Help(\"sym\"), or ? topic 
+    Help(sym), Help(\"sym\"), or ? topic
 
 print documentation for the symbol `sym`. For example `Help(Expand)`.
 Due to parsing restrictions at the repl, for some topics, the input must be a string.

@@ -11,15 +11,14 @@ using Primes
 rat_to_int(r::Rational{T}) where {T<:Integer} = r.den == 1 ? r.num : r
 
 @doc """
-    mmul(x,y), mpow(x,y), mplus(x,y), mminus(x), mminus(x,y)
-arithmetic funtions for Symata. These are similar to `*`, `^`, `+`, etc. n Julia. But there are important differences.
+    mmul(x,y), mpow(x,y), mplus(x,y), mminus(x), mdiv(x,y)
+arithmetic funtions for Symata. These are similar to `*`, `^`, `+`, etc. in Julia. But there are important differences.
 
-- rational numbers with denominator equal to `1` are converted to an integer type on return.
-- complex numbers with imaginary part equal to zero are converted to a real type on return.
+- rational numbers with denominator equal to `1` are converted to an integer type.
+- complex numbers with imaginary part equal to zero are converted to a real type.
 - for symbolic arguments, or mixed symbolic-numeric arguments a symata expression of type `Mxpr` is constructed.
-- integer factors are extracted from roots. (overzealously at the moment)
+- integer factors are extracted from roots. (overzealously at the moment).
 """ arithmetic
-
 
 @doc (@doc arithmetic) mmul
 @doc (@doc arithmetic) mplus
@@ -27,7 +26,7 @@ arithmetic funtions for Symata. These are similar to `*`, `^`, `+`, etc. n Julia
 @doc (@doc arithmetic) mdiv
 @doc (@doc arithmetic) mminus
 
-
+## FIXME: Int or Integer ?
 mmul(x::Int, y::Rational{T}) where {T<:Integer} = (res = x * y; return res.den == 1 ? res.num : res )
 
 mmul(x::Complex{V}, y::Rational{T}) where {T<:Integer,V<:Integer} = (res = x * y; return (res.im.den == 1 && res.re.den == 1) ? Complex(res.re.num,res.im.num) : res )
@@ -72,17 +71,22 @@ mminus(x::Number) = -x
 mminus(x,y) = mxpr(:Plus, x, mxpr(:Times,-1,y))
 mminus(x::Number,y::Number) = x-y
 
-# mdiv is apparently used in do_Rational, but this should never be used now.
-mdiv(x::T, y::V) where {T<:Integer,V<:Integer} =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
-mdiv(x::Int, y::Rational{T}) where {T<:Integer} = (res = x / y; return res.den == 1 ? res.num : res )
+# mdiv is apparently used in do_Rational, which seems to be the only entry point to mdiv.
+mdiv(x::Integer, y::Integer) =  y == 0 ? ComplexInfinity : rem(x,y) == 0 ? div(x,y) : x // y
+_mdiv_float(x, y) = y == 0 ? ComplexInfinity : div(x,y)
+mdiv(x::Integer, y::AbstractFloat) = _mdiv_float(x, y)
+mdiv(x::AbstractFloat, y::Integer) = _mdiv_float(x, y)
+mdiv(x::AbstractFloat, y::AbstractFloat) = _mdiv_float(x, y)
 
+mdiv(x::Integer, y::Rational) = (res = x / y; return res.den == 1 ? res.num : res )
 mdiv(x::Number,y::Number) = x/y
-mdiv(x,y) = mxpr(:Times,x, mxpr(:Power,y,-1))
+# Should be a fixed Mxpr ?
+mdiv(x,y) = mxpr(:Times, x, mxpr(:Power,y,-1))
 
 function mpow(x,y)
+#    @show (x,y)
     _mpow(x,y)
 end
-
 function _mpow(x::Number, y::Number)
     try
         x^y
@@ -91,7 +95,6 @@ function _mpow(x::Number, y::Number)
         rethrow(e)
     end
 end
-
 function _mpow(x::Rational,y::Integer)
     if x > 0 && y < 0
         my = -y
@@ -100,8 +103,6 @@ function _mpow(x::Rational,y::Integer)
         x^y  # will fail
     end
 end
-
-
 function _mpow(x::Irrational, n::Number)
     n >= 0 && return x^n
     (x1,n1) = promote(x,n)
@@ -110,7 +111,7 @@ end
 
 _mpow(x,y) =  mxpr(:Power, x, y)
 
-function _mpow(x::T,y::V) where {T<:Integer,V<:AbstractFloat}
+function _mpow(x::Integer, y::V) where V<:AbstractFloat
     x >= 0 && return convert(V,x)^y
     res = convert(Complex{V},x)^y
     imag(res) == 0 && return real(res)
@@ -118,12 +119,10 @@ function _mpow(x::T,y::V) where {T<:Integer,V<:AbstractFloat}
 end
 
 _mpow(x::Complex{T},y::V) where {T<:Integer,V<:AbstractFloat} = convert(Complex{V},x)^y
-
-_mpow(x::T,y::V) where {T<:Integer,V<:Integer} = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
+_mpow(x::Integer, y::Integer) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : 1//(x^(-y))
+_mpow(x::AbstractFloat, y::Integer) = y >= 0 ? x^y : x == 0 ? ComplexInfinity : x^y
 _mpow(x::Symata.Mxpr{:DirectedInfinity}, y::T) where {T<:Real} = y > 0 ? x : 0
-
 _mpow(x::Symata.Mxpr{:DirectedInfinity}, y::Complex{T}) where {T<:Real} = y.re > 0 ? x : 0
-
 # could be more efficient: cospi(exp) + im * sinpi(exp)
 _mpow(b::T,exp::V) where {T<:AbstractFloat,V<:Number} = b < 0 ? (cospi(exp) + im * sinpi(exp)) * abs(b)^exp : b^exp
 
@@ -133,7 +132,8 @@ _mpow(b::T,exp::V) where {T<:AbstractFloat,V<:Number} = b < 0 ? (cospi(exp) + im
 # Note: do_Power{T<:Integer}(mx::Mxpr{:Power},b::T,e::Rational) is disabled.
 # We could research how to do this instead of rolling our own. But, this seems to
 # work.
-function _mpow(x::T,y::Rational{V}) where {T<:Integer, V<:Integer}
+# function _mpow(x::T,y::Rational{V}) where {T<:Integer, V<:Integer}
+function _mpow(x::Integer, y::Rational{V}) where {V<:Integer}
     x == 1 && return x
     local gotneg::Bool
     if x < 0
@@ -267,7 +267,7 @@ for op = (:mplus, :mmul)
         # Oct 2016 Compiled Symata translates mxpr(:Times,x,y,z,...) to mmul(x,y,z,...).
         # In order for this to work, we allow any combination of numbers.
         ($op)(a::Number, b::Number, c::Number)        = ($op)(($op)(a,b),c)
-        ($op)(a::Number, b::Number, c::Number, xs::Number...) = ($op)(($op)(($op)(a,b),c), xs...)        
+        ($op)(a::Number, b::Number, c::Number, xs::Number...) = ($op)(($op)(($op)(a,b),c), xs...)
         # a further concern is that it's easy for a type like (Int,Int...)
         # to match many definitions, so we need to keep the number of
         # definitions down to avoid losing type information.

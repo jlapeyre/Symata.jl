@@ -1,11 +1,8 @@
 __precompile__()
 module Symata
 
-using Compat
-import Compat.String
-import Compat.view
 import MacroTools
-import LambertW
+# import LambertW
 import SpecialFunctions
 import REPL
 import Markdown
@@ -14,15 +11,11 @@ import Base: setindex!, getindex, replace # FIXME: use fully qualified names
 import Base64
 import Dates
 
-
 export @symExpr, @extomx
-
 export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln,
-    unpacktoList, mhead, margs, newargs, symparseeval, symparsestring, sjtopy, pytosj,
-      isympy
-
+       unpacktoList, mhead, margs, newargs, symparseeval, symparsestring, sjtopy, pytosj,
+       isympy
 export mmul, mplus, mpow, mabs, mminus, symatamath
-
 export debugmxpr
 
 """
@@ -49,8 +42,8 @@ export name, typename
 export isymata, insymata
 
 ## Set const debugging parametres at compile-time in debug.jl
-include("debug.jl")
-
+include("debug.jl") # must use include here.
+@inc("LambertW.jl")  # remove this when Pkg.jl is better developed.
 @inc("version.jl")
 @inc("util.jl")
 @inc("sjcompat.jl")
@@ -66,7 +59,7 @@ include("debug.jl")
 @inc("julia_level.jl")
 @inc("arithmetic.jl")
 @inc("apprules_core.jl")
-@inc("symataconstants.jl")
+@inc("constants.jl")
 @inc("autoload.jl")
 @inc("namedparts.jl")
 @inc("AST_translation.jl")
@@ -125,7 +118,6 @@ include("debug.jl")
 @inc("function.jl")
 
 function __init__()
-#    println("*************  Entering __init__**************")    
     do_init()
 end
 
@@ -137,19 +129,14 @@ symata() = do_init()
 export symata
 
 function do_init()
-#    println("*************  Entering __init__**************")
     have_ijulia = isdefined(Main, :IJulia)
     init_sympy()
-#    println("*************  sympy initialized **************")
     if ! isdefined(Test, :testset_forloop)
         Core.eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
     end
-#    println("*************  using Symata **************")
 #    Main.eval( :( using Symata ))
-#    println("*************  importing **************")    
     sjimportall(:System, :Main)
     set_current_context(:Main)
-#    println("*************  entering loop **************")
     if have_ijulia
         isymata()
     elseif isinteractive()

@@ -67,7 +67,7 @@ function Symata_parse_REPL_line(linein)
     line = sjpreprocess_interactive(linein)
 # FIXME: upgrade syntax_deprecation_warnings for v0.7
 #    symata_syntax_deprecation_warnings(false) do
-        Base.parse_input_line("@Symata.sym " * line)
+        Base.parse_input_line("@Symata.symfull " * line)
 #    end
 end
 
@@ -79,7 +79,7 @@ function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
 end
 
 # FIXME: this should not be global
-const sorted_builtins = Array{Compat.String}(undef, 0)
+const sorted_builtins = Array{String}(undef, 0)
 function populate_builtins()
     b = protectedsymbols_strings()
     for s in b

@@ -3,11 +3,11 @@
  ClearTemporary()
 
 # The code defines a function, uses it for a calculation and returns the result
-  codefile = J( joinpath(Symata.TEST_DIRECTORY, "symata_code.sj") )
+  codefile = J( joinpath(Symata.SYMATA_LANG_TEST_PATH, "symata_code.sj") )
 T Get(codefile) == [0, cosfixedpoint]
 
 # This is an Symata implementation of ReplaceRepeated
-  codefile = J( joinpath(Symata.TEST_DIRECTORY, "replacerepeated.sj") )
+  codefile = J( joinpath(Symata.SYMATA_LANG_TEST_PATH, "replacerepeated.sj") )
   Get(codefile)
 T replacerepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
 

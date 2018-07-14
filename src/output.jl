@@ -1,8 +1,10 @@
+"""
+    module Symata.SymataIO
+
+This module provides "1d" text representations of Symata expressions. It is
+for use at the REPL, and for other purposes, such as writing to files.
+"""
 module SymataIO
-
-using Compat
-
-import Base: show
 
 import Symata: Mxpr, SJSym, SSJSym, ListT, TimesT, PowerT,
        getsym, symname, mhead, margs,  getoptype, mtojsym, newargs, mapmargs,
@@ -70,8 +72,7 @@ function fullform(io::IO, mx::Mxpr, data::FullFormData)
     print(io, data.rfunc)
 end
 
-
-fullform(io::IO,x,data::FullFormData) = show(io,x)
+fullform(io::IO,x,data::FullFormData) = Base.show(io,x)
 fullform(x,data::FullFormData) = fullform(stdout,x,data)
 fullform(x) = fullform(stdout,x,juliafullformdata)
 
@@ -150,7 +151,7 @@ wrapout(x::AbstractFloat) = WOAbstractFloat(x)
 Base.show(io::IO, ws::WOAbstractFloat) = show_float(io,ws.x)
 ## Not performant. We do a dictionary lookup every time we print a float.
 function show_float(io,x::Float64)
-    _show_float(io,x,getkerneloptions(:float_format))    
+    _show_float(io,x,getkerneloptions(:float_format))
 end
 
 function show_float(io,x::BigFloat)
@@ -159,7 +160,7 @@ end
 
 function _show_float(io,x,fmt)
     if fmt == ""
-        show(io,x)
+        Base.show(io,x)
     else
         s = Formatting.sprintf1(fmt,x)   # always print a `.` for floating point numbers
         s = ismatch(r"\.",s) ? s : s * "."
@@ -168,7 +169,7 @@ function _show_float(io,x,fmt)
 end
 
 function show_float(io,x)
-    show(io,x)
+    Base.show(io,x)
 end
 
 # This breaks printing
@@ -229,9 +230,9 @@ end
 Base.show(io::IO, x::WORational) = show_rational(io,x.x)
 
 function show_rational(io::IO, x::Rational)
-    show(io, symnumerator(x))
+    Base.show(io, symnumerator(x))
     print(io, "/")
-    show(io, symdenominator(x))
+    Base.show(io, symdenominator(x))
 end
 
 # Yes, it is REPL.REPLCompletions.latex_symbols
@@ -243,7 +244,7 @@ function Base.show(io::IO, x::Mxpr{:Subscript})
                 y = typeof(x[i]) <: AbstractWO ? string(x[i].x) : string(x[i])
                 s1 *=  REPL.REPLCompletions.latex_symbols["\\_" * y]
             end
-            show(io, wrapout(Symbol(s1)))
+            Base.show(io, wrapout(Symbol(s1)))
         catch
             show_prefix_function(io,x)
         end
@@ -254,18 +255,18 @@ end
 
 # We display real part if it is 0.0
 function show_complexreal(io::IO, z::Complex{T}) where T<:Real
-#    show(io,real(z))
-    show_float(io,real(z))    
+#    Base.show(io,real(z))
+    show_float(io,real(z))
     print(io," + ")
     show_float(io,imag(z))
-#    show(io,imag(z))    
+#    Base.show(io,imag(z))
     print(io,Istring())
 end
 
 # Do not display real part if it is 0
 function show_complexinteger(io::IO, z::Complex{T}) where T<:Integer
     if real(z) != 0
-        show(io,real(z))
+        Base.show(io,real(z))
         print(io," + ")
     end
     if imag(z) == 1
@@ -275,7 +276,7 @@ function show_complexinteger(io::IO, z::Complex{T}) where T<:Integer
         if iz == -1
             print(io,"-")
         else
-            show(io,iz)
+            Base.show(io,iz)
         end
         print(io,Istring())
     end
@@ -335,10 +336,10 @@ end
 function Base.show(io::IO, mx::Mxpr{:Comparison})
     args = margs(mx)
     for i in 1:length(args)-1
-        show(io, outsym(args[i]))
+        Base.show(io, outsym(args[i]))
         print(io," ")
     end
-    isempty(args) || show(io,args[end])
+    isempty(args) || Base.show(io,args[end])
 end
 
 
@@ -352,7 +353,7 @@ function show_prefix_function(io::IO, mx::Mxpr)
         if wantparen
             print(io,"(")  # refactor this! --> maybeparen(wantparen,obj) or s.t.
         end
-        show(io, wrapout(mhead(mx)))
+        Base.show(io, wrapout(mhead(mx)))
         if wantparen
             print(io,")")
         end
@@ -365,13 +366,13 @@ function show_prefix_function(io::IO, mx::Mxpr)
         if needsparen(args[i]) && wantparens
             print(io,"(")
         end
-        show(io,args[i])
+        Base.show(io,args[i])
         if needsparen(args[i]) && wantparens
             print(io,")")
         end
         print(io,",")
     end
-    isempty(args) || show(io,args[end])
+    isempty(args) || Base.show(io,args[end])
     print(io,mx.head == getsym(:List) ? LISTR : FUNCR)
 end
 
@@ -383,31 +384,31 @@ function show_binary(io::IO, mx::Mxpr)
         lop = mx[1]
         if needsparen(lop)
             print(io,"(")
-            show(io,lop)
+            Base.show(io,lop)
             print(io,")")
         else
-            show(io,lop)
+            Base.show(io,lop)
         end
         print(io, binaryopspc(opstr), opstr , binaryopspc(opstr))
         rop = mx[2]
         if  needsparen(rop)
             print(io,"(")
-            show(io,rop)
+            Base.show(io,rop)
             print(io,")")
         else
-            show(io,rop)
+            Base.show(io,rop)
         end
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:Part})
     args = margs(mx)
-    show(io,args[1])
+    Base.show(io,args[1])
     print(io,"[")
-    show(io,args[2])
+    Base.show(io,args[2])
     for i in 3:length(args)
         print(io,",")
-        show(io,args[i])
+        Base.show(io,args[i])
     end
     print(io,"]")
 end
@@ -417,10 +418,10 @@ function Base.show(io::IO, mx::Mxpr{:Minus})
     arg = mx.args[1]
     if isa(arg,Number) || isa(arg,SJSym)
         print(io,"-")
-        show(io,arg)
+        Base.show(io,arg)
     else
         print(io,"-(")
-        show(io,arg)
+        Base.show(io,arg)
         print(io,")")
     end
 end
@@ -430,17 +431,17 @@ function Base.show(io::IO, mx::Mxpr{:Plus})
     if length(args) < 1
         error("show: can't show Plus with no args.")
     end
-    show(io,args[1])
+    Base.show(io,args[1])
     for i in 2:length(args)
         if isa(args[i],Mxpr{:Minus})
             print(io, " - ")
-            show(io,(args[i]).args[1])
+            Base.show(io,(args[i]).args[1])
         else
             if isa(args[i], TimesT) && typeof(args[i][1])  <:Union{AbstractFloat,Integer} && args[i][1] < 0
                 show_infix(io, args[i], true)
             else
                 print(io, " + ")
-                show(io, args[i])
+                Base.show(io, args[i])
             end
         end
     end
@@ -483,7 +484,7 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
         else
             np = false
         end
-        show(io,arg)
+        Base.show(io,arg)
         if np
             print(io,")")
         end
@@ -496,7 +497,7 @@ function show_infix(io::IO, mx::Mxpr, spaceminus::Bool)
         else
             np = false
         end
-        show(io, args[end])
+        Base.show(io, args[end])
         if np
             print(io,")")
         end
@@ -506,31 +507,31 @@ end
 function Base.show(io::IO, mx::Mxpr{:Blank})
     print(io,"_")
     if length(mx) > 0
-        show(io,mx[1])
+        Base.show(io,mx[1])
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:BlankSequence})
     print(io,"__")
     if length(mx) > 0
-        show(io,mx[1])
+        Base.show(io,mx[1])
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:BlankNullSequence})
     print(io,"___")
     if length(mx) > 0
-        show(io,mx[1])
+        Base.show(io,mx[1])
     end
 end
 
 function Base.show(io::IO, mx::Mxpr{:Pattern})
-    show(io,mx[1])
+    Base.show(io,mx[1])
     if isa(mx[2],Mxpr{:Blank})
-        show(io,mx[2])
+        Base.show(io,mx[2])
     else
         print(io,"::(")
-        show(io,mx[2])
+        Base.show(io,mx[2])
         print(io,")")
     end
 end
@@ -545,10 +546,10 @@ end
 
 function Base.show(io::IO, qs::Qsym)
     if qs.context != CurrentContext.name
-        show(io,qs.context)
+        Base.show(io,qs.context)
         print(io,".")
     end
-    show(io,qs.name)
+    Base.show(io,qs.name)
 end
 
 

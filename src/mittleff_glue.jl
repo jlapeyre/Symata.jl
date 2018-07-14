@@ -1,13 +1,5 @@
 ### MittagLefflerE
 
-@sjdoc MittagLefflerE """
-    MittagLeffler(α,β,z)
-
-    MittagLeffler(α,z)
-
-represents the Mittag-Leffler function.
-"""
-
 ## FIXME: organize this more like polylog is organized
 ## in general, we need a way to combine effective pattern matching with efficient dispatch.
 ## i.e. we want fewer `isa(...)`s.
@@ -19,6 +11,14 @@ represents the Mittag-Leffler function.
 ## for alpha == 0 , must have abs(z) < 1
 ## Mma does not return conditions, I think.
 ## We could optionally return conditions.
+
+@sjdoc MittagLefflerE """
+    MittagLeffler(α,β,z)
+
+    MittagLeffler(α,z)
+
+represents the Mittag-Leffler function.
+"""
 
 @mkapprule MittagLefflerE :nargs => 2:3
 

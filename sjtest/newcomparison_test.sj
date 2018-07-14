@@ -111,7 +111,7 @@ T Or(True,True) == True
 T Or(False,True) == True
 T Or(True,False,False) == True
 
-# Test flatten! with Or
+# Test flatten with Or
 T Args(a || b || c || d ) == [a,b,c,d]
 
 #### And
@@ -125,7 +125,7 @@ T And(True,True) == True
 T And(False,False) == False
 T And(True,True,True) == True
 
-# Test flatten! with And
+# Test flatten with And
 T Args(a && b && c && d ) == [a,b,c,d]
 
  ClearAll(a,b,c,d,f,x)

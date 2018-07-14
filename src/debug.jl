@@ -9,6 +9,10 @@ const VERBOSEINCLUDE = false
 # Print symbol names ("functions") as the dispatch code is written via @doap
 const VERBOSE_DOAP = false
 
+const PYDEBUGLEVEL = -1
+
+const SJDEBUGLEVEL = -1
+
 ###
 
 macro mdebug(level, a...)

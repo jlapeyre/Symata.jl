@@ -2,9 +2,9 @@ ClearAll(a,b)
 ClearTemporary()
 
 ClearAll(a,b)
-## FIXME: Following two succeed in v0.5. Fail in later versions of Julia
-# T  b^0 == 1
-# T  b^1 == b
+
+T  b^0 == 1
+T  b^1 == b
 
 T  b*1 == b
 T  1*b == b
@@ -110,8 +110,6 @@ T Operate(p, f(x,y)) == p(f)(x,y)
 T Nest(xx -> Operate(wrap,xx), f(x), 4) == wrap(wrap(wrap(wrap(f))))(x)
 T Operate( Function(x,g), f(a,b,c)) == Apply(g, f(a,b,c))
 T Through(Operate(p,f(x))) == p(f(x))
-
-## FIXME: this fails in setpart!
-## Operate((xx->xx(a)), f(x,y))
+T Operate((xx->xx(a)), f(x,y)) == f(a)(x,y)
 
 ClearAll(a)

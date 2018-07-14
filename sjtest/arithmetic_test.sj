@@ -48,8 +48,8 @@ T (I + 2)^(-3) == 2/125 - 11/125 * I
 # fixed 98e02317aee46e7eceaac47d98c4401ef23682f0
 T (-27/64)^(2/3) == 9/16*((-1)^(2/3))
 
-# FIXME: raises an error in Comparison
-# (9/16)*((-1)^(2/3)) == 3/16
+# fixed error raised in Comparison
+T (((9/16)*((-1)^(2/3)) == 3/16), True)
 
 T 27^(1/2) == 3(3^(1/2))
 
@@ -76,6 +76,8 @@ T Re(2*a) == 2*Re(a)
 T Im(2*a) == 2*Im(a)
 
 T 1/0 == DirectedInfinity()
+T 1/0.0 == ComplexInfinity
+T 1/big"0.0" == ComplexInfinity
 T 1//0 == DirectedInfinity()
 T 1/DirectedInfinity() == 0
 T DirectedInfinity() == ComplexInfinity

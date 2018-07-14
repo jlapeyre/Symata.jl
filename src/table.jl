@@ -1,5 +1,3 @@
-@mkapprule NTable
-
 ## This is our versions of Table with the loop variable having lexical scope.
 ## It is disabled because function names would clobber the same ones used in
 ## the dynamic scoping version in table_dyn.jl
@@ -16,19 +14,17 @@
 ##
 ## But, if expr is large and sym appears many times, using the gensym approach is much faster.
 ##
-## We should add some logic to choose between the strategies. 
+## We should add some logic to choose between the strategies.
 ##
 ## To start, we use types representing strategies <: TableEval. We first implement strategies
-## that use setsymval. Next we will implment those that substitute the value directly.
+## that use setsymval. Next we will implement those that substitute the value directly.
 ## Then we need a criterion for dispatch. Probably just the number of subsitutions is enough
 ## for zeroeth order. But, the setsymval strategy is best if we only have one strategy. It
 ## seems to be at worst about half as fast as direct substitution, wheras the latter can get
 ## arbitrarily bad if there are many substitutions.
 ##
 
-abstract type TableEval 
-
-end
+abstract type TableEval end
 
 struct TableSetEval{T,V} <: TableEval
     expr::T
@@ -39,12 +35,38 @@ struct TableNoSetEval{T} <: TableEval
     expr::T
 end
 
+@sjdoc NTable """
+    NTable(expr,[imax])
+
+return a `List` of `imax` copies of `expr`.
+
+    NTable(expr,[i,imax])
+
+returns a `List` of `expr` evaluated `imax` times with `i` set successively to `1` through `imax`.
+
+    NTable(expr,iter)
+
+`iter` can be any standard iterator.
+
+    NTable(expr,iter1,iter2,...)
+
+is equivalent to `NTable(NTable(expr,iter2),iter1)...`
+
+This example calls an anonymous Julia function
+```
+f = :( g(x) = x^2 )
+NTable( f(i), [i,10])
+```
+"""
+
+@mkapprule NTable
+
 @doap function NTable(inexpr, iters...)
     if length(iters) > 1
         riters = reverse(iters)
-        mxout = mxpr(:Table,inexpr,riters[1])
+        mxout = mxpr(:NTable,inexpr,riters[1])
         for i in 2:length(riters)
-            mxout = mxpr(:Table,mxout,riters[i])
+            mxout = mxpr(:NTable,mxout,riters[i])
         end
         return mxout
     end

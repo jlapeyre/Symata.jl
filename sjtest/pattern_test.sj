@@ -45,8 +45,7 @@ T [f(x, y, z), Head(f())] == [3, f]
 
 approxeq(x_, y_) := Abs(x-y) < 1.0*10^(-8)
 
-## FIXME: fails because x^1 does not simplify to x
-# g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
+  g(x_Symbol, p__Integer) := Apply(Plus, x^[p])
 T g(x, 1, 2, 3, 4) == x + x^2 + x^3 + x^4
 T Head(g(x, 1, 2, 3, 4.0)) == g
 T Head(g(0, 1, 2, 3, 4)) == g
@@ -398,7 +397,6 @@ T ReplaceAll(x^2 + y^6 , List(x => 2 + a, a => 3))  == (2 + a) ^ 2 + y ^ 6
 # So, different rules may be applied to the same expression or subexpression.
 T ReplaceRepeated(x^2 + y^6 , List(x => 2 + a, a => 3)) == 25 + y ^ 6
 
-# FIXME: fail because a^1 does not simplify
 # ReplaceRepeated replaces until no rule matches.
 T ReplaceAll(Expand((a+b)^3) , x_Integer => 1) == a + 2a*b + b
 T ReplaceRepeated(Expand((a+b)^3) , x_Integer => 1)  == a +  a * b + b
@@ -413,11 +411,6 @@ T ReplaceAll(Log(Sqrt(a*(b*c^d)^e)), rules) == 1/2 * Log(a * ((b * (c ^ d)) ^ e)
 # Pattern name for complex (compound) pattern
 T ReplaceAll(b^b, a::(_^_) => g(a)) == g(b^b)
 
-# Why do we get this ? Looks like we perform the currying immediately. Mma defers evaluation.
-# Update: we have disabled automatic currying because it interferes with patterns with heads.
-# symata > f(a)(b)(c)(d)
-# f(a,b,c,d)
-
 # Tests a fix for bug that caused julia-level error in the following line
 ex = Hold(f(a)(b)(c)(d))
 T ReplaceAll(Hold(f(a)(b)), f(x_) => g) == Hold(g(b))
@@ -428,11 +421,9 @@ T ReplaceAll([[[x]]], x => 3) == [[[3]]]
 ClearAll(x,ex)
 
 # Currying with Count
-
 countprimes = Count(_`PrimeQ`)
 T countprimes(Range(100)) == 25
 ClearAll(countprimes)
-
 
 #### Cases
 

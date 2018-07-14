@@ -137,13 +137,21 @@ julia> @sym a
 ```
 """
 macro sym(ex)   # use this macro from the julia prompt
-    mx = symataevaluate(ex, EvaluateJuliaSyntaxSimple())
+    mx = _sym_inner(ex, EvaluateJuliaSyntaxSimple())
     :(($(esc(mx))))
 end
 
 macro symfull(ex) # use this macro for Symata prompt.
-    mx = symataevaluate(ex)
+    mx = _sym_inner(ex)
     :(($(esc(mx))))
+end
+
+function _sym_inner(ex, options=EvaluateJuliaSyntax())
+    mx = symataevaluate(ex, options)
+    if isa(mx, Symbol)
+        mx = QuoteNode(mx)
+    end
+    return mx
 end
 
 # Simply evaluate. Do not print "Out", or count things, etc.
@@ -231,11 +239,6 @@ macro bind_Os()
     expr
 end
 
-
-# immutable ExFuncOptions
-#     simple::Bool
-# end
-
 abstract type AbstractEvaluateOptions end
 
 mutable struct EvaluateJuliaSyntax <: AbstractEvaluateOptions
@@ -274,7 +277,8 @@ prompt(opt::EvaluateJuliaSyntaxSimple) = nothing
 """
     symataevaluate(ex::Any, options)
 
-Translate `ex` to Symata and evaluate the result. If `ex` is already of type `Mxpr`, then
+Translate `ex` to Symata and evaluate the result. `ex` is typically an `Expr`,
+or else an "elementary" type, such as a `Number` or `String`. If `ex` is already of type `Mxpr`, then
 the translation is the identity. `ex` may be an object of any type.
 """
 function symataevaluate(ex, options=EvaluateJuliaSyntax())
@@ -296,17 +300,15 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
     else
         mx = trysymataevaluate(res)
     end
-    if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
-    symval(mx) == Null  && return nothing
+    symval(mx) == Null && return nothing
     prompt(options)
-
     if (! simple(options) ) && isinteractive()  # && is_sjinteractive()
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
         set_symata_prompt(get_line_number())
         if getkerneloptions(:history_length) > 0 push_output(mx) end
         @bind_Os
-    end    
+    end
     if is_throw()
         if is_Mxpr(mx,:Throw)
             @warn("Uncaught Throw")
@@ -317,7 +319,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
             return mx
         end
     end
-    mx
+    return mx
 end
 
 function trysymataevaluate(mxin)
@@ -353,7 +355,7 @@ end
 # Note: lcheckhash is the identity (ie disabled)
 # doeval is infseval: ie, we use 'infinite' evaluation. Evaluate till expression does not change.
 
-# We should make this user settable somehow
+# We could make this user settable somehow
 recursion_limit() =  1024
 
 # Diagnostic. Count number of exits from points in infseval
@@ -362,7 +364,7 @@ global const exitcounts = Int[0,0,0,0]
 """
     infseval(mxin::Mxpr)
 
-apply the evaluation `meval` to `mxin` repeatedly to either a fixed point,
+Apply the evaluation `meval` to `mxin` repeatedly to either a fixed point,
 or the recursion limit.
 """
 function infseval(mxin::Mxpr)
@@ -434,13 +436,9 @@ meval(x::Float64) = x == Inf ? Infinity : x == -Inf ? MinusInfinity : x
 
 # These are normally not called, but rather are caught by infseval.
 @inline meval(x::Complex{T}) where {T<:Real} = x.im == 0 ? x.re : x
-
 meval(x::Rational{T}) where {T<:Integer} = x.den == 1 ? x.num : x.den == 0 ? ComplexInfinity : x
-
-meval(x::T) where {T<:Nothing} = Null
-
+meval(x::Nothing) = Null
 meval(x) = x
-
 meval(s::SJSym) = symval(s) # this is where var subst happens
 
 function meval(qs::Qsym)
@@ -455,10 +453,10 @@ function meval(mx::Mxpr)
         deepsetfixed(res)
         reset_meval_count()
         reset_try_downvalue_count()
-        reset_try_upvalue_count()        
+        reset_try_upvalue_count()
         throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
-    local ind::Compat.String = ""  # some places get complaint that its not defined. other places no !?
+    local ind::String = ""  # some places get complaint that its not defined. other places no !?
     if is_meval_trace()
         ind = " " ^ (get_meval_count() - 1)
         println(ind,">>", get_meval_count(), " " , wrapout(mx))
@@ -478,15 +476,10 @@ end
 # ?? why the first test  ! is_canon(nmx). This must apparently always be satisfied.
 function meval_apply_all_rules(nmx::Mxpr)
     if  ! is_canon(nmx)
-        if isFlat(nmx) nmx = flatten!(nmx) end
+        if isFlat(nmx) nmx = flatten(nmx) end
         if isListable(nmx) nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end
-    # We disable the following. Unlike Flat and Listable and Orderless, OneIdentity is only used for pattern matching.
-    # if get_attribute(res,:OneIdentity) && length(res) == 1
-    #     res = res[1]
-    # end
-
     @mdebug(2, "meval_apply_all_rules: entering apprules: ", res)
     res = apprules(res)           # apply "builtin" rules
     @mdebug(2, "meval_apply_all_rules: exited apprules ", res)
@@ -507,7 +500,6 @@ end
         ## But, then it will not prevent Sequence substitution below
         ## And it is not held is some other forms as well.
         ## So, these would need to be fixed.
-#        return sjcopy(arg[1])
         return sjcopy(arg)
     else
         return doeval(arg)
@@ -548,6 +540,7 @@ function meval_arguments(mx::Mxpr)
     end
     if  (! isSequenceHold(nhead))  &&  (! isHoldAllComplete(nhead))
         splice_sequences!(nargs)
+        len = length(nargs)
     end
     for i=1:len
         if (isa(nargs[i],Mxpr{:Unevaluated}) && length(nargs[i]) > 0) &&
@@ -558,7 +551,7 @@ function meval_arguments(mx::Mxpr)
     nmx::Mxpr = mxpr(nhead,nargs)   # new expression with evaled args
 end
 
-# We do meval_arguments specially for List, in order to remove occurrances of Nothing
+## We do meval_arguments specially for List, in order to remove occurrances of Nothing
 ## TODO We probably need to worry about Unevaluated, etc. here.
 function meval_arguments(mx::Mxpr{:List})
     nhead = :List

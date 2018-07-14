@@ -66,11 +66,11 @@ end
 patterntoBlank(x) = x
 
 # Nov 2016, added isa(head,Symbol) in order to handle [x__Integer]
-# FIXME: Check if we can avoid modifying the input paramter
-function process_blank_head(head)
-    head = get(blank_head_dict, head, head)
-    ehead = (isa(head,Symbol) &&  isdefined(Symata, head))  ? eval(head) : head  # Symbol may eval to DataType
-    head = (typeof(ehead) == Symbol || typeof(ehead) == DataType) ? ehead : head
+# added UnionAll for Rational
+function process_blank_head(inhead)
+    head = get(blank_head_dict, inhead, inhead)
+    ehead = (isa(head,Symbol) &&  Core.isdefined(Symata, head)) ? eval(head) : head  # Symbol may eval to DataType
+    head = (isa(ehead, Symbol) || isa(ehead, Union{DataType, UnionAll})) ? ehead : head
 end
 
 patterntoBlank(blank::Mxpr{:Blank}) = symlength(blank) == 0 ? BlankT(:All) : BlankT(process_blank_head(blank[1]))
@@ -279,7 +279,7 @@ end
 
 # For instance, in x_Integer, we match Integer.
 match_head(head::SJSym,ex) = head == :All ? true : isa(ex,Mxpr{head})
-match_head(head::DataType,ex) = isa(ex,head)
+match_head(head::Union{DataType, UnionAll}, ex) = isa(ex,head)
 match_head(head,ex) = symerror("matchBlank: Can't match Head of type ", typeof(head))
 
 matchBlank(blank::Blanks,ex) = (match_head(getBlankhead(blank),ex) || return false)

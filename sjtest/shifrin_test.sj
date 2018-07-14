@@ -101,6 +101,7 @@ T ReplaceAll( [f(x), g(x), f(x,y), Sin(x+y), f(), f(x,y,z) ] , f(t__) :> a * f(t
 T ReplaceAll( [f(x), g(x), f(x,y), Sin(x+y), f(), f(x,y,z) ] , x_f :> a * x) == [a*f(x),g(x),a*(f(x,y)),Sin(x + y),a*f(),a*(f(x,y,z))]
 
 # FIXME: BlankNullSequence not working completely
+# The element f() fails
 # T ReplaceAll( [f(x), g(x), f(x,y), Sin(x+y), f(), f(x,y,z) ] , f(t___) :> a * f(t)) == [a*f(x),g(x),a*(f(x,y)),Sin(x + y),a*f(),a*(f(x,y,z))]
 
 # pg 110
@@ -112,8 +113,6 @@ T testexpr ./ (Plus => List) ./ ( x^(_`EvenQ`) => a) == [1,10x,45a,120(x^3),210a
 T testexpr ./ (Plus => List) ./ ( x^(y_`EvenQ`) :> f(x^y)) == [1,10x,45f(x^2),120(x^3),210f(x^4),252(x^5),210f(x^6),120(x^7),45f(x^8),10(x^9),f(x^10)]
 
 # There is some notation on 110 that I don't yet know
-
-
 # pg 112
 # NOTE: we can use  => for the first definition, but Julia v0.4 cannot parse this.
 frules = [ fact(1) :> 1, fact(n_Integer) :> n * fact(n-1)]
@@ -134,7 +133,6 @@ exchangerule = Condition( [x_, y_ ] , EvenQ(x) && OddQ(y)) :>  [y,x]
 T testlist ./ exchangerule == [[1,14],[2,6],[10,20],[19,14],[3,6],[17,8],[11,13],
                                [19,18],[1,11],[5,14],[19,16],[16,16],[10,10],[16,10],[7,16],[7,19],[17,11],[11,13],[20,12],[6,12]]
 
-
 # pg 121
 T [x, 2, Pi, 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ (x_Integer | x_Rational  => Sqrt(x)) ==
     [x, 2^(1/2), Pi, (2^(-1/2))*(3^(1/2)), (2^(1/2))*(5^(-1/2)), 2, Sin(y), 2(2^(1/2)), Cos(z)]
@@ -142,7 +140,7 @@ T [x, 2, Pi, 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ (x_Integer | x_Rational  => Sqrt
 T [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( Condition(x_, Isa(x,Integer) || Isa(x,Rational)) => Sqrt(x)) == [x, 2, Pi , 3/2, 2/5, 4, Sin(y), 8, Cos(z)] ./ ( x_Integer | x_Rational  => Sqrt(x))
 
 ### FIXME
+## ?? What is this
 ## Pi/2 == Pi/2.
-
 
 Apply(ClearAll, UserSyms())

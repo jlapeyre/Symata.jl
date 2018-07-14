@@ -45,8 +45,7 @@ function import_sympy()
     copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))
 end
 
-const PYDEBUGLEVEL = -1
-
+# PYDEBUGLEVEL defined in debug.jl
 macro pydebug(level, a...)
     if level <= PYDEBUGLEVEL
         :((println("pydeb: ", $(a...));println()))
@@ -54,8 +53,6 @@ macro pydebug(level, a...)
         nothing
     end
 end
-
-const SJDEBUGLEVEL = -1
 
 macro sjdebug(level, a...)
     if level <= SJDEBUGLEVEL
@@ -167,7 +164,8 @@ function make_sympy_to_symata()
                       ( :InverseLaplaceTransform, :inverse_laplace_transform ),
                       (:InverseFourierTransform, :inverse_fourier_transform ),
                       (:FourierTransform, :fourier_transform),
-                      (:Log, :log), ( :Sqrt, :sqrt), (:ProductLog, :LambertW),
+                      (:Log, :log), ( :Sqrt, :sqrt),
+                      (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
                       (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),(:DirichletEta, :dirichlet_eta),(:PolyLog, :polylog),
@@ -176,7 +174,7 @@ function make_sympy_to_symata()
 
 ##  Cannot put Equality here. It is not a symbol. It is not a function. It is a something else.
 ## (:Equal,:Equality)
-    
+
     for funclist in (single_arg_float_complex, single_arg_float_int_complex, single_arg_float,
                      single_arg_float_int, single_arg_int, two_arg_int,
                      two_arg_float_and_float_or_complex, two_arg_float,
@@ -752,7 +750,7 @@ end
 # TODO Flatten lists
 @mkapprule Max :nodefault => true
 @doap function Max(args...)
-    args = margs(flatten_recursive!(mxpr(:List,args...)))
+    args = margs(flatten_recursive(mxpr(:List,args...)))
     return pytosj(sympy[:Max](mapmargs(sjtopy, args)...))
 end
 
@@ -762,7 +760,7 @@ end
 
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
-    args = margs(flatten_recursive!(mxpr(:List,args...)))
+    args = margs(flatten_recursive(mxpr(:List,args...)))
     return pytosj(sympy[:Min](mapmargs(sjtopy, args)...))
 end
 
@@ -894,7 +892,7 @@ prints the documentation for the symbol `sym`, if available.
 ## heads such as :Times, via `*`. It's not clear which, if either is more useful
 
 ## PyCall.jl has now implemented these.
-## I comment out the definitions here, so they don't conflict. GJL 11MAY2018 
+## I comment out the definitions here, so they don't conflict. GJL 11MAY2018
 # for sympair in ( (:*, :Mul), (:+, :Add), (:^, :Pow) )
 #     jop = sympair[1]
 #     qj = QuoteNode(sympair[1])

@@ -161,11 +161,17 @@ function jslexless(x::SJSym, y::Mxpr{:Power})
     jslexless(x,base(y))
 end
 
+function islesscomp(x, y)
+    return !(jslexless(y, x)) || x == y
+end
+
 # Looks like symbol is less than times if it occurs among
 # the arguments to times.
 # Last element in a sorted expression is most significant
+
 jslexless(x::Mxpr{:Times}, y::SJSym) = jslexless(x[end],y)
-jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
+jslexless(x::SJSym, y::Mxpr{:Times}) = islesscomp(x,y)
+#jslexless(x::SJSym, y::Mxpr{:Times}) = jslexless(x,y[end])
 
 jslexless(x::Mxpr{:Plus}, y::SJSym) = jslexless(x[end],y)
 jslexless(x::SJSym, y::Mxpr{:Plus}) = jslexless(x,y[end])
@@ -528,9 +534,9 @@ do_canon_power!(mx,base,expt) = mx
 ## For expressions/objects that are not canonicalized
 canonexpr!(x) = x
 
-flatcanon!(x) = canonexpr!(maybeflatten!(x))
+flatcanon!(x) = canonexpr!(maybeflatten(x))
 #flatcanon!(x) = canonexpr!(x)  # These are for testing speed
-#flatcanon!(x) = flatten!(x)
+#flatcanon!(x) = flatten(x)
 #flatcanon!(x) = x
 
 ## Step 3.
