@@ -1,6 +1,6 @@
 # These Symata functions (symbols) translate between Symata and Julia data and expressions
 
-#### JVar
+### JVar
 
 @sjdoc JVar """
     JVar(x)
@@ -80,10 +80,7 @@ end
 Evaluate Julia expressions `expr1`, `expr2`, ... in Julia and return the final result.
 """
 
-@sjseealso_group(J, Jexpr, Compile, SymataCall)
-
-# @doap Jxpr{T<:Union{Expr,Symbol,Number}}(ex::T) = eval(ex)
-# @doap Jxpr(x) = symerror("Jxpr: Can't execute Julia code of type ", typeof(x))
+@sjseealso_group(J, Compile, SymataCall)
 
 #### Unpack
 
