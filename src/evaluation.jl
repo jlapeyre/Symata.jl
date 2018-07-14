@@ -137,13 +137,21 @@ julia> @sym a
 ```
 """
 macro sym(ex)   # use this macro from the julia prompt
-    mx = symataevaluate(ex, EvaluateJuliaSyntaxSimple())
+    mx = _sym_inner(ex)
     :(($(esc(mx))))
 end
 
 macro symfull(ex) # use this macro for Symata prompt.
-    mx = symataevaluate(ex)
+    mx = _sym_inner(ex, EvaluateJuliaSyntaxSimple())
     :(($(esc(mx))))
+end
+
+function _sym_inner(ex, options=EvaluateJuliaSyntax())
+    mx = symataevaluate(ex, options)
+    if isa(mx, Symbol)
+        mx = QuoteNode(mx)
+    end
+    return mx
 end
 
 # Simply evaluate. Do not print "Out", or count things, etc.
@@ -297,17 +305,15 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
     else
         mx = trysymataevaluate(res)
     end
-    if is_SJSym(mx) mx = getssym(mx) end # must do this otherwise Julia symbol is returned
     symval(mx) == Null  && return nothing
     prompt(options)
-
     if (! simple(options) ) && isinteractive()  # && is_sjinteractive()
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma
         set_symata_prompt(get_line_number())
         if getkerneloptions(:history_length) > 0 push_output(mx) end
         @bind_Os
-    end    
+    end
     if is_throw()
         if is_Mxpr(mx,:Throw)
             @warn("Uncaught Throw")
@@ -318,7 +324,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
             return mx
         end
     end
-    mx
+    return mx
 end
 
 function trysymataevaluate(mxin)
@@ -456,7 +462,7 @@ function meval(mx::Mxpr)
         deepsetfixed(res)
         reset_meval_count()
         reset_try_downvalue_count()
-        reset_try_upvalue_count()        
+        reset_try_upvalue_count()
         throw(RecursionLimitError("Recursion depth of " * string(recursion_limit()) *  " exceeded.", res))
     end
     local ind::String = ""  # some places get complaint that its not defined. other places no !?
