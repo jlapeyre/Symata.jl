@@ -329,15 +329,9 @@ freesyms!(x, syms) = nothing
 
 ####  ToJuliaExpression
 
-# type Jexpr
-#      ex::Expr
-# end
-
 @mkapprule ToJuliaExpression
 
 @doap function ToJuliaExpression(x)
-#    Jexpr(mxpr_to_expr(x, MtoECompile()))
-#    mxpr(:JuliaExpression, mxpr_to_expr(x, MtoECompile()))
     mxpr(:JuliaExpression, mxpr_to_expr(x, MtoEPlain()))
 end
 
