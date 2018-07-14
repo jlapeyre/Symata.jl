@@ -479,7 +479,7 @@ end
 # ?? why the first test  ! is_canon(nmx). This must apparently always be satisfied.
 function meval_apply_all_rules(nmx::Mxpr)
     if  ! is_canon(nmx)
-        if isFlat(nmx) nmx = flatten!(nmx) end
+        if isFlat(nmx) nmx = flatten(nmx) end
         if isListable(nmx) nmx = threadlistable(nmx) end
         res = canonexpr!(nmx)
     end

@@ -1,4 +1,4 @@
-# core formatting functions
+### core formatting functions
 
 ### auxiliary functions
 
@@ -8,7 +8,6 @@ function _repwrite(out::IO, c::Char, n::Int)
         n -= 1
     end
 end
-
 
 ### print string or char
 
@@ -28,7 +27,6 @@ function _pfmt_s(out::IO, fs::FormatSpec, s::Union{AbstractString,Char})
         end
     end
 end
-
 
 ### print integers
 
@@ -89,7 +87,7 @@ function _pfmt_int(out::IO, sch::Char, ip::String, zs::Integer, ax::Integer, op:
 end
 
 function _pfmt_intdigits(out::IO, ax::T, op::Op) where {Op,T<:Integer}
-    b_lb = _div(ax, op)   
+    b_lb = _div(ax, op)
     b = one(T)
     while b <= b_lb
         b = _mul(b, op)
@@ -135,7 +133,6 @@ function _pfmt_i(out::IO, fs::FormatSpec, x::Integer, op::Op) where Op
         end
     end
 end
-
 
 ### print floating point numbers
 
@@ -226,7 +223,6 @@ function _pfmt_floate(out::IO, sch::Char, zs::Integer, u::Real, prec::Int, e::In
     write(out, Char('0' + e2))
 end
 
-
 function _pfmt_e(out::IO, fs::FormatSpec, x::AbstractFloat)
     # extract sign, significand, and exponent
     ax = abs(x)
@@ -243,7 +239,7 @@ function _pfmt_e(out::IO, fs::FormatSpec, x::AbstractFloat)
     xlen = 6 + fs.prec
     if sch != '\0'
         xlen += 1
-    end 
+    end
 
     # print
     ec = isuppercase(fs.typ) ? 'E' : 'e'
@@ -264,7 +260,6 @@ function _pfmt_e(out::IO, fs::FormatSpec, x::AbstractFloat)
     end
 end
 
-
 function _pfmt_g(out::IO, fs::FormatSpec, x::AbstractFloat)
     # number decomposition
     ax = abs(x)
@@ -276,7 +271,7 @@ function _pfmt_g(out::IO, fs::FormatSpec, x::AbstractFloat)
 end
 
 function _pfmt_specialf(out::IO, fs::FormatSpec, x::AbstractFloat)
-    if isinf(x) 
+    if isinf(x)
         if x > 0
             _pfmt_s(out, fs, "Inf")
         else
@@ -287,6 +282,3 @@ function _pfmt_specialf(out::IO, fs::FormatSpec, x::AbstractFloat)
         _pfmt_s(out, fs, "NaN")
     end
 end
-
-
-

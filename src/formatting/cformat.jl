@@ -1,9 +1,9 @@
-formatters = Dict{ String, Function }()
+const formatters = Dict{ String, Function }()
 
 function sprintf1( fmt::String, x )
     global formatters
-    f = generate_formatter( fmt )
-    f( x )
+    f = generate_formatter(fmt)
+    f(x)
 end
 
 function generate_formatter( fmt::String )
