@@ -27,8 +27,8 @@ Almost all functionality lost has been regained in upgrading from v0.6 to v0.7-b
 Approximately 200 more tests pass on v0.7-beta than on v0.6.
 
 NOTE: The syntax for `PatternTest` has been changed, but is not reflected in
-many examples, such as the Jupyter notebooks. Do `symata > ? PatternTest`,
-and see "./sjtext/pattern_test.sj" for information on the new syntax.
+many examples, such as the Jupyter notebooks.
+See "./sjtest/pattern_test.sj" for information on the new syntax.
 
 ### Symata is
 
