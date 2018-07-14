@@ -7,7 +7,7 @@ import SpecialFunctions
 import REPL
 import Markdown
 import InteractiveUtils
-import Base: setindex!, getindex, replace # FIXME: use fully qualified names
+import Base: setindex!, getindex, replace
 import Base64
 import Dates
 
@@ -42,7 +42,7 @@ export name, typename
 export isymata, insymata
 
 ## Set const debugging parametres at compile-time in debug.jl
-include("debug.jl") # must use include here.
+include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("LambertW.jl")  # remove this when Pkg.jl is better developed.
 @inc("version.jl")
 @inc("util.jl")
@@ -134,15 +134,18 @@ function do_init()
     if ! isdefined(Test, :testset_forloop)
         Core.eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
     end
-#    Main.eval( :( using Symata ))
+    # FIXME: Following may be neccessary when loading Symata via julia -i -e "using Symata"
+    # Although it doesn't make sense. This is broken on v0.7, but not v0.6. Hangs.
+    # So, we  have to comment the following line out.
+    # Main.eval(:( using Symata ))
     sjimportall(:System, :Main)
     set_current_context(:Main)
-    if have_ijulia
+    if have_ijulia # Use the Jupyter interface
         isymata()
-    elseif isinteractive()
+    elseif isinteractive() # Started perhapse from the Julia REPL
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
-        else
+        else  # started via  julia -i -e "using Symata"
             Symata_start()
             exit()
         end

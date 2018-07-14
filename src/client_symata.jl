@@ -1,21 +1,9 @@
-#import Base: LineEdit, REPL, Terminals
 import REPL
-import REPL: LineEdit, Terminals
-import REPL.LineEdit.CompletionProvider
 
-import REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon, print_response
-import REPL.REPLCompletions
-import REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
-find_start_brace, complete_path
-
-import Base: TTY
-
-import REPL.Terminals
-
-import Base: text_colors,  default_color_input,  default_color_answer,
-       color_normal, input_color, answer_color, repl_cmd,
-       display_error, eval_user_input, parse_input_line, incomplete_tag,
-       repl_hooks, atreplinit, _atreplinit
+# import Base: text_colors,  default_color_input,  default_color_answer,
+#        color_normal, input_color, answer_color, repl_cmd,
+#        display_error, eval_user_input, parse_input_line, incomplete_tag,
+#        repl_hooks, atreplinit, _atreplinit
 
 ##################################################
 
@@ -27,6 +15,12 @@ import Base: text_colors,  default_color_input,  default_color_answer,
 ## So, we make this a noop for the time being
 symata_syntax_deprecation_warnings(f, args...) = f()
 
+# This function is only meant to be used via
+# julia -i -e "using Symata"
+# Otherwise it is never called.
+#
+# This code appears to be too old. Better to copy what
+# is done in recent client.jl
 function Symata_start()
     opts = Base.JLOptions()
     startup               = (opts.startupfile != 2)
@@ -40,13 +34,13 @@ function Symata_start()
     global active_repl
     global active_repl_backend
 
-    if !isa(stdin, TTY)
+    if !isa(stdin, Base.TTY)
         global is_interactive |= !isa(stdin, Union{File,IOStream})
         color_set || (global have_color = false)
     else
-        term = Terminals.TTYTerminal(get(ENV,"TERM", @static Sys.iswindows() ? "" : "dumb"), stdin, stdout, stderr)
+        term = REPL.Terminals.TTYTerminal(get(ENV,"TERM", @static Sys.iswindows() ? "" : "dumb"), stdin, stdout, stderr)
         global is_interactive = true
-        color_set || (global have_color = Terminals.hascolor(term))
+        color_set || (global have_color = REPL.Terminals.hascolor(term))
         Base.eval(Meta.parse("global have_color = " * string(have_color))) # get colors for warn and error
         quiet || REPL.banner(term,term)
         if term.term_type == "dumb"
@@ -57,11 +51,9 @@ function Symata_start()
             active_repl.history_file = history_file
             active_repl.hascolor = have_color
         end
-        # Make sure any displays pushed in .juliarc.jl ends up above the
-                # REPLDisplay
+        # Make sure any displays pushed in .juliarc.jl ends up above the REPLDisplay
         pushdisplay(REPL.REPLDisplay(active_repl))
     end
-
     if @isdefined(stdout)
         setsymval(:STDOUT, stdout)
     else
@@ -75,8 +67,7 @@ function Symata_start()
     if @isdefined(devnull)
         setsymval(:DevNull, devnull)
     end
-
-    if !isa(stdin,TTY)
+    if !isa(stdin, Base.TTY)
         # note: currently IOStream is used for file STDIN
         if isa(stdin,File) || isa(stdin,IOStream)
             # reading from a file, behave like include
@@ -88,7 +79,7 @@ function Symata_start()
             end
         end
     else
-        _atreplinit(active_repl)
+        Base._atreplinit(active_repl)
         symata_run_repl(active_repl, backend->(global active_repl_backend = backend))
         exit
     end
@@ -123,7 +114,6 @@ function  set_symata_prompt(s::T) where T<:AbstractString
     (Symata.symata_repl_mode().prompt = s)
 end
 
-#set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
 set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
 get_symata_prompt(s::AbstractString) = Symata.symata_repl_mode().prompt
 
