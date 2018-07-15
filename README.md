@@ -9,8 +9,8 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Coverage Status](https://coveralls.io/repos/github/jlapeyre/Symata.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/Symata.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
+[![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 [![Symata](http://pkg.julialang.org/badges/Symata_0.7.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.7)
-
 
 ### About versions
 
@@ -27,8 +27,8 @@ Almost all functionality lost has been regained in upgrading from v0.6 to v0.7-b
 Approximately 200 more tests pass on v0.7-beta than on v0.6.
 
 NOTE: The syntax for `PatternTest` has been changed, but is not reflected in
-many examples, such as the Jupyter notebooks. Do `symata > ? PatternTest`,
-and see "./sjtext/pattern_test.sj" for information on the new syntax.
+many examples, such as the Jupyter notebooks.
+See "./sjtest/pattern_test.sj" for information on the new syntax.
 
 ### Symata is
 

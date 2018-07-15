@@ -7,12 +7,10 @@ os:
 julia:
   - 0.7
   - nightly
-
 matrix:
   allow_failures:
     - julia: nightly
     - os: osx
-  
 git:
     depth: 99999
     
@@ -29,7 +27,6 @@ notifications:
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'using Pkg; Pkg.build("Symata"); Pkg.test("Symata"; coverage=true)'
-  
 before_install:
   - if [ $MPMATH = "true" ]; then julia -e 'Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
   

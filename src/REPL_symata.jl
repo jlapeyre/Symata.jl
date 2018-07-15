@@ -1,57 +1,40 @@
-# import Base: REPL, Terminals
-# import Base.REPL: LineEdit, REPLCompletions
-import REPL.LineEdit.transition
+import REPL
+import REPL: LineEdit, REPLCompletions
 
-import REPL: LineEditREPL, BasicREPL, StreamREPL, ends_with_semicolon,
-REPLCompletionProvider, return_callback, Prompt, respond, ShellCompletionProvider,
-REPLHistoryProvider, find_hist_file, print_response, outstream, hist_from_file, hist_getline,
-history_reset_state, LatexCompletions, edit_insert, mode_keymap, ModalInterface, reset, send_to_backend,
- backend, prepare_next, reset_state, ends_with_semicolon
-
-import REPL.REPLCompletions: bslash_completions, non_identifier_chars, should_method_complete,
-find_start_brace, complete_path
-
-import REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
-   LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
-
-import REPL: display
-
-# This prompt is used for the dumb terminal
+# This prompt is used only for the dumb terminal
 const symataprompt = "symata > "
 
 mutable struct SymataCompletionProvider <: REPL.CompletionProvider
-    r::LineEditREPL
+    r::REPL.LineEditREPL
 end
 
 function symata_respond(f, repl, main; pass_empty = false)
     (s,buf,ok)->begin
         if !ok
-            return transition(s, :abort)
+            return LineEdit.transition(s, :abort)
         end
         line = String(take!(buf))
         if !isempty(line) || pass_empty
-            reset(repl)
-            val, bt = send_to_backend(f(line), backend(repl))
-            if !ends_with_semicolon(line) || bt !== nothing
+            REPL.reset(repl)
+            val, bt = REPL.send_to_backend(f(line), REPL.backend(repl))
+            if ! REPL.ends_with_semicolon(line) || bt !== nothing
                 wval = wrapout(val)
                 REPL.print_response(repl, wval, bt, true, Base.have_color)
-
                 # The following works more-or-less for ascii-art math. But, the LaTeX needs tweaking for this.
                 # tex2mail interprets a negative thin space as several positive spaces
                 # lstr = latex_string(wval)
                 # str = readstring(pipeline(`echo $lstr`, `/home/lapeyre/.julia/v0.5/Nemo/local/bin/tex2mail --ignorefonts`))
                 # print("\n\n", str)
-
             end
         end
-        prepare_next(repl)
-        reset_state(s)
-        s.current_mode.sticky || transition(s, main)
+        REPL.prepare_next(repl)
+        REPL.reset_state(s)
+        s.current_mode.sticky || LineEdit.transition(s, main)
     end
 end
 
 # This code only works in a dumb terminal. Also maybe when running tests ?
-function symata_print_response(repl::AbstractREPL, val::Any, args...)
+function symata_print_response(repl::REPL.AbstractREPL, val::Any, args...)
     newval = wrapout(val)
     REPL.print_response(repl, newval, args...)
 end
@@ -65,10 +48,7 @@ end
 
 function Symata_parse_REPL_line(linein)
     line = sjpreprocess_interactive(linein)
-# FIXME: upgrade syntax_deprecation_warnings for v0.7
-#    symata_syntax_deprecation_warnings(false) do
-        Base.parse_input_line("@Symata.symfull " * line)
-#    end
+    Base.parse_input_line("@Symata.symfull " * line)
 end
 
 function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
@@ -78,7 +58,6 @@ function REPL.LineEdit.complete_line(c::SymataCompletionProvider, s)
     return ret, partial[range], should_complete
 end
 
-# FIXME: this should not be global
 const sorted_builtins = Array{String}(undef, 0)
 function populate_builtins()
     b = protectedsymbols_strings()
@@ -128,7 +107,7 @@ function symata_completions(string, pos)
         m = match(r"[\t\n\r\"'`@\$><=;|&\{]| (?!\\)", reverse(partial))
         startpos = nextind(partial, reverseind(partial, m.offset))
         r = startpos:pos
-        paths, r, success = complete_path(replace(string[r], r"\\ " => " "), pos)
+        paths, r, success = REPLCompletions.complete_path(replace(string[r], r"\\ " => " "), pos)
         if inc_tag == :string &&
            length(paths) == 1 &&                              # Only close if there's a single choice,
            !isdir(expanduser(replace(string[startpos:start(r)-1] * paths[1], r"\\ " => " "))) &&  # except if it's a directory
@@ -139,14 +118,14 @@ function symata_completions(string, pos)
         (success || inc_tag==:cmd) && return sort(paths), r, success
     end
 
-    ok, ret = bslash_completions(string, pos)
+    ok, ret = REPL.REPLCompletions.bslash_completions(string, pos)
     ok && return ret
 
     # Make sure that only bslash_completions is working on strings
     inc_tag==:string && return String[], 0:-1, false
 
-     if inc_tag == :other && should_method_complete(partial)
-        frange, method_name_end = find_start_brace(partial)
+     if inc_tag == :other && REPLCompletions.should_method_complete(partial)
+        frange, method_name_end = REPLCompletions.find_start_brace(partial)
         ex = symata_syntax_deprecation_warnings(false) do
             parse(partial[frange] * ")", raise=false)
         end
@@ -158,7 +137,7 @@ function symata_completions(string, pos)
     end
 
     dotpos = something(findprev(isequal('.'), string, pos), 0)
-    startpos = nextind(string, something(findprev(in(non_identifier_chars), string, pos), 0))
+    startpos = nextind(string, something(findprev(in(REPLCompletions.non_identifier_chars), string, pos), 0))
 
     ffunc = (mod,x)->true
     suggestions = String[]
@@ -170,7 +149,6 @@ function symata_completions(string, pos)
 end
 
 # Code modified from Cxx.jl
-
 global RunSymataREPL
 
 # Handles BasicREPL
@@ -178,7 +156,8 @@ function RunSymataREPL(repl)
     symata_run_repl(repl)
 end
 
-function RunSymataREPL(repl::LineEditREPL)
+# Handle the featureful REPL
+function RunSymataREPL(repl::REPL.LineEditREPL)
 
     # Completion list for Symata
     populate_builtins()
@@ -189,7 +168,7 @@ function RunSymataREPL(repl::LineEditREPL)
           # Copy colors from the prompt object
                         prompt_prefix=Base.text_colors[:blue],
                         complete = SymataCompletionProvider(repl),
-                        on_enter = return_callback
+                        on_enter = REPL.return_callback
                         )
     symata_prompt.on_done =
         symata_respond(Symata_parse_REPL_line,
@@ -227,22 +206,18 @@ function RunSymataREPL(repl::LineEditREPL)
     nothing
 end
 
-## Why repeated all over the place ?
-import REPL: AbstractREPL, start_repl_backend, run_frontend, REPLBackendRef,
-   LineEditREPL, REPLDisplay, run_interface, setup_interface, LineEdit, REPL
-
-function symata_run_repl(repl::AbstractREPL, consumer = x->nothing)
+function symata_run_repl(repl::REPL.AbstractREPL, consumer = x->nothing)
     repl_channel = Channel(1)
     response_channel = Channel(1)
-    backend = start_repl_backend(repl_channel, response_channel)
-    symata_run_frontend(repl, REPLBackendRef(repl_channel,response_channel))
+    backend = REPL.start_repl_backend(repl_channel, response_channel)
+    symata_run_frontend(repl, REPL.REPLBackendRef(repl_channel,response_channel))
     return backend
 end
 
-symata_run_repl(stream::IO) = run_repl(StreamREPL(stream))
+symata_run_repl(stream::IO) = run_repl(REPL.StreamREPL(stream))
 
-function symata_run_frontend(repl::LineEditREPL, backend)
-    d = REPLDisplay(repl)
+function symata_run_frontend(repl::REPL.LineEditREPL, backend)
+    d = REPL.REPLDisplay(repl)
     dopushdisplay = repl.specialdisplay === nothing && !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
     if !isdefined(repl,:interface)
@@ -253,12 +228,12 @@ function symata_run_frontend(repl::LineEditREPL, backend)
     end
     repl.backendref = backend
     #### Use this to add a mode to the stock repl
-    run_interface(repl.t, interface)
+    REPL.run_interface(repl.t, interface)
     dopushdisplay && popdisplay(d)
 end
 
-function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
-    d = REPLDisplay(repl)
+function symata_run_frontend(repl::REPL.BasicREPL, backend::REPL.REPLBackendRef)
+    d = REPL.REPLDisplay(repl)
     dopushdisplay = !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
     repl_channel, response_channel = backend.repl_channel, backend.response_channel
@@ -294,7 +269,7 @@ function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
         if !isempty(line)
             put!(repl_channel, (ast, 1))
             val, bt = take!(response_channel)
-            if !ends_with_semicolon(line)
+            if ! REPL.ends_with_semicolon(line)
                 symata_print_response(repl, val, bt, true, false)
             end
         end
@@ -306,10 +281,10 @@ function symata_run_frontend(repl::BasicREPL, backend::REPLBackendRef)
     dopushdisplay && popdisplay(d)
 end
 
-function symata_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
+function symata_run_frontend(repl::REPL.StreamREPL, backend::REPL.REPLBackendRef)
     have_color = Base.have_color
     banner(repl.stream, have_color)
-    d = REPLDisplay(repl)
+    d = REPL.REPLDisplay(repl)
     dopushdisplay = !in(d,Base.Multimedia.displays)
     dopushdisplay && pushdisplay(d)
     repl_channel, response_channel = backend.repl_channel, backend.response_channel
@@ -329,7 +304,7 @@ function symata_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
             end
             put!(repl_channel, (ast, 1))
             val, bt = take!(response_channel)
-            if !ends_with_semicolon(line)
+            if ! REPL.ends_with_semicolon(line)
                 symata_print_response(repl, val, bt, true, have_color)
             end
         end
@@ -339,10 +314,9 @@ function symata_run_frontend(repl::StreamREPL, backend::REPLBackendRef)
     dopushdisplay && popdisplay(d)
 end
 
-function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, extra_repl_keymap = Dict{Any,Any}[])
     ###
     #
-    # This function returns the main interface that describes the REPL
+    # The following function returns the main interface that describes the REPL
     # functionality, it is called internally by functions that setup a
     # Terminal-based REPL frontend, but if you want to customize your REPL
     # or embed the REPL in another interface, you may call this function
@@ -364,10 +338,12 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     #
     ###
 
+function symata_setup_interface(repl::REPL.LineEditREPL; hascolor = repl.hascolor, extra_repl_keymap = Dict{Any,Any}[])
+
     ############################### Stage I ################################
 
     # This will provide completions for REPL and help mode
-    replc = REPLCompletionProvider()
+    replc = REPL.REPLCompletionProvider()
 
     # Completions for Symata
     symata_replc = SymataCompletionProvider(repl)
@@ -380,7 +356,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
             (repl.envcolors ? Base.input_color : repl.input_color) : "",
         keymap_func_data = repl,
         complete = replc,
-        on_enter = return_callback)
+        on_enter = REPL.return_callback)
 
     julia_prompt.on_done = respond(Base.parse_input_line, repl, julia_prompt)
 
@@ -394,7 +370,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                         prompt_suffix = hascolor ?
                         (repl.envcolors ? Base.input_color : repl.input_color) : "",
                         complete = symata_replc,
-                        on_enter = return_callback  # allows multiline input
+                        on_enter = REPL.return_callback  # allows multiline input
                         )
 
     symata_prompt.on_done =
@@ -420,7 +396,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                         keymap_func_data = repl,
 ## FIXME: add branch, or accomodate v0.5
                         #       if VERSION > v"0.5" 
-         complete = ShellCompletionProvider(),
+         complete = REPL.ShellCompletionProvider(),
        # else
        #   complete = ShellCompletionProvider(repl)
        # end,
@@ -428,7 +404,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
         # and pass into Base.repl_cmd for processing (handles `ls` and `cd`
         # special)
         on_done = respond(repl, julia_prompt) do line
-            Expr(:call, :(Base.repl_cmd), macroexpand(Expr(:macrocall, Symbol("@cmd"),line)), outstream(repl))
+            Expr(:call, :(Base.repl_cmd), macroexpand(Expr(:macrocall, Symbol("@cmd"),line)), REPL.outstream(repl))
         end)
 
 
@@ -436,31 +412,31 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
 
     # Setup history
     # We will have a unified history for all REPL modes
-    hp = REPLHistoryProvider(Dict{Symbol,Any}(:julia => julia_prompt,
+    hp = REPL.REPLHistoryProvider(Dict{Symbol,Any}(:julia => julia_prompt,
                                               :symata => symata_prompt,
                                               :shell => shell_mode,
                                               :help  => help_mode))
     if repl.history_file
         try
-            hist_path = find_hist_file()
+            hist_path = REPL.find_hist_file()
             f = open(hist_path, true, true, true, false, false)
             finalizer(replc, replc->close(f))
-            hist_from_file(hp, f, hist_path)
+            REPL.hist_from_file(hp, f, hist_path)
         catch e
-            print_response(repl, e, catch_backtrace(), true, Base.have_color)
-            println(outstream(repl))
+            REPL.print_response(repl, e, catch_backtrace(), true, Base.have_color)
+            println(REPL.outstream(repl))
             info("Disabling history file for this session.")
             repl.history_file = false
         end
     end
-    history_reset_state(hp)
+    REPL.history_reset_state(hp)
     julia_prompt.hist = hp
     symata_prompt.hist = hp
     shell_mode.hist = hp
     help_mode.hist = hp
 
     search_prompt, skeymap = LineEdit.setup_search_keymap(hp)
-    search_prompt.complete = LatexCompletions()
+    search_prompt.complete = REPL.LatexCompletions()
 
     # Canonicalize user keymap input
     if isa(extra_repl_keymap, Dict)
@@ -472,7 +448,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     repl_keymap = Dict{Any,Any}(
          enter_symata_key => function (s,args...)
             if isempty(s) || position(LineEdit.buffer(s)) == 0
-                if !haskey(s.mode_state,symata_prompt)
+                if ! haskey(s.mode_state,symata_prompt)
                     s.mode_state[symata_prompt] = LineEdit.init_state(repl.t,symata_prompt)
                 end
                 buf = copy(LineEdit.buffer(s))   # allows us to edit a line of julia input
@@ -492,21 +468,21 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
          ';' => function (s,o...)
             if isempty(s) || position(LineEdit.buffer(s)) == 0
                 buf = copy(LineEdit.buffer(s))
-                transition(s, shell_mode) do
+                LineEdit.transition(s, shell_mode) do
                     LineEdit.state(s, shell_mode).input_buffer = buf
                 end
             else
-                edit_insert(s, ';')
+                REPL.edit_insert(s, ';')
             end
         end,
         '?' => function (s,o...)  # Disable this for symata mode, because we use '?' for symata help.
             if LineEdit.mode(s) != symata_prompt && (isempty(s) || position(LineEdit.buffer(s)) == 0)
                 buf = copy(LineEdit.buffer(s))
-                transition(s, help_mode) do
+                LineEdit.transition(s, help_mode) do
                     LineEdit.state(s, help_mode).input_buffer = buf
                 end
             else
-                edit_insert(s, '?')
+                REPL.edit_insert(s, '?')
             end
         end,
 
@@ -527,10 +503,10 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
                 # when pasting in the middle of input, just paste in place
                 # don't try to execute all the WIP, since that's rather confusing
                 # and is often ill-defined how it should behave
-                edit_insert(s, input)
+                REPL.edit_insert(s, input)
                 return
             end
-            edit_insert(sbuffer, input)
+            REPL.edit_insert(sbuffer, input)
             input = String(take!(sbuffer))
             oldpos = start(input)
             firstline = true
@@ -577,7 +553,7 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
 
     julia_prompt.keymap_dict = LineEdit.keymap(a)
 
-    mk = mode_keymap(julia_prompt)
+    mk = REPL.mode_keymap(julia_prompt)
 
     b = Dict{Any,Any}[skeymap, mk, prefix_keymap, LineEdit.history_keymap, LineEdit.default_keymap, LineEdit.escape_defaults]
     prepend!(b, extra_repl_keymap)
@@ -585,5 +561,5 @@ function symata_setup_interface(repl::LineEditREPL; hascolor = repl.hascolor, ex
     symata_prompt.keymap_dict = LineEdit.keymap(a)
     shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
 
-    ModalInterface([symata_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
+    REPL.ModalInterface([symata_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
 end
