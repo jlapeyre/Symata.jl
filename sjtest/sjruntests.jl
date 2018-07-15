@@ -54,7 +54,7 @@ function runalltests()
         "spec_fun_test.sj"
     )
         Symata.runtest(symatatest, f)
-        println(stderr, "Done testing $f")
+        println(stdout, "Done testing $f")
         Symata.symataevaluate(Meta.parse("Apply(ClearAll, UserSyms())"),
                               Symata.EvaluateJuliaSyntaxSimple())
     end

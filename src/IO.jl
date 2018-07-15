@@ -150,8 +150,8 @@ end
 prints definitions associated with `Symbol` `sym`.
 """
 
-function maybeprint(io::IO,s)
-    if length(s)>0 symprintln(io,s)
+function maybeprint(io::IO, s)
+    if length(s) > 0 symprintln(io, s)
         return true
     end
     false

@@ -71,9 +71,9 @@ function Symata_test_path()
     joinpath(Symata_module_path(), "sjtest")
 end
 
-function runtest(test,fname)
+function runtest(test_type, fname; logfile="")
     path = joinpath(SYMATA_LANG_TEST_PATH, fname)
-    read_Symata_file(path, test)
+    read_Symata_file(path, test_type)
     nothing
 end
 
@@ -91,12 +91,15 @@ end
 @sjdoc Tests """
     Tests()
 
-run the Symata test suite. This runs the code in the directory `sjtest`, this should
-be newer and better maintained than the code in the `test` directory.
+Run the Symata-language test suite. This runs the code in the directory `sjtest`.
 
     Tests(filename)
 
-runs the tests in `filename` in the directory `sjtest`.
+Run the tests in `filename` in the directory main test directory (`sjtest`).
+
+    Tests(filename, PrintTests => True)
+
+Print each test before running it.
 """
 
 # kws not yet implemented in @doap. Should be easy now that we use MacroTools
@@ -105,15 +108,22 @@ runs the tests in `filename` in the directory `sjtest`.
 do_Tests(mx::Mxpr{:Tests};kws...) = run_testsuite()
 
 ## TODO: need a way to assert type Bool
-function do_Tests(mx::Mxpr{:Tests}, s::String; PrintTests=false)
-    test = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()
-    runtest(test, s)
+function do_Tests(mx::Mxpr{:Tests}, s::String; PrintTests=false, LogFile=false)
+    test_type = PrintTests ? SymataPlainPrintTest() : SymataPlainTest()
+    println("Running test $s")
+    logfile = LogFile ? LogFile : ""  # currently not implemented
+    runtest(test_type, s; logfile=LogFile)
 end
-
 
 ### Test
 
 @mkapprule Test :nargs => 1
+
+@sjdoc Test """
+    Test(expr)
+
+Return `True` if `expr` evaluates to `True` and `False` otherwise.
+"""
 
 @doap function Test(ex)
     trueq(doeval(ex))
