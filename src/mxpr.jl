@@ -23,7 +23,7 @@ macro sjdoc(sym,str)
     nothing
 end
 
-function sjdocfun(sym,str)
+function sjdocfun(sym, str)
     SJDOCS[sym] = Markdown.parse(str)
     nothing
 end
@@ -32,10 +32,30 @@ end
 # SSJSym are Symata symbols
 # Mxpr are Symata expressions
 
+"""
+    MxprArgs
+
+type of container for the arguments of
+an `Mxpr`. This is currently `Array{Any,1}`.
+"""
 const MxprArgs = Array{Any,1}
+
+"""
+    MxprArgType
+
+eltype of container for the arguments of
+an `Mxpr`. This is currently `Any`.
+"""
 const MxprArgType = Any
 const MxprArgT  = Any
 const FreeSyms = Dict{Symbol,Bool}
+
+"""
+    SymString
+
+Union{Symbol,String}, either a Symbol or
+a String.
+"""
 const SymString  = Union{Symbol,String}
 
 # FIXME. This is inconsistent with interface of AbstractUnitRange{T}. Can't 'show' it.
@@ -57,8 +77,6 @@ UnitRangeInf(start) = UnitRangeInf(start, :Inf)
 
 ## Help for builtin types print documentation for fields, or at least lists them.
 ## How can we do this ?
-
-
 ### NOTE: Julia apparently allows any object for T. But, maybe we still need GenHead
 
 """
@@ -85,9 +103,30 @@ end
 const SJSymAttrs = Dict{Symbol,Bool}
 const SJSymDVs =  Array{Any,1}
 const SJSymuVs =  Array{Any,1}
-@inline newattributes() = SJSymAttrs()
-@inline newdownvalues() = Array{Any}(undef, 0)
-@inline newupvalues() = Array{Any}(undef, 0)
+
+"""
+    newattributes()
+
+get a new container for attributes
+of an instance of `SSJSym`.
+"""
+newattributes() = SJSymAttrs()
+
+"""
+    newdownvalues()
+
+get a new container for downvalues
+of an instance of `SSJSym`.
+"""
+newdownvalues() = Array{Any}(undef, 0)
+
+"""
+    newupvalues()
+
+get a new container for upvalues
+of an instance of `SSJSym`.
+"""
+newupvalues() = Array{Any}(undef, 0)
 
 # Almost all symbols use Any for parameter T.  We experimented a bit
 # with a value of Int for some symbols It may be better to have no
@@ -112,6 +151,27 @@ const SJSymuVs =  Array{Any,1}
 ## For symbols with downvalues, getting a field might be faster than looking up in a table.
 abstract type AbstractSJSym end
 
+"""
+    SSJSym{T}
+
+struct storing information about Symata symbols.
+Symata symbol names are Julia `Symbol`s. These
+names are used to lookup and modify the properties
+of the symbol, which are stored in an object of
+type `SSJSym{T}`.
+
+Fields
+
+* `val` is the value of the symbol, that is what the
+symbol name is bound to.
+* `attr` stores the `Attributes` of the symbol.
+* `downvalues`, `upvalues` store Symata code defining
+up and down values.
+* `age` the time of the last modification measured in
+passes through the evaluation sequence.
+* `definition` "function" definitions associated with
+the symbol.
+"""
 mutable struct SSJSym{T}  <: AbstractSJSym
     val::Array{T,1}
     attr::SJSymAttrs
@@ -131,18 +191,39 @@ end
 # data associated with Symata symbols are instances of type SSJSym     #
 # SJSym is just Symbol. It is an older abstraction. Maybe we need it ! #
 ########################################################################
+"""
+    SJSym
+
+The type of names of Symata symbols. Currently `SJSYM==Symbol`.
+This abstraction was maintained for a while.
+"""
 const SJSym = Symbol
 
-#### Symbol Table
+### Symbol Table
 
-## symbol table for Symata symbols
+"""
+    SymTab
 
+symbol table for Symata symbols. This
+maps symbol names to objects of type
+`SSJSym`, which store information about
+the symbol.
+"""
 const SymTab = Dict{Symbol,SSJSym}
 
+"""
+    newsymtable()
+
+create a new symbol table of type `SymTab`
+"""
 newsymtable() = SymTab()
 
-#const SYMTAB = newsymtable()
+"""
+    SYMTABLES
 
+a dictionary mapping symbol table names
+to symbol tables.
+"""
 const SYMTABLES = Dict{Symbol,SymTab}()
 SYMTABLES[:System] = newsymtable()
 SYMTABLES[:Main] = newsymtable()
@@ -190,6 +271,12 @@ function set_current_context(name::Symbol)
 #    println("Set current context to $name")
 end
 
+"""
+    sjimportall(src::Symbol, targ::Symbol)
+
+Import all symbols in the symbol table of context
+`src` to the symbol table of `targ`.
+"""
 function sjimportall(src::Symbol, targ::Symbol)
     tc = get_context_symtab(targ)
     for (k,v) in get_context_symtab(src)
@@ -206,6 +293,13 @@ mutable struct Evalage
 end
 const evalage = Evalage(0)
 
+"""
+    increvalage()
+
+increment the counter of the
+number of passes through the
+evaluation sequence.
+"""
 increvalage() = evalage.t += 1
 getevalage() = evalage.t
 
@@ -222,7 +316,7 @@ is_system_symbol(s::SymString) =  system_symbols[Symbol(s)]
 
 get_system_symbols() = sort!(collect(keys(system_symbols)))
 
-#### Down values
+### Down values
 
 # We store the Mxpr definition to define downvalues. These
 # can be written to a file.
@@ -286,11 +380,19 @@ end
 # Form of these functions depend on whether the symbol name is a type parameter
 # or a field
 
-@inline ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
+ssjsym(s::Symbol) = SSJSym{Any}(Any[s],newattributes(),newdownvalues(),newupvalues(),0,NullMxpr)
 
 # Hmm. Careful, this only is the name if the symbol evaluates to itself
-function symname(s::SSJSym{T}) where T
-    s.val[1]
+"""
+    symname(s::SSJSym)
+
+This is incorrectly named. It should
+be `symval`. It is used only on unbound
+symbols, that is symbols that are bound
+to themselves.
+"""
+function symname(s::SSJSym)
+    return symval(s)
 end
 
 """
@@ -341,7 +443,12 @@ end
 #     symval(s::SSJSym)
 
 # Return the value bound to the Symata symbol `s`.
-# """
+"""
+    symval(s::SSJSym)
+
+Return the value stored in the symbol
+data `s`.
+"""
 function symval(s::SSJSym)
     s.val[1]
 end
@@ -420,7 +527,7 @@ clear_ownvalue_definition(sym::SJSym) = (getssym(sym).definition = NullMxpr)
 Is the identity. This mainly exists to cause confusion
 with `getssym`. Careful! this is not getssym.
 """
-@inline getsym(s) = s  # careful, this is not getssym
+getsym(s) = s  # careful, this is not getssym
 
 # Try storing values in a Dict instead of a field. Not much difference.
 # @inline symval(s::SJSym) = return haskey(SYMVALTAB,s) ? SYMVALTAB[s] : s
@@ -431,7 +538,7 @@ with `getssym`. Careful! this is not getssym.
 # end
 # #@inline symval(s::SSJSym) = s.val
 
-@inline symage(s::SJSym) = getssym(s).age
+symage(s::SJSym) = getssym(s).age
 
 import Base:  ==
 
@@ -474,7 +581,7 @@ end
 function clear_downvalue_definitions(sym::SJSymbol)
     s = getssym(sym)
     dvs = s.downvalues
-    for i in 1:length(dvs)
+    @inbounds for i in 1:length(dvs)
         lhs = dvs[i][1]
         delete_downvalue_def(lhs)
     end
@@ -491,7 +598,7 @@ function jlistdownvaluedefs(sym::SJSymbol)
     s = getssym(sym)
     dvs = s.downvalues
     dvlist = Array{Any,1}()
-    for i in 1:length(dvs)
+    @inbounds for i in 1:length(dvs)
         lhs = dvs[i][1]
         mx = get_downvalue_def(lhs)
         mx != NullMxpr && push!(dvlist, mx)
@@ -517,13 +624,13 @@ function set_upvalue(mx, ins::SJSym,val)
     s.age = increvalage()
 end
 
-@inline upvalues(s::SJSym) = getssym(s).upvalues
-@inline has_upvalues(s::SJSym) = length(upvalues(s)) > 0
+upvalues(s::SJSym) = getssym(s).upvalues
+has_upvalues(s::SJSym) = length(upvalues(s)) > 0
 
 function clear_upvalue_definitions(sym::SJSym)
     s = getssym(sym)
     uvs = s.upvalues
-    for i in 1:length(uvs)
+    @inbounds for i in 1:length(uvs)
         lhs = uvs[i][1]
         delete_upvalue_def(lhs)
     end
@@ -538,7 +645,7 @@ function jlistupvaluedefs(sym::SJSym)
     s = getssym(sym)
     uvs = s.upvalues
     uvlist = Array{Any,1}()
-    for i in 1:length(uvs)
+    @inbounds for i in 1:length(uvs)
         lhs = uvs[i][1]
         mx = get_upvalue_def(lhs)
         mx != NullMxpr && push!(uvlist, get_upvalue_def(lhs))
@@ -550,9 +657,6 @@ end
 ## SJSymbol access
 #######################################################
 
-"""
-
-"""
 function getssym(s::Symbol)
     if haskey(CurrentContext.symtab,s)
         return CurrentContext.symtab[s]
@@ -1107,7 +1211,7 @@ returns a copy of `mx` with its fixed bit set, as well as the fixed bit on all `
 """
 function deepsetfixed(mx::Mxpr)
     nargs = newargs(mx)
-    for i in 1:length(nargs)
+    @inbounds for i in 1:length(nargs)
         nargs[i] = deepsetfixed(mx[i])
     end
     return mxprcf(mhead(mx), nargs)
@@ -1200,11 +1304,11 @@ for s in (:(Base.pop!), :(Base.popfirst!), :(Base.pushfirst!), :(Base.push!), :(
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
 
-@inline Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
+Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
 Base.length(mx::Mxpr) = length(margs(mx))
-@inline getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
+getindex(mx::Mxpr, k::Integer) = margs(mx)[k]
 getindex(mx::Mxpr, inds...) = getpart(mx,inds...)
-@inline Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
+Base.lastindex(mx::Mxpr) = lastindex(margs(mx))
 # We try to make this fast: In the Symata language, mx[0] gets the head, but not here.
 setindex!(mx::Mxpr, val, k::Integer) = (margs(mx)[k] = val)
 

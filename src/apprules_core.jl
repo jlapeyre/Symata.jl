@@ -257,8 +257,7 @@ end
 
 ### Default apprule
 
-# This is for a head that is (almost always) not a "system" symbol, but rather user defined
-
+# This is for a head that is (almost always) not a "system" symbol, but rather user defined.
 apprules(x) = x
 
 #### Currying

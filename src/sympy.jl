@@ -9,10 +9,6 @@ const sympysyms1 = [:Symbol,:Number,:Integral, :Sum, :StrictLessThan, :StrictGre
                     :LessThan, :GreaterThan, :Unequality,
                     :Integer, :Rational, :Float]
 
-# const sympysyms1 = [:Symbol,:Number,:Integral, :Sum, :StrictLessThan, :StrictGreaterThan,
-#                     :LessThan, :GreaterThan, :Equality, :Unequality,
-#                     :Integer, :Rational, :Float]
-
 ## These are buried in arbitrary class hierarchies
 const sympysyms2 = [:True,:False]
 
@@ -32,7 +28,6 @@ import Base: isless
 #  PyObject mpf('0.29977543700203352')
 
 # Francesco Bonazzi contributed code for an early version of this file.
-
 # FIXME: We may want to SymPy integers to BigInts in Symata when bigint_input is set.
 # SymPy integers are already BigInt, but we are currently converting them to Int (I think)
 # Eg.
@@ -45,7 +40,7 @@ function import_sympy()
     copy!(mpmath, PyCall.pyimport_conda("mpmath", "mpmath"))
 end
 
-# PYDEBUGLEVEL defined in debug.jl
+# PYDEBUGLEVEL and SJDEBUGLEVEL defined in debug.jl
 macro pydebug(level, a...)
     if level <= PYDEBUGLEVEL
         :((println("pydeb: ", $(a...));println()))
@@ -80,7 +75,7 @@ end
 #
 # 2) A reversed dict SYMATA_TO_SYMPY_FUNCTIONS is created from SYMPY_TO_SYMATA_FUNCTIONS.
 # This dict is used for two things a) to automatically lookup sympy docstrings associated
-# with Symata heads in doc.jl. b) to populated mx_to_py_dict. This dict stores callable references
+# with Symata heads in doc.jl. b) to populate mx_to_py_dict. This dict stores callable references
 # to sympy functions with keys being the Symata heads. A few other sympy functions are put into
 # mx_to_py_dict "by hand" in populate_mx_to_py_dict().(does it need to be done this way ?)
 
@@ -88,14 +83,17 @@ const SYMPY_TO_SYMATA_FUNCTIONS = Dict{Symbol,Symbol}()
 const SYMATA_TO_SYMPY_FUNCTIONS = Dict{Symbol,Symbol}()
 
 # Dict containing symbols created via sympy.Symbol("...")
+# This maps Sympy symbols to Symata (Julia) Symbols
 const SYMPY_USER_SYMBOLS = Dict{Symbol,Any}()
-# we put more than user symbols in the following
+
+# This maps in the other direction, Julia to Sympy symbols.
+# But, we put more than user symbols in the following
 const SYMPY_USER_SYMBOLS_REVERSE = Dict{PyCall.PyObject,Any}()  # type must be Any, we want more than symbols
 
-function set_pytosj(py,sj)
+function set_pytosj(py, sj)
     spy = Symbol(py)
     ssj = Symbol(sj)
-    if haskey(SYMPY_TO_SYMATA_FUNCTIONS,spy)
+    if haskey(SYMPY_TO_SYMATA_FUNCTIONS, spy)
         @warn("*** set_pytosj ", spy, " already has value ", SYMPY_TO_SYMATA_FUNCTIONS[spy], " can't set it to ", ssj)
         return
     end
@@ -114,35 +112,49 @@ end
 
 get_sjtopy(sj) = SYMATA_TO_SYMPY_FUNCTIONS[sj]
 
-#################################################################
+#######################################################
 
 # described above
-const mx_to_py_dict =  Dict()   # Can we specify types for these Dicts ?
+const mx_to_py_dict = Dict()   # Can we specify types for these Dicts ?
 
 # This does not refer the sympy 'rewrite' capability.
 # This refers to some kind of rewriting of functions or arguments
 # during sympy to symata translation.
 # This dict is populated below.
-const py_to_mx_rewrite_function_dict = Dict{Any,Any}(
-                                            )
+const py_to_mx_rewrite_function_dict = Dict{Any,Any}()
+
 # End translation Dicts
 ######################################################
 
-#### Digits of precision for Sympy
-
+## Digits of precision for Sympy
 const MPMATH_DPS = Int[0]
 
+"""
+    get_mpmath_dps()
+
+Get the number of digits of precision used by mpmath.
+"""
 get_mpmath_dps() = mpmath[:mp][:dps]
 
+"""
+    set_mpmath_dps(n)
+
+Set the number of digits of precision used by mpmath.
+"""
 function set_mpmath_dps(n)
-    push!(MPMATH_DPS,mpmath[:mp][:dps])
+    push!(MPMATH_DPS, mpmath[:mp][:dps])
     mpmath[:mp][:dps] = n
 end
 
+"""
+    restore_mpmath_dps()
+
+Pop the most recent number of digits of precision used by mpmath
+from a stack, and set the number of DPS.
+"""
 restore_mpmath_dps() = (mpmath[:mp][:dps] = pop!(MPMATH_DPS))
 
-# This translates key value pairs that we use to
-# describe the mapping from sj to py.
+# This translates key value pairs that we use to describe the mapping from sj to py.
 function get_sympy_math(x)
     if length(x) == 1
         jf = x[1]
@@ -168,7 +180,8 @@ function make_sympy_to_symata()
                       (:ProductLog, :LambertW),
                       (:Exp, :exp), (:Abs, :Abs), (:MeijerG, :meijerg), (:PolarLift, :polar_lift),
                       (:ExpPolar, :exp_polar), (:LowerGamma, :lowergamma), (:Sign,:sign),
-                      (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),(:DirichletEta, :dirichlet_eta),(:PolyLog, :polylog),
+                      (:PeriodicArgument, :periodic_argument), (:Max, :Max), (:Min, :Min),
+                      (:DirichletEta, :dirichlet_eta),(:PolyLog, :polylog),
                       (:Conjugate, :conjugate), (:Factorial, :factorial)
                       ]
 
@@ -198,7 +211,7 @@ function make_sympy_to_symata()
             set_sjtopy(symata_func, sympy_func)
         end
     end
-    set_pytosj(:InverseLaplaceTransform,:InverseLaplaceTransform)
+    set_pytosj(:InverseLaplaceTransform, :InverseLaplaceTransform) # FIXME. Do this elsewhere ?
 end
 
 function register_sjfunc_pyfunc(sj::SymString, py::SymString)
@@ -206,7 +219,6 @@ function register_sjfunc_pyfunc(sj::SymString, py::SymString)
     set_sjtopy(Symbol(sj), Symbol(py))
 end
 
-# Watch the order
 function register_only_pyfunc_to_sjfunc(sj::SymString, py::SymString)
     set_pytosj(py,sj)
 end
@@ -220,10 +232,8 @@ function lookup_pyfunc_symbol(sjsym)
     get_sjtopy(sjsym)
 end
 
-#### Convert SymPy to Mxpr
-
+### Convert SymPy to Mxpr
 #  Note: To convert, say a hypergeometric function to a float, do this:  f1[:evalf]()
-
 function populate_py_to_mx_dict()
     # If this is Dict{Any,Any}, then nothing is translated until the
     # catchall branch at the end of sympyt2mxpr. Why ?
