@@ -146,10 +146,10 @@ function do_init()
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
         else  # started via  julia -i -e "using Symata"
-            # client.jl is broken recently anyway.
-            # This allows non-interactive testing
-            # Symata_start()
-            # exit()
+              # client.jl is broken recently anyway.
+              # This allows non-interactive testing
+              # Symata_start()
+              # exit()
         end
     else
         nothing
