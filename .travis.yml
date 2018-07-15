@@ -1,7 +1,9 @@
 language: julia
+
 os:
   - linux
   - osx
+  
 julia:
   - 0.7
   - nightly
@@ -11,18 +13,22 @@ matrix:
     - os: osx
 git:
     depth: 99999
+    
 env:
     global:
     - PYTHON=conda
     matrix:
     - MPMATH=true
     - MPMATH=false
+    
 notifications:
   email: false
+  
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'using Pkg; Pkg.build("Symata"); Pkg.test("Symata"; coverage=true)'
 before_install:
   - if [ $MPMATH = "true" ]; then julia -e 'Pkg.add("Conda"); using Conda; Conda.add("mpmath")';fi
+  
 after_success:
   - julia -e 'Pkg.add("Coverage"); cd(Pkg.dir("Symata")); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
