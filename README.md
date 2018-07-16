@@ -14,19 +14,14 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 
 ### About versions
 
-The master branch supports only v0.7 and greater.
+The master branch, and tagged versions 0.4.0 and later, support only Julia v0.7 and greater.
 
-For Julia v0.6.3, install the version tagged `v0.3.0`. Compared to the `jv0.5only`
-branch, a few features are disabled due to changes between v0.5 and v0.6.2. Three percent of the tests fail.
+The last version to support Julia v0.6.3 is tagged v0.3.0. Three percent of the tests fail.
 
 For Julia v0.5, install branch `jv0.5only`. No development is done on this branch,
 only fixes for changing dependencies.
 
-Most of Symata's functionality in Julia v0.5 is preserved in v0.6.
-Almost all functionality lost has been regained in upgrading from v0.6 to v0.7-beta.
-Approximately 200 more tests pass on v0.7-beta than on v0.6.
-
-NOTE: The syntax for `PatternTest` has been changed, but is not reflected in
+NOTE: The syntax for `PatternTest` has been changed in Symata v0.4.0, but is not reflected in
 many examples, such as the Jupyter notebooks.
 See "./sjtest/pattern_test.sj" for information on the new syntax.
 
