@@ -112,7 +112,7 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("protected_symbols.jl")
 @inc("REPL_symata.jl")
 @inc("client_symata.jl")
-@inc("isymata.jl")
+@inc("IJulia/isymata.jl")
 @inc("plot.jl")
 @inc("docautoloaded.jl")
 @inc("function.jl")
@@ -129,7 +129,7 @@ symata() = do_init()
 export symata
 
 function do_init()
-    have_ijulia = isdefined(Main, :IJulia)
+    have_ijulia = isdefined(Main, :IJulia)  # This just checks if the module has been loaded !
     init_sympy()
     if ! isdefined(Test, :testset_forloop)
         Core.eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
