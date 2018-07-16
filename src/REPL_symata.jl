@@ -2,6 +2,7 @@ import REPL
 import REPL: LineEdit, REPLCompletions
 
 # This prompt is used only for the dumb terminal
+# No, this is used for LineEdit feature as well.
 const symataprompt = "symata > "
 
 mutable struct SymataCompletionProvider <: REPL.CompletionProvider
@@ -176,7 +177,7 @@ function RunSymataREPL(repl::REPL.LineEditREPL)
 
     main_mode = repl.interface.modes[1]
 
-    push!(repl.interface.modes,symata_prompt)
+    push!(repl.interface.modes, symata_prompt)
 
     hp = main_mode.hist
     hp.mode_mapping[:symata] = symata_prompt
@@ -395,7 +396,7 @@ function symata_setup_interface(repl::REPL.LineEditREPL; hascolor = repl.hascolo
             (repl.envcolors ? Base.input_color : repl.input_color) : "",
                         keymap_func_data = repl,
 ## FIXME: add branch, or accomodate v0.5
-                        #       if VERSION > v"0.5" 
+                        #       if VERSION > v"0.5"
          complete = REPL.ShellCompletionProvider(),
        # else
        #   complete = ShellCompletionProvider(repl)
@@ -562,4 +563,14 @@ function symata_setup_interface(repl::REPL.LineEditREPL; hascolor = repl.hascolo
     shell_mode.keymap_dict = help_mode.keymap_dict = LineEdit.keymap(b)
 
     REPL.ModalInterface([symata_prompt, julia_prompt, shell_mode, help_mode, search_prompt, prefix_prompt])
+end
+
+function transition_to_symata()
+    mistate = Base.active_repl.mistate
+    REPL.reset_state(mistate)
+    symata_prompt = Base.active_repl.interface.modes[end]
+    symata_prompt.sticky = true
+    REPL.LineEdit.transition(mistate, symata_prompt) # prevent 42 appearing on input line
+    REPL.prepare_next(Base.active_repl)
+    REPL.reset_state(mistate)
 end

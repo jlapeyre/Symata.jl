@@ -20,7 +20,7 @@
 # Or, push values onto a stack on entry and pop on exit.
 
 function localize_module!(mx::Mxpr{:Module})
-    length(mx) != 2 && error("Module: Module called with ", length(mx), " arguments, 2 arguments are expected")
+    length(mx) != 2 && @error("Module: Module called with ", length(mx), " arguments, 2 arguments are expected")
     (locvars,body) = (mx[1],mx[2])
     (is_Mxpr(locvars) && symname(mhead(locvars)) == :List) ||
     symerror("Module: Local variable specification $locvars is not a list")
