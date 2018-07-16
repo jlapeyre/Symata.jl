@@ -1,36 +1,48 @@
 ## First pass at math functions. There are more domain restrictions to be implemented.
 
-#### SetPrecision
+### SetPrecision
+
+@sjseealso_group(N, SetPrecision, GetPrecison, BigFloatInput, BigIntInput, BI, BF)
 
 @mkapprule SetPrecision :nargs => 1
-
 @sjdoc SetPrecision """
     SetPrecison(n)
 
-set the precsion of BigFloat numbers to `n` decimal digits. If `N` does not give the result you
+Set the precsion of BigFloat numbers to `n` decimal digits. If `N` does not give the result you
 want, you can use `SetPrecision`.
 """
-
-@sjseealso_group(N,SetPrecision,BigFloatInput,BigIntInput,BI,BF)
-
 @doap function SetPrecision(n::Real)
     setprecision(round(Int,3.322*n))
-    n
+    return n
 end
 
-evalmath(x) = Symata.eval(x)
+### GetPrecision
+
+@mkapprule GetPrecision :nargs => 0
+@sjdoc GetPrecision """
+    GetPrecision(n)
+
+Get the precsion of BigFloat numbers.
+"""
+@doap function GetPrecision()
+    return precision(BigFloat)
+end
+
+"""
+    evalmath(expr::Expr)
+
+Evaluate `expr`. This is used for writing Symata interfaces
+to math functions. Currently, it is equivalent to `eval`.
+"""
+evalmath(expr::Expr) = Symata.eval(expr::Expr)
 
 ## We also need to use these to convert Symata expressions to Julia
-
 ## This function writes apprules for math functions. Usally dispatches floating point
 ## args to Julia functions. Some have a fall through to SymPy
-
 ## These tuples have 1,2, or 3 members. Symbols are for Julia, Symata, and SymPy
 ## If only one member is present, the second is constructed by putting an inital capital on the first.
 ## If only one or two members are present, we do not fall back to SymPy.
 ## The last list has tuples with 2 args for which we do not use any Julia function.
-
-## This is far from complete
 
 # Typical symbols for Julia, Symata, SymPy
 function mtr(sym::Symbol)

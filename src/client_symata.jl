@@ -9,12 +9,6 @@ import REPL
 
 # See base/client.jl
 
-## for v0.6, we used Base.syntax_deprecation_warnings
-## 1) This function is not present in v0.7
-## 2) The deprecated syntax will probably be removed soon.
-## So, we make this a noop for the time being
-symata_syntax_deprecation_warnings(f, args...) = f()
-
 # This function is only meant to be used via
 # julia -i -e "using Symata"
 # Otherwise it is never called.

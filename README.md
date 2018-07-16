@@ -142,19 +142,10 @@ julia> using Symata
 symata 1>     # after entering `=`
 ```
 
-There is also an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
-sh) shell script that just starts julia and loads the module.
-
-```sh
-#
-julia -i -e "using Symata" $*
-```
-
-Upon running this script, `Symata` mode is entered automatically.
-Toggle between Julia and Symata modes by typing `=` as the first character on a line.
-(If loading Symata from the `julia` prompt via `using Symata`, you use `=` and backspace.)
-
-In Symata mode, the input is not interpreted as Julia expressions, but rather Symata expressions.
+There is an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
+sh) shell script that just starts julia, loads the module, and enters `Symata` mode.
+Switch between `Julia` and `Symata` modes by typing `=`, or backspace, as the first character on a line.
+In Symata mode, the input is not interpreted as a Julia expression, but rather a Symata expression.
 You can do tab completion to see a list of functions and symbols.
 
 ### Jupyter / IJulia
@@ -171,6 +162,9 @@ Out[2]:  a^2 + 2a*b + b^2
 In [3]:  Julia()   # return to Julia mode
 ```
 
+[`Jupyter` is probably not working yet with Symata and Julia `v0.7`. When dependencies are upgraded,
+`Jupyter` support for `Symata` will be upgraded.]
+
 In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells. TAB completion
 works in `Jupyter`. To see a list of all possible completions, type `*[TAB]`.
 
@@ -183,7 +177,6 @@ If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear a
 From the julia prompt, type `isympy()` to enter the sympy shell.
 
 ### Help, examples, tests
-
 
 The best source of examples is [the test directory](sjtest/).
 The documentation can be printed from within Symata by entering `? SymName`

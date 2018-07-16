@@ -201,13 +201,6 @@ rather to the current value of `b` every time `a` is evaluated.
 
 @mkapprule Set nargs => 1:Inf
 
-# function do_Set(mx::Mxpr{:Set})
-#     @warn("Set called with 0 arguments; 1 or more arguments are expected.")
-#     setfixed(mx)
-#     mx
-# end
-
-
 # This is what Mma does.
 # When is this used ?
 function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
