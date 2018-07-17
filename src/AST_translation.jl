@@ -398,11 +398,15 @@ rewrite_comparison(ex::Expr) = ex
 
 Preprocess `ex` to prepare for conversion to type `Mxpr`.
 """
-function rewrite_expr(ex::Expr)
+function rewrite_expr(inex::Expr)
+    if inex.head == :block  # changed in Julia v0.7, need to rmlines
+        ex = MacroTools.rmlines(inex)
+    else
+        ex = inex
+    end
     for i in 1:length(ex.args)
         x = ex.args[i]
         if isa(x,Expr) && x.head == :macrocall
-#            ex.args[i] = eval(x)
             ex.args[i] = parse_macrocall(x, newargs())
         end
         if haskey(INSYMTRANS,x)

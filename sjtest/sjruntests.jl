@@ -13,6 +13,7 @@ symatatest = SymataPlainTest()
 # "context_test.sj",
 function runalltests()
     for f in (
+        "block_test.sj",
         "ntable_test.sj",
         "flowcontrol_test.sj",
         "input_test.sj",

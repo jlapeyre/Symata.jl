@@ -61,8 +61,9 @@ function read_Symata_file(f::AbstractString, test::Symata_Test = Symata_NullTest
                 symata_syntax_deprecation_warnings(false) do
                     Meta.parse(eline)
                 end
-            catch
+            catch e
                 error("Syntax error in file $f, line $line_number: '", chomp(pline), "'")
+                throw(e)
             end
         if typeof(expr) ==  Expr && expr.head == :incomplete
             incomplete_flag = true
@@ -418,7 +419,6 @@ may always be entered in `FullForm`.
     symprintln(label," ", res)
     x
 end
-
 
 ## Obsolete
 
