@@ -284,7 +284,7 @@ set_throw() = FLOWFLAGS.throwflag = true
 
 const Kerneloptions = Dict{Any,Any}(
                                     :unicode_output => false,
-                                    :ijulia_latex_output => false,                                    
+                                    :ijulia_latex_output => false,
                                     :show_sympy_docs => true,
                                     :return_sympy => false,
                                     :sympy_error => nothing,
@@ -567,9 +567,7 @@ get or set the flag signifying that IJulia input should be interpreted as Symata
 isymata_mma_mode() = getkerneloptions(:isymata_mma_mode)
 isymata_mma_mode(v::Bool) = (ov = getkerneloptions(:isymata_mma_mode); setkerneloptions(:isymata_mma_mode,v); ov)
 
-
-@mkapprule OutputStyle  :nargs => 0:1
-
+@mkapprule OutputStyle :nargs => 0:1
 @sjdoc OutputStyle """
     OutputStyle(InputForm)
 
@@ -596,7 +594,7 @@ function _set_output_style(st::Symbol)
     end
     oldst = getkerneloptions(:output_style)
     setkerneloptions(:output_style, st)
-    st
+    return st
 end
 
 @doap function OutputStyle(st::Symbol)
@@ -617,4 +615,3 @@ using_unicode_output() = getkerneloptions(:output_style) == :UnicodeForm
 
 # This means we are using LaTeX
 using_ijulia_output() = getkerneloptions(:output_style) == :JupyterForm
-
