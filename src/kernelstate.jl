@@ -15,7 +15,7 @@ give more verbose information.
 """
 
 @doap function VersionInfo()
-    _versioninfo()
+    return _versioninfo()
 end
 
 _vpad(s) = rpad(s,19)
@@ -41,14 +41,15 @@ function _versioninfo()
             println("mathics version unavailable")
         end
     end
+    return nothing
 end
 
 @doap function VersionInfo(s::SJSym)
     if s == :All
         _versioninfo()
-        InteractiveUtils.versioninfo()
+        return InteractiveUtils.versioninfo()
     else
-        mx
+        return mx
     end
 end
 
@@ -67,7 +68,7 @@ mutable struct Meval
     try_upvalue_count::Int
 #    is_sjinteractive::Bool
 end
-const MEVAL = Meval(0,false,false,false,false,0,0)
+const MEVAL = Meval(0, false, false, false, false, 0, 0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -97,13 +98,6 @@ get_try_upvalue_count() = MEVAL.try_upvalue_count
 increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
 increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
 
-# function set_issjinteractive(val::Bool)
-#     oldval = MEVAL.is_sjinteractive
-#     MEVAL.is_sjinteractive = val
-#     return oldval
-# end
-# is_sjinteractive() = MEVAL.is_sjinteractive
-
 #### Tracing evaluation
 
 # For (possibly) improved efficiency, we don't include Trace() in the KernelOptions Dict below.
@@ -121,14 +115,14 @@ disable tracing the evaluation loop.
 The previous value is returned. `Trace()` returns the current value.
 """
 
-@mkapprule Trace  :nargs => 0:1
+@mkapprule Trace :nargs => 0:1
 
 @doap Trace() = is_meval_trace()
 
 @doap function Trace(v::Bool)
     oldval = is_meval_trace()
     v ? set_meval_trace() : unset_meval_trace()
-    oldval
+    return oldval
 end
 
 #### Time  turn timing on and off
@@ -154,7 +148,7 @@ Return the current value.
 @doap function Time(v::Bool)
     oldval = is_timing()
     v ? set_timing() : unset_timing()
-    oldval
+    return oldval
 end
 
 #### Tracing Up and Down value evaluation
@@ -176,7 +170,7 @@ disable tracing attempted applications of `DownRules`.
 @doap function TraceDownValues(v::Bool)
     oldval = is_down_trace()
     v ? set_down_trace() : unset_down_trace()
-    oldval
+    return oldval
 end
 
 @sjdoc TraceUpValues """
@@ -196,7 +190,7 @@ disable tracing attempted applications of `UpRules`.
 @doap function TraceUpValues(v::Bool)
     oldval = is_up_trace()
     v ? set_up_trace() : unset_up_trace()
-    oldval
+    return oldval
 end
 
 ##### More evaluation things
@@ -209,6 +203,7 @@ function clear_all_output()
     for i in 1:length(Output)
         Output[i].expr = :Null   # temporary solutions
     end
+    return nothing
 end
 
 const LineNumber = Int[1]
@@ -222,7 +217,7 @@ function get_saved_output_by_index(n::Integer)
     if n > 0 && n <= length(Output)
         return Output[n].expr
     end
-    nothing
+    return nothing
 end
 
 function push_output(expr)
@@ -230,8 +225,8 @@ function push_output(expr)
     while length(Output) >= n0
         popfirst!(Output)
     end
-    push!(Output,SavedOutput(expr))
-    nothing
+    push!(Output, SavedOutput(expr))
+    return nothing
 end
 
 get_output_by_line() = get_output_by_line(-1)
@@ -240,9 +235,9 @@ function get_output_by_line(lineno::Integer)
     if lineno < 0 lineno = length(Output) + lineno + 1 end
     idx = length(Output) - (get_line_number() - lineno) + 1
     if idx <= length(Output) && idx > 0
-        res = get_saved_output_by_index(idx)
+        return get_saved_output_by_index(idx)
     else
-        Null
+        return Null
     end
 end
 
@@ -256,9 +251,9 @@ mutable struct FlowFlags
     throwflag::Bool
 end
 
-const FLOWFLAGS = FlowFlags(false,false)
+const FLOWFLAGS = FlowFlags(false, false)
 
-# const FLOWFLAGS = Dict{Symbol,Bool}()
+# const FLOWFLAGS = Dict{Symbol, Bool}()
 # FLOWFLAGS[:Break] = false
 
 function is_break()
@@ -283,21 +278,21 @@ set_throw() = FLOWFLAGS.throwflag = true
 ##### User options and info
 
 const Kerneloptions = Dict{Any,Any}(
-                                    :unicode_output => false,
-                                    :ijulia_latex_output => false,
-                                    :show_sympy_docs => true,
-                                    :return_sympy => false,
-                                    :sympy_error => nothing,
-                                    :compact_output => true,
-:history_length => 100,
-:bigint_input => false,
-:bigfloat_input => false,
-:isymata_inited => false,
-:isymata_mode => false,
-:isymata_mma_mode => false,
-:output_style => :InputForm,
-:float_format => "",
-:bigfloat_format => ""
+    :unicode_output => false,
+    :ijulia_latex_output => false,
+    :show_sympy_docs => true,
+    :return_sympy => false,
+    :sympy_error => nothing,
+    :compact_output => true,
+    :history_length => 100,
+    :bigint_input => false,
+    :bigfloat_input => false,
+    :isymata_inited => false,
+    #:isymata_mode => false, # this state now stored in ./IJulia/handlers.jl
+    :isymata_mma_mode => false,
+    :output_style => :InputForm,
+    :float_format => "",
+    :bigfloat_format => ""
 )
 
 function getkerneloptions(sym::Symbol)
@@ -435,9 +430,9 @@ You can always specify that a float should be a BigFloat by using BF(n).
 
 @sjseealso_group(BI, BigIntInput, BF, BigFloatInput)
 
-for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_sympy),
+for (fn, sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_sympy),
                  (:CompactOutput, :compact_output), (:BigIntInput, :bigint_input),(:BigFloatInput, :bigfloat_input))
-    fnf = Symbol("do_",fn)
+    fnf = Symbol("do_", fn)
     fns = string(fn)
     ssym = string(sym)
     @eval begin
@@ -446,8 +441,8 @@ for (fn,sym) in ((:ShowSymPyDocs, :show_sympy_docs), (:ReturnSymPy, :return_symp
     end
 end
 
-for (fn,sym) in ((:SymPyError, :sympy_error),)
-    fnf = Symbol("do_",fn)
+for (fn, sym) in ((:SymPyError, :sympy_error),)
+    fnf = Symbol("do_", fn)
     fns = string(fn)
     ssym = string(sym)
     @eval begin
@@ -547,7 +542,6 @@ is called during a session.
 """
 isymata_inited() = getkerneloptions(:isymata_inited)
 isymata_inited(v::Bool) = (ov = getkerneloptions(:isymata_inited); setkerneloptions(:isymata_inited,v); ov)
-
 
 """
     isymata_mode()

@@ -419,23 +419,6 @@ may always be entered in `FullForm`.
     x
 end
 
-### Julia
-
-## Julia() should be in some other file... which one ?
-
-@sjdoc Julia """
-    Julia()
-
-Exit Symata mode and returns to Julia mode from within Jupyter.
-Use `isymata()` from Julia to enter Symata mode again.
-"""
-
-@mkapprule Julia :nargs => 0
-
-@doap function Julia()
-    isymata_mode(false)
-    set_jupyter_input_prompt_color("green")
-end
 
 ## Obsolete
 

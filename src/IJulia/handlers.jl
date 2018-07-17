@@ -1,43 +1,57 @@
+# This file contains code that is conditionally evaluated in the IJulia modue.
+# It provides an alteranate execute handler function `execute_request_modal`.
+# The latter function reads hooks via global state in current_mode[] to alter
+# both the user input and the response.
+
 function load_ijulia_handlers()
     themodule = eval(:(Main.IJulia))
     Core.eval(themodule, handler_code)
 end
 
 handler_code = quote
+# fields are functions mapping strings to strings
 struct JupyterMode
-    code
-    helpcode
-    output
+    modename::Symbol
+    code     # function that alters user input `code`
+    helpcode # function that alters user help request `hcode` (with '?' already stripped)
+    output   # function that alters reponse `result_data`.
 end
 
-# Make this mutable to avoid 
-#JupyterMode() = JupyterMode(identity, identity, identity)
-
-#default_help_hook(hcode) = Core.eval(Main, REPL.helpmode(hcode))  # helpcode
-
+# default mode is plain-Julia mode.
 const default_mode = JupyterMode(
+    :julia,
     identity,   # code
     (hcode) -> Core.eval(Main, REPL.helpmode(hcode)),  # helpcode
     identity  # output
 )
 
+#  ijulia_modes contains all modes.
 const ijulia_modes = Dict()
 
 function install_ijulia_mode(modename::Symbol, mode::JupyterMode)
     ijulia_modes[modename] = mode
 end
 
-install_ijulia_mode(:default, default_mode)
+# plain-Julia mode
+install_ijulia_mode(:julia, default_mode)
 
 const current_mode = Ref(default_mode)
+
+# Used to switch among modes
 function set_ijulia_mode(modename::Symbol)
     if ! haskey(ijulia_modes, modename)
         throw(KeyError(modename))
     end
     current_mode[] = ijulia_modes[modename]
 end
-#set_ijulia_mode(:default) # redundant, but signals
 
+function get_ijulia_modename()
+    return current_mode[].modename
+end
+
+#set_ijulia_mode(:julia) # redundant, but signals
+
+# Set the handler.
 function set_handler(handlername, handlerfunction)
     handlername_string = String(handlername)
     if ! haskey(handlers, handlername_string)
@@ -45,14 +59,6 @@ function set_handler(handlername, handlerfunction)
     end
     handlers[String(handlername)] = handlerfunction
 end
-
-# const symata_mode = JupyterMode(
-#     code -> "@Symata.ex " * " begin\n" * code * "\nend",  # begin end to wrap multi-expression input
-#     helpcode -> "Help(" * strip(helpcode)[2:end] * ")",
-#     symata_format_output
-# )
-# install_ijulia_mode(:symata, symata_mode)
-# set_ijulia_mode(:symata)
 
 function execute_request_modal(socket, msg)
     code = msg.content["code"]

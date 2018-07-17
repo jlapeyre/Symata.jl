@@ -33,6 +33,14 @@ write(io::IO, s::MyLaTeXString) = write(io, s.s)
 show(io::IO, ::MIME"application/x-latex", s::MyLaTeXString) = write(io, s)
 show(io::IO, ::MIME"text/latex", s::MyLaTeXString) = write(io, s)
 
+function Base.iterate(ls::MyLaTeXString)
+    return Base.iterate(ls.s)
+end
+
+function Base.iterate(ls::MyLaTeXString, n::Int)
+    return Base.iterate(ls.s, n)
+end
+
 function show(io::IO, s::MyLaTeXString)
     print(io, "L")
     Base.print_quoted_literal(io, s.s)
