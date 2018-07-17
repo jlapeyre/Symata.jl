@@ -18,11 +18,9 @@ The master branch, and tagged versions 0.4.0 and later, support only Julia v0.7 
 
 The last version to support Julia v0.6.3 is tagged v0.3.0. Three percent of the tests fail.
 
-For Julia v0.5, install branch `jv0.5only`. No development is done on this branch,
-only fixes for changing dependencies.
+For Julia v0.5, install branch `jv0.5only`.
 
-NOTE: The syntax for `PatternTest` has been changed in Symata v0.4.0, but is not reflected in
-many examples, such as the Jupyter notebooks.
+The syntax for `PatternTest` has been changed in Symata v0.4.0
 See "./sjtest/pattern_test.sj" for information on the new syntax.
 
 ### Symata is
@@ -49,7 +47,9 @@ written in Julia. Much of the mathematics and symbolic manipulation is
 achieved by wrapping SymPy. There are more than 500 functions
 implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
-and from a file etc. These are the best places for examples and help:
+and from a file etc.
+
+### Examples and help
 
 -  [static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
    (If you can't get to the nbviewer link, here is [the example directory](examples/) at github.
@@ -60,7 +60,7 @@ and from a file etc. These are the best places for examples and help:
  * `? Topic` (with completion)
  * `h"word"` regular expression search
 
-### NEW: Mathematica syntax.
+### Mathematica syntax.
 
 You can use Symata with Mathematica syntax in addition to the usual Julia-like syntax. To use Mathematica syntax,
 install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.jl).
@@ -69,29 +69,23 @@ install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.j
 
 A few tutorial notebooks can be viewed [here](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
 Lower-quality renderings of the same notebooks are in [the example directory](examples/). These are all snapshots, not live, so you can
-view them immediately with your browswer.
-
-In order to run the examples in the notebooks, you need to use the development version of `Symata`
-Switch to the development version with `Pkg.checkout("Symata")`. (Later, you can return to the latest versioned
-branch with `Pkg.free("Symata")`.)
+view them immediately with your browser.
 
 ### Installing
 
 Symata is a registered module. It can be installed like this
 
 ```julia
-julia> Pkg.update()
-julia> Pkg.add("Symata")
+(v0.7) pkg> add Symata
 julia> using Symata
 symata> Help()    # type '=' alone on a line to enter symata mode
 ```
 
-`Symata` can be installed on Linux, OSX, and Windows, and Julia v0.5, and v0.6.
+`Symata` can be installed on Linux, OSX, and Windows.
 
 `Symata` depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
 the python [`sympy`](http://www.sympy.org/en/index.html) module.
-When you load `Symata` with `using Symata`, `sympy` is installed automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl).
-However, to do this, `PyCall` must be configured to not use you system version of `python`.
+When you load `Symata` with `using Symata`, `sympy` is installed automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl). However, to do this, `PyCall` must be configured to not use you system version of `python`.
 If you do not have `PyCall` installed, do this
 
 ```julia
@@ -140,12 +134,9 @@ symata 1>     # after entering `=`
 There is an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
 sh) shell script that just starts julia, loads the module, and enters `Symata` mode.
 Switch between `Julia` and `Symata` modes by typing `=`, or backspace, as the first character on a line.
-In Symata mode, the input is not interpreted as a Julia expression, but rather a Symata expression.
 You can do tab completion to see a list of functions and symbols.
 
 ### Jupyter / IJulia
-
-Versions v1.3.0 through v1.3.2 of `IJulia.jl` are supported.
 
 ```julia
 In [1]:  using Symata
@@ -156,9 +147,6 @@ Out[2]:  a^2 + 2a*b + b^2
 
 In [3]:  Julia()   # return to Julia mode
 ```
-
-[`Jupyter` is probably not working yet with Symata and Julia `v0.7`. When dependencies are upgraded,
-`Jupyter` support for `Symata` will be upgraded.]
 
 In `Jupyter`, the `Symata` expressions `In(n)` and `Out(n)` reevaluate the input and output cells. TAB completion
 works in `Jupyter`. To see a list of all possible completions, type `*[TAB]`.
@@ -185,15 +173,16 @@ builtin symbols. (i.e. variables and functions) Symbols that are
 associated with some functionality can be listed with
 `BuiltIns()`. Type `Example()` to see a list of topics with examples.
 Type `Example(topic)` to run the examples. (But, far more examples are
-in [the test directory](sjtest/) ). The input strings from the examples are pushed
+in [the test directory](sjtest/)). The input strings from the examples are pushed
 to the history so that they can be recalled and edited and
 re-evaluated.
 
-##### Tests
+#### Tests
 
 Run the test suite from the `symata` prompt with `Tests()`.
 This runs tests in [the directory sjtest.](sjtest/)
-`Pkg.test("Symata")` runs the same test suite from `Julia`.
+`Pkg.test("Symata")` runs the same test suite from `Julia` and
+some Julia-level unit tests, as well.
 
 <!--  LocalWords:  Mathematica SymPy julia symata PyCall Mma src REPL
  -->
@@ -209,5 +198,11 @@ This runs tests in [the directory sjtest.](sjtest/)
  -->
 <!--  LocalWords:  oo conds th HistoryLength BigIntInput RuleDelayed
  -->
-<!--  LocalWords:  UpSetDelayed SetDelayed UpSet frontend FresnelC
+<!--  LocalWords:  UpSetDelayed SetDelayed UpSet frontend FresnelC jl
+ -->
+<!--  LocalWords:  OSX nbsp codecov io jv PatternTest nbviewer github
+ -->
+<!--  LocalWords:  symsrc SymataSyntax IJulia sympy Conda ENV linux
+ -->
+<!--  LocalWords:  mpmath Jupyter isympy
  -->
