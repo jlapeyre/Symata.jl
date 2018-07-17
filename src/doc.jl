@@ -304,8 +304,8 @@ function do_example(lines)
                 println("# ",expl)
             end
             println("symata> ", ins)
-            ex = parse(ins)
-            res = (eval(Expr(:macrocall,Symbol("@symfull"), ex)))
+            ex = MacroTools.rmlines(Meta.parse(ins))
+            res = (eval(Expr(:macrocall, Symbol("@symfull"), ex)))
             if res != nothing println(res) end
             sj_add_history(ins)
             if i < len
