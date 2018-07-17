@@ -781,7 +781,7 @@ Many methods for `Mxpr` simply call the same method on `a`. For instance the
 iterator for `Mxpr` wraps the iterator for `Array{Any,1}`. Thus, iterating over
 `mx` iterates over the arguments only, not the head.
 """
-margs(mx::Mxpr) = mx.args
+@inline margs(mx::Mxpr) = mx.args
 
 # Everything that is not an Mxpr
 mhead(x) = typeof(x)
@@ -1303,6 +1303,9 @@ const FloatRC  = Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 for s in (:(Base.pop!), :(Base.popfirst!), :(Base.pushfirst!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
+
+Base.iterate(mx::Mxpr) = Base.iterate(margs(mx))
+Base.iterate(mx::Mxpr, n::Int) = Base.iterate(margs(mx), n)
 
 Base.copy(mx::Mxpr) = mxpra(mhead(mx),copy(margs(mx)))
 Base.length(mx::Mxpr) = length(margs(mx))
