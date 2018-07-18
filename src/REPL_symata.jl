@@ -49,6 +49,10 @@ end
 
 function Symata_parse_REPL_line(linein)
     line = sjpreprocess_interactive(linein)
+    m = match(r"^\s*#", linein) # for v0.7, which returns more LineNumberNode's
+    if m != nothing
+        return nothing
+    end
     Base.parse_input_line("@Symata.symfull " * line)
 end
 

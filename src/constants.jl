@@ -1,5 +1,4 @@
 ## NOTE: Some constants are defined in mxpr_type.jl
-
 """
     SYMATA_PACKAGE_PATH
 
@@ -14,13 +13,18 @@ Filesystem path to directory containing tests written in Symata.
 """
 const SYMATA_LANG_TEST_PATH = joinpath(SYMATA_PACKAGE_PATH, "sjtest")
 
-
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
 
 const ComplexInfinity = mxprcf(:DirectedInfinity)
 const Infinity = mxprcf(:DirectedInfinity,1)
 const MinusInfinity = mxprcf(:DirectedInfinity,-1)
+setsymval(:Infinity, Infinity)
+setsymval(:ComplexInfinity, ComplexInfinity)
+mergesyms(Infinity,:nothing)
+mergesyms(MinusInfinity,:nothing)
+mergesyms(ComplexInfinity,:nothing)
+
 
 function Base.convert(::Type{AbstractFloat}, mx::Mxpr{:DirectedInfinity})
     if length(mx) == 1
@@ -46,11 +50,6 @@ const MinusI = complex(0,-1)
 
 setsymval(:True, true)
 setsymval(:False, false)  ## Took a long time for this bug to manifest. :False was true for a thousand commits.
-setsymval(:Infinity, Infinity)
-setsymval(:ComplexInfinity, ComplexInfinity)
-mergesyms(Infinity,:nothing)
-mergesyms(MinusInfinity,:nothing)
-mergesyms(ComplexInfinity,:nothing)
 
 for s in (:BigInt, :BigFloat, :Float64, :Int64, :Int, :DataType, :Char, :String)
     sq = QuoteNode(s)

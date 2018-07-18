@@ -91,7 +91,7 @@ function sjpreprocess_interactive(line::AbstractString)
         line =  MAGIC_HELP_QUERY_STRING * ", " *
             SubString(line, 2, lastindex(line)) # We add a comma so that the julia parse will accept it.
     end
-    sjpreprocess_string(line)
+    return sjpreprocess_string(line)
 end
 
 function sjpreprocess_string(line::AbstractString)
