@@ -21,6 +21,23 @@ const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing
 const ComplexInfinity = mxprcf(:DirectedInfinity)
 const Infinity = mxprcf(:DirectedInfinity,1)
 const MinusInfinity = mxprcf(:DirectedInfinity,-1)
+
+function Base.convert(::Type{AbstractFloat}, mx::Mxpr{:DirectedInfinity})
+    if length(mx) == 1
+        margs(mx)[1] == 1 && return Inf
+        margs(mx)[1] == -1 && return -Inf
+    end
+    symerror("Can't convert ", wrapout(mx), " to float.") # symerror already does wrapout
+end
+
+function AbstractFloat(mx::Mxpr{:DirectedInfinity})
+    if length(mx) == 1
+        margs(mx)[1] == 1 && return Inf
+        margs(mx)[1] == -1 && return -Inf
+    end
+    symerror("Can't convert ", wrapout(mx), " to float.") # symerror already does wrapout
+end
+
 const Indeterminate = :Indeterminate
 const Undefined = :Undefined
 

@@ -1,16 +1,6 @@
 import QuadGK: quadgk
 
-
-## TODO: move this code somewhere more appropriate
-function Base.convert(::Type{AbstractFloat}, mx::Mxpr{:DirectedInfinity})
-    if length(mx) == 1
-        margs(mx)[1] == 1 && return Inf
-        margs(mx)[1] == -1 && return -Inf
-    end
-    symerror("Can't convert ", wrapout(mx), " to float.")  # symerror already does wrapout
-end
-
-#### NIntegrate
+### NIntegrate
 
 @mkapprule NIntegrate
 
