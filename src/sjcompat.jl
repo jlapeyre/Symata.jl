@@ -84,7 +84,7 @@ else
 end
 
 ## The suggested replacement for findin fails
-## in coefficient_times , algebra.jl.
+## in coefficient_times, algebra.jl.
 ## So, we reproduce the version from v0.6.3
 ## We continue to get deprecation warnings even thought this is
 ## Not exported to Base or Main. So, we rename it to oldfindin.

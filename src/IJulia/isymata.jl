@@ -62,13 +62,21 @@ function import_IJulia()
     eval(:(const IJulia = Main.IJulia))
 end
 
+function _symata_code_translation(code::AbstractString)
+    if iscomment(code)
+        return ""
+    else
+        return "@Symata.symfull " * " begin\n" * code * "\nend"
+    end
+end
+
 function _init_isymata()
     populate_builtins()
     load_ijulia_handlers()
     import_IJulia()
     symata_mode = invokelatest(IJulia.JupyterMode,
                                :symata,
-                               code -> "@Symata.symfull " * " begin\n" * code * "\nend",
+                               _symata_code_translation,
                                helpcode -> "Help(" * strip(helpcode) * ")",
                                symata_format_output
                                )

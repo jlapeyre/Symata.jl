@@ -47,12 +47,19 @@ end
 #                                     :juliasyntax => symata_parse_julia_syntax_repl_line
 #                                     )
 
-function Symata_parse_REPL_line(linein)
-    line = sjpreprocess_interactive(linein)
-    m = match(r"^\s*#", linein) # for v0.7, which returns more LineNumberNode's
+function iscomment(s)
+    m = match(r"^\s*#", s) # for v0.7, which returns more LineNumberNode's
     if m != nothing
+        return true
+    end
+    return false
+end
+
+function Symata_parse_REPL_line(linein)
+    if iscomment(linein)
         return nothing
     end
+    line = sjpreprocess_interactive(linein)
     Base.parse_input_line("@Symata.symfull " * line)
 end
 
