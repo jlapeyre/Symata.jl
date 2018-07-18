@@ -244,9 +244,9 @@ abstract type AbstractEvaluateOptions end
 mutable struct EvaluateJuliaSyntax <: AbstractEvaluateOptions
 end
 
-function prompt(opt::EvaluateJuliaSyntax)
-    # do_we_print_outstring is for IJulia
-    if (! simple(opt) ) && isinteractive() && do_we_print_outstring
+function maybe_print_Out_label(opt::EvaluateJuliaSyntax)
+    # do_we_print_Out_label is for IJulia
+    if (! simple(opt)) && isinteractive() && do_we_print_Out_label
         print("Out(" * string(get_line_number()) * ") = ")
     end
     nothing
@@ -258,7 +258,7 @@ mutable struct EvaluateJuliaSyntaxSimple <: AbstractEvaluateOptions
 end
 
 simple(opt::EvaluateJuliaSyntaxSimple) = true
-prompt(opt::EvaluateJuliaSyntaxSimple) = nothing
+maybe_print_Out_label(opt::EvaluateJuliaSyntaxSimple) = nothing
 
 # """
 #     NullExFuncOptions
@@ -301,7 +301,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
         mx = trysymataevaluate(res)
     end
     symval(mx) == Null && return nothing
-    prompt(options)
+    maybe_print_Out_label(options)
     if (! simple(options) ) && isinteractive()  # && is_sjinteractive()
         increment_line_number()
         set_system_symval(:ans,mx)  # Like Julia and matlab, not Mma

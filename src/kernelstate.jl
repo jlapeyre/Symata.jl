@@ -241,7 +241,7 @@ function get_output_by_line(lineno::Integer)
     end
 end
 
-global do_we_print_outstring = true
+global do_we_print_Out_label = true
 
 
 ##### Break
@@ -609,3 +609,20 @@ using_unicode_output() = getkerneloptions(:output_style) == :UnicodeForm
 
 # This means we are using LaTeX
 using_ijulia_output() = getkerneloptions(:output_style) == :JupyterForm
+
+### Julia
+
+@sjdoc Julia """
+    Julia()
+
+Exit Symata mode and returns to Julia mode from within Jupyter.
+Use `isymata()` from Julia to enter Symata mode again.
+"""
+
+@mkapprule Julia :nargs => 0
+
+@doap function Julia()
+    Jupyter.set_julia_mode()
+    nothing
+#    set_jupyter_input_prompt_color("green") # This used to apply to single cells.
+end

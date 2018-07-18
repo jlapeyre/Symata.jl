@@ -1,8 +1,8 @@
-__precompile__()
+__precompile__(true)
+
 module Symata
 
 import MacroTools
-# import LambertW
 import SpecialFunctions
 import REPL
 import Markdown
@@ -37,9 +37,6 @@ export  @testex, symval, symname, setsymval, meval, doeval, infseval, getpart, s
 sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
 # ??
 export name, typename
-
-# These are for IJulia. We could probably import insymata in the interface code instead.
-export isymata, insymata
 
 ## Set const debugging parametres at compile-time in debug.jl
 include("debug.jl") # must use include here, because @inc is defined in debug.jl
@@ -79,7 +76,7 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("symata_julia_interface.jl")
 @inc("measurements.jl")
 @inc("flowcontrol.jl")
-@inc("output.jl")
+@inc("Output.jl")
 @inc("system.jl")
 @inc("IO.jl")
 @inc("latex.jl")
@@ -112,11 +109,16 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("protected_symbols.jl")
 @inc("REPL_symata.jl")
 @inc("client_symata.jl")
-@inc("IJulia/handlers.jl")
-@inc("IJulia/isymata.jl")
+@inc("Jupyter/Jupyter.jl")
 @inc("plot.jl")
 @inc("docautoloaded.jl")
 @inc("function.jl")
+
+import .Jupyter
+import .Jupyter: isymata
+# These are for IJulia. We could probably import insymata in the interface code instead.
+export isymata, insymata
+
 
 function __init__()
     do_init()
@@ -142,7 +144,7 @@ function do_init()
     sjimportall(:System, :Main)
     set_current_context(:Main)
     if have_ijulia # Use the Jupyter interface
-        isymata()
+        Jupyter.isymata()
     elseif isinteractive() # Started perhapse from the Julia REPL
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
