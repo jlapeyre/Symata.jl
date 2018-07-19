@@ -268,9 +268,9 @@ function mk_py_to_mx_funcs()
     end
 end
 
-function rewrite_function_sympy_to_julia(expr,pytype)
+function rewrite_function_sympy_to_julia(expr, pytype)
     func = py_to_mx_rewrite_function_dict[pytype]
-    func(expr)
+    return func(expr)
 end
 
 have_function_sympy_to_symata_translation(pytype::PyCall.PyObject) = haskey(py_to_mx_dict, pytype)
@@ -365,8 +365,8 @@ end
 ##   Eq,Equality   Equal     Eq and Equality are aliases. In sympy Eq neither as symbol, nor a function. It is its own class
 ##                           This makes Eq more like Add and not Cos.
 function populate_rewrite_dict()
-    py_to_mx_rewrite_function_dict[sympy_True] = (x -> true)
-    py_to_mx_rewrite_function_dict[sympy_False] = (x -> false)
+    py_to_mx_rewrite_function_dict[sympy_True] = x -> true
+    py_to_mx_rewrite_function_dict[sympy_False] = x -> false
     py_to_mx_rewrite_function_dict[sympy_Sum] = pyexpr -> deepsetfixed(mxpr(:Sum, mapmargs(pytosj, pyexpr[:args])...))
     py_to_mx_rewrite_function_dict[sympy_Integral] = pyexpr -> deepsetfixed(mxpr(:Integrate, mapmargs(pytosj, pyexpr[:args])...))
 

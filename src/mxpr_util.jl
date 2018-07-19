@@ -95,14 +95,15 @@ want that behavior. So we use this function.
 function mapmargs(f, inargs::AbstractArray)
     nargs = newargs(length(inargs))
     map!(f, nargs, inargs)
+    return nargs
 end
 
 function mapmargs(f, inargs::Tuple)
     nargs = newargs()
     for x in inargs
-        push!(f(x),nargs)
+        push!(nargs, f(x))
     end
-    nargs
+    return nargs
 end
 
 # not used yet
