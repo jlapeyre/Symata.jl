@@ -91,7 +91,7 @@ end
          (:asec,:ArcSec),(:acsc,:ArcCsc),(:acot,:ArcCot),  # (:acotd,:ArcCotD)
          (:csch,), mtr(:coth,),(:asinh,:ASinh,:asinh), (:acosh,:ACosh, :acosh),(:atanh,:ATanh, :atanh),
          (:asech,:ArcSech),(:acsch,:ArcCsch),(:acoth,:ArcCoth, :acoth),
-         (:sinc,),(:cosc,),
+         (:cosc,),
          (:log1p,),(:exp2,),(:exp10,),(:expm1,),(:abs2,),
          mtr(:erfc), mtr(:erfi),(:erfcx,),(:dawson,),(:real,:Re, :re),(:imag,:Im, :im),
          (:angle,:Arg,:arg),  (:lgamma, :LogGamma, :loggamma),
@@ -106,7 +106,7 @@ end
 # (:log,),   removed from list above, because it must be treated specially (and others probably too!)
 
 
-const single_arg_float_int_complex = [ ]
+const single_arg_float_int_complex = [(:sinc,)]
 
 const single_arg_float = [(:erfcinv,:InverseErfc,:erfcinv),(:invdigamma,:InverseDigamma)]
 
