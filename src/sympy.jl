@@ -565,8 +565,36 @@ function _sjtopy(mx::Mxpr{:Equal})
     end
 end
 
+### Args, This function is defined in lists.jl
 
-#### Rewrite
+@doap Args(pyobj::PyCall.PyObject) = pyobj[:args]
+
+### PyHead
+
+@mkapprule PyHead :nargs => 1
+
+@sjdoc PyHead """
+    PyHead(pyobj)
+
+return the sympy "Head" of `pyobj` as a Symata (Julia) symbol.
+"""
+
+@doap function PyHead(pyobj::PyCall.PyObject)
+    return Symbol(pyobj[:func][:__name__])
+end
+
+### PyClass
+
+@sjdoc PyClass """
+    PyClass(pyobj)
+
+return the python class of the python object `pyobj`.
+"""
+
+@mkapprule PyClass :nargs => 1
+@doap PyClass(pyobj::PyCall.PyObject) = pyobj[:__class__]
+
+### Rewrite
 
 const RewriteDict = Dict( :Gamma => :gamma,
                           :HypergeometricPFQ => :hyper,
@@ -598,7 +626,7 @@ Rewrite(CatalanNumber(n), HypergeometricPFQ)
     pytosj(pyres)
 end
 
-#### HypergeometricPFQ
+### HypergeometricPFQ
 
 do_HypergeometricPFQ(mx::Mxpr{:HypergeometricPFQ}, p::Mxpr{:List}, q::Mxpr{:List}, z::W) where {W<:AbstractFloat} =
     eval_hypergeometric(mx,p,q,z)

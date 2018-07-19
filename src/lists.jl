@@ -18,6 +18,10 @@ of the internal form is `List`.
 replace the `Head` of expression `ex` with `List`.
 
 `Args(ex)` is equivalent to `Apply(List,ex)`.
+
+    Args(pyobj::PyCall.PyObject)
+
+return the arguments of the sympy expression `pyobj`.
 """
 @mkapprule Args :nargs => 1
 @doap Args(ex::Mxpr) = MList(copy(margs(ex)))
