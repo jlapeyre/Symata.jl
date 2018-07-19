@@ -114,6 +114,7 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 
 import .Jupyter
 import .Jupyter: isymata
+import .Jupyter: is_isymata_mode
 # These are for IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 

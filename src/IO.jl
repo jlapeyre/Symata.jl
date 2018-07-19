@@ -305,7 +305,7 @@ returns the second to last output.
 @sjseealso(Out, Clear)
 
 function do_Out(mx::Mxpr{:Out}, n::Integer)
-    if isymata_mode()
+    if is_isymata_mode()
         doeval(Main.IJulia.Out[n])
     else
         doeval(get_output_by_line(n))
@@ -326,7 +326,7 @@ do_Out(mx::Mxpr{:Out}, x) = :Null
 returns the `n`th input cell. `In` only works in `Jupyter/IPython`.
 """
 @doap function In(n::Integer)
-    if isymata_mode()
+    if is_isymata_mode()
         doeval(eval(Expr(:macrocall, Symbol("@symfull"), Meta.parse(Main.IJulia.In[n]))))
     else
         :Null

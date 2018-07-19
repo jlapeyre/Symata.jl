@@ -1,3 +1,7 @@
+function is_isymata_mode()
+    _is_isymata_mode()
+end
+
 ## `set_jupyter_input_prompt_color` is not very useful now because
 ## it changes the color for the entire notebook, rather than the current
 ## cell.
@@ -89,9 +93,8 @@ function _init_isymata()
     invokelatest(IJulia.set_handler, "complete_request", IJulia.complete_request_modal)
     eval(quote
          set_isymata_mode() = IJulia.set_ijulia_mode(:symata)
-         end)
-    eval(quote
          set_julia_mode() = IJulia.set_ijulia_mode(:julia)
+         _is_isymata_mode() = IJulia.get_current_ijulia_modename() == :julia
          end)
     return nothing
 end

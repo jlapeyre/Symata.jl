@@ -72,7 +72,7 @@ function set_ijulia_mode(modename::Symbol)
     current_language_mode[] = ijulia_modes[modename]
 end
 
-function get_ijulia_modename()
+function get_current_ijulia_modename()
     return current_language_mode[].modename
 end
 

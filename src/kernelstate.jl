@@ -543,14 +543,14 @@ is called during a session.
 isymata_inited() = getkerneloptions(:isymata_inited)
 isymata_inited(v::Bool) = (ov = getkerneloptions(:isymata_inited); setkerneloptions(:isymata_inited,v); ov)
 
-"""
-    isymata_mode()
-    isymata_mode(v::Bool)
+# """
+#     isymata_mode()
+#     isymata_mode(v::Bool)
 
-get or set the flag signifying that IJulia input should be interpreted as Symata rather than Julia.
-"""
-isymata_mode() = getkerneloptions(:isymata_mode)
-isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(:isymata_mode,v); ov)
+# get or set the flag signifying that IJulia input should be interpreted as Symata rather than Julia.
+# """
+# isymata_mode() = getkerneloptions(:isymata_mode)
+# isymata_mode(v::Bool) = (ov = getkerneloptions(:isymata_mode); setkerneloptions(:isymata_mode,v); ov)
 
 """
     isymata_mma_mode()
