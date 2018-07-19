@@ -1,5 +1,5 @@
 function is_isymata_mode()
-    _is_isymata_mode()
+    Symata.is_loaded_IJulia() &&  _is_isymata_mode()
 end
 
 ## `set_jupyter_input_prompt_color` is not very useful now because
