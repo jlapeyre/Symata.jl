@@ -54,6 +54,8 @@ normally. `expr` is evaluated once.
 
 `expr[n]` also returns the `n`th element of instances of several
 Julia types such as `Array`, or the element with key `n` for `Dict`'s.
+
+`Part` also indexes into some sympy objects, such as sympy Tuples.
 """
 
 @doap Part(texpr,tinds...) = getpart2(texpr,tinds...)
@@ -391,7 +393,6 @@ end
 end
 
 @curry_last Extract
-
 
 ### Replace
 

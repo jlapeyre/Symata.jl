@@ -22,7 +22,10 @@ Julia displays objects of type `Mxpr` correctly.
 macro symwarn(arg)
     ex = Meta.parse("@warn(dummy)")
     ex.args[3] = wrapout(arg)
-    return ex
+    println(ex)
+#    return ex
+    :(@warn($(wrapout(arg))))
+    :($arg)
 end
 
 @doc """

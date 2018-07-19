@@ -21,6 +21,8 @@ end
 
 import Base: isless
 
+const PyObject = PyCall.PyObject
+
 # Notes for evenutally extracting mpz and mpf from python mpmath objects
 #  julia> ex[:_mpf_][2]
 #  PyObject mpz(5400274185508743)
@@ -565,11 +567,24 @@ function _sjtopy(mx::Mxpr{:Equal})
     end
 end
 
+### Part  (defined in parts.jl)
+
+function get_part_one_ind(pyobj::PyObject, ind)
+    if pyhead(pyobj) == :Tuple
+        return pyobj[ind]
+    end
+    symerror(string("Can't find part number $ind of ", pyobj))
+end
+
 ### Args, This function is defined in lists.jl
 
 @doap Args(pyobj::PyCall.PyObject) = pyobj[:args]
 
 ### PyHead
+
+function pyhead(pyobj::PyCall.PyObject)
+    return Symbol(pyobj[:func][:__name__])
+end
 
 @mkapprule PyHead :nargs => 1
 
@@ -579,9 +594,7 @@ end
 return the sympy "Head" of `pyobj` as a Symata (Julia) symbol.
 """
 
-@doap function PyHead(pyobj::PyCall.PyObject)
-    return Symbol(pyobj[:func][:__name__])
-end
+@doap PyHead(pyobj::PyCall.PyObject) = pyhead(pyobj)
 
 ### PyClass
 
@@ -876,10 +889,9 @@ function isympy()
     end
 end
 
-#####
-
-typename(x::PyCall.PyObject) = pytypeof(x)[:__name__]
-name(x::PyCall.PyObject) = x[:__name__]
+## These are not used anywhere
+# typename(x::PyCall.PyObject) = pytypeof(x)[:__name__]
+# name(x::PyCall.PyObject) = x[:__name__]
 
 #  Try the sympy function 'pycall'. If there is an error, give warning
 #  'errstr' and return (from surrounding function body)
