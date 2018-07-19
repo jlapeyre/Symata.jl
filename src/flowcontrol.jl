@@ -4,7 +4,6 @@
 # Block is automatically used to localize values of iterators in iteration constructs such as Do, Sum, and Table
 # Hmmm. looks like I noted this a long time ago in the doc for Do.
 
-
 # FIXME. We need to delete local variables before breaking or returning.
 macro checkbreak(arg)
     return esc(:( begin
@@ -37,12 +36,12 @@ end
 
 # Probably need to check for
 macro checkcontinue(mx,incr)
-    esc( :( if is_Mxpr($mx,:Continue) begin
-                                       doeval(incr)
-                                       continue
-                                    end
-            end
-            ))
+    esc(:( if is_Mxpr($mx,:Continue) begin
+           doeval(incr)
+           continue
+           end
+           end
+           ))
 end
 
 macro checkcontinue0(mx)
@@ -68,10 +67,7 @@ function substitute_symbol(ex,os,ns)
     end
 end
 
-
-
-
-#### For
+### For
 
 @mkapprule For :nargs => 3:4
 
@@ -116,7 +112,7 @@ function do_For(mx::Mxpr{:For}, start, test, incr, body)
     Null
 end
 
-#### If
+### If
 
 @mkapprule If
 
@@ -146,7 +142,7 @@ function do_If(mxpr::Mxpr{:If}, test, tbranch, fbranch, ubranch)
     tres == true ? doeval(tbranch) : tres == false ? doeval(fbranch) : doeval(ubranch)
 end
 
-#### While
+### While
 
 @sjdoc While """
     While(test,body)
@@ -176,7 +172,7 @@ function do_While(mx::Mxpr{:While}, test, body)
     Null
 end
 
-#### Break
+### Break
 
 @sjdoc Break """
     Break()
@@ -206,7 +202,7 @@ Calling `Return(x)` from within `For`, `While`, `CompoundExpression` returns `Re
 Calling `Return(x)` from within `Do` and `Module` returns `x`.
 """
 
-#### Continue
+### Continue
 
 @sjdoc Continue """
     Continue()
@@ -215,7 +211,7 @@ begin the next iteration of the enclosing loop without evaluating any remaining
 expressions in the body.
 """
 
-#### Do
+### Do
 
 @sjdoc Do """
     Do(expr,[imax])
@@ -362,7 +358,7 @@ function do_doloop(expr,iter::SJIterList)
     Null
 end
 
-#### CompoundExpression
+### CompoundExpression
 
 @sjdoc CompoundExpression """
     CompoundExpression(expr1,expr2,...) or (expr1,expr2,...)
@@ -382,14 +378,13 @@ function apprules(mx::Mxpr{:CompoundExpression})
     res
 end
 
-
-#### Warn
+### Warn
 
 @mkapprule Warn :nodefault => true
 
-@doap Warn(args...) = symwarn(args...)
+@doap Warn(args...) = @symwarn(args...)
 
-#### Throw
+### Throw
 
 @mkapprule Throw :nargs => 1:2
 
@@ -403,8 +398,7 @@ end
     return mx
 end
 
-
-#### Catch
+### Catch
 
 # TODO: implement tagged throw, catch
 @mkapprule Catch :nargs => 1:2
@@ -416,7 +410,7 @@ end
             clear_throw()
             return length(res) == 0 ? Null : res[1]
         end
-        symwarn("Catch: throw set but expr is ",  res)
+        @symwarn("Catch: throw set but expr is ",  res)
         return res
     end
     return res
@@ -434,4 +428,3 @@ end
     end
     return res
 end
-

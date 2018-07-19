@@ -2,7 +2,7 @@
     wrapout(x)
 
 Wrap Symata output for printing. Most methods are defined
-in output.jl.
+in Output.jl.
 """
 wrapout(x) = x
 
@@ -13,19 +13,23 @@ for f in ( :print, :println, :string, :warn, :error, :throw)
     end
 end
 
+## This might take some work. We need to do wrapout on the evaluated arguments,
+## which gets into the guts of @warn.
+## FIXME. Probably need to write our own version of log_msg :(
 """
     @symwarn(arg)
 
 Performs macro call `@warn` on `wrapout(arg)` so that
 Julia displays objects of type `Mxpr` correctly.
 """
-macro symwarn(arg)
-    ex = Meta.parse("@warn(dummy)")
-    ex.args[3] = wrapout(arg)
-    println(ex)
-#    return ex
-    :(@warn($(wrapout(arg))))
-    :($arg)
+macro symwarn(args...)
+#    exprs =  map(x -> :(wrapout($(esc(x)))), args)
+    exprs =  map(x -> :(wrapout($(esc(x)))), args)
+    :(@warn($(exprs...)))
+#    :(@warn(wrapout($(esc(arg)))))
+#    :(@warn($(wrapout(esc(wrapout(args))))))
+#    :(@warn($(map(wrapout, args)...)))
+#    :(@warn(map(x -> esc(wrapout(x), $args))))
 end
 
 @doc """
