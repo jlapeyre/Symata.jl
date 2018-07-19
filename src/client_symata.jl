@@ -1,10 +1,5 @@
 import REPL
 
-function set_symata_prompt(s::T) where T<:AbstractString
-    symata_have_dumb_terminal() && return # not implemented yet
-    (Symata.symata_repl_mode().prompt = s)
-end
-
 # This is another fine mess you've gotten us into.
 function symata_have_dumb_terminal()
     (! isdefined_base_active_repl()) && (! isdefined_symata_active_repl()) && return true
@@ -16,8 +11,8 @@ isdefined_base_active_repl() = isdefined(Base, :active_repl)
 isdefined_symata_active_repl() = isdefined(Symata, :active_repl)
 
 function symata_repl()
-    isdefined_symata_active_repl() && return Symata.active_repl
     isdefined_base_active_repl() && return Base.active_repl
+    isdefined_symata_active_repl() && return Symata.active_repl
     error("Can't find the active REPL.")
 end
 
@@ -33,7 +28,10 @@ function symata_repl_mode()
 end
 
 symata_repl_history() = symata_repl_mode().hist
-set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
 
-# two problems: the arg is unused. the function is unused
-# get_symata_prompt() = Symata.symata_repl_mode().prompt
+set_symata_prompt(n::Int) = set_symata_prompt(string("symata ", n, "> "))
+# Careful, this assumes that the Symata mode is last in the list of modes.
+function set_symata_prompt(s::T) where T<:AbstractString
+    symata_have_dumb_terminal() && return # not implemented yet
+    Symata.symata_repl().interface.modes[end].prompt = s
+end
