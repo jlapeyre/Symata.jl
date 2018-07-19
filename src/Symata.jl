@@ -124,35 +124,27 @@ function __init__()
     do_init()
 end
 
-"""
-    symata()
-
-"""
-symata() = do_init()
-export symata
+# """
+#     symata()
+# """
+# symata() = do_init()
+# export symata
 
 function do_init()
-    have_ijulia = isdefined(Main, :IJulia)
     init_sympy()
     if ! isdefined(Test, :testset_forloop)
-        Core.eval(Main, :(macro testset(expr) end ))   # Compatibility for versions more recent than around 0.5 from May 2016
+        Core.eval(Main, :(macro testset(expr) end)) # Compatibility for versions more recent than around 0.5 from May 2016
     end
-    # FIXME: Following may be neccessary when loading Symata via julia -i -e "using Symata"
-    # Although it doesn't make sense. This is broken on v0.7, but not v0.6. Hangs.
-    # So, we  have to comment the following line out.
-    # Main.eval(:( using Symata ))
-    sjimportall(:System, :Main)
+    sjimportall(:System, :Main) # These are Symata "contexts"
     set_current_context(:Main)
+    have_ijulia = isdefined(Main, :IJulia)
     if have_ijulia # Use the Jupyter interface
         Jupyter.isymata()
-    elseif isinteractive() # Started perhapse from the Julia REPL
+    elseif isinteractive() # Started perhaps from the Julia REPL
         if isdefined(Base, :active_repl)
             RunSymataREPL(Base.active_repl)
-        else  # started via  julia -i -e "using Symata"
-              # client.jl is broken recently anyway.
-              # This allows non-interactive testing
-              # Symata_start()
-              # exit()
+        else
+            nothing
         end
     else
         nothing

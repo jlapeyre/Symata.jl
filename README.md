@@ -20,7 +20,7 @@ The last version to support Julia v0.6.3 is tagged v0.3.0. Three percent of the 
 
 For Julia v0.5, install branch `jv0.5only`.
 
-The syntax for `PatternTest` has been changed in Symata v0.4.0
+The syntax for `PatternTest` has been changed in Symata v0.4.0.
 See "./sjtest/pattern_test.sj" for information on the new syntax.
 
 ### Symata is
