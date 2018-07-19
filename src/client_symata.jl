@@ -34,4 +34,6 @@ end
 
 symata_repl_history() = symata_repl_mode().hist
 set_symata_prompt(n::Int) = set_symata_prompt("symata " * string(n) * "> ")
-get_symata_prompt(s::AbstractString) = Symata.symata_repl_mode().prompt
+
+# two problems: the arg is unused. the function is unused
+# get_symata_prompt() = Symata.symata_repl_mode().prompt

@@ -118,16 +118,11 @@ import .Jupyter: is_isymata_mode
 # These are for IJulia. We could probably import insymata in the interface code instead.
 export isymata, insymata
 
-
 function __init__()
     do_init()
 end
 
-# """
-#     symata()
-# """
-# symata() = do_init()
-# export symata
+is_loaded_IJulia() = isdefined(Main, :IJulia)
 
 function do_init()
     init_sympy()
@@ -136,8 +131,7 @@ function do_init()
     end
     sjimportall(:System, :Main) # These are Symata "contexts"
     set_current_context(:Main)
-    have_ijulia = isdefined(Main, :IJulia)
-    if have_ijulia # Use the Jupyter interface
+    if is_loaded_IJulia() # Use the Jupyter interface
         Jupyter.isymata()
     elseif isinteractive() # Started perhaps from the Julia REPL
         if isdefined(Base, :active_repl)
