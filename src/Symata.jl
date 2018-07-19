@@ -35,8 +35,6 @@ export devimport
 # FIXME: why export these *and* have devimport ?
 export  @testex, symval, symname, setsymval, meval, doeval, infseval, getpart, setpart!,
 sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
-# ??
-export name, typename
 
 ## Set const debugging parametres at compile-time in debug.jl
 include("debug.jl") # must use include here, because @inc is defined in debug.jl
