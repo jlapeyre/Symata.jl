@@ -116,7 +116,7 @@ function print_matching_topics(r::Regex)
     i = 0
     lastt = :none
     for (t, doc) in SJDOCS
-        if ismatch(r, string(doc))
+        if occursin(r, string(doc))
             i += 1
             println(t)
             lastt = t

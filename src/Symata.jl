@@ -8,8 +8,9 @@ import REPL
 import Markdown
 import InteractiveUtils
 import Base: setindex!, getindex, replace
-import Base64
+#import Base64
 import Dates
+import Formatting
 
 export @symExpr, @extomx
 export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln,
@@ -69,7 +70,7 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("comparison_logic.jl")
 @inc("test.jl")
 @inc("wrapout.jl")
-@inc("formatting/Formatting.jl")
+#@inc("formatting/Formatting.jl")
 @inc("predicates.jl")
 @inc("symata_julia_interface.jl")
 @inc("measurements.jl")

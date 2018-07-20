@@ -17,7 +17,7 @@ function latexstring(s::String)
     # the only point of using MyLaTeXString to represent equations, since
     # IJulia doesn't support MyLaTeX output other than equations, so add $'s
     # around the string if they aren't there (ignoring \$)
-    return ismatch(r"[^\\]\$|^\$", s) ?
+    return occursin(r"[^\\]\$|^\$", s) ?
         MyLaTeXString(s) :  MyLaTeXString(string("\$", s, "\$"))
 end
 latexstring(s::AbstractString) = latexstring(String(s))

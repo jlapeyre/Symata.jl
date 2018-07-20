@@ -163,7 +163,7 @@ function _show_float(io,x,fmt)
         Base.show(io,x)
     else
         s = Formatting.sprintf1(fmt,x)   # always print a `.` for floating point numbers
-        s = ismatch(r"\.",s) ? s : s * "."
+        s = occursin(r"\.",s) ? s : s * "."
         print(io,s)
     end
 end
