@@ -1,5 +1,8 @@
 Apply(ClearAll, UserSyms())
 
+# issue #106
+T Length(Integrate(f(x), x)) == 2
+
 ### Sum
 
 T Sum(i^3,[i,1,5]) == Apply(Plus,Table(i^3, [i,5]))
@@ -67,7 +70,6 @@ T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
 ## FIXME: this returns Dummy()'s
 ## Integrate((x^4 + 10*x^2 -96*x - 71)^(-1),[x])
 
-
 ClearAll(res,a,x)
 
 res = Integrate(x^a * Exp(-x), [x,0,Infinity])
@@ -85,18 +87,18 @@ T Integrate(Exp(-x^2),  [x,0,Infinity]) == (1/2)*(Pi^(1/2))
 
  ClearAll(r,y,x,res,a)
 
-####  MellinTransform
+###  MellinTransform
 
 T MellinTransform(Exp(-x),x,s) == [Gamma(s),[0,Infinity],True]
 
-####  InverseMellinTransform
+###  InverseMellinTransform
 
 T InverseMellinTransform(Gamma(s),s,x, [0,Infinity]) == Exp(-x)
  f = 1/(s^2 - 1)
 T InverseMellinTransform(f,s,x,[-Infinity,-1]) == HeavisideTheta(-1 + x) * (-1/2 * (x ^ (-1)) + 1/2 * x)
  ClearAll(f,s,x)
 
-#### LaplaceTransform
+### LaplaceTransform
 
 # Use these if noconds=false
 # T LaplaceTransform(t^a,t,s) == [(s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a),0,-1 * Re(a) < 1]
@@ -107,7 +109,7 @@ T LaplaceTransform(t^a,t,s) == (s ^ -1) * (s ^ (-1 * a)) * Gamma(1 + a)
 T LaplaceTransform(Cos(t),t,s) == s * ((1 + s ^ 2) ^ -1)
 T LaplaceTransform(Exp(3*t),t,s) == (-3 + s) ^ -1
 
-#### InverseLaplaceTransform
+### InverseLaplaceTransform
 
 T InverseLaplaceTransform(1/s,s,t) == HeavisideTheta(t)
 T InverseLaplaceTransform(Exp(-a*s)/s, s, t) == HeavisideTheta(t + -a)
@@ -119,23 +121,22 @@ T InverseLaplaceTransform( 1/(s*ta + 1)^n,s,t) == (E^(-t*(ta^(-1))))*(t^(-1 + n)
 # FIXME: This does not remove the SymPy assumption
 ClearAll(ta)
 
-
-#### FourierTransform
+### FourierTransform
 
 T FourierTransform( E^(-x^2), x, k) == E ^ (-(k ^ 2) * (π ^ 2)) * (π ^ (1/2))
 T InverseFourierTransform(E ^ (-(k*Pi) ^ 2) * (π ^ (1/2)), k, x) == E ^ (-(x ^ 2))
 
-#### SineTransform
+### SineTransform
 
 T SineTransform(x*Exp(-a*x^2), x, k) == 1/4 * (2 ^ (1/2)) * (a ^ (-3/2)) * (E ^ (-1/4 * (a ^ (-1)) * (k ^ 2))) * k
 
-#### CosineTransform
+### CosineTransform
 
 T CosineTransform(Exp(-a*x),x,k) == (2^(1/2))*a*((a^2 + k^2)^(-1))*(Pi^(-1/2))
 
  ClearAll(x,k,a)
 
-#### HankelTransform
+### HankelTransform
 
  ht = HankelTransform(1/r^m, r, k, nu)
 T  ht == 2 * (2 ^ (-m)) * (k ^ (-2 + m)) * Gamma(1 + 1/2 * nu + -1/2 * m) * (Gamma(1/2 * m + 1/2 * nu) ^ (-1))
@@ -143,7 +144,7 @@ T  InverseHankelTransform(ht,k,r,nu) == r^(-m)
 
  ClearAll(r,m,k,nu,ht)
 
-#### D
+### D
 
 T  D(f,x) == 0
 T D(x^2,x) == 2 * x
@@ -156,7 +157,7 @@ T  D(Exp(Exp(x)),x) == Exp(x) * Exp(Exp(x))
 T  D(ArcTan(x),x) == (1 + x ^ 2) ^ -1
 T  D(BesselJ(1,x),x) == (1//2) * (BesselJ(0,x)) + (-1//2) * (BesselJ(2,x))
 
-#### Product
+### Product
 
 T Product(i, [i,1,k]) == Factorial(k)
 T Product(m, [i,1,k]) == m^k
