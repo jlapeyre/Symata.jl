@@ -20,8 +20,22 @@ The last version to support Julia v0.6.3 is tagged v0.3.0. Three percent of the 
 
 For Julia v0.5, install branch `jv0.5only`.
 
-The syntax for `PatternTest` has been changed in Symata v0.4.0.
+### Syntax change in v0.4.0
+
+The syntax for `PatternTest` was changed in Symata v0.4.0.
 See "./sjtest/pattern_test.sj" for information on the new syntax.
+
+### Examples and help
+
+-  [static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
+   (If you can't get to the nbviewer link, here is [the example directory](examples/) at github. The notebooks in the example directory 
+   have been upgraded for Julia v0.7.
+-  Symata functions written in Symata are [here](symsrc/autoloaded.sj).
+-  examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
+-  when running Symata
+   * `TAB` completion
+   * `? Topic` (with completion)
+   * `h"word"` regular expression search
 
 ### Symata is
 
@@ -48,17 +62,6 @@ achieved by wrapping SymPy. There are more than 500 functions
 implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc.
-
-### Examples and help
-
--  [static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
-   (If you can't get to the nbviewer link, here is [the example directory](examples/) at github.
--  Symata functions written in Symata are [here](symsrc/autoloaded.sj).
--  examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
--  when running Symata
- * `TAB` completion
- * `? Topic` (with completion)
- * `h"word"` regular expression search
 
 ### Mathematica syntax.
 
