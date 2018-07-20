@@ -22,6 +22,7 @@ _vpad(s) = rpad(s,19)
 
 function _versioninfo()
     println(_vpad("Symata version"), SYMATA_VERSION)
+#    println(_vpad("Commit"), string(commit_hash, "*"))
     println(_vpad("Julia version"), Base.VERSION)
     if isdefined(PyCall, :pyversion)
         println(_vpad("Python version"), pyversion)
