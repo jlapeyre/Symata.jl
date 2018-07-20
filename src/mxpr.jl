@@ -1139,10 +1139,13 @@ clearsyms(mx::Mxpr) =  empty!(mx.syms)
 
 returns `true` if any free symbol in `mx` has a more recent timestamp than `mx`, and `false` otherwise.
 """
-@inline function checkdirtysyms(mx::Mxpr)
+function checkdirtysyms(mx::Mxpr)
     isempty(mx.syms) && return true   # assume re-eval is necessary if there are no syms
     mxage = mx.age
+#    @show mxage
     for sym in keys(mx.syms) # is there a better data structure for this ?
+        # @show sym
+        # @show symage(sym)
         symage(sym) > mxage && return true
     end
     return false  # no symbols in mx have been set since mx age was updated

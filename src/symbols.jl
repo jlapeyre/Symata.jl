@@ -705,7 +705,7 @@ do_Unfix(mx,args...;kws...) = mx
 #     mx[1]
 # end
 
-#### Syms
+### Syms
 
 @sjdoc Syms """
     Syms(m)
@@ -714,10 +714,14 @@ return a `List` of the symbols that the expression `m` "depends" on. The
 list is wrapped in `HoldForm` in order to prevent evaluation of the symbols.
 """
 
-# Syms has HoldAll
 function apprules(mx::Mxpr{:Syms})
-    mxpr(:HoldForm,do_syms(mx[1]))
+    mxpr(:HoldForm, do_syms(mx[1]))
 end
+
+do_syms(mx::Mxpr) = mxpra(:List, listsyms(mx)...)
+do_syms(s) = mxpr(:List,)
+
+### BuiltIns
 
 @sjdoc BuiltIns """
     BuiltIns()

@@ -12,10 +12,10 @@ set_sysattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "Times
 
 ## Piecewise is also read protected in Mma
 set_sysattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
-                 "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
-                 "Jxpr", "JuliaExpression", "Protect", "Unprotect", "Function", "Definition", "ToSymata", "NIntegrate", "Compile","SymataCall",
-                 "Piecewise", "ExportJ"],
-                :HoldAll)
+                   "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
+                   "Jxpr", "JuliaExpression", "Protect", "Unprotect", "Function", "Definition", "DirtyQ", "ToSymata",
+                   "NIntegrate", "Compile","SymataCall", "Piecewise", "ExportJ"],
+                  :HoldAll)
 
 
 set_sysattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])

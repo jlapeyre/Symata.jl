@@ -19,7 +19,7 @@ Base.isempty(mx::Mxpr) = isempty(margs(mx))
 """
     mxpr_head_freeq(mx::Mxpr)
 
-return true if any element at level 1 of mx is an Mxpr with head `head`.
+return false if any element at level 1 of mx is an Mxpr with head `head`.
 """
 mxpr_head_freeq(mx::Mxpr, head) = ! any(t -> isa(t,Mxpr{head}), margs(mx))
 
@@ -149,16 +149,15 @@ return `True` if `expr` is an even integer.
 
 ### DirtyQ
 
-apprules(mx::Mxpr{:DirtyQ}) = checkdirtysyms(mx[1])
-
+@mkapprule DirtyQ :nargs => 1
 @sjdoc DirtyQ """
     DirtyQ(m)
 
 return `True `if the timestamp of any symbol that `m` depends on
 is more recent than the timestamp of `m`. This is for diagnostics.
+`DirtyQ` evaluates `m` once.
 """
-do_syms(mx::Mxpr) = mxpr(:List,listsyms(mx)...)
-do_syms(s) = mxpr(:List,)
+@doap DirtyQ(expr) = expr |> symval |> checkdirtysyms
 
 ### NumericQ
 
