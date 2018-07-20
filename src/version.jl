@@ -1,1 +1,1 @@
-const SYMATA_VERSION = v"0.4.1-dev"
+const SYMATA_VERSION = v"0.4.1-dev.001"
