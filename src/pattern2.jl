@@ -147,7 +147,7 @@ abstract type AbstractMatchIndex end
 mutable struct MatchIndexSingle <: AbstractMatchIndex
     i::Int
 end
-    
+
 mutable struct MatchIndexAbstractArray{T<:AbstractArray} <: AbstractMatchIndex
     a::T
 end
@@ -194,7 +194,7 @@ getstop(mr::AbstractMatchType) = getstop(mr.a)
 
 function setsearchrange(d::AbstractMatchData, mr::AbstractMatchType)
     d.d._indr.start = getstart(mr)
-    d.d._indr.stop = getstop(mr)     
+    d.d._indr.stop = getstop(mr)
 end
 
 function setsearchstop(d::AbstractMatchData, mr::AbstractMatchType)
@@ -240,7 +240,7 @@ end
 
 function matchrange(data::MatchData, pat::ABlankNullSequence)
     (j1,j) = _matchrange_blanksequence(data,pat)
-    return j1 == 0 ? MatchNone() : MatchNullSequence(j1:j)    
+    return j1 == 0 ? MatchNone() : MatchNullSequence(j1:j)
 end
 
 function _matchrange_blanksequence(data,pat)

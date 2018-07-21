@@ -67,8 +67,8 @@ set_attribute(:Table, :HoldAll)
         dosaveval = false
     end
     local saveval
-    if dosaveval                  
-        saveval = symval(it[1])   
+    if dosaveval
+        saveval = symval(it[1])
     end
     local t = NullMxpr
     try          # at the moment it doesn't matter much because we can't interrupt anyway..., could be errors though
@@ -76,7 +76,7 @@ set_attribute(:Table, :HoldAll)
     catch
         symerror("error in Table")  # or interrupt
     finally
-        if dosaveval    
+        if dosaveval
             setsymval(it[1], saveval)
         end
     end

@@ -49,7 +49,7 @@ pauses (i.e.sleeps) for `x` seconds.
 
 ### AbsoluteTime
 
-#mma2datetime(t) = 
+#mma2datetime(t) =
 
 @mkapprule AbsoluteTime :nargs => 0
 

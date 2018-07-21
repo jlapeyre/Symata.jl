@@ -152,7 +152,7 @@ end
     n < 0 && return mx
     _init_polys() || return mx
     p =  n <= 92 ? fibpoly(n) :
-          fibpoly(big(n))        
+          fibpoly(big(n))
     fromjuliaPolynomial(p,x)
 end
 
@@ -169,20 +169,11 @@ end
     n < 0 && return mx
     _init_polys() || return mx
     p =  n <= 90 ? lucaspoly(n) :
-          lucaspoly(big(n))    
+          lucaspoly(big(n))
     fromjuliaPolynomial(p,x)
 end
 
-#### Interface to Julia Polynomials.jl
-
-## assumes n != 0,  n != 1
-function _monomial(var,c,n)
-    if c == 1
-        mpow(var,n)
-    else
-        mmul(c,mpow(var,n))
-    end
-end
+### Interface to Julia Polynomials.jl
 
 ## TODO: why do we have to do mergesyms here, but not when "var" is a Mxpr, as below
 ## ... a method is missing in evaluation.jl ?
@@ -213,7 +204,7 @@ function _fromjuliaPolynomial(p::Polynomials.Poly, var)
     end
     if nc > 1
         if cs[2] > 1
-            push!(nargs,mmul(cs[2],var))
+            push!(nargs, mmul(cs[2], var))
         elseif cs[2] == 1
             push!(nargs,var)
         end
@@ -222,7 +213,16 @@ function _fromjuliaPolynomial(p::Polynomials.Poly, var)
         c = cs[i]
         c == 0 && continue
         n = i - 1
-        push!(nargs, _monomial(var,c,n))
+        push!(nargs, _monomial(var, c, n))
     end
     mxpra(:Plus,nargs)
+end
+
+## assumes n != 0,  n != 1
+function _monomial(var,c,n)
+    if c == 1
+        mpow(var,n)
+    else
+        mmul(c, mpow(var, n))
+    end
 end

@@ -25,14 +25,14 @@ end
 
 #  [m,n] elements m through n
 struct SequenceMN{T<:Integer,V<:Integer} <: SequenceSpec
-    m::V    
+    m::V
     n::T
 end
 
 #  [m,n] elements m through n, step s
 struct SequenceMNS{T<:Integer,V<:Integer,W<:Integer} <: SequenceSpec
     m::V
-    n::T    
+    n::T
     s::W
 end
 

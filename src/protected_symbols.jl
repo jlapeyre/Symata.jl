@@ -128,7 +128,7 @@ set_sysattributes(["True", "False"], :Protected)
 
 set_sysattributes(["Optional","Repeated", "RepeatedNull" ], :Protected)
 
-set_sysattributes([                 
+set_sysattributes([
                   "!=","//","<","<=","==",">","===",">=","Age","All","Alternatives","Apply","Array","ArrayDepth","AtomQ",
                   "BF","BI","Big","Blank","BlankNullSequence","BlankSequence",
                   "BuiltIns","ByteCount","Cancel","Chop","Collect","Comparison", "CompiledFunction",

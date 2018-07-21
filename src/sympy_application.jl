@@ -477,7 +477,7 @@ solve a system of equations.
 """
 
 ## TODO: This takes keyword args, in fact a system for sympy keyword args.
-##  options => Dict(:Rational => True, 
+##  options => Dict(:Rational => True,
 @mkapprule Solve
 
 # TODO: find free symbols in expr and return rules as in following methods

@@ -113,7 +113,7 @@ return `True` if `x` is of type `type`.
 @doap Isa(x,T::DataType) = isa(x,T)
 @doap Isa(x,T::Symbol) = isa(x,eval(T))
 @doap Isa(x,T) = mx
-    
+
 #const Float = AbstractFloat
 
 ### ReleaseHold
@@ -130,9 +130,9 @@ removes the outer layer of `Hold`, `HoldForm`, `HoldPattern`, and `HoldComplete`
 
 @doap function ReleaseHold(mxa::Holds)
 #    length(margs(mxa)) == 0 && return mxpr(:Sequence)  ## delete theses lines after a while
-    isempty(mxa) && return mxpr(:Sequence)    
+    isempty(mxa) && return mxpr(:Sequence)
     length(mxa) > 1 && return  mxpra(:Sequence,margs(mxa))
-#    length(margs(mxa)) > 1 && return  mxpra(:Sequence,margs(mxa))    
+#    length(margs(mxa)) > 1 && return  mxpra(:Sequence,margs(mxa))
     return mxa[1]
 end
 
@@ -161,7 +161,7 @@ end
 
 @mkapprule Reverse! nargs => 1
 @doap function Reverse!(ex::Mxpr)
-    isOrderless(ex) && return ex    
+    isOrderless(ex) && return ex
     reverse!(margs(ex))
     ex
 end

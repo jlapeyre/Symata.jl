@@ -463,7 +463,7 @@ end
 function _constantarray(expr::Mxpr,n::Integer)
     nargs = newargs(n)
      @inbounds for i in 1:n
-        nargs[i] = setfixed(recursive_copy(expr))         
+        nargs[i] = setfixed(recursive_copy(expr))
      end
     mxpra(:List,nargs)
 end

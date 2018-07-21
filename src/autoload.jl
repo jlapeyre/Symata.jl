@@ -22,7 +22,7 @@ code.
 function check_autoload(s::Symbol)
     global autoload
     if (! autoload.isloaded) && haskey(autoload.triggers, s)
-        autoload.isloaded = true        
+        autoload.isloaded = true
         load_symata_code_now()
     end
 end

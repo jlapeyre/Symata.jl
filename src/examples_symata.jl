@@ -2,7 +2,7 @@
 # Code written in Symata that is actually loaded is in ./symsrc
 
 # Some code written in Symata itself is here.
-# 
+#
 # There are more examples in the test directory. eg. io_test.jl
 # These are examples; many are not practical.
 #

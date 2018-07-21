@@ -1021,7 +1021,7 @@ function mxpr(s,iargs...)
 end
 
 # set fixed point and clean bits
-@inline function mxprcf(s::SJSym,iargs...)
+function mxprcf(s::SJSym,iargs...)
     args = newargs(length(iargs))
     copyto!(args,iargs)
     mxprcf(s,args)

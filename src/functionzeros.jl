@@ -23,7 +23,7 @@ function besselj_zero(nu,n)
     z = besselj_asymptotic_zero(nu,n)
     bf = (x) -> besselj(nu,x)
 #    return fzero(bf,z,ftol=1e-15)
-    return fzero(bf,z)    
+    return fzero(bf,z)
 end
 
 @mkapprule BesselJZero nargs => 2

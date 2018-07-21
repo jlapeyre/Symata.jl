@@ -39,12 +39,12 @@ function localize_module!(mx::Mxpr{:Module})
             lvtab[vn] = get_localized_symbol(vn)
         end
     end
-    body = substlocalvars!(body,lvtab)    
+    body = substlocalvars!(body,lvtab)
     for setline in setlines
         pushfirst!(margs(body), setline)  # These lines will set the initial values
     end
     pushfirst!(margs(body), mxpr(:Clear,collect(values(lvtab))...)) # first thing is clear existing local vars. Not neccessary ?
-    return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them    
+    return mxpr(:LModule, body)  # we need this, for the moment, to remove the temporary variables. Better to mark them
 end
 
 substlocalvars!(el,lvtab) = is_Mxpr(el) ? mxpr(substlocalvars!(mhead(el),lvtab), [substlocalvars!(x,lvtab) for x in margs(el)]...) :

@@ -596,7 +596,7 @@ function ematch(pat::Mxpr, m)
     mx = m.ex
     captures = m.capt
 #    m.ex = mhead(m)  # !?? This is wrong ?
-    m.ex = mhead(mx)  # !?? This is wrong ?    
+    m.ex = mhead(mx)  # !?? This is wrong ?
     # TODO: detect genhead here
     (mhead(pat) == mhead(mx)) || ematch(mhead(pat),m) || return false
     m.ex = mx
