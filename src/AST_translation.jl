@@ -12,7 +12,7 @@ macro h_str(s)
         check_autoload(Symbol(strip(s)))
     catch
     end
-    reg = eval(Expr(:macrocall, Symbol("@r_str"), strip(s), "i"))
+    reg = eval(Expr(:macrocall, Symbol("@r_str"), Base.LineNumberNode(1), strip(s), "i"))
     print_matching_topics(reg)
     :Null
 end

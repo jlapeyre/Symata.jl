@@ -420,7 +420,7 @@ end
 
 do_Help(mx::Mxpr{:Help},args...) =  print_doc(args...)
 
-function do_Help(mx::Mxpr{:Help},r::T) where T<:Regex
+function do_Help(mx::Mxpr{:Help}, r::T) where T<:Regex
     print_matching_topics(r)
     return nothing
 end
