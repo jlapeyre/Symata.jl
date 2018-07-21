@@ -24,7 +24,7 @@ if [ "$copycode" = true ]; then
     mkdir $TEST_PACKAGE_DIR/Symata/
     ## Copy the source files to the test package directory
     ## Project.toml must be present (15 Jul 2018) for loading modules correctly.
-    cp -a ../src ../sjtest ../pysrc ../symsrc ../Project.toml $TEST_PACKAGE_DIR/Symata/
+    cp -a ../src ../symata_test ../pysrc ../symsrc ../Project.toml $TEST_PACKAGE_DIR/Symata/
 fi
 
 cd $TEST_PACKAGE_DIR/

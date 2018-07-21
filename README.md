@@ -12,7 +12,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 [![Symata](http://pkg.julialang.org/badges/Symata_0.7.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.7)
 
-### About versions
+### Symata and Julia versions
 
 The master branch, and tagged versions 0.4.0 and later, support only Julia v0.7 and greater.
 
@@ -23,19 +23,22 @@ For Julia v0.5, install branch `jv0.5only`.
 ### Syntax change in v0.4.0
 
 The syntax for `PatternTest` was changed in Symata v0.4.0.
-See "./sjtest/pattern_test.sj" for information on the new syntax.
+See "./symata_test/pattern_test.sj" for information on the new syntax.
 
 ### Examples and help
 
--  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
-   (If you can't get to the nbviewer link, here is [the example directory](examples/) at github. The notebooks in the example directory 
-   have been upgraded for Julia v0.7.
+-  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/TutorialNotebooks/)
+   at `nbviewer.jupyter.org`. These are the same notebooks found in the [TutorialNotebooks](TutorialNotebooks/) directory
+   in this repositoy. But the rendering at `nbviwer` is better.
+-  [Symata-language test directory](symata_test/) (note this is `symata_test`, not `test`)
 -  [Symata functions written in Symata](symsrc/autoloaded.sj).
--  Examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
--  when running Symata
+-  When running Symata
    * `TAB` completion
    * `? Topic` (with completion)
    * `h"word"` regular expression search
+   * `Help()` and `Help(topic)`
+-  If you have a question or a request, or want to contribute,
+   please [open an issue](https://github.com/jlapeyre/Symata.jl/issues) here on github.
 
 ### Symata is
 
@@ -58,7 +61,7 @@ think about classes, methods, objects, dispatch, stack traces, etc.
 Symata is largely modeled on the pattern matching and evaluation sequence of
 Mathematica. Evaluation, pattern matching, flow control, etc. are
 written in Julia. Much of the mathematics and symbolic manipulation is
-achieved by wrapping SymPy. There are more than 500 functions
+achieved by wrapping SymPy. There are more than 600 functions
 implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc.
@@ -67,12 +70,6 @@ and from a file etc.
 
 You can use Symata with Mathematica syntax in addition to the usual Julia-like syntax. To use Mathematica syntax,
 install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.jl).
-
-### IJulia Notebooks
-
-A few tutorial notebooks can be viewed [here](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
-Lower-quality renderings of the same notebooks are in [the example directory](examples/). These are all snapshots, not live, so you can
-view them immediately with your browser.
 
 ### Installing
 
@@ -121,7 +118,7 @@ install mpmath`.
 
 ### Running Symata
 
-Three environments for running `Symata` are supported: the `Julia` REPL, `Jupyter`, and a dumb terminal
+Three environments for running `Symata` are supported: the `Julia` REPL, `Jupyter`, and a dumb terminal.
 
 ### Symata REPL mode
 
@@ -162,28 +159,10 @@ If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear a
 
 From the julia prompt, type `isympy()` to enter the sympy shell.
 
-### Help, examples, tests
-
-The best source of examples is [the test directory](sjtest/).
-The documentation can be printed from within Symata by entering `? SymName`
-at the `symata` prompt.  `Help(Symname)` prints the same
-documentation. For many Symata functions, the SymPy docstring is
-printed along with the Symata documentation.
-
-Try `Help()`. Type `h"topic"` to search for items containing the
-string `"topic"`.  Hit `TAB` at the command line REPL for a list of all
-builtin symbols. (i.e. variables and functions) Symbols that are
-associated with some functionality can be listed with
-`BuiltIns()`. Type `Example()` to see a list of topics with examples.
-Type `Example(topic)` to run the examples. (But, far more examples are
-in [the test directory](sjtest/)). The input strings from the examples are pushed
-to the history so that they can be recalled and edited and
-re-evaluated.
-
-#### Tests
+### Tests
 
 Run the test suite from the `symata` prompt with `Tests()`.
-This runs tests in [the directory sjtest.](sjtest/)
+This runs tests in the [symata_test directory](symata_test/)
 `Pkg.test("Symata")` runs the same test suite from `Julia` and
 some Julia-level unit tests, as well.
 
@@ -197,7 +176,7 @@ some Julia-level unit tests, as well.
  -->
 <!--  LocalWords:  Symname addone lexically FloatingPoint cossinrule
  -->
-<!--  LocalWords:  TrigSimp Upvalues Symata sjtest docstring builtin
+<!--  LocalWords:  TrigSimp Upvalues Symata symata_test docstring builtin
  -->
 <!--  LocalWords:  oo conds th HistoryLength BigIntInput RuleDelayed
  -->

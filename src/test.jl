@@ -67,10 +67,6 @@ function record_SymataTest(test::AbstractSymataPlainTest, fname, linenumber, res
     end
 end
 
-function Symata_test_path()
-    joinpath(Symata_module_path(), "sjtest")
-end
-
 function runtest(test_type, fname; logfile="")
     path = joinpath(SYMATA_LANG_TEST_PATH, fname)
     read_Symata_file(path, test_type)
@@ -91,11 +87,11 @@ end
 @sjdoc Tests """
     Tests()
 
-Run the Symata-language test suite. This runs the code in the directory `sjtest`.
+Run the Symata-language test suite. This runs the code in the directory `symata_test`.
 
     Tests(filename)
 
-Run the tests in `filename` in the directory main test directory (`sjtest`).
+Run the tests in `filename` in the directory main test directory (`symata_test`).
 
     Tests(filename, PrintTests => True)
 

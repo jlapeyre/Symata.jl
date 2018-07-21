@@ -4,8 +4,8 @@ pysrc/isympy.pyc
 devdocs/
 devtest/Speedresults.txt
 dev/testsrc/
-example/
-examples/Untit*
+TutorialNotebooks/Untit*
+TutorialNotebooks/.ipynb_checkpoints
 mod1.jl
 mod1a.jl
 papers/
@@ -22,6 +22,5 @@ workflowquestion
 *.cov
 jlcopy*
 mma_attributes*
-examples/
 pysrc/isympy.pyc
 Manifest.toml

@@ -11,7 +11,7 @@ const SYMATA_PACKAGE_PATH = joinpath(dirname(@__FILE__), "..")
 
 Filesystem path to directory containing tests written in Symata.
 """
-const SYMATA_LANG_TEST_PATH = joinpath(SYMATA_PACKAGE_PATH, "sjtest")
+const SYMATA_LANG_TEST_PATH = joinpath(SYMATA_PACKAGE_PATH, "symata_test")
 
 const NullMxpr = mxprcf(:Null)
 const Null = :Null  # In Mma, Null is a Symbol. But, the Mma REPL prints nothing when encountering it (sometimes)
