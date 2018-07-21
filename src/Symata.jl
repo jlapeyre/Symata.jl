@@ -10,6 +10,7 @@ import InteractiveUtils
 import Base: setindex!, getindex, replace
 #import Base64
 import Dates
+import Statistics
 import Formatting
 
 export @symExpr, @extomx

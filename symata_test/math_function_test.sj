@@ -378,4 +378,8 @@ T Norm([1,2]) == 5^(1/2)
 T Norm([1,I]) == 2^(1/2)
 T Norm([a,b,c]) == (Abs(a)^2 + Abs(b)^2 + Abs(c)^2)^(1/2)
 
+### Statistics
+
+T Mean([1,2,3]) == 2.0
+
 Apply(ClearAll, UserSyms())
