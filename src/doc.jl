@@ -115,15 +115,19 @@ end
 function print_matching_topics(r::Regex)
     i = 0
     lastt = :none
+    lastdoc = :none
     for (t, doc) in SJDOCS
-        if occursin(r, string(doc))
+        if occursin(r, string(t)) || occursin(r, string(doc))
             i += 1
             println(t)
             lastt = t
+            lastdoc = doc
         end
     end
     if i == 1
-        println(SJDOCS[r])
+        if occursin(r, string(lastt)) # only print whole doc if we match name
+            println(lastdoc)
+        end
     end
     return nothing
 end
