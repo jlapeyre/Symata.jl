@@ -734,14 +734,17 @@ have the `Protected` attribute.
 #apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 
 function apprules(mx::Mxpr{:BuiltIns})
+    copyto!(newargs(length(syms)), get_builtins())
+    setfixed(MListA(nargs))
+end
+
+function get_builtins()
     syms = get_system_symbols();
     symidx = something(findfirst(isequal(:ans), syms), 0)
     deleteat!(syms, symidx)  ## These two lines avoid infinite evaluation loop
     deleteat!(syms,findall((x -> match(r"^O+$",string(x)) !== nothing),syms))
 #    deleteat!(syms,find((x -> match(r"^O+$",string(x)) !== nothing),syms))
-    nargs = newargs(length(syms))
-    copyto!(nargs, syms)
-    setfixed(MListA(nargs))
+    return syms
 end
 
 @sjdoc UserSyms """

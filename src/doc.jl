@@ -124,6 +124,11 @@ function print_matching_topics(r::Regex)
             lastdoc = doc
         end
     end
+    for sym in get_builtins()  # check builtin symbols with no doc string.
+        if (! haskey(SJDOCS, sym)) && occursin(r, string(sym))
+            println(string(sym))
+        end
+    end
     if i == 1
         if occursin(r, string(lastt)) # only print whole doc if we match name
             println(lastdoc)
