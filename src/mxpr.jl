@@ -950,13 +950,13 @@ maintained.
 @inline function mxpra(s::SJSym,args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
-    mx
+    return mx
 end
 
 function mxpra(s,args::MxprArgs)
     mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
-    mx
+    return mx
 end
 
 ## We can't change the head of an expression (except for genhead). The head is also the type.
@@ -969,20 +969,20 @@ end
 function mxprnewhead(mx::Mxpr,head)
     mx = Mxpr{GenHead}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
     setage(mx)
-    mx
+    return mx
 end
 
 function mxprnewhead(mx::Mxpr{GenHead},head::SJSym)
     mx = Mxpr{head}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
     setage(mx)
-    mx
+    return mx
 end
 
 ## For GenHead to GenHead we don't need to copy
 function mxprnewhead(mx::Mxpr{GenHead},head)
     mx.head = head
     setage(mx)
-    mx
+    return mx
 end
 
 # New method May 2016. We do want to use Mxpr's as heads
@@ -1007,43 +1007,55 @@ end
 # end
 
 # Non-symbolic Heads have type GenHead, for now
-function mxpr(s,args::MxprArgs)
+function mxpr(s, args::MxprArgs)
     mx = Mxpr{GenHead}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
-    mx
+    return mx
 end
 
-function mxpr(s,iargs...)
+function mxpr(s, iargs...)
     len = length(iargs)
     args = newargs(len)
     copyto!(args,iargs)
-    mxpra(s,args)
+    return mxpra(s,args)
 end
 
-# set fixed point and clean bits
-function mxprcf(s::SJSym,iargs...)
+"""
+    mxprcf(s::SJSym, args::MxprArgs)
+
+Like `mxpr` but set the `fixed` and `canon` bits to `true`. This
+prevents evaluation and canonical ordering of the arguments. You
+should ensure the the arguments in fact do not need to be evaluated
+or sorted.
+"""
+function mxprcf(s::SJSym, iargs...)
     args = newargs(length(iargs))
-    copyto!(args,iargs)
-    mxprcf(s,args)
+    copyto!(args, iargs)
+    return mxprcf(s, args)
 end
 
-@inline function mxprcf(s::SJSym,args::MxprArgs)
-    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
+function mxprcf(s::SJSym, args::MxprArgs)
+    return Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
 end
 
 ## TODO: prefer mxprcfa to mxcprcf if we are not copying args.
 ## TODO: when does clean bit matter ? Is fixed bit enough.
 ##  in mxpr_utils, tolistfixed, etc. only set fixed.
-@inline function mxprcfa(s::SJSym,args::MxprArgs)
-    mx = Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
+"""
+    mxprcfa(s::SJSym, args::MxprArgs)
+
+Like `mxpr` but set the canonical and fixed bits (like `mxprcf`), and
+store `args` rather that a copy.
+"""
+function mxprcfa(s::SJSym, args::MxprArgs)
+    return Mxpr{symname(s)}(s,args,true,true,newsymsdict(),0,0,Any)
 end
 
-function mxprcf(s,args::MxprArgs)
+function mxprcf(s, args::MxprArgs)
     mx = Mxpr{GenHead}(s,args,true,true,newsymsdict(),0,0,Any)
     setage(mx)
-    mx
+    return mx
 end
-
 
 ######  Manage lists of free symbols
 
@@ -1055,7 +1067,7 @@ is_sym_mergeable(s::Symbol) = true
 is_sym_mergeable(s) = false
 
 # Copy list of free (bound to self) symbols in a to free symbols in mx.
-@inline function mergesyms(mx::Mxpr, a::Mxpr)
+function mergesyms(mx::Mxpr, a::Mxpr)
     mxs = mx.syms
     for sym in keys(a.syms) # mxs is a Dict
         mxs[sym] = true
@@ -1067,7 +1079,7 @@ is_sym_mergeable(s) = false
 end
 
 # Copy list of free (bound to self) symbols in a to a collection (Dict) of free symbols
-@inline function mergesyms(mxs::FreeSyms, a::Mxpr)
+function mergesyms(mxs::FreeSyms, a::Mxpr)
     for sym in keys(a.syms)
         mxs[sym] = true
     end
@@ -1076,7 +1088,6 @@ end
         mxs[h] = true
     end
 end
-
 
 """
     mergesyms(syms::FreeSyms, a::SJSym)
@@ -1099,7 +1110,6 @@ does nothing and returns `nothing` if `x` is neither a `Mxpr` nor a `FreeSyms`.
 """
 @inline mergesyms(x,y) = nothing
 
-
 # We also merge the head of mx. Maybe its better to
 # do merging the head  in a separate function.
 
@@ -1116,6 +1126,7 @@ function mergeargs(mx::Mxpr)
     h = mhead(mx)
     if is_sym_mergeable(h)  mergesyms(mx,h)  end
     foreach(x -> mergesyms(mx,x), mx)
+    return nothing
 end
 
 """

@@ -718,7 +718,7 @@ function apprules(mx::Mxpr{:Syms})
     mxpr(:HoldForm, do_syms(mx[1]))
 end
 
-do_syms(mx::Mxpr) = mxpra(:List, listsyms(mx)...)
+do_syms(mx::Mxpr) = mxpr(:List, listsyms(mx)...)
 do_syms(s) = mxpr(:List,)
 
 ### BuiltIns
