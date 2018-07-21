@@ -735,8 +735,10 @@ have the `Protected` attribute.
 
 function apprules(mx::Mxpr{:BuiltIns})
     syms = get_system_symbols();
-    deleteat!(syms,findfirst(syms,:ans))  ## These two lines avoid infinite evaluation loop
-    deleteat!(syms,find((x -> match(r"^O+$",string(x)) !== nothing),syms))
+    symidx = something(findfirst(isequal(:ans), syms), 0)
+    deleteat!(syms, symidx)  ## These two lines avoid infinite evaluation loop
+    deleteat!(syms,findall((x -> match(r"^O+$",string(x)) !== nothing),syms))
+#    deleteat!(syms,find((x -> match(r"^O+$",string(x)) !== nothing),syms))
     nargs = newargs(length(syms))
     copyto!(nargs, syms)
     setfixed(MListA(nargs))
