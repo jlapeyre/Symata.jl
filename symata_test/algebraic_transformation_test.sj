@@ -23,12 +23,10 @@ T  Collect(q,y) == x + (x + x^2)*y + x*(y^2)
 # sympy does not do this unless we use Expand. Mma does the expansion
 T Collect(Expand((1+a+x)^4), x) == 1 + 4*a + 6*(a^2) + 4*(a^3) + a^4 + (4 + 12*a + 12*(a^2) + 4*(a^3))*x + (6 + 12*a + 6*(a^2))*(x^2) + (4 + 4*a)*(x^3) + x^4
 
-# This differs from sympy. We cannott quite do Derivative(1)f yet
+# This differs from sympy. We cannot quite do Derivative(1)f yet
 T Collect( a*D(f(x),x) + b*D(f(x),x), D(f(x),x))  == (D(f(x),x))*(a + b)
 
 #### Common subexpression
-
-# FIXME: the replacements should be a list of rules, in reverse order. Then Fold(newexpr, rules) returns the original expression.
 
 T Cse(Sqrt(Sin(x)+5)*Sqrt(Sin(x)+4)) == [[((4 + x0)^(1/2))*((5 + x0)^(1/2))],[x0 => Sin(x)]]
 T Cse(Sqrt(Sin(x+1) + 5 + Cos(y))*Sqrt(Sin(x+1) + 4 + Cos(y)))  == [[((4 + x0)^(1/2))*((5 + x0)^(1/2))],[x0 => (Cos(y) + Sin(1 + x))]]
@@ -73,7 +71,7 @@ T  Factor(x^10 - 1, Modulus => 2) == ((1 + x)^2)*((1 + x + x^2 + x^3 + x^4)^2)
 T  Factor(x^2 + 1, Gaussian => True) == (-1I + x)*(I + x)
 T  Factor((x^2 + 4*x + 4)^10000000*(x^2 + 1)) == ((2 + x)^20000000)*(1 + x^2)
 T  Factor( 2^(x^2 + 2*x + 1), Deep => True ) == 2^((1 + x)^2)
-# T  Factor(x^2 - 2, extension => Sqrt(2))  FIXME. raises exception
+# T  Factor(x^2 - 2, extension => Sqrt(2))  FIXME #116. raises exception
 
  ClearAll(a,b,c,p,x,y,f)
 
@@ -81,7 +79,7 @@ T  Factor( 2^(x^2 + 2*x + 1), Deep => True ) == 2^((1 + x)^2)
 
 T  ExpandFunc(Gamma(x+2)) == x*Gamma(x)*(1 + x)
 T  Simplify(x*Gamma(x)*(1 + x)) == Gamma(x+2)
-# FIXME  Canononical order should be  x*(1+x)*Gamma(x).  We get x*Gamma(x)*(1+x)
+# FIXME #115  Canononical order should be  x*(1+x)*Gamma(x).  We get x*Gamma(x)*(1+x)
 
 T  ExpandLog(Log(x^2), Force => True) == 2Log(x)
 T  ExpandLog(Log(x/y), Force => True) == Log(x) + -Log(y)
