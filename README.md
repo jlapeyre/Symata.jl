@@ -27,11 +27,11 @@ See "./sjtest/pattern_test.sj" for information on the new syntax.
 
 ### Examples and help
 
--  [static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
+-  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/examples/).
    (If you can't get to the nbviewer link, here is [the example directory](examples/) at github. The notebooks in the example directory 
    have been upgraded for Julia v0.7.
--  Symata functions written in Symata are [here](symsrc/autoloaded.sj).
--  examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
+-  [Symata functions written in Symata](symsrc/autoloaded.sj).
+-  Examples are in [the test directory](sjtest/)  (note this is `sjtest`, not `test`)
 -  when running Symata
    * `TAB` completion
    * `? Topic` (with completion)
