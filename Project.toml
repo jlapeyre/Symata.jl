@@ -2,13 +2,12 @@ name = "Symata"
 desc = "language for symbolic mathematics"
 authors = ["John Lapeyre"]
 license = "MIT"
-version = "0.4.2-dev"
+version = "0.4.2"
 uuid = "a906b1d5-d016-55c4-aab3-8a20cba0db2a"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 CommonSubexpressions = "bbf7d656-a473-5ed7-a52c-81e309532950"
-# Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

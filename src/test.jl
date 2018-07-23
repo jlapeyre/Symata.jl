@@ -113,7 +113,7 @@ end
 
 ### Test
 
-@mkapprule Test :nargs => 1
+@mkapprule Test :nargs => 0:1
 
 @sjdoc Test """
     Test(expr)
