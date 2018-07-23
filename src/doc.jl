@@ -96,7 +96,6 @@ function retrieve_doc(qs...)
     end
 end
 
-
 function print_sympy_doc(sjsymin::SymString)
     sjsym = Symbol(sjsymin)
     if have_pyfunc_symbol(sjsym)
@@ -104,7 +103,7 @@ function print_sympy_doc(sjsymin::SymString)
         pysym = lookup_pyfunc_symbol(sjsym)
         spysym = string(pysym)
         printcom = "println(sympy[:$spysym][:__doc__])"
-        try eval(parse(printcom))
+        try eval(Meta.parse(printcom))
         catch
             Null
         end

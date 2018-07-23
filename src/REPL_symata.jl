@@ -121,7 +121,7 @@ function symata_completions(string, pos)
      if inc_tag == :other && REPLCompletions.should_method_complete(partial)
         frange, method_name_end = REPLCompletions.find_start_brace(partial)
         ex = symata_syntax_deprecation_warnings(false) do
-            parse(partial[frange] * ")", raise=false)
+            Meta.parse(partial[frange] * ")", raise=false)
         end
         if isa(ex, Expr) && ex.head==:call
             return complete_methods(ex), start(frange):method_name_end, false

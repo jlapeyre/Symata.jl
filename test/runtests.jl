@@ -15,6 +15,6 @@ include("mxpr_test.jl")
 
 # Run Symata language tests
 function runtests()
-    eval(parse("@sym Tests()"))
+    eval(Meta.parse("@sym Tests()"))
 end
 @test (runtests() ; true)
