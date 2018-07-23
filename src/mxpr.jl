@@ -912,9 +912,9 @@ checkhash(x) = x
 ## and mxpr for case two.
 
 """
-    mxpr(head,iargs...)
+    mxpr(head, iargs...)
 
-create a Symata expression with head `head` and arguments `iargs`.
+Create a Symata expression with head `head` and arguments `iargs`.
 The arguments are copied. An object of type `Mxpr{head}` is returned
 if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise.
 """
@@ -938,16 +938,15 @@ end
 ## Not possible if we dispatch on type to distinguis from mxpr() above
 
 """
-    mxpra(head,args::MxprArgs)
+    mxpra(head, args::MxprArgs)
 
-create a Symata expression with head `head` and arguments `args`.
+Create a Symata expression with head `head` and arguments `args`.
 The arguments are not copied. An object of type `Mxpr{head}` is returned
 if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise. The type `MxprArgs`
 is currently an alias for `Array{Any,1}` and can be instantiated with the function
-`newargs()`. This alias is unlikely to change, but til now, this abstraction has been
-maintained.
+`newargs()`.
 """
-@inline function mxpra(s::SJSym,args::MxprArgs)
+@inline function mxpra(s::SJSym, args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
     return mx

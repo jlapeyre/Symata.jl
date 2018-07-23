@@ -29,7 +29,7 @@ See "./symata_test/pattern_test.sj" for information on the new syntax.
 
 -  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/TutorialNotebooks/)
    at `nbviewer.jupyter.org`. These are the same notebooks found in the [TutorialNotebooks](TutorialNotebooks/) directory
-   in this repositoy. But the rendering at `nbviwer` is better.
+   in this repositoy. But the rendering at `nbviewer` is better.
 -  [Symata-language test directory](symata_test/) (note this is `symata_test`, not `test`)
 -  [Symata functions written in Symata](symsrc/autoloaded.sj).
 -  When running Symata
@@ -37,6 +37,11 @@ See "./symata_test/pattern_test.sj" for information on the new syntax.
    * `? Topic` (with completion)
    * `h"word"` regular expression search
    * `Help()` and `Help(topic)`
+-  [NumericalMethodsforEngineers.jl](https://github.com/PtFEM/NumericalMethodsforEngineers.jl) uses
+   Symata. Example code is found in
+   * [examples/ch04/](https://github.com/PtFEM/NumericalMethodsforEngineers.jl/tree/master/examples/ch04)
+   * [Ex.7.13.function.jl](https://github.com/PtFEM/NumericalMethodsforEngineers.jl/blob/master/examples/ch07/WRM/Ex.7.13.function.jl)
+   * Several files in the [test directory](https://github.com/PtFEM/NumericalMethodsforEngineers.jl/tree/master/test)   
 -  If you have a question or a request, or want to contribute,
    please [open an issue](https://github.com/jlapeyre/Symata.jl/issues) here on github.
 

@@ -158,7 +158,7 @@ end
 """
     symtranseval(expr::Any)
 
-translate `expr` from `Expr` to `Mxpr` and send to the top level of the Symata evaluation sequence. `expr`
+Translate `expr` from `Expr` to `Mxpr` and send to the top level of the Symata evaluation sequence. `expr`
 may also be a number, symbol, string, etc.
 """
 function symtranseval(expr)
@@ -168,8 +168,10 @@ end
 """
     symparseeval(s::String)
 
-parses `s` into Julia expressions, translates them to Symata expressions, and Symata-evaluates each one,
+Parse `s` into Julia expressions, translates them to Symata expressions, and Symata-evaluates each one,
 returning the value returned by the final evaluation.
+
+See `symparsestring`, `symtranseval`, and `@sym`.
 """
 function symparseeval(s::String)
     mxprs = symparsestring(s)

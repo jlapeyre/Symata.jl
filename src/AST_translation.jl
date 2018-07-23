@@ -23,30 +23,33 @@ macro BI_str(s) parse(BigInt,s) end
 macro BF_str(s) parse(BigFloat,s) end
 
 """
-    symparsestring(s::String)
+    symparsestring(s::String)::Vector{Any}
 
-parses `s` into one or more Julia expressions, translates each one to a Symata expression,
-and returns an array of the Symata expressions.
+Parse `s` into an array of Symata expressions, with one expression per array element.
 
-Note that the phrases *Symata expression* and *Julia expression* here include numbers, symbols, etc.
+The Symata expressions are not evaluated. For example
+`symparsestring("b + b")` returns the Symata expression
+`Plus(b, b)`, rather than  `Times(2, b)`.
+
+Note that the phrase *Symata expression* includes numbers, symbols, etc.
+
+See `symparseeval`.
 """
 function symparsestring(s)
-    mxprs = Array{Any}(undef, 0)
+    mxprs = Vector{Any}(undef, 0)
     s = sjpreprocess_string(s)
     i = 1
-    local sjretval
     local expr
     while ! (i > ncodeunits(s))
         symata_syntax_deprecation_warnings(false) do
             expr, i = Meta.parse(s,i)
         end
-        sjretval =
-            try
-                mx = extomx(expr)
-                push!(mxprs, mx)
-            catch e
-                symprintln("Reading string: got error ", e)
-            end
+        try
+            mx = extomx(expr)
+            push!(mxprs, mx)
+        catch e
+            symprintln("Reading string: got error ", e)
+        end
     end
     return mxprs
 end
