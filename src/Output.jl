@@ -58,28 +58,33 @@ end
 const juliafullformdata = FullFormData("(",")")
 const mmafullformdata = FullFormData("[","]")
 
-fullform(io::IO, mx::Mxpr) = fullform(io,mx,juliafullformdata)
+fullform(io::IO, mx::Union{Mxpr, Rational, Complex}) = fullform(io, mx, juliafullformdata)
+
 
 function fullform(io::IO, mx::Mxpr, data::FullFormData)
     # Really fucking weird. I have to do wrapout here, but not in the method of wrapout(::Mxpr)
-    fullform(io,wrapout(mhead(mx)),data)
+    fullform(io, wrapout(mhead(mx)), data)
     print(io, data.lfunc)
-    if length(mx) > 0 fullform(io,mx[1],data) end
+    if length(mx) > 0 fullform(io, mx[1], data) end
     for i in 2:length(mx)
         print(io,",")
-        fullform(io,mx[i],data)
+        fullform(io, mx[i], data)
     end
     print(io, data.rfunc)
 end
 
-fullform(io::IO,x,data::FullFormData) = Base.show(io,x)
-fullform(x,data::FullFormData) = fullform(stdout,x,data)
-fullform(x) = fullform(stdout,x,juliafullformdata)
+fullform(io::IO, x, data::FullFormData) = Base.show(io, x)
+fullform(x, data::FullFormData) = fullform(stdout, x, data)
 
-mmafullform(io::IO,x) = fullform(io,x,mmafullformdata)
-mmafullform(x) = mmafullform(stdout,x)
 
-Base.show(io::IO, mx::Mxpr{:FullForm}) = fullform(io,mx[1],juliafullformdata)
+fullform(x) = fullform(stdout, x, juliafullformdata)
+
+mmafullform(io::IO, x) = fullform(io, x, mmafullformdata)
+mmafullform(x) = mmafullform(stdout, x)
+
+function Base.show(io::IO, mx::Mxpr{:FullForm})
+    fullform(io, mx[1], juliafullformdata)
+end
 
 symata_to_mma_fullform_string(x) = print_with_function_to_string(mmafullform, wrapout(x))
 
@@ -123,26 +128,47 @@ struct WORational{T}  <: AbstractWO
     x::T
 end
 
-struct WOComplexInteger{T}  <: AbstractWO
+abstract type WOComplex <: AbstractWO end
+
+struct WOComplexInteger{T}  <: WOComplex
     x::T
 end
 wrapout(x::Complex{T}) where {T<:Integer}=  WOComplexInteger(x)
 Base.show(io::IO, ws::WOComplexInteger) = show_complexinteger(io, ws.x)
 
-struct WOComplexReal{T}  <: AbstractWO
+struct WOComplexReal{T}  <: WOComplex
     x::T
 end
 wrapout(x::Complex{T}) where {T<:Real} = WOComplexReal(x)
 Base.show(io::IO,ws::WOComplexReal) = show_complexreal(io, ws.x)
 
-struct WOComplexRational{T}  <: AbstractWO
+struct WOComplexRational{T}  <: WOComplex
     x::T
 end
 wrapout(x::Complex{Rational{T}}) where {T<:Integer} = WOComplexRational(x)
 Base.show(io::IO,ws::WOComplexRational) = show_complexrational(io, ws.x)
 
+unwrapout(x::AbstractWO) = x.x
+unwrapout(x) = x
+
 needsparen(x::WORational) = true
 needsparen(x::WOComplexRational) = true
+
+function fullform(io::IO, x::Union{WORational, Rational}, data::FullFormData)
+    print(io, "Rational")
+    print(io, data.lfunc)
+    print(io, numerator(unwrapout(x)), ", ", denominator(unwrapout(x)))
+    print(io, data.rfunc)
+end
+
+function fullform(io::IO, x::WOComplex, data::FullFormData)
+    print(io, "Complex")
+    print(io, data.lfunc)
+    fullform(io, real(x.x), data)
+    print(io, ", ")
+    fullform(io, imag(x.x), data)
+    print(io, data.rfunc)
+end
 
 struct WOAbstractFloat{T}  <: AbstractWO
     x::T
@@ -226,8 +252,7 @@ function show_symbol(io::IO, s::SJSym)
     end
 end
 
-
-Base.show(io::IO, x::WORational) = show_rational(io,x.x)
+Base.show(io::IO, x::WORational) = show_rational(io, x.x)
 
 function show_rational(io::IO, x::Rational)
     Base.show(io, symnumerator(x))
