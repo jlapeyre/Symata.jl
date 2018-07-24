@@ -687,17 +687,21 @@ end
 ### Union
 
 @mkapprule Union
-
 @doap function Union(exprs::Mxpr...)
     isempty(exprs) && return mxpr(:List)
     return mxpra(mhead(exprs[1]), union(map(margs, exprs)...))
 end
 
 @mkapprule Intersection
-
 @doap function Intersection(exprs::Mxpr...)
     isempty(exprs) && return mxpr(:List)
     return mxpra(mhead(exprs[1]), intersect(map(margs, exprs)...))
+end
+
+@mkapprule Complement
+@doap function Complement(exprs::Mxpr...)
+    isempty(exprs) && return mxpr(:List)
+    return mxpra(mhead(exprs[1]), setdiff(map(margs, exprs)...))
 end
 
 

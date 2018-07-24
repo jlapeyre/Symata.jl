@@ -19,6 +19,13 @@ T Intersection(Range(10),Range(10)) == Range(10)
 T Intersection([a,b,c],[a],[c,d,e]) == []
 T Intersection(f(a, b), f(c, a), f(b, b, a)) == f(a)
 
+### Complement
+
+T Head(Complement(a)) == Complement
+T Complement(Range(10), [3], [4,6]) == [1,2,5,7,8,9,10]
+T Complement(Range(10), f(3), [4,6]) == [1,2,5,7,8,9,10]
+T Complement(Apply(f, Range(10)), f(3), [4,6]) == f(1,2,5,7,8,9,10)
+
 ### Accumulate
 
 T Accumulate([a,b,c]) == [a,a + b,a + b + c]
