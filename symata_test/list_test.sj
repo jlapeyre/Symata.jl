@@ -10,6 +10,15 @@ T Union(Range(10),Range(10)) == Range(10)
 T Union([a,b,c],[a],[c,d,e]) == [a,b,c,d,e]
 T Union(f(a, b), f(c, a), f(b, b, a)) == f(a,b,c)
 
+### Intersection
+
+T Head(Intersection(a)) == Intersection
+T Intersection([1,1]) == [1]
+T Intersection(Range(10)) == Range(10)
+T Intersection(Range(10),Range(10)) == Range(10)
+T Intersection([a,b,c],[a],[c,d,e]) == []
+T Intersection(f(a, b), f(c, a), f(b, b, a)) == f(a)
+
 ### Accumulate
 
 T Accumulate([a,b,c]) == [a,a + b,a + b + c]
@@ -30,24 +39,19 @@ T Array(g,3) == [1 + a,4 + a,9 + a]
 b = 3
 g = J( x -> mplus(x^2, :b))
 T Array(g,3) == [4,7,12]
-
 T Array(a,[2,3]) == [[a(1,1),a(1,2),a(1,3)],[a(2,1),a(2,2),a(2,3)]]
 
 f = Compile([x,y], x^2 + 2*y)
 Array(f, [3,4]) == [[3,5,7,9],[6,8,10,12],[11,13,15,17]]
 
 T Array( J( x -> x^2 ), 5) == [1,4,9,16,25]
-
 T Array(a, 5, 0) == [a(0),a(1),a(2),a(3),a(4)]
-
 T Array(a, 5, [0,1])  == [a(0),a(1/5),a(2/5),a(3/5),a(4/5),a(1)]
-
 T Array(J((x,y)->0),[2,2]) == [[0,0],[0,0]]
 
 ClearAll(f)
 
 T Array(f, [3,3], [-3,0])  == [[f((-3),0),f((-3),1),f((-3),2)],[f((-2),0),f((-2),1),f((-2),2)],[f((-1),0),f((-1),1),f((-1),2)]]
-
 T Array(f, [2,2,2], [-2,2,-2]) == [[[f((-2),2,-2),f((-2),2,-1)],[f((-2),3,-2),f((-2),3,-1)]],[[f((-1),2,-2),f((-1),2,-1)],[f((-1),3,-2),f((-1),3,-1)]]]
 
 T Array(f, [2,2], [[-1/2,1/2], [-1/2,1/2]]) == [[f((-1/2),-1/2),f((-1/2),0),f((-1/2),1/2)],[f(0,-1/2),f(0,0),f(0,1/2)],[f((1/2),-1/2),f((1/2),0),f((1/2),1/2)]]
@@ -89,7 +93,6 @@ T Rest(f(a,b,c)) == f(b,c)
 
 T  Flatten( [ [a, b], [c, [d], e], [f, [g, h]]] , 1) == [a,b,c,[d],e,f,[g,h]]
 T  Flatten( [ [a, b], [c, [d], e], [f, [g, h]]] , 2) == [a,b,c,d,e,f,g,h]
-
 T Flatten(f(1,2,3,f(4,5,f(f(6)))), 1 ) == f(1,2,3,4,5,f(f(6)))
 T Flatten(f(1,2,3,f(4,5,f(f(6)))), 2 ) == f(1,2,3,4,5,f(6))
 T Flatten(f(1,2,3,f(4,5,f(f(6)))), 3 ) == f(1,2,3,4,5,6)
@@ -114,7 +117,6 @@ T FlattenAt(ex,[3,3]) == ex
 #   FlattenAt([[1],[3,4]])(ex) == [1,2,[3,4],[a,b,c,d,1]]
 # T FlattenAt([[1],[3,4]])(ex) == [1,2,[3,4],[a,b,c,d,1]]
 T ex == [[1,2],[3,4], [a,b,c,[d,1]]]
-
 T Table(FlattenAt(f([a],[b],[c],[d]),i), [i,4]) == [f(a,[b],[c],[d]),f([a],b,[c],[d]),f([a],[b],c,[d]),f([a],[b],[c],d)]
 
 ClearAll(a,b,c,d,e,f,g,h,x,ex,n)

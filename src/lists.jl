@@ -688,21 +688,18 @@ end
 
 @mkapprule Union
 
-@doap function Union(lists::Mxpr...)
-    isempty(lists) && return mxpr(:List)
-    seen = Dict{Any,Bool}()
-    nargs = newargs()
-    for list in lists
-        a = margs(list)
-        for x in a
-            if ! haskey(seen,x)
-                push!(nargs,x)
-                seen[x] = true
-            end
-        end
-    end
-    mxpr(mhead(lists[1]),nargs...)
+@doap function Union(exprs::Mxpr...)
+    isempty(exprs) && return mxpr(:List)
+    return mxpra(mhead(exprs[1]), union(map(margs, exprs)...))
 end
+
+@mkapprule Intersection
+
+@doap function Intersection(exprs::Mxpr...)
+    isempty(exprs) && return mxpr(:List)
+    return mxpra(mhead(exprs[1]), intersect(map(margs, exprs)...))
+end
+
 
 ### Thread
 
