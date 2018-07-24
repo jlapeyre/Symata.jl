@@ -405,7 +405,7 @@ may always be entered in `FullForm`.
           ("Sqrt(2)", "Power(2,1//2)", "Internally, square roots are represented as powers."),
           ("Sqrt(2)[2]", "1//2", "The second part of the expression is '1//2'"))
 
-# FullForm is implemented in output.jl
+# FullForm is implemented in Output.jl
 
 ### Echo
 

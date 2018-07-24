@@ -478,7 +478,6 @@ end
 
 @doap HistoryLength() = getkerneloptions(:history_length)
 
-
 @sjdoc FloatFormat """
     FloatFormat()
 
