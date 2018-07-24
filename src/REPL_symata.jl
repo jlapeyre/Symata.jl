@@ -91,25 +91,38 @@ function complete_symata_builtins(s::AbstractString)
     sorted_builtins[r]
 end
 
-function symata_completions(string, pos)
+# New in v0.7, we don't implement all of this yet
+# const Completions = Tuple{Vector{Completion}, UnitRange{Int64}, Bool}
+
+function symata_completions(string, pos, context_module=Main)
     # First parse everything up to the current position
     partial = string[1:pos]
-    inc_tag = symata_syntax_deprecation_warnings(false) do
-        Base.incomplete_tag(Meta.parse(partial, raise=false))
-    end
+    inc_tag = Base.incomplete_tag(Meta.parse(partial, raise=false, depwarn=false))
     if inc_tag in [:cmd, :string]
         m = match(r"[\t\n\r\"'`@\$><=;|&\{]| (?!\\)", reverse(partial))
+#       m = match(r"[\t\n\r\"`><=*?|]| (?!\\)", reverse(partial)) line from v0.7 stdlib
         startpos = nextind(partial, reverseind(partial, m.offset))
         r = startpos:pos
+
         paths, r, success = REPLCompletions.complete_path(replace(string[r], r"\\ " => " "), pos)
+
+        # if inc_tag == :string &&
+        #    length(paths) == 1 &&  # Only close if there's a single choice,
+        #    !isdir(expanduser(replace(string[startpos:start(r)-1] * paths[1], r"\\ " => " "))) &&  # except if it's a directory
+        #    (length(string) <= pos || string[pos+1] != '"')    # or there's already a " at the cursor.
+        #     paths[1] *= "\""
+        # end
         if inc_tag == :string &&
-           length(paths) == 1 &&                              # Only close if there's a single choice,
-           !isdir(expanduser(replace(string[startpos:start(r)-1] * paths[1], r"\\ " => " "))) &&  # except if it's a directory
-           (length(string) <= pos || string[pos+1] != '"')    # or there's already a " at the cursor.
-            paths[1] *= "\""
+           length(paths) == 1 &&  # Only close if there's a single choice,
+           !isdir(expanduser(replace(string[startpos:prevind(string, first(r))] * paths[1].path,
+                                     r"\\ " => " "))) &&  # except if it's a directory
+           (length(string) <= pos ||
+            string[nextind(string,pos)] != '"')  # or there's already a " at the cursor.
+            paths[1] = PathCompletion(paths[1].path * "\"")
         end
+
         #Latex symbols can be completed for strings
-        (success || inc_tag==:cmd) && return sort(paths), r, success
+        (success || inc_tag==:cmd) && return sort!(paths, by=p->p.path), r, success
     end
 
     ok, ret = REPL.REPLCompletions.bslash_completions(string, pos)
@@ -139,6 +152,7 @@ function symata_completions(string, pos)
     dotpos <= startpos && (dotpos = startpos - 1)
     s = string[startpos:pos]
     append!(suggestions, complete_symata_builtins(s))
+#    return sort!(unique(suggestions), by=completion_text), (dotpos+1):pos, true  # v0.7  we don't define completion_text
     return sort(unique(suggestions)), (dotpos+1):pos, true
 end
 
