@@ -52,15 +52,18 @@ T Format("{1}, {2}, {1}", (a+b)^3, 10) == "(a + b)^3, 10, (a + b)^3"
 T Format("{1:04d} {2:*>10}",10,f+g) == "0010 *****f + g"
 
 ## Bug is in format
-## FIXME: method too new
-# T If(BigIntInput(), True, Isa(Format(1/2, Conversion => "e"), String))
-## These will fail the first time through. Then seem to work the second time
-## FIXME: method too new. These broke later than those above.
-## T Isa(Format(1.0, Conversion => "e"), String)
-## T If(BigIntInput(), True, Isa(Format(1, Conversion => "e"), String))
+T If(BigIntInput(), True, Isa(Format(1/2, Conversion => "e"), String))
+T If(BigIntInput(), True, Format(1/2, Conversion => "e") ==  "5e-01")
+T Format(1.0, Conversion => "e") == "1e+00"
+T If(BigIntInput(), True, Format(1, Conversion => "e") == "1e+00")
 
 ##  Issue #56
-ToString(FullForm(f(x)(y))) == "f(x)(y)"
+ClearAll(f, x, y)
+T ToString(FullForm(f(x)(y))) == "f(x)(y)"
+
+T ToString(FullForm(1/2)) == "Rational(1, 2)"
+T ToString(FullForm(1 + I)) == "Complex(1, 1)"
+T ToString(FullForm(1/2 + 2*I)) == "Complex(Rational(1, 2), Rational(2, 1))"
 
 CompactOutput(savestate)
 
