@@ -124,13 +124,13 @@ function execute_request_modal(socket, msg)
             invokelatest(hook)
         end
 
-        if hcode != code # help request
+        ans = result = if hcode != code # help request
             current_language_mode[].helpcode_hook(hcode)
             result = nothing
         else
             #run the code!
             code = current_language_mode[].code_hook(code)
-            ans = result = occursin(magics_regex, code) ? magics_help(code) :
+            occursin(magics_regex, code) ? magics_help(code) :
                 include_string(current_module[], code, "In[$n]")
         end
 
