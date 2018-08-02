@@ -89,7 +89,10 @@ symata> Help()    # type '=' alone on a line to enter symata mode
 `Symata` can be installed on Linux, OSX, and Windows.
 
 `Symata` depends on the [`PyCall`](https://github.com/stevengj/PyCall.jl) package and
-the python [`sympy`](http://www.sympy.org/en/index.html) module.
+the python [SymPy](http://www.sympy.org/en/index.html) module. You can install SymPy
+via `pip install sympy`. Symata is compatible with SymPy v1.0 and v1.2 (and probably v1.1).
+
+Alternatively, you may install SymPy via `Conda.jl`.
 When you load `Symata` with `using Symata`, `sympy` is installed automatically via `PyCall`, which uses [`Conda`](https://github.com/JuliaPy/Conda.jl). However, to do this, `PyCall` must be configured to not use you system version of `python`.
 If you do not have `PyCall` installed, do this
 
