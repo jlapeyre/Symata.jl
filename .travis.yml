@@ -7,8 +7,7 @@ julia:
   - nightly
 matrix:
   allow_failures:
-    - julia: nightly
-    - os: osx
+    - julia: 0.7
 git:
     depth: 99999
 env:
