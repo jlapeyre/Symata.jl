@@ -1,5 +1,9 @@
 ## Symata development
 
+### Functions
+
+* Functions, except one-liners should have explict `return`s
+
 ### Comments in the source code
 
 * TODO:
