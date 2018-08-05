@@ -14,9 +14,8 @@ set_sysattributes(["Pattern", "SetJ", "SetAttributes", "ClearAttributes", "Times
 set_sysattributes(["Module","LModule", "Clear", "ClearAll", "Condition", "HoldPattern", "HoldForm", "Hold",
                    "DumpHold", "DownValues", "UpValues", "HAge", "Table", "NTable", "For", "If", "While", "Do",
                    "Jxpr", "JuliaExpression", "Protect", "Unprotect", "Function", "Definition", "DirtyQ", "ToSymata",
-                   "NIntegrate", "Compile","SymataCall", "Piecewise", "ExportJ"],
+                   "NIntegrate", "Compile","SymataCall", "Piecewise", "ExportJ", "OwnValues"],
                   :HoldAll)
-
 
 set_sysattributes(["HoldComplete", "Unevaluated"], [:HoldAllComplete])
 

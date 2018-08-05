@@ -174,7 +174,7 @@ set a part of `obj` to `val`. `obj` can be a Symata expression
 or a Julia object, such as an `Array` or `Dict`.
 """
 
-@sjseealso_group( Set, SetDelayed, UpSet, DownValues, UpValues )
+@sjseealso_group(Set, SetDelayed, UpSet, DownValues, UpValues, OwnValues)
 
 @sjexamp( Set,
          ("Clear(a,b,c)",""),
@@ -620,6 +620,20 @@ returns the name of `symbol` as a string.
 @mkapprule SymbolName :nargs => 1
 @doap SymbolName(x::SJSym) = string(x)
 
+### OwnValues
+
+@sjdoc OwnValues """
+    OwnValues(s)
+
+Returns a list of rules corresponding values bound to `s`.
+"""
+@mkapprule OwnValues :nargs => 1
+@doap function OwnValues(x::SJSym)
+    value = getsymata(x)
+    value == x && return List()
+    return List(mxprcf(:RuleDelayed, mxprcf(:HoldPattern, x), value))
+end
+
 ### DownValues
 
 @sjdoc DownValues """
@@ -661,7 +675,7 @@ Using this timestamp to avoid unnecessary evaluation is a partially
 implemented feature.
 """
 
-@sjseealso_group(HAge,Age,FixedQ,Syms,DirtyQ,Unfix)
+@sjseealso_group(HAge, Age, FixedQ, Syms, DirtyQ, Unfix)
 # Get the last-altered timestamp of an expression or symbol
 apprules(mx::Mxpr{:HAge}) = hdo_getage(mx,mx[1])
 hdo_getage(mx,s::SJSym) = Int(symage(s))
