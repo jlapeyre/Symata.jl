@@ -39,7 +39,7 @@ function runalltests()
         "latex_test.sj",
         "measurement_test.sj",
         "io_test.sj",
-        # "comparison_test.sj"
+        # "old_comparison_test.sj"
         "newcomparison_test.sj",
         "predicate_test.sj",
         "trig_test.sj",
