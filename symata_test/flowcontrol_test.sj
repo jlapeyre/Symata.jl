@@ -54,27 +54,23 @@ ClearAll(m,i,res)
 
 ### While
 
- ClearAll(i)
- i = 0
- While(i < 5, i = i + 1)
+  ClearAll(i)
+  i = 0
+  While(i < 5, i = i + 1)
 T i == 5
- i = 0
+  i = 0
 T While(i < 5, (i = i + 1; If(i>2, Break()))) == Null
 T i == 3
- ClearAll(i)
-
- n = 1
-  While(n<10,
-          (n += 1; If(n>3, Break()); n))
+  ClearAll(i)
+  n = 1
+  While(n<10, (n += 1; If(n>3, Break()); n))
 T n == 4
- ClearAll(n)
-
- ClearAll(i,sum)
- sum = 0
- Do( sum += i, [i,[1,2,3,4,5]])
+  ClearAll(n, i, sum)
+  sum = 0
+  Do(sum += i, [i, [1, 2, 3, 4, 5]])
 T Head(i) == Symbol
 T sum == 15
- ClearAll(i,sum)
+  ClearAll(i, sum)
 
  n = 1
 T While( (n += 1) < 4) == Null
