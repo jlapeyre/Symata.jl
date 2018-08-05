@@ -34,5 +34,7 @@ end
 
 ####
 
-addtriggers(:Array, :ExpToTrig, :Subdivide, :TakeDrop, :ArrayDepth, :TensorRank, :Divide, :ListCorrelate, :ListConvolve,
-            :Accumulate, :Through, :Operate, :NestWhile, :NestWhileList, :NextPrime, :FixedPoint, :FlattenAt, :MapAt)
+addtriggers(:Accumulate, :Array, :ArrayDepth, :Divide, :ExpToTrig, :ExpandCos,
+            :ExpandSin, :ExpandSinCos, :FixedPoint, :FlattenAt, :ListConvolve,
+            :ListCorrelate, :MapAt, :NestWhile, :NestWhileList, :NextPrime,
+            :Operate, :Subdivide, :TakeDrop, :TensorRank, :Through)
