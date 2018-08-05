@@ -1,6 +1,8 @@
-#### This code is autoloaded when trigger symbols are encountered when reading input.
-
-### Some of these could easily be written in Julia. But, it is a good idea for Symata to eat its own dogfood.
+## This code is autoloaded when trigger symbols are encountered when reading input.
+## See src/autoload.jl for autoloading code and list of symbols that trigger it.
+## These protected symbols must be entered in src/protected_symbols. So, three places.
+## Symbols listed in src/protected_symbols are not returned by UserSyms().
+## Some of these could easily be written in Julia. But, it is a good idea for Symata to eat its own dogfood.
 
 ### Through
 
@@ -18,8 +20,20 @@ Protect(Operate)
 ### ExpToTrig
 
 Unprotect(ExpToTrig)
-ExpToTrig(ex_) := ReplaceRepeated( ex , E^(x_) => Cosh(x) + Sinh(x))
+ExpToTrig(ex_) := ReplaceRepeated(ex, E^(x_) => Cosh(x) + Sinh(x))
 Protect(ExpToTrig)
+
+### ExpandCos, ExpandSin, ExpandSinCos
+
+Unprotect(ExpandSinRule, ExpandCosRule, ExpandCos, ExpandSin, ExpandSinCos)
+
+ExpandSinRule := Sin(a_ + b__) .> Cos(Plus(b))*Sin(a) + Cos(a)*Sin(Plus(b))
+ExpandCosRule := Cos(a_ + b__) .> Cos(a)*Cos(Plus(b)) - Sin(a)*Sin(Plus(b))
+ExpandCos(ex_) := ReplaceRepeated(ex, ExpandCosRule)
+ExpandSin(ex_) := ReplaceRepeated(ex, ExpandSinRule)
+ExpandSinCos(ex_) := ReplaceRepeated(ex, [ExpandSinRule, ExpandCosRule])
+
+Protect(ExpandSinRule, ExpandCosRule, ExpandCos, ExpandSin, ExpandSinCos)
 
 ### Array
 
@@ -174,15 +188,15 @@ Protect(FixedPoint)
 Unprotect(FlattenAt)
 @sjdoc FlattenAt """
     FlattenAt(list,n)
-    
+
 flattens a sublist at position `n` in `list`.
 
     FlattenAt(list,[i,j,..]).
-    
+
 flatten part at position `[i,j,...]`.
 
     FlattenAt(list,[[i,j,..],[k,l,...]])
-    
+
 flatten parts at multiple positions.
 
     FlattenAt(positions)
@@ -191,7 +205,7 @@ returns an operator that flattens at `positions`.
 """
 FlattenAt(list_, [pos__Integer]) := ReplacePart(list, [pos] => Splat(Flatten(list[pos])))
 FlattenAt(list_, pos_Integer) := ReplacePart(list, pos => Splat(Flatten(list[pos])))
-FlattenAt(list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => Splat(Flatten(list[Splat(p)]))), [posns]))    
+FlattenAt(list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => Splat(Flatten(list[Splat(p)]))), [posns]))
 @curry_second FlattenAt
 Protect(FlattenAt)
 
@@ -199,15 +213,15 @@ Protect(FlattenAt)
 
 @sjdoc MapAt """
     MapAt(f,expr,n)
-    
+
 apply `f` to the part at position `n` in `expr`.
 
     MapAt(f,expr,[i,j,..]).
-    
+
 apply `f` to the part at position `[i,j,...]`.
 
     MapAt(f,expr,[[i,j,..],[k,l,...]])
-    
+
 apply `f` to parts at multiple positions.
 
     MapAt(f,positions)
