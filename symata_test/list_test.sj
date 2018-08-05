@@ -390,4 +390,4 @@ T Thread(Unevaluated(D([x, x * y, x * z], [x, y, z]))) == [1,x,x]
 
 T MapThread(D, [[x, x * y, x * z], [x, y, z]]) == [1,x,x]
 
-Apply(ClearAll,UserSyms())
+Apply(ClearAll, UserSyms())
