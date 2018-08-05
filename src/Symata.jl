@@ -1,5 +1,4 @@
-__precompile__(true)
-
+# __precompile__(true)  "Now the default"
 module Symata
 
 import MacroTools
@@ -8,15 +7,14 @@ import REPL
 import Markdown
 import InteractiveUtils
 import Base: setindex!, getindex, replace
-#import Base64
 import Dates
 import Statistics
 import Formatting
 
 export @symExpr, @extomx
-export @sym, symeval, symtranseval, setsymata, getsymata, mxpr, mxpra, Mxpr, symprintln,
-       unpacktoList, mhead, margs, newargs, symparseeval, symparsestring, sjtopy, pytosj,
-       isympy
+export Mxpr, getsymata, isympy, margs, mhead, mxpr, mxpra, newargs, pytosj,
+       setsymata, sjtopy, @sym, symeval, symparseeval, symparsestring, symprintln, symtranseval,
+       unpacktoList
 export mmul, mplus, mpow, mabs, mminus, symatamath
 export debugmxpr
 
@@ -27,16 +25,16 @@ import some symbols from `Symata` into `Main` that are useful for development.
 """
 function devimport()
     Core.eval(Main, Meta.parse("""
-       import Symata: @testex, symval, symname, setsymval, meval, doeval, infseval, getpart, setpart!,
-                      sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
+       import Symata: @canonexpr, doeval, getpart, infseval, meval, mpmath, mxpr, pytypeof, setpart!,
+                      setsymval, symata, symname, sympy, symval!, testex_wrap
 """))
 end
 
 export devimport
 
 # FIXME: why export these *and* have devimport ?
-export  @testex, symval, symname, setsymval, meval, doeval, infseval, getpart, setpart!,
-sympy, mpmath, pytypeof, mxpr, canonexpr!, wrap_symata
+export  @canonexpr, doeval, getpart, infseval, meval, mpmath, mxpr, pytypeof, setpart!,
+        setsymval, symata, symname, sympy, symval!, testex_wrap
 
 ## Set const debugging parametres at compile-time in debug.jl
 include("debug.jl") # must use include here, because @inc is defined in debug.jl
