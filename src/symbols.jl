@@ -1,5 +1,3 @@
-## FIXME: implement SubValues
-
 # NB. attributes for builtin symbols are mostly set in protected_symbols.jl
 
 # Check if we are trying to add to a symbol bound to itself. If
@@ -275,7 +273,6 @@ end
 # Mma is not clear but seems to evaluate the first arg to the lhs (the expression
 # whose part we want) exactly once. We should document what we do.
 # We check is_Number several times, because we may have a Dict.
-#function do_Set(mx::Mxpr{:Set},lhs::Mxpr{:Part}, rhs)
 @doap function Set(lhs::Mxpr{:Part}, rhs)
     ex0 = meval(expr(lhs))  # evaluate once, eg, to get expr from symbol.
     tinds = indices(lhs)
