@@ -9,6 +9,13 @@ posnegi(nmax::Integer,n::Integer) = n >= 0 ? n : nmax + n + 1
 posnegi(x,n::Integer) = n
 posnegi(x,a) = a
 
+# This *is* used. Eg 1[0] --> Integer
+# FIXME: throw Symata error, not Julia
+function get_part_one_ind(x, ind::Integer)
+    ind != 0 && throw(BoundsError("part specification $ind is longer than the depth of the object."))
+    return head(x)
+end
+
 function get_part_one_ind(texpr::V,ind::Integer) where V<:Union{Mxpr,Array}
     ind = posnegi(texpr,ind)
     texpr = ind == 0 ? mhead(texpr) : texpr[ind]
@@ -196,7 +203,7 @@ end
 ## is if the head is not a symbol. In this case, the type is Mxpr{GenHead}. The head is always stored
 ## in a field as well. It is possible, but undesirable for the type and field disagree.
 ## This is why the previous level expression is stored in setpart2!
-function setpart2!(mx::Mxpr,val,inds...)
+function setpart2!(mx::Mxpr, val, inds...)
     ex = mx
     exlast = ex
     ninds = length(inds)
@@ -205,7 +212,7 @@ function setpart2!(mx::Mxpr,val,inds...)
         ex = get_part_one_ind(ex,inds[j])
     end
     ind = posnegi(ex,inds[ninds])
-    if  ind == 0
+    if ind == 0
         exlast[inds[ninds-1]] = mxprnewhead(ex,val)
     else
         ex[ind] = val
@@ -374,7 +381,7 @@ operator form of `Extract`.
 
 @doap function Extract(expr, p::ListT)
     isa(p[1],Integer) && return expr[margs(p)...]
-    ! isa(p[1],ListT) && symerror("Exract: Bad part specification ", p)
+    ! isa(p[1],ListT) && symerror("Extract: Bad part specification ", p)
     nargs = newargs(length(p))
     for i in 1:length(p)
         nargs[i] = expr[margs(p[i])...]
@@ -384,7 +391,7 @@ end
 
 @doap function Extract(expr, p::ListT, h)
     isa(p[1],Integer) && return mxpr(h,expr[margs(p)...])
-    ! isa(p[1],ListT) && symerror("Exract: Bad part specification ", p)
+    ! isa(p[1],ListT) && symerror("Extract: Bad part specification ", p)
     nargs = newargs(length(p))
     for i in 1:length(p)
         nargs[i] = mxpr(h,expr[margs(p[i])...])

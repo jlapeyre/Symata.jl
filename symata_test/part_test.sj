@@ -36,9 +36,22 @@ T ListQ(ex[3,4]) == False
 
 ## Not sure if we want this, but it is current behavior.
 ## tests avoiding comparing :a to zero
-ex = [[1,2],[3,4], [a,b,c,[d,1]]]
-ex[3,4,2] = J( Dict( :a => "cat"))
-ex[3,4,2,a] == "cat"
+ex = [[1, 2], [3, 4], [a, b, c, [d, 1]]]
+ex[3, 4, 2] = J(Dict(:a => "cat"))
+ex[3, 4, 2, a] == "cat"
 
+## Getting and setting at index 0
+ClearAll(ex, f, g, z)
+
+ex = f(1, 2, 3)
+T ex[0] == f
+
+## Issue #138
+ex[0] = g
+T ex == g(1, 2, 3)
+
+## Issue #137
+T 1[0] == Int64 || 1[0] == Int32
+T z[0] == Symbol
 
 Apply(ClearAll,UserSyms())

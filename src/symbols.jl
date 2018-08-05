@@ -206,7 +206,7 @@ rather to the current value of `b` every time `a` is evaluated.
 function do_Set(mx::Mxpr{:Set}, lhs::SJSym)
     checkprotect(lhs)
     rhs = mxprcf(:Sequence)
-    setsymval(lhs,rhs)
+    setsymval(lhs, rhs)
     setdefinition(lhs, mx) # This is correct. Definition includes `Set`.
     rhs
 end
@@ -293,7 +293,13 @@ end
     ind = inds[end] # doeval(tinds[end])
     ind = posnegi(ex,ind)
     if isa(ind,Number) && ind == 0
-        exlast[tinds[length(inds)-1]] = mxprnewhead(ex,val)
+        if length(inds) == 1
+            newexpr = mxprnewhead(ex,val)
+            setsymval(lhs[1], newexpr)
+            ex0 = newexpr
+        else
+            exlast[tinds[length(inds)-1]] = mxprnewhead(ex,val)
+        end
     else
         ex[ind] = val
     end

@@ -70,12 +70,12 @@ return the `Head` of `expr`.
     `Head( :( :( a = 1) ))` returns `Expr`. Note we have to quote twice, because one level of
     a quoted Julia expression is evaluated so that we can embed Julia code.
 """
-
 @mkapprule Head  nargs =>  1
-
-@doap Head(mx1::Mxpr) = mhead(mx1)
-@doap Head(s::SJSym) = getsym(:Symbol)  # or just :Symbol ? This is the ancient inteface
-@doap Head(ex) = typeof(ex)
+@doap Head(x) = head(x)
+head(x::Mxpr) = mhead(x)
+head(x) = typeof(x)
+# FIXME consider making :Symbol evaluate to Symbol, as, for instance, Int64
+head(s::SJSym) = :Symbol
 
 ## `Function` is the head of Symata pure functions. So we use a different head for Julia functions
 # Unclear what to do here.
@@ -548,7 +548,7 @@ function replaceonepart(mx,expr,_lhs::ListT,_rhs)
         symwarn("$_lhs is not a part specification")
         return mx
     end
-    setpart2!(expr,_rhs,margs(_lhs)...)
+    setpart2!(expr, _rhs,margs(_lhs)...)
     expr
 end
 
