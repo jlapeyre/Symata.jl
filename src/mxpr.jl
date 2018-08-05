@@ -960,8 +960,14 @@ end
 
 ## We can't change the head of an expression (except for genhead). The head is also the type.
 ## Next best thing is create a new Mxpr and use the fields from the old Mxpr without copying
+"""
+    mxprnewhead(mx::Mxpr,head::SJSym)
+
+Create a copy of `mx` with a new head `head`. The fields
+of `mx` are not copied.
+"""
 function mxprnewhead(mx::Mxpr,head::SJSym)
-    mx = Mxpr{head}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
+    return Mxpr{head}(head,mx.args,mx.fixed,mx.canon,mx.syms,mx.age,mx.key,mx.typ)
 end
 
 # nonsymbolic head
