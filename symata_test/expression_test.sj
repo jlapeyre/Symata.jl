@@ -112,4 +112,10 @@ T Operate( Function(x,g), f(a,b,c)) == Apply(g, f(a,b,c))
 T Through(Operate(p,f(x))) == p(f(x))
 T Operate((xx->xx(a)), f(x,y)) == f(a)(x,y)
 
+### Head
+
+# Fails unless head(s::SJSym) = :Symbol defined in expressions.jl
+# But, see the note there.
+T Head(a) == Symbol
+
 ClearAll(a)
