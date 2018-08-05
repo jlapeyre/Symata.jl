@@ -244,8 +244,8 @@ function setdelayed(mx::Mxpr{:SetDelayed},lhs::SJSymbol, rhs)
     Null
 end
 
-# TODO: Use OwnValues here rather than binding.
-function do_Set(mx::Mxpr{:Set},lhs::SJSymbol, rhs)
+#function do_Set(mx::Mxpr{:Set}, lhs::SJSymbol, rhs)
+@doap function Set(lhs::SJSymbol, rhs)
     checkprotect(lhs)
     setsymval(lhs,rhs)
     setdefinition(lhs, mx)
@@ -505,13 +505,18 @@ function upsetdelayed(mx,lhs::Mxpr, rhs)
     return Null
 end
 
-function do_Set(mx::Mxpr{:Set},lhs::Mxpr, rhs)
+# unsetfixed allows f(3) to return 9, rather than 3^2 with f(x_) = x^2
+# Not sure if this is the correct solution
+function do_Set(mx::Mxpr{:Set}, lhs::Mxpr, rhs)
     checkprotect(lhs)
-    unsetfixed(rhs)  # This allows f(3) to return 9, rather than 3^2 with f(x_) = x^2
-                     # Not sure if this is the correct solution
-    rule = mxpr(:RuleDelayed,mxpr(:HoldPattern,lhs),rhs)
-    set_downvalue(mx, mhead(lhs),rule) # push DownValue
-    rhs # Set always returns the rhs. This is checked
+    unsetfixed(rhs)
+    # Next line. We don't want to evaluate lhs, it might have a value
+    # Say g(4) == 3
+    # But if  f = g, n = 4, f(n) = 1 assigns 1 to g(4)
+    newlhs = mxpra(doeval(mhead(lhs)), mapmargs(doeval, margs(lhs)))
+    rule = mxpr(:RuleDelayed, mxpr(:HoldPattern, newlhs), rhs)
+    set_downvalue(mx, mhead(newlhs), rule) # push DownValue
+    return rhs # Set always returns the rhs. This is checked
 end
 
 ### Symbol
