@@ -138,7 +138,7 @@ end
 # Pattern::argrx: Pattern called with 3 arguments; 2 arguments are expected.
 function parsepattern(ex)
     nargs = newargs(length(ex.args))
-    mxpr(:Pattern,map!(extomx,nargs,ex.args))
+    mxpr(:Pattern, map!(extomx, nargs, ex.args))
 end
 
 extomxarr!(ain, aout) =  foreach(x -> push!(aout, extomx(x)), ain)
@@ -459,7 +459,7 @@ function extomx(ex::Expr)
     newa = newargs()
     local mxhead::Any
     ex = rewrite_expr(ex)
-    isa(ex,Expr) || return ex  # may be a rational
+    isa(ex, Expr) || return ex  # may be a rational
     ohead = ex.head
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
