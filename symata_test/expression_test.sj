@@ -1,8 +1,6 @@
 ClearAll(a,b)
 ClearTemporary()
 
-ClearAll(a,b)
-
 T  b^0 == 1
 T  b^1 == b
 
@@ -116,6 +114,5 @@ T Operate((xx->xx(a)), f(x,y)) == f(a)(x,y)
 
 # Fails unless head(s::SJSym) = :Symbol defined in expressions.jl
 # But, see the note there.
-T Head(a) == Symbol
-
 ClearAll(a)
+T Head(a) == Symbol

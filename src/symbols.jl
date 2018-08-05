@@ -175,7 +175,6 @@ or a Julia object, such as an `Array` or `Dict`.
 """
 
 @sjseealso_group(Set, SetDelayed, UpSet, DownValues, UpValues, OwnValues)
-
 @sjexamp( Set,
          ("Clear(a,b,c)",""),
          ("b = a", "a"),

@@ -51,7 +51,7 @@ ex[0] = g
 T ex == g(1, 2, 3)
 
 ## Issue #137
-T 1[0] == Int64 || 1[0] == Int32
+T If(BigIntInput(), 1[0] == BigInt, 1[0] == Int64 || 1[0] == Int32)
 T z[0] == Symbol
 
 Apply(ClearAll,UserSyms())
