@@ -155,7 +155,7 @@ T SameQ("cat", "cat")
 
 ### Equal
 
-# Make sure the following is tested with bigints
+T Equal() == True
 T Equal(3,3)
 T Equal(3,3.0)
 T Head(Equal(x,y)) == Equal

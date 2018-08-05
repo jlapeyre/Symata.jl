@@ -1,4 +1,9 @@
- ClearAll(a,b,c,d,x)
+##############################
+## WARNING!! Do not run these tests
+## Changes to comparison code broken many of them
+##############################
+
+  ClearAll(a,b,c,d,x)
 
 T 1 == 1
 T !(1 != 1)

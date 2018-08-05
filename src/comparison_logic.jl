@@ -35,13 +35,14 @@ end
 ### Equal
 
 ## TODO: Implement Equal(a,b,c), etc.
-
+## TODO: Use Union{Nothing, T} here rather than struct
 @mkapprule Equal
 @doap function Equal(x,y)
     res = sjequal(x,y)
     res.known == false && return mx
-    res.result
+    return res.result
 end
+@doap Equal() = true
 
 function sjequal(x::Symbol,y)
     x == :Undefined && return Compare(:Undefined,true)

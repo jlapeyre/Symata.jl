@@ -78,19 +78,20 @@ T m[3,1:10:2] == [4,12,20,28,36]
 ## These only worked with old Comparison, because they
 ## evaluate to Comparison(==) --> True
 ## We need to find another way to test this
-# T ReleaseHold(Hold()) == Sequence()
+## These now give correct result because we now follow Mma with Equal() == True
+T ReleaseHold(Hold()) == Sequence()
+T ReleaseHold(HoldPattern()) == Sequence()
+T ReleaseHold(HoldComplete()) == Sequence()
+
+# FIXME: ReleaseHold(HoldForm()) errors out
 # T ReleaseHold(HoldForm()) == Sequence()
-# T ReleaseHold(HoldPattern()) == Sequence()
-# T ReleaseHold(HoldComplete()) == Sequence()
 
 T ReleaseHold(Hold(a)) == a
 T List(ReleaseHold(Hold(a,b))) == [a,b]
 T ReleaseHold(f(a,b)) == f(a,b)
+  ClearAll(a,b,f)
 
-ClearAll(a,b,f)
-
-a = Range(10)
-
+  a = Range(10)
 T Push!(a,11) == Range(11)
 T Pop!(a) == 11
 T a == Range(10)
