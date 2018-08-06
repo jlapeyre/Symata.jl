@@ -198,6 +198,7 @@ const MTOJSYM_COMPILE = Dict(
     :Plus => :mplus,
     :Power => :mpow,
     :Abs => :mabs,
+    :Exp => :Exp  # Is this necessary ?
 )
 
 mtojsym_compile(s::Symbol) =  get(MTOJSYM_COMPILE, s, mtojsym(s))
@@ -217,6 +218,14 @@ end
 function mxpr_to_expr(mx::Mxpr,aux::MtoECompile)
     head = mtojsym_compile(mhead(mx))
     mxpr_to_expr_body(head,mx,aux)
+end
+
+function mxpr_to_expr(mx::Mxpr{:Power}, aux::MtoECompile)
+    if mx[1] == :E
+        return Expr(:call, :Exp, margs(mx)[2:end]...)
+    else
+        return Expr(:call, :mpow, margs(mx)[1:end]...)
+    end
 end
 
 # convert List to Julia array
@@ -280,9 +289,10 @@ symata 3> f(2,3)
 Out(3) = 31
 ```
 """
-@doap function Compile(a::Mxpr{:List}, body )
+@doap function Compile(a::Mxpr{:List}, body)
     aux = MtoECompile()
-    Core.eval(Main, Expr(:function, Expr(:tuple, [mxpr_to_expr(x,aux) for x in margs(a)]...) , mxpr_to_expr(body,aux)))
+    jexpr = Expr(:function, Expr(:tuple, [mxpr_to_expr(x, aux) for x in margs(a)]...) , mxpr_to_expr(body, aux))
+    Core.eval(Main, jexpr)
 end
 
 # This is not reliable. It is not worth the complexity of fixing it, I think.
