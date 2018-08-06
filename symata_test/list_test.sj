@@ -257,12 +257,20 @@ T Map(f,ex,[0,Infinity]) == f([f([f([f([f([f(a)])])])])])
 T Map(f,ex,-1) == [f([f([f([f([f(a)])])])])]
 T Map(f,ex,-2) == [f([f([f([f([a])])])])]
 T Map(f,ex,-3) == [f([f([f([[a]])])])]
-T Map(f,ex,[2,-3]) == [[f([f([[a]])])]]     
+T Map(f,ex,[2,-3]) == [[f([f([[a]])])]]
 T Map(f, h0(h1(h2(h3(h4(a))))), [2, -3]) == h0(h1(f(h2(f(h3(h4(a)))))))
 T Map(f, a + b + c + d) == f(a) + f(b) + f(c) + f(d)
 T Map(f, x^2 + y^2, 2) == f(f(x)^f(2)) + f(f(y)^f(2))
 
 ClearAll(a,f,ex)
+
+### Apply
+
+  ClearAll(t)
+  t = Range(10)
+  Apply(Plus, t)
+T t == Range(10)
+  ClearAll(t)
 
 ### Nothing
 
@@ -346,7 +354,7 @@ ClearAll(a,b,c,d,e,f,expr,unflatten,lst,ftest)
 # Convert a flat list into an array with dimensions d = [n1,n2,...]
 ftest(x_) :=  IntegerQ(x) && Positive(x)
 unflatten(e_, [d__`ftest`]) :=  Condition(
-           Fold(Partition, e, 
+           Fold(Partition, e,
              Take([d], [-1, 2, -1])), (Length(e) == Times(d)) == True)
 lst = [a,b,c,d,e,f]
 

@@ -37,10 +37,10 @@ m(f(a,b,c))
 end
 
 function _apply_plus(mxa::Mxpr)
-    mx = mxpra(:Plus,margs(mxa))
+    mx = mxpra(:Plus, margs(mxa))
     mx = canonexpr!(mx)
     setcanon(mx)
-    return isa(mx,Mxpr) && isempty(mx) ? 0 : mx
+    return isa(mx, Mxpr) && isempty(mx) ? 0 : mx
 end
 
 @doap Apply(h,mxa::Mxpr) = mxpra(h,margs(mxa))
