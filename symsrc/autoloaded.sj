@@ -31,7 +31,7 @@ ExpandSinRule := Sin(a_ + b__) .> Cos(Plus(b))*Sin(a) + Cos(a)*Sin(Plus(b))
 ExpandCosRule := Cos(a_ + b__) .> Cos(a)*Cos(Plus(b)) - Sin(a)*Sin(Plus(b))
 ExpandCos(ex_) := ReplaceRepeated(ex, ExpandCosRule)
 ExpandSin(ex_) := ReplaceRepeated(ex, ExpandSinRule)
-ExpandSinCos(ex_) := ReplaceRepeated(ex, [ExpandSinRule, ExpandCosRule])
+ExpandSinCos(ex_) := ex .// [ExpandSinRule, ExpandCosRule]
 
 Protect(ExpandSinRule, ExpandCosRule, ExpandCos, ExpandSin, ExpandSinCos)
 
