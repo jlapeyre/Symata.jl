@@ -918,7 +918,7 @@ Create a Symata expression with head `head` and arguments `iargs`.
 The arguments are copied. An object of type `Mxpr{head}` is returned
 if `head` is a symbol, and of type `Mxpr{GenHead}` otherwise.
 """
-function mxpr(s::SJSym,iargs...)
+function mxpr(s::SJSym, iargs...)
     args = newargs(length(iargs))
     copyto!(args,iargs)
     return mxpr(s,args)
@@ -928,7 +928,7 @@ end
 ## we should call have different functions mxpr and mxpra for the two cases
 ## 1) we supply a list of args as arguments 2) we supply the entire array
 # Create a new Mxpr from Array of args
-@inline function mxpr(s::SJSym,args::MxprArgs)
+@inline function mxpr(s::SJSym, args::MxprArgs)
     mx = Mxpr{symname(s)}(s,args,false,false,newsymsdict(),0,0,Any)
     setage(mx)
     mx
