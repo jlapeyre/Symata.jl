@@ -148,5 +148,5 @@ set_sysattributes([
     "Series","Solve","Span","String","StringJoin","StringLength","StringQ","Subdivide","Symbol",
     "Syms","Temporary","TensorRank","Throw",
     "Time","ToLowerCase","ToString","ToSymPy","ToUpperCase", "Trace","TraceDownValues",
-    "TraceUpValues","TrigSimp", "Undefined", "Unfix", "Unpack", "UserSyms", "Values",
+    "TraceUpValues","TrigSimp", "Undefined", "Unfix", "Unpack", "UserSyms", "Values", "Normal",
     "ans", "nothing" ], :Protected)

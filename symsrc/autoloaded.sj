@@ -235,3 +235,11 @@ MapAt(f_, list_, [posns__List]) := ReplacePart(list, Map(Function(p, p => f(list
 Protect(MapAt)
 
 @curry_split MapAt
+
+### Normal
+
+Unprotect(Normal)
+
+Normal(ex_) := ReplaceAll(ex, Order(x__) => Sequence())
+
+Protect(Normal)
