@@ -278,4 +278,4 @@ end
 ## These catch cases where some of args are not numbers.
 ## This may want to implment more logic for efficiency
 mmul(args...) = mxpr(:Times, args...)
-mplus(args...) = mxpr(:Times, args...)
+mplus(args...) = mxpr(:Plus, args...)
