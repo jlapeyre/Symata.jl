@@ -126,10 +126,6 @@ is_loaded_IJulia() = isdefined(Main, :IJulia)
 
 function do_init()
     init_sympy()
-    import Test
-    if ! isdefined(Test, :testset_forloop)
-        Core.eval(Main, :(macro testset(expr) end)) # Compatibility for versions more recent than around 0.5 from May 2016
-    end
     sjimportall(:System, :Main) # These are Symata "contexts"
     set_current_context(:Main)
     if is_loaded_IJulia() # Use the Jupyter interface
