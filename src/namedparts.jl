@@ -12,7 +12,7 @@
 # args field of the Mxpr each time named access is used, rather
 # getting the args once and then indexing directly into them.
 
-Base.base(p::Mxpr{:Power}) = p[1]
+base(p::Mxpr{:Power}) = p[1]
 expt(p::Mxpr{:Power}) = p[2]
 exponent(p::Mxpr{:Power}) = p[2]
 
