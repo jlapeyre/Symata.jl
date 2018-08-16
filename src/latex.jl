@@ -26,7 +26,7 @@ latexstring(args...) = latexstring(string(args...))
 macro L_str(s, flags...) latexstring(s) end
 macro L_mstr(s, flags...) latexstring(s) end
 
-import Base: write, lastindex, getindex, sizeof, search, rsearch, isvalid, next, length, IOBuffer, pointer
+import Base: write, lastindex, getindex, sizeof, search, isvalid, next, length, IOBuffer, pointer
 import Base.show
 
 write(io::IO, s::MyLaTeXString) = write(io, s.s)
@@ -58,7 +58,7 @@ getindex(s::MyLaTeXString, i::UnitRange{T}) where {T<:Integer} = getindex(s.s, i
 getindex(s::MyLaTeXString, i::AbstractVector) = getindex(s.s, i)
 sizeof(s::MyLaTeXString) = sizeof(s.s)
 symsearch(s::MyLaTeXString, c::Char, i::Integer) = symsearch(s.s, c, i)
-rsearch(s::MyLaTeXString, c::Char, i::Integer) = rsearch(s.s, c, i)
+symrsearch(s::MyLaTeXString, c::Char, i::Integer) = symrsearch(s.s, c, i)
 isvalid(s::MyLaTeXString, i::Integer) = isvalid(s.s, i)
 pointer(s::MyLaTeXString) = pointer(s.s)
 IOBuffer(s::MyLaTeXString) = IOBuffer(s.s)
