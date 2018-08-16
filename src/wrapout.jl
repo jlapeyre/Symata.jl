@@ -7,7 +7,8 @@ in Output.jl.
 wrapout(x) = x
 
 ## TODO: disable symwarn, so we are forced to use @symwarn below
-for f in ( :print, :println, :string, :warn, :error, :throw)
+#for f in ( :print, :println, :string, :warn, :error, :throw)
+for f in ( :print, :println, :string, :error, :throw)
    @eval function $(Symbol("sym" * string(f)))(args...)
         $(f)(map(wrapout,args)...)
     end
