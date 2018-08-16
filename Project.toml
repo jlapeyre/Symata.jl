@@ -2,7 +2,7 @@ name = "Symata"
 desc = "language for symbolic mathematics"
 authors = ["John Lapeyre"]
 license = "MIT"
-version = "0.4.4"
+version = "0.4.5"
 uuid = "a906b1d5-d016-55c4-aab3-8a20cba0db2a"
 
 [deps]
