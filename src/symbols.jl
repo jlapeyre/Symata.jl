@@ -29,7 +29,7 @@ checkprotect(mx::Mxpr) = checkprotect(mhead(mx))
 
 function warncheckprotect(s::SJSym)
     if isProtected(s)
-        symwarn(protectstr(symname(s)))
+        @symwarn(protectstr(symname(s)))
         return false
     else
         return true
@@ -535,7 +535,7 @@ then Symbol("a") returns `1`.
 # end
 
 @doap Symbol(s::String) = getsym(Symbol(s))
-@doap Symbol(x) = (symwarn("Symbol: expected a string"); mx)
+@doap Symbol(x) = (@symwarn("Symbol: expected a string"); mx)
 
 #### Clear
 

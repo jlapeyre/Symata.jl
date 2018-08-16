@@ -1319,7 +1319,7 @@ end
 end
 
 @doap function CubeRoot(x::Complex)
-    symwarn("CubeRoot::preal: The parameter $x should be real valued.")
+    @symwarn("CubeRoot::preal: The parameter $x should be real valued.")
     return mx
 end
 
@@ -1337,7 +1337,7 @@ end
 
 @doap function Surd(x,n::Integer)
     if iseven(n)
-        symwarn("Surd::noneg: Surd is not defined for even roots of negative values.")
+        @symwarn("Surd::noneg: Surd is not defined for even roots of negative values.")
         return mx
     end
     return _surd(mx,x,n)
@@ -1349,7 +1349,7 @@ function _surd(mx,x::Real,n)
 end
 
 function _surd(mx,x::Complex,n)
-    symwarn("Surd::preal: The parameter I should be real valued")
+    @symwarn("Surd::preal: The parameter I should be real valued")
     mx
 end
 

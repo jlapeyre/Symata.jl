@@ -106,7 +106,7 @@ function set_sjtopy(sj,py)
     spy = Symbol(py)
     ssj = Symbol(sj)
     if haskey(SYMATA_TO_SYMPY_FUNCTIONS,ssj)
-        symwarn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
+        @symwarn("!!! set_sjtopy ", sj, " already has value ", SYMATA_TO_SYMPY_FUNCTIONS[ssj], " can't set it to ", py)
         return
     end
     SYMATA_TO_SYMPY_FUNCTIONS[ssj] = spy
@@ -563,7 +563,7 @@ function _sjtopy(mx::Mxpr{:Equal})
     if length(mx) == 2
         sympy[:Eq](_sjtopy(mx[1]),_sjtopy(mx[2]))
     else
-        symwarn("Unimplemented translation to Sympy", mx)
+        @symwarn("Unimplemented translation to Sympy", mx)
     end
 end
 
@@ -834,7 +834,7 @@ _sjtopy(x::AbstractString) =  x
 # Default conversion. Don't error, but only warn. Then return x so that we
 # can capture and inspect it.
 function _sjtopy(x)
-    symwarn("sjtopy: Unable to convert $x from Symata to SymPy")
+    @symwarn("sjtopy: Unable to convert $x from Symata to SymPy")
     return x
 end
 

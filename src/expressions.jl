@@ -545,7 +545,7 @@ end
 
 function replaceonepart(mx,expr,_lhs::ListT,_rhs)
     if ! listofpredq(_lhs,integerq)
-        symwarn("$_lhs is not a part specification")
+        @symwarn("$_lhs is not a part specification")
         return mx
     end
     setpart2!(expr, _rhs,margs(_lhs)...)

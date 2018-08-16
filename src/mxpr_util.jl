@@ -1,4 +1,3 @@
-
 ## NOTE: It appears that collect always copies. convert does nothing if they type is already correct.
 ## Goal here is apply collect when it is needed. But not needlessly copy an array
 """
@@ -200,6 +199,6 @@ macro testex(expr)
     else
         retresult = false
     end
-    retresult || symwarn("Test failed: ", mx, " evaluated to ", retresult)
+    retresult || @symwarn("Test failed: ", mx, " evaluated to ", retresult)
     Expr(:macrocall, Meta.parse("Test.@test"), retresult)
 end

@@ -170,7 +170,7 @@ end
 
 function parse_quoted(ex::Expr,newa)
     # Quotes are wrapped in Jxpr which is evaluated by Julia eval()
-    symwarn(":( ) for Julia code is deprecated. Use J( ) instead")
+    @symwarn(":( ) for Julia code is deprecated. Use J( ) instead")
     head = :Jxpr           # This allows running Julia code from within Symata.
     push!(newa,ex.args[1]) # We evaluate the expression only whenever the Jxpr is evaled
                            # But, this is the same effect as evaling ex

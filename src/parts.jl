@@ -486,7 +486,7 @@ function _doreplaceall(mx,expr,rs::Mxpr{:List})
         if isa(rs[i],Rules)
             push!(rsa, rs[i])
         else
-            symwarn("ReplaceAll expected Rule  got ", rs[i])
+            @symwarn("ReplaceAll expected Rule  got ", rs[i])
             nothing  # do something better here, like return mx
         end
     end
@@ -520,7 +520,7 @@ perform `ReplaceAll(expr,rules)` repeatedly until `expr` no longer changes.
         if isa(r,Rules)
             push!(rsa, r)
         else
-            symwarn("ReplaceRepeated expected Rule, got ", r)
+            @symwarn("ReplaceRepeated expected Rule, got ", r)
             nothing  # do something better here, like return mx
         end
     end

@@ -74,7 +74,7 @@ function set_attribute1(sj::SymString, attr::SymString)
         _set_attribute(sj,attr)
         return nothing
     end
-    symwarn("'$attr' is not an attribute")
+    @symwarn("'$attr' is not an attribute")
     return nothing
 end
 
