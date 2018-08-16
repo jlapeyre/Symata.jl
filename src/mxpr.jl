@@ -1319,7 +1319,7 @@ const FloatRC  = Union{AbstractFloat, Complex{AbstractFloat},Complex{Float64}}
 
 ### Iterator, etc.
 
-for s in (:(Base.pop!), :(Base.popfirst!), :(Base.pushfirst!), :(Base.push!), :(Base.start), :(Base.next), :(Base.done))
+for s in (:(Base.pop!), :(Base.popfirst!), :(Base.pushfirst!), :(Base.push!))
     @eval ($s)(mx::Mxpr,args...) = ($s)(margs(mx),args...)
 end
 
