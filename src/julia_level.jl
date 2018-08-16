@@ -124,17 +124,17 @@ Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
 Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
 Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
 
-Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
-Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
-Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
+# Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
+# Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
+# Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
 
 Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
 Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
 Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
 
-Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
-Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
-Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
+# Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
+# Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
+# Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
 
 Base.:-(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
 Base.:-(a::Mxpr) = mxpr(:Times,-1,a)

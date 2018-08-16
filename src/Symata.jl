@@ -43,9 +43,10 @@ include("debug.jl") # must use include here, because @inc is defined in debug.jl
 @inc("util.jl")
 @inc("sjcompat.jl")
 @inc("mxpr.jl")
+@inc("wrapout.jl") # move up once more !
 @inc("attributes.jl")
 @inc("mxpr_util.jl")
-@inc("wrapout.jl") #
+#@inc("wrapout.jl") #
 @inc("exceptions.jl")
 @inc("level_specification.jl")
 @inc("sequence_specification.jl")
