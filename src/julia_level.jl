@@ -69,20 +69,20 @@ these are defined by default.
 """
 function _symatamath()
     @eval begin
-        *(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ? TODO: try using mmul, etc. here
-        *(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
-        *(a::SJSym,b::Number) = mxpr(:Times,b,a)
-        +(a::SJSym,b::Number) = mxpr(:Plus,b,a)
-        +(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
-        +(a::Number,b::SJSym) = mxpr(:Plus,a,b)
-        -(a::Number,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
-        -(a::SJSym,b::Number) = mplus(a, -b)
-        -(a::SJSym,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
-        /(a::SJSym,b::SJSym) = mmul(a, mmul(-1,b))
-        /(a::Number,b::SJSym) = mmul(a, mmul(-1,b))
-        /(a::SJSym,b::Number) = mmul(a, mmul(-1,b))
-        ^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
-        ^(base::SJSym,expt) = mxpr(:Power,base,expt)
+        Base.:*(a::Number,b::SJSym) = mxpr(:Times,a,b)  # why not mmul ? TODO: try using mmul, etc. here
+        Base.:*(a::SJSym,b::SJSym) = mxpr(:Times,a,b)
+        Base.:*(a::SJSym,b::Number) = mxpr(:Times,b,a)
+        Base.:+(a::SJSym,b::Number) = mxpr(:Plus,b,a)
+        Base.:+(a::SJSym,b::SJSym) = mxpr(:Plus,a,b)
+        Base.:+(a::Number,b::SJSym) = mxpr(:Plus,a,b)
+        Base.:-(a::Number,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
+        Base.:-(a::SJSym,b::Number) = mplus(a, -b)
+        Base.:-(a::SJSym,b::SJSym) = mplus(a, mxpr(:Times,-1,b))
+        Base.:/(a::SJSym,b::SJSym) = mmul(a, mmul(-1,b))
+        Base.:/(a::Number,b::SJSym) = mmul(a, mmul(-1,b))
+        Base.:/(a::SJSym,b::Number) = mmul(a, mmul(-1,b))
+        Base.:^(base::SJSym,expt::Integer) = mxpr(:Power,base,expt)
+        Base.:^(base::SJSym,expt) = mxpr(:Power,base,expt)
     end
     nothing
 end
@@ -120,38 +120,47 @@ end
 ## Arithmetic methods involving annotated Symata types. These will never conflict with Base Julia,
 ## so they are safe to define.
 
-*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
-*(a::Mxpr,b) = mxpr(:Times,a,b)
-*(a,b::Mxpr) = mxpr(:Times,a,b)
+Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
+Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
+Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
 
 Base.:*(a::Mxpr,b::Mxpr) = mxpr(:Times,a,b)
 Base.:*(a::Mxpr,b) = mxpr(:Times,a,b)
 Base.:*(a,b::Mxpr) = mxpr(:Times,a,b)
 
-+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
-+(a::Mxpr,b) = mxpr(:Plus,a,b)
-+(a,b::Mxpr) = mxpr(:Plus,a,b)
+Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
+Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
+Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
 
 Base.:+(a::Mxpr,b::Mxpr) = mxpr(:Plus,a,b)
 Base.:+(a::Mxpr,b) = mxpr(:Plus,a,b)
 Base.:+(a,b::Mxpr) = mxpr(:Plus,a,b)
 
--(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
--(a::Mxpr) = mxpr(:Times,-1,a)
-
-^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
-^(base::Mxpr,expt) = mxpr(:Power,base,expt)
-
-/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
-
 Base.:-(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
 Base.:-(a::Mxpr) = mxpr(:Times,-1,a)
+
 Base.:^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 Base.:^(base::Mxpr,expt) = mxpr(:Power,base,expt)
+
 Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+
+## (Aug 16, 2018) Upgrading for Julia v1.0 from v0.7 Comment these
+## out. I think this code is very old
+# Base.:-(a,b::Mxpr) = mxpr(:Plus,a,mxpr(:Times,-1,b))
+# Base.:-(a::Mxpr) = mxpr(:Times,-1,a)
+# Base.:^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
+# Base.:^(base::Mxpr,expt) = mxpr(:Power,base,expt)
+# Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
 
 ## Symata uses module-local functions * + - ^ /
 ## For anything not defined in Symata, the Base methods are called.
+##
+## (Aug 16, 2018) Upgrading for Julia v1.0 from v0.7
+## Julia v1.0 says I am extending Base on the LHS
+## and that I must import the Symbols. That is:
+## Base.:*(args...) = Base.:*(args...) Makes no sense.
+## What's going on here ?
+## I will comment thest out for now,.
 *(args...) = Base.:*(args...)
 +(args...) = Base.:+(args...)
 -(args...) = Base.:-(args...)
