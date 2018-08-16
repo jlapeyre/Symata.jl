@@ -161,12 +161,14 @@ Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
 ## Base.:*(args...) = Base.:*(args...) Makes no sense.
 ## What's going on here ?
 ## I will comment thest out for now,.
-*(args...) = Base.:*(args...)
-+(args...) = Base.:+(args...)
--(args...) = Base.:-(args...)
-^(args...) = Base.:^(args...)
-/(args...) = Base.:/(args...)
 
+# *(args...) = Base.:*(args...)
+# +(args...) = Base.:+(args...)
+# -(args...) = Base.:-(args...)
+# ^(args...) = Base.:^(args...)
+# /(args...) = Base.:/(args...)
+
+## This was commented out long before (Aug 16, 2018)
 # Already defined elsewhere (... where ?)
 # I = im
 # export I
