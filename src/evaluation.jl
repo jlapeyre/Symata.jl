@@ -316,7 +316,7 @@ function symataevaluate(ex, options=EvaluateJuliaSyntax())
             @warn("Uncaught Throw")
             clear_throw()
         else
-            symwarn("Throw flag set, but expression is not throw.",  mx)
+            @symwarn("Throw flag set, but expression is not throw.",  mx) # This should probably be an assert
             clear_throw()
             return mx
         end
