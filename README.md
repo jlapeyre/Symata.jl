@@ -10,7 +10,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
-[![Symata](http://pkg.julialang.org/badges/Symata_0.7.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.7)
+[![Symata](http://pkg.julialang.org/badges/Symata_1.0.svg)](http://pkg.julialang.org/?pkg=Symata&ver=1.0)
 
 ### Symata and Julia versions
 
