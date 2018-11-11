@@ -1,19 +1,25 @@
 ## give lexical scope to local variables in module
 
-# This strips the head 'Module'. Creates a gensym variable for each variable in the
-# local variable list. Substitutes these local variables where they occur in the
-# body. Pushes 'Set' expressions onto the body to set any initial values that may have been
-# specified. Pushes 'Clear' expressions to clear local variables. (These should not be neccessary)
-# At this point we would like to return the body with head CompundExpression., which will then
-# be sent again through doeval. But, we want to remove the temporary (lexically scoped) variables
-# from the symbol table. So we instead use the head LModule. This acts like CompoundExpression except
-# it removes variables. (Note that, as in Mma, if local vars occur in the returned expression, they
-# will be created again.) A cleaner way would be to use CompundExpression, and the Temporary attribute.
-# We, like Mma, make new local variable names each time the module is evaluated. But, we
-# could obviously store data to make the second call more efficient.
+# 1. Strip the head 'Module'.
+# 2. Create a gensym variable for each variable in the local variable list.
+# 3. Substitutes these local variables where they occur in the body.
+# 4. Pushes 'Set' expressions onto the body to set any initial values that may have been specified.
+# 5. Pushes 'Clear' expressions to clear local variables. This is wrong. We don't want to clear, rather,
+#   increment the local variable counter. In fact, in Mma, on is allowed to set variables that will be used
+#   in the future.
+# At this point we would like to
+# return the body with head CompundExpression, which will then be sent again
+# through doeval. But, we want to remove the temporary (lexically scoped)
+# variables from the symbol table. So we instead use the head LModule. This acts
+# like CompoundExpression except it removes variables. (Note that, as in Mma, if
+# local vars occur in the returned expression, they will be created again.) A
+# cleaner way would be to use CompundExpression, and the Temporary attribute.
+# We, like Mma, make new local variable names each time the module is
+# evaluated [Broken!]. But, we could obviously store data to make the second call more
+# efficient.
 
 # Older comment.
-# This is not good enough. It will fail for nested calls to a Module.
+# This is not good enough. It will fail for nested calls to a Module. [Update: see #162]
 # We can revert to generating new syms each time it is entered. But, better to <--- we are doing this ?!
 # store the replacements and positions so that the entire Module is
 # not traversed each time and replace new symbols on each call.
@@ -63,12 +69,16 @@ in the sense that nested calls to a Module are not supported.
          ("f(3)","4"),
          ("a","a","The global variable 'a' is not affected."))
 
-
 @mkapprule Module  :nargs => 1:2
 
-do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body::Mxpr{:CompoundExpression}) = localize_module!(mx)
+# The following two are called if Module occurs outside a Set expression
+function do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body::Mxpr{:CompoundExpression})
+    localize_module!(mx)
+end
 
-do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body) = localize_module!(mxprcf(:Module,vars,mxprcf(:CompoundExpression, body)))
+function do_Module(mx::Mxpr{:Module}, vars::Mxpr{:List}, body)
+    localize_module!(mxprcf(:Module,vars,mxprcf(:CompoundExpression, body)))
+end
 
 # localizing is done above during setting the rule.
 # LModule is "localized module"
@@ -88,7 +98,7 @@ function apprules(mx::Mxpr{:LModule})
     for v in vars
         delete_sym(v)
     end
-    if  is_Mxpr(res,:Return) # TODO: check somewhere for excess args
+    if is_Mxpr(res, :Return) # TODO: check somewhere for excess args
         return length(res) == 0 ? Null : res[1]
     end
     return res

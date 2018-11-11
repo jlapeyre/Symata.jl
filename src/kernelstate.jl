@@ -67,9 +67,10 @@ mutable struct Meval
     timingon::Bool              # Time() does @time on every user input
     try_downvalue_count::Int
     try_upvalue_count::Int
+    localization_counter::Int
 #    is_sjinteractive::Bool
 end
-const MEVAL = Meval(0, false, false, false, false, 0, 0)
+const MEVAL = Meval(0, false, false, false, false, 0, 0, 0)
 
 reset_meval_count() = MEVAL.entrycount = 0
 get_meval_count() = MEVAL.entrycount
@@ -98,6 +99,9 @@ get_try_downvalue_count() = MEVAL.try_downvalue_count
 get_try_upvalue_count() = MEVAL.try_upvalue_count
 increment_try_downvalue_count() = MEVAL.try_downvalue_count += 1
 increment_try_upvalue_count() = MEVAL.try_upvalue_count += 1
+
+get_localization_counter() = MEVAL.localization_counter
+increment_localization_counter() = MEVAL.localization_counter += 1
 
 #### Tracing evaluation
 

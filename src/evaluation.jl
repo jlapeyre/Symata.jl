@@ -48,9 +48,10 @@ return a new symbol, like gensym. But, also set `Attribute` `Temporary` for
 the new symbol.
 """
 function get_localized_symbol(s::Symbol)
-    gsym = gensym(string(s))
-    set_attribute(gsym, :Temporary)
-    return gsym
+    increment_localization_counter()
+    localized_symbol = Symbol(s, "!", get_localization_counter())
+    set_attribute(localized_symbol, :Temporary)
+    return localized_symbol
 end
 
 @mkapprule ClearTemporary  nargs => 0
