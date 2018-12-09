@@ -755,7 +755,9 @@ have the `Protected` attribute.
 #apprules(mx::Mxpr{:BuiltIns}) = protectedsymbols()
 
 function apprules(mx::Mxpr{:BuiltIns})
-    copyto!(newargs(length(syms)), get_builtins())
+    syms = get_builtins()
+    nargs = newargs(length(syms))
+    copyto!(nargs, syms)
     setfixed(MListA(nargs))
 end
 
