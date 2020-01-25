@@ -186,7 +186,7 @@ deep_apply_upvalues!(x,sym) = x
 
 
 #using Base.Test
-import Base.Test
+#import Base.Test
 using Symata
 
 # For use in ../test/

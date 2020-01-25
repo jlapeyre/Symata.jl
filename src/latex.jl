@@ -26,7 +26,7 @@ latexstring(args...) = latexstring(string(args...))
 macro L_str(s, flags...) latexstring(s) end
 macro L_mstr(s, flags...) latexstring(s) end
 
-import Base: write, lastindex, getindex, sizeof, search, isvalid, next, length, IOBuffer, pointer
+import Base: write, lastindex, getindex, sizeof, isvalid, length, IOBuffer, pointer
 import Base.show
 
 write(io::IO, s::MyLaTeXString) = write(io, s.s)
@@ -48,7 +48,10 @@ end
 
 Base.string(s::MyLaTeXString) = string(s.s)
 lastindex(s::MyLaTeXString) = lastindex(s.s)
-next(s::MyLaTeXString, i::Int) = next(s.s, i)
+
+# FIXME: Can't be called. "next" is from the old iterator API
+#next(s::MyLaTeXString, i::Int) = next(s.s, i)
+
 length(s::MyLaTeXString) = symlength(s.s)
 getindex(s::MyLaTeXString, i::Int) = getindex(s.s, i)
 getindex(s::MyLaTeXString, i::Integer) = getindex(s.s, i)

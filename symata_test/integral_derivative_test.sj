@@ -73,7 +73,7 @@ T Integrate(Sqrt(1+x), x) == 2//3 * ((1 + x) ^ (3//2))
 ClearAll(res,a,x)
 
 res = Integrate(x^a * Exp(-x), [x,0,Infinity])
-T res == ConditionalExpression(Γ(1 + a),-Re(a) < 1)
+T res == ConditionalExpression(Γ(1 + a), Re(a) > -1)
 
 T Integrate(x^a * Exp(-x), [x,0,Infinity], conds => "none") == Γ(1 + a)
 a = 1/2
@@ -81,7 +81,7 @@ T res == (1/2)*(Pi^(1/2))
 a = -3/2
 T res === Undefined
 ClearAll(a)
-T res == ConditionalExpression(Gamma(1 + a),-Re(a) < 1)
+T res == ConditionalExpression(Gamma(1 + a), Re(a) > -1)
 
 T Integrate(Exp(-x^2),  [x,0,Infinity]) == (1/2)*(Pi^(1/2))
 
