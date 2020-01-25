@@ -49,7 +49,7 @@ return the list of all prime numbers `<= n`.
 returns the `n`th prime number.
 """
 @mkapprule Prime :nargs => 1
-@doap Prime(n::Integer) = sympy[:prime](n)
+@doap Prime(n::Integer) = sympy.prime(n)
 
 ### PrimePi
 
@@ -59,7 +59,7 @@ returns the `n`th prime number.
 returns the number of primes less than or equal to `n`.
 """
 
-@doap PrimePi(n::Integer) = sympy[:primepi](n)
+@doap PrimePi(n::Integer) = sympy.primepi(n)
 
 ### Permutations
 

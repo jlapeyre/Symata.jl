@@ -9,12 +9,13 @@ using PyCall
 macro make_simplify_func(mxprsym, sympyfunc)
     smxprsym = string(mxprsym)[2:end]     # Symata symbol
     ssympyfunc = string(sympyfunc)        # SymPy function
-    qsympyfunc = QuoteNode(sympyfunc)
+#    qsympyfunc = QuoteNode(sympyfunc)
+    qsympyfunc = sympyfunc
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
               kws = Dict()
               nargs = sjtopy_kw(mx,kws) # extract keywords from args to mx into kws, return positional args
-              (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
+              (isempty(kws) ? sympy.$qsympyfunc(nargs...) : sympy.$qsympyfunc(nargs...; kws...)) |> pytosj
         end
         set_sysattributes($smxprsym)
         register_sjfunc_pyfunc($smxprsym,$ssympyfunc)
@@ -24,12 +25,13 @@ end
 macro make_simplify_func_postp(mxprsym, sympyfunc, postfunc)
     smxprsym = string(mxprsym)[2:end]     # Symata symbol
     ssympyfunc = string(sympyfunc)        # SymPy function
-    qsympyfunc = QuoteNode(sympyfunc)
+#    qsympyfunc = QuoteNode(sympyfunc)
+    qsympyfunc = sympyfunc
     esc(quote
         function apprules(mx::Mxpr{$mxprsym})
               kws = Dict()
               nargs = sjtopy_kw(mx,kws)
-              sres = (isempty(kws) ? sympy[$qsympyfunc](nargs...) : sympy[$qsympyfunc](nargs...; kws...)) |> pytosj
+              sres = (isempty(kws) ? sympy.$qsympyfunc(nargs...) : sympy.$qsympyfunc(nargs...; kws...)) |> pytosj
               $postfunc(sres)
         end
         set_sysattributes($smxprsym)
@@ -71,7 +73,7 @@ give the `limit` of `expr` as `var` approaches `lim`.
 
 function apprules(mx::Mxpr{:Limit})
     (pymx,var,lim) = map(sjtopy, (mx[1],mx[2][1],mx[2][2]))
-    pylimit = sympy[:limit](pymx,var,lim)
+    pylimit = sympy.limit(pymx,var,lim)
     return pytosj(pylimit)
 end
 
@@ -93,21 +95,21 @@ gives the definite integral.
 # Works for exp with one variable. Is supposed to integrate wrt all vars., but gives error instead.
 function do_Integrate(mx::Mxpr{:Integrate},expr)
     pymx = sjtopy(expr)
-    pyintegral = sympy[:integrate](pymx)
+    pyintegral = sympy.integrate(pymx)
     return pytosj(pyintegral)
 end
 
 function do_Integrate(mx::Mxpr{:Integrate}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pyintegral = sympy[:integrate](pymx,pyvarspecs...)
+    pyintegral = sympy.integrate(pymx,pyvarspecs...)
     sjres = pytosj(pyintegral)
     sjres
 end
 
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws, expr)
     pymx = sjtopy(expr)
-    pyintegral = sympy[:integrate](pymx, kws)
+    pyintegral = sympy.integrate(pymx, kws)
     return pytosj(pyintegral)
 end
 
@@ -115,7 +117,7 @@ end
 function do_Integrate_kws(mx::Mxpr{:Integrate}, kws::T, expr, varspecs...) where T<:Dict
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pyintegral = sympy[:integrate](pymx,pyvarspecs...; kws...)
+    pyintegral = sympy.integrate(pymx,pyvarspecs...; kws...)
     sjres = pytosj(pyintegral)
     sjres
 end
@@ -164,7 +166,7 @@ This function returns `[F, a, cond]` where `F` is the Laplace transform of `f`,
 function apprules(mx::Mxpr{:LaplaceTransform})
     kws = Dict( :noconds => true )
     nargs = sjtopy_kw(mx,kws)
-    pyres = @try_sympyfunc sympy[:laplace_transform](nargs...; kws...)  "LaplaceTransform: unknown error."  mx
+    pyres = @try_sympyfunc sympy.laplace_transform(nargs...; kws...)  "LaplaceTransform: unknown error."  mx
     res = pyres |> pytosj
     res = list_to_conditional_expression(res)
     fix_integrate_piecewise(typeof(mx),res)
@@ -179,7 +181,7 @@ gives the inverse Laplace transform of `expr`.
 """
 
 function apprules(mx::Mxpr{:InverseLaplaceTransform})
-    result = sympy[:inverse_laplace_transform](map(sjtopy, margs(mx))...)
+    result = sympy.inverse_laplace_transform(map(sjtopy, margs(mx))...)
     sjresult = pytosj(result)
     if isa(sjresult,Mxpr) && mhead(sjresult) == :InverseLaplaceTransform
         setfixed(sjresult)
@@ -203,13 +205,13 @@ This function returns `[F, cond]` where `F` is the Fourier transform of `f`,
 and `cond` are auxiliary convergence conditions.
 """
 
-apprules(mx::Mxpr{:FourierTransform}) = sympy[:fourier_transform](sjtopy(margs(mx))...) |> pytosj
+apprules(mx::Mxpr{:FourierTransform}) = sympy.fourier_transform(sjtopy(margs(mx))...) |> pytosj
 
 
 #### InverseFourierTransform
 
 function apprules(mx::Mxpr{:InverseFourierTransform})
-    result = sympy[:inverse_fourier_transform](map(sjtopy, margs(mx))...)
+    result = sympy.inverse_fourier_transform(map(sjtopy, margs(mx))...)
     sjresult = pytosj(result)
     if mhead(sjresult) == :InverseFourierTransform
         setfixed(sjresult)
@@ -235,7 +237,7 @@ function do_Sum(mx::Mxpr{:Sum}, expr, varspecs...)
     ## FIXME: only evaluate expr here if the range of the sum is infinite.
     pymx = sjtopy(doeval(expr))
     pyvarspecs = varspecs_to_tuples_of_sympy(reverse(collect(varspecs))) # Symata and Mma use the same convention for position of inner loop
-    pysum = sympy[:summation](pymx,pyvarspecs...)
+    pysum = sympy.summation(pymx,pyvarspecs...)
     res = pytosj(pysum)
     if mhead(res) == :Sum
         summand = res[1]
@@ -258,7 +260,7 @@ apprules(mx::Mxpr{:Product}) = do_Product(mx,margs(mx)...)
 function do_Product(mx::Mxpr{:Product}, expr, varspecs...)
     pymx = sjtopy(expr)
     pyvarspecs = varspecs_to_tuples_of_sympy(collect(varspecs))
-    pysum = sympy[:product](pymx,pyvarspecs...)
+    pysum = sympy.product(pymx,pyvarspecs...)
     return pytosj(pysum)
 end
 
@@ -286,7 +288,7 @@ function do_Series(mx::Mxpr{:Series}, expr, varspecs...)
             push!(pyspec,sjtopy(dspec))
         end
     end
-    pyseries = sympy[:series](pymx,pyspec...)
+    pyseries = sympy.series(pymx,pyspec...)
     return pytosj(pyseries)
 end
 
@@ -323,7 +325,7 @@ function apprules(mx::Mxpr{:D})
             push!(pyspec,sjtopy(dspec))
         end
     end
-    pyderivative = sympy[:diff](pymx,pyspec...)
+    pyderivative = sympy.diff(pymx,pyspec...)
     return pytosj(pyderivative)
 end
 
@@ -347,7 +349,7 @@ rewrite a sum of terms as a product.
 compute a partial fraction decomposition of `product`.
 """
 
-apprules(mx::Mxpr{:Apart}) = sympy[:apart](map(sjtopy, margs(mx))...)[:doit]() |> pytosj
+apprules(mx::Mxpr{:Apart}) = sympy.apart(map(sjtopy, margs(mx))...).doit() |> pytosj
 
 register_sjfunc_pyfunc("Apart", "apart")
 
@@ -426,10 +428,10 @@ but likely to be slower.
 apprules(mx::Mxpr{:FullSimplify}) = do_FullSimplify(mx)
 
 function do_FullSimplify(mx::Mxpr{:FullSimplify})
-    funcs = [sympy[:simplify], sympy[:expand], sympy[:fu], sympy[:powsimp], sympy[:sqrtdenest]]
+    funcs = [sympy.simplify, sympy.expand, sympy.fu, sympy.powsimp, sympy.sqrtdenest]
 #    objective = pyeval("lambda x: len(str(x))")
     objective = py"lambda x: len(str(x))"  ## FIXME: this will break now on v0.5. Compatibility
-    megasimp = sympy[:strategies][:tree][:greedy]((funcs, funcs), objective)
+    megasimp = sympy.strategies.tree.greedy((funcs, funcs), objective)
     mx[1] |> sjtopy |> megasimp |> pytosj
 end
 
@@ -439,7 +441,7 @@ end
 cancel common factors in the numerator and denominator.
 """
 
-apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy[:cancel] |> pytosj
+apprules(mx::Mxpr{:Cancel}) = mx[1] |> sjtopy |> sympy.cancel |> pytosj
 
 register_sjfunc_pyfunc("Cancel", "cancel")
 
@@ -455,8 +457,8 @@ collect terms involving first `x`, then `y`.
 
 @mkapprule Collect
 
-@doap Collect(expr,x) = sympy[:collect](expr |> sjtopy, x |> sjtopy ) |> pytosj
-@doap Collect(expr,x,lst::Mxpr{:List}) = sympy[:collect](expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
+@doap Collect(expr,x) = sympy.collect(expr |> sjtopy, x |> sjtopy ) |> pytosj
+@doap Collect(expr,x,lst::Mxpr{:List}) = sympy.collect(expr |> sjtopy, x |> sjtopy , list |> sjtopy) |> pytosj
 
 register_sjfunc_pyfunc("Collect", "collect")
 
@@ -482,14 +484,14 @@ solve a system of equations.
 
 # TODO: find free symbols in expr and return rules as in following methods
 @doap function Solve(expr)
-    sres = (expr |> sjtopy |> sympy[:solve] |> pytosj)
+    sres = (expr |> sjtopy |> sympy.solve |> pytosj)
 #    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,sym,t)), margs(sres)))...)
 end
 
 @doap function Solve(expr, var::Symbol)
     pyexpr = expr |> sjtopy
     pyvar = var |> sjtopy
-    res =  sympy[:solve](pyexpr,pyvar)
+    res =  sympy.solve(pyexpr,pyvar)
     sres = res |>  pytosj
     mxpr(:List, (mapmargs(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
 end
@@ -497,7 +499,7 @@ end
 @doap function Solve(eqs::Mxpr{:List}, vars::Mxpr{:List})
     peqs = eqs |> sjtopy
     pyvars = vars |> sjtopy
-    sres = sympy[:solve](peqs,pyvars) |>  pytosj
+    sres = sympy.solve(peqs,pyvars) |>  pytosj
     if isa(sres,Dict)  # why does pytosj sometimes return Dict and sometimes List ?
         nargs = newargs()
         for (k,v) in sres
@@ -519,7 +521,7 @@ register_sjfunc_pyfunc("Solve", "solve")
 @doap function DSolve(expr, fcn)
     pyexpr = expr |> sjtopy
     pyfcn = fcn |> sjtopy
-    res =  sympy[:dsolve](pyexpr,pyfcn)
+    res =  sympy.dsolve(pyexpr,pyfcn)
     sres = res |>  pytosj
 #    mxpr(:List, (map(t -> mxpr(:List, mxpr(:Rule,var,t)), margs(sres)))...)
 end
@@ -535,7 +537,7 @@ solves for the roots of `expr`.
 returns a `List` of `Lists`. The two elements of each sublist give the root and its multiplicity.
 """
 
-apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy[:roots] |> pytosj  |> Symata.unpacktoList
+apprules(mx::Mxpr{:Roots}) = mx[1] |> sjtopy |> sympy.roots |> pytosj  |> Symata.unpacktoList
 
 register_sjfunc_pyfunc("Roots", "roots")
 
@@ -546,7 +548,7 @@ register_sjfunc_pyfunc("Roots", "roots")
 solves for the real roots of `expr`.
 """
 
-apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy[:real_roots] |> pytosj
+apprules(mx::Mxpr{:RealRoots}) = mx[1] |> sjtopy |> sympy.real_roots |> pytosj
 
 register_sjfunc_pyfunc("RealRoots", "real_roots")
 
@@ -556,7 +558,7 @@ register_sjfunc_pyfunc("RealRoots", "real_roots")
 @mkapprule Singularities :nargs => 2
 
 @doap function Singularities(expr,var)
-    res = pytosj(sympy[:singularities](sjtopy(expr),sjtopy(var)))
+    res = pytosj(sympy.singularities(sjtopy(expr),sjtopy(var)))
     if isa(res,Mxpr{:EmptySet})
         return List()
     elseif isa(res,Mxpr{:FiniteSet})
@@ -605,7 +607,7 @@ apprules(mx::Mxpr{:PossibleClosedForm}) = do_PossibleClosedForm(mx,margs(mx)...)
 attempts to find an exact formula for the floating point number `x`.
 """
 
-do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat) =  x |>  mpmath.identify |> sympy[:sympify] |> pytosj
+do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm},x::AbstractFloat) =  x |>  mpmath.identify |> sympy.sympify |> pytosj
 
 function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     kws = Dict()
@@ -619,7 +621,7 @@ function do_PossibleClosedForm(mx::Mxpr{:PossibleClosedForm}, args...)
     end
     pyres = mpmath.identify(pyargs...; kws...)
     if setdps restore_mpmath_dps() end
-    pyres |> sympy[:sympify] |> pytosj
+    pyres |> sympy.sympify |> pytosj
 end
 
 ##### ConditionalExpression
@@ -648,7 +650,7 @@ simplifies expr using assumptions. For instance, `Assume(x,positive)`.
 """
 
 @doap function Refine(args...)
-    result = sympy[:refine](map(sjtopy, args)...)
+    result = sympy.refine(map(sjtopy, args)...)
     result |> pytosj
 end
 
@@ -658,9 +660,9 @@ end
 
 @doap function CoefficientList(expr,var)
     (spexpr,spvar) = (sjtopy(expr),sjtopy(var))
-    p = sympy[:Poly](spexpr,spvar)
+    p = sympy.Poly(spexpr,spvar)
 #    cs = p[:coeffs]()  # lists only non-zero coefficients
-    cs = reverse!(p[:all_coeffs]())
+    cs = reverse!(p.all_coeffs())
     List(mapmargs(pytosj,cs))
 end
 
@@ -671,13 +673,13 @@ end
 
 @doap function CoefficientSympy(expr,subexpr)
     (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(subexpr))
-    cs = spexpr[:coeff](spsubexpr)
+    cs = spexpr.coeff(spsubexpr)
     pytosj(cs)
 end
 
 @doap function CoefficientSympy(expr,subexpr,pow)
     (spexpr,spsubexpr) = (sjtopy(expr),sjtopy(mpow(subexpr,pow)))
-    cs = spexpr[:coeff](spsubexpr)
+    cs = spexpr.coeff(spsubexpr)
     pytosj(cs)
 end
 

@@ -24,20 +24,21 @@ function _versioninfo()
     println(_vpad("Symata version"), SYMATA_VERSION)
 #    println(_vpad("Commit"), string(commit_hash, "*"))
     println(_vpad("Julia version"), Base.VERSION)
-    if isdefined(PyCall, :pyversion)
+#    if isdefined(PyCall, :pyversion)
+    if hasproperty(PyCall, :pyversion)
         println(_vpad("Python version"), pyversion)
     else
         println("no Python version available")
     end
     try
-        println(_vpad("SymPy version") * sympy[:__version__])
+        println(_vpad("SymPy version") * sympy.__version__)
     catch
         println("SymPy version unavailable")
     end
     if @isdefined(SymataSyntax) && _init_symatasyntax()
         println(_vpad("symatasyntax ver."), SymataSyntax.SYMATASYNTAX_VERSION)
         try
-            println(_vpad("mathics version") * SymataSyntax.mathics[:__version__])
+            println(_vpad("mathics version") * SymataSyntax.mathics.__version__)
         catch
             println("mathics version unavailable")
         end

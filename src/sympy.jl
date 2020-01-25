@@ -136,7 +136,7 @@ const MPMATH_DPS = Int[0]
 
 Get the number of digits of precision used by mpmath.
 """
-get_mpmath_dps() = mpmath[:mp][:dps]
+get_mpmath_dps() = mpmath.mp.dps
 
 """
     set_mpmath_dps(n)
@@ -144,8 +144,8 @@ get_mpmath_dps() = mpmath[:mp][:dps]
 Set the number of digits of precision used by mpmath.
 """
 function set_mpmath_dps(n)
-    push!(MPMATH_DPS, mpmath[:mp][:dps])
-    mpmath[:mp][:dps] = n
+    push!(MPMATH_DPS, mpmath.mp.dps)
+    mpmath.mp.dps = n
 end
 
 """
@@ -154,7 +154,7 @@ end
 Pop the most recent number of digits of precision used by mpmath
 from a stack, and set the number of DPS.
 """
-restore_mpmath_dps() = (mpmath[:mp][:dps] = pop!(MPMATH_DPS))
+restore_mpmath_dps() = (mpmath.mp.dps = pop!(MPMATH_DPS))
 
 # This translates key value pairs that we use to describe the mapping from sj to py.
 function get_sympy_math(x)
@@ -241,29 +241,29 @@ function populate_py_to_mx_dict()
     # catchall branch at the end of sympyt2mxpr. Why ?
     eval(Meta.parse("const py_to_mx_dict = Dict{PyCall.PyObject,Symbol}()"))
     for onepair in (
-                    (sympy[:Add], :Plus),
-                    (sympy[:Mul], :Times),
-                    (sympy[:Pow] ,:Power),
-                    (sympy[:Derivative], :D),  ## We need to implement or handle Derivative
-                    (sympy[:containers][:Tuple], :List),
-                    (sympy[:oo], :Infinity),
-                    (sympy[:zoo],:ComplexInfinity),
-                    (sympy[:Eq], :Equal),
-                    (sympy[:functions][:elementary][:piecewise][:ExprCondPair], :ConditionalExpression))
+                    (sympy.Add, :Plus),
+                    (sympy.Mul, :Times),
+                    (sympy.Pow ,:Power),
+                    (sympy.Derivative, :D),  ## We need to implement or handle Derivative
+                    (sympy.containers.Tuple, :List),
+                    (sympy.oo, :Infinity),
+                    (sympy.zoo,:ComplexInfinity),
+                    (sympy.Eq, :Equal),
+                    (sympy.functions.elementary.piecewise.ExprCondPair, :ConditionalExpression))
         py_to_mx_dict[onepair[1]] = onepair[2]
-        if haskey(sympy[:functions][:special][:hyper], :TupleArg)  # This is missing in older versions of SymPy. (But so are many other symbols)
-            py_to_mx_dict[sympy[:functions][:special][:hyper][:TupleArg]] = :List
+        if hasproperty(sympy.functions.special.hyper, :TupleArg)  # This is missing in older versions of SymPy. (But so are many other symbols)
+            py_to_mx_dict[sympy.functions.special.hyper.TupleArg] = :List
         end
     end
 end
 
 # These functions are also contained in sympy.C (but sympy.C has been deprecated)
 function mk_py_to_mx_funcs()
-    for (pysym,sjsym) in SYMPY_TO_SYMATA_FUNCTIONS
+    for (pysym, sjsym) in SYMPY_TO_SYMATA_FUNCTIONS
         pystr = string(pysym)
         sjstr = string(sjsym)
-        if haskey(sympy[:functions], pystr)
-            py_to_mx_dict[sympy[:functions][pystr]] =  Symbol(sjstr)
+        if hasproperty(sympy.functions, pysym)
+            py_to_mx_dict[getproperty(sympy.functions, pysym)] = Symbol(sjstr)
         end
     end
 end
@@ -280,12 +280,12 @@ have_rewrite_function_sympy_to_julia(pytype::PyCall.PyObject) = haskey(py_to_mx_
 ## We put more than user symbols here
 function populate_user_symbol_dict()
     for onepair in (
-                    (sympy[:numbers]["ComplexInfinity"](), :ComplexInfinity),
-                    (sympy[:numbers]["Pi"](), :Pi),
-                    (sympy[:numbers]["EulerGamma"](), :EulerGamma),
-                    (sympy[:numbers]["Exp1"](),  :E),
-                    (sympy[:numbers]["ImaginaryUnit"](), complex(0,1)),
-                    (sympy[:numbers]["NegativeInfinity"](), MinusInfinity))
+                    (sympy.numbers.ComplexInfinity(), :ComplexInfinity),
+                    (sympy.numbers.Pi(), :Pi),
+                    (sympy.numbers.EulerGamma(), :EulerGamma),
+                    (sympy.numbers.Exp1(), :E),
+                    (sympy.numbers.ImaginaryUnit(), complex(0,1)),
+                    (sympy.numbers.NegativeInfinity(), MinusInfinity))
         SYMPY_USER_SYMBOLS_REVERSE[onepair[1]] = onepair[2]
     end
 end
@@ -346,8 +346,8 @@ function pytosj_map2(head,args)
 end
 
 function pytosj_Function(pyexpr,pytype)
-    head = Symbol(pytype[:__name__])
-    targs = pyexpr[:args]
+    head = Symbol(pytype.__name__)
+    targs = pyexpr.args
     if  head == :_context  return Qsym(pytosj(targs[1]),pytosj(targs[2])) end
     if targs[1] == dummy_arg  # sympy does not allow functions without args, so we pass a dummy arg.
         return mxprcf(head, [])
@@ -367,8 +367,8 @@ end
 function populate_rewrite_dict()
     py_to_mx_rewrite_function_dict[sympy_True] = x -> true
     py_to_mx_rewrite_function_dict[sympy_False] = x -> false
-    py_to_mx_rewrite_function_dict[sympy_Sum] = pyexpr -> deepsetfixed(mxpr(:Sum, mapmargs(pytosj, pyexpr[:args])...))
-    py_to_mx_rewrite_function_dict[sympy_Integral] = pyexpr -> deepsetfixed(mxpr(:Integrate, mapmargs(pytosj, pyexpr[:args])...))
+    py_to_mx_rewrite_function_dict[sympy_Sum] = pyexpr -> deepsetfixed(mxpr(:Sum, mapmargs(pytosj, pyexpr.args)...))
+    py_to_mx_rewrite_function_dict[sympy_Integral] = pyexpr -> deepsetfixed(mxpr(:Integrate, mapmargs(pytosj, pyexpr.args)...))
 
     for (fname,pyftype, sjsymbolstr) in (("greater_than_equal", :sympy_GreaterThan, ">="),
                                          ("less_than_equal", :sympy_LessThan, "<="),
@@ -381,7 +381,7 @@ function populate_rewrite_dict()
         sjsymbol = QuoteNode(Symbol(sjsymbolstr))
         @eval begin
             function ($sfname)(pyexpr)
-                args = pyexpr[:args]
+                args = pyexpr.args
                 return mxpr(:Comparison, _pytosj(args[1]), $sjsymbol, _pytosj(args[2]))
             end
             py_to_mx_rewrite_function_dict[$(eval(pyftype))] = $sfname
@@ -396,41 +396,42 @@ end
 function _pytosj(expr::T) where T <: PyCall.PyObject
     res = get(SYMPY_USER_SYMBOLS_REVERSE, expr,false) ## This is much faster, but may not be significant
     res !== false && return res
-    pytype = expr[:__class__]
+    pytype = expr.__class__
     if pytype == sympy_Symbol
         @pydebug(3, "pytype Symbol trans. ", expr)
-        return Symbol(expr[:name])
+        return Symbol(expr.name)
     end
     @pydebug(3, "Entering with ", expr)
 #    if pytype == sympy_Integer  ## This does not work. 1, 1/2, etc, are in their own classes.
     ## Many things apparently cannot be checked via the 'pytype' or class.
     ## There are paraphyletic groups whose membership is tested with functions (well, class member functions)
-    if expr[:is_Integer]
+    if expr.is_Integer
         #  returns Int or BigInt. It just returns a member of a python object. It would be nice to get this faster.
         # `_to_mpath` in evalf.py checks again expr.is_Integer.
 #        num = expr[:_to_mpmath](-1)  #  precision '-1' is ignored for integers.
-        num = expr[:p]  ## This is 5 or so times faster and does the same thing.
+        num = expr.p  ## This is 5 or so times faster and does the same thing.
         return num
     end
 #    if pytype == sympy_Rational
-    if expr[:is_Rational]
-        p = expr[:p]
-        q = expr[:q]
-        return Rational(expr[:p],expr[:q])  # These are Int64's. Don't know when or if they are BigInts
+    if expr.is_Rational
+        p = expr.p
+        q = expr.q
+        return Rational(expr.p,expr.q)  # These are Int64's. Don't know when or if they are BigInts
     end
 #    if pytype == sympy_Float
-    if expr[:is_Float]
+    if expr.is_Float
         return convert(AbstractFloat, expr) # Need to check for BigFloat
     end
-    if pyisinstance(expr, sympy[:Number]) && (! expr[:is_finite])
+    if pyisinstance(expr, sympy.Number) && (! expr.is_finite)
             # we should check name. there are several infinities
         return Infinity  # need to see if this is maybe -Infinity
     end
     if have_function_sympy_to_symata_translation(pytype)
         @pydebug(3, "function lookup trans. ", expr)
-        return pytosj_map(get_function_sympy_to_symata_translation(pytype), expr[:args])
+        return pytosj_map(get_function_sympy_to_symata_translation(pytype), expr.args)
     end
-    if expr[:is_Function] ## User defined functions whose pytpe is the name of the function
+
+    if expr.is_Function ## User defined functions whose pytpe is the name of the function
         @pydebug(3, "is_Function trans. ", expr)
         return pytosj_Function(expr,pytype)
     end   # perhaps a user defined function
@@ -438,11 +439,11 @@ function _pytosj(expr::T) where T <: PyCall.PyObject
         @pydebug(3, "rewrite trans. ", expr)
         return rewrite_function_sympy_to_julia(expr,pytype)
     end
-    head = Symbol(expr[:func][:__name__]) # this is the default if not handled above
+    head = Symbol(expr.func.__name__) # this is the default if not handled above
     @pydebug(3, "default trans. ", expr, " new head ", head)
     @pydebug(3, "typeof head ", typeof(head))
-    @pydebug(3, "args  ", expr[:args])
-    mxout =  pytosj_map(head,  expr[:args])
+    @pydebug(3, "args  ", expr.args)
+    mxout =  pytosj_map(head,  expr.args)
     @pydebug(3, "mxout ", mxout)
     mxout
 end
@@ -471,16 +472,16 @@ end
 ## TODO: I think the above is not true. We can merge this with another dict
 function populate_mx_to_py_dict()
     for onepair in (
-         (:Plus,sympy[:Add]),
-         (:Times, sympy[:Mul]),
-         (:Power, sympy[:Pow]),
-         (:E, sympy[:E]),
-         (:EulerGamma, sympy[:EulerGamma]),
-         (:I, sympy[:I]),
-         (:Pi,  sympy[:pi]),
-         (:Log, sympy[:log]),
-         (:Infinity, sympy[:oo]),
-         (:ComplexInfinity, sympy[:zoo]))
+         (:Plus,sympy.Add),
+         (:Times, sympy.Mul),
+         (:Power, sympy.Pow),
+         (:E, sympy.E),
+         (:EulerGamma, sympy.EulerGamma),
+         (:I, sympy.I),
+         (:Pi,  sympy.pi),
+         (:Log, sympy.log),
+         (:Infinity, sympy.oo),
+         (:ComplexInfinity, sympy.zoo))
         mx_to_py_dict[onepair[1]] = onepair[2]
     end
 end
@@ -498,7 +499,7 @@ function mk_mx_to_py_funcs()
             end
         else
             try
-                obj = eval(Meta.parse("sympy[:" * pystr * "]"))   # These call the sympy functions directly
+                obj = eval(Meta.parse("sympy." * pystr * ""))   # These call the sympy functions directly
             catch
                 continue
             end
@@ -547,13 +548,13 @@ end
 function _sjtopy(mx::Mxpr{:DirectedInfinity})
     @sjdebug(3,"Infinity ", mx)
     if mx == ComplexInfinity
-        sympy[:zoo]
+        sympy.zoo
     elseif mx == MinusInfinity
         SymPyMinusInfinity
     elseif mx[1] == I
-        sympy[:Mul](sympy[:I],sympy[:oo])
+        sympy.Mul(sympy.I,sympy.oo)
     else
-        sympy[:oo]
+        sympy.oo
     end
 end
 
@@ -561,7 +562,7 @@ end
 
 function _sjtopy(mx::Mxpr{:Equal})
     if length(mx) == 2
-        sympy[:Eq](_sjtopy(mx[1]),_sjtopy(mx[2]))
+        sympy.Eq(_sjtopy(mx[1]),_sjtopy(mx[2]))
     else
         @symwarn("Unimplemented translation to Sympy", mx)
     end
@@ -578,12 +579,12 @@ end
 
 ### Args, This function is defined in lists.jl
 
-@doap Args(pyobj::PyCall.PyObject) = pyobj[:args]
+@doap Args(pyobj::PyCall.PyObject) = pyobj.args
 
 ### PyHead
 
 function pyhead(pyobj::PyCall.PyObject)
-    return Symbol(pyobj[:func][:__name__])
+    return Symbol(pyobj.func.__name__)
 end
 
 @mkapprule PyHead :nargs => 1
@@ -605,7 +606,7 @@ return the python class of the python object `pyobj`.
 """
 
 @mkapprule PyClass :nargs => 1
-@doap PyClass(pyobj::PyCall.PyObject) = pyobj[:__class__]
+@doap PyClass(pyobj::PyCall.PyObject) = pyobj.__class__
 
 ### Rewrite
 
@@ -635,7 +636,7 @@ Rewrite(CatalanNumber(n), HypergeometricPFQ)
 @doap function Rewrite(expr, form::Symbol)
     arg1 = _sjtopy(mx[1])
     transform = get(RewriteDict, form, form)
-    pyres = arg1[:rewrite](transform)
+    pyres = arg1.rewrite(transform)
     pytosj(pyres)
 end
 
@@ -651,7 +652,7 @@ function eval_hypergeometric(mx, p, q, z)
     result = sjtopy(mx)
     fresult =
         try
-            result[:evalf]()
+            result.evalf()
         catch
             result
         end
@@ -676,7 +677,7 @@ function do_MeijerG(mx::Mxpr{:MeijerG}, p::Mxpr{:List}, q::Mxpr{:List}, z)
         zpy = sjtopy(z)
         ppy = (_sjtopy(p[1]), _sjtopy(p[2]))
         qpy = (_sjtopy(q[1]), _sjtopy(q[2]))
-        pyres = sympy[:meijerg](ppy,qpy,zpy)
+        pyres = sympy.meijerg(ppy,qpy,zpy)
         sjres = pytosj(pyres)
     catch
         mx
@@ -705,7 +706,7 @@ function eval_meijerg(mx, p, q, z)
     result = sjtopy(mxc)
     fresult =
         try
-            result[:evalf]()
+            result.evalf()
         catch
             result
         end
@@ -728,7 +729,7 @@ function _sjtopy(mx::Mxpr)
         return mx_to_py_dict[mhead(mx)](map(_sjtopy, mx.args)...) # calling a function in our dictionary
     end
     @sjdebug(1,"Make function ", mx)
-    pyfunc = sympy[:Function](string(mhead(mx)))  # Don't recognize the head, so make it a user function
+    pyfunc = sympy.Function(string(mhead(mx)))  # Don't recognize the head, so make it a user function
     mxargs = margs(mx)
     if length(mxargs) == 0
         return pyfunc(dummy_arg)  # sympy functions must have at least one argument
@@ -751,7 +752,7 @@ function _sjtopy(mx::Symbol)
         sym = SYMPY_USER_SYMBOLS[mx]
         return sym
     else
-        sym = sympy[:Symbol](mx)
+        sym = sympy.Symbol(mx)
         SYMPY_USER_SYMBOLS[mx] = sym
         SYMPY_USER_SYMBOLS_REVERSE[sym] = mx
         return sym
@@ -788,7 +789,7 @@ lowercase initial is deprecated.
     props = [ Symbol(lowercase(string(x))) for x in inprops]
     propstrs = map( (x) -> " $x=true ", props)
     propstr = join(propstrs, ", ")
-    evalstr = "sympy[:Symbol](\"$ss\", $propstr)"
+    evalstr = "sympy.Symbol(\"$ss\", $propstr)"
     sym = eval(Meta.parse(evalstr))
     SYMPY_USER_SYMBOLS[s] = sym
     s
@@ -802,7 +803,7 @@ end
 @mkapprule Max :nodefault => true
 @doap function Max(args...)
     args = margs(flatten_recursive(mxpr(:List,args...)))
-    return pytosj(sympy[:Max](mapmargs(sjtopy, args)...))
+    return pytosj(sympy.Max(mapmargs(sjtopy, args)...))
 end
 
 @doap Max() = MinusInfinity
@@ -812,17 +813,17 @@ end
 @mkapprule Min :nodefault => true
 @doap function Min(args...)
     args = margs(flatten_recursive(mxpr(:List,args...)))
-    return pytosj(sympy[:Min](mapmargs(sjtopy, args)...))
+    return pytosj(sympy.Min(mapmargs(sjtopy, args)...))
 end
 
 @doap Min() = Infinity
 
-_sjtopy(mx::Rational{T}) where {T<:Integer} = sympy[:Rational](numerator(mx),denominator(mx))
+_sjtopy(mx::Rational{T}) where {T<:Integer} = sympy.Rational(numerator(mx),denominator(mx))
 
 _sjtopy(mx::Number) = mx
 
 function _sjtopy(s::Qsym)
-    f = sympy[:Function]("_context")
+    f = sympy.Function("_context")
     f(_sjtopy(s.context),_sjtopy(s.name))
 end
 
@@ -846,8 +847,8 @@ in the Symata module ` __init__` function.
 """
 function init_sympy()
     import_sympy()
-    eval(Meta.parse("const dummy_arg = sympy[:Symbol](\"DUMMY\")"))
-    eval(Meta.parse("const SymPyMinusInfinity = sympy[:Mul](-1 , sympy[:oo])"))
+    eval(Meta.parse("const dummy_arg = sympy.Symbol(\"DUMMY\")"))
+    eval(Meta.parse("const SymPyMinusInfinity = sympy.Mul.(-1 , sympy.oo)"))
     make_sympy_to_symata()
     populate_py_to_mx_dict()
     mk_py_to_mx_funcs()
@@ -855,10 +856,13 @@ function init_sympy()
     populate_mx_to_py_dict()
     mk_mx_to_py_funcs()
     for s in sympysyms1
-        @eval copy!($(Symbol("sympy_", s)) , sympy[$(QuoteNode(s))])
+        @eval copy!($(Symbol("sympy_", s)) , sympy.$s)
+#        @eval copy!($(Symbol("sympy_", s)) , sympy[$(QuoteNode(s))])
     end
-    copy!(sympy_True,sympy[:boolalg][:BooleanTrue])
-    copy!(sympy_False,sympy[:boolalg][:BooleanFalse])
+    copy!(sympy_True,sympy.boolalg.BooleanTrue)
+    copy!(sympy_False,sympy.boolalg.BooleanFalse)
+    # copy!(sympy_True,sympy[:boolalg][:BooleanTrue])
+    # copy!(sympy_False,sympy[:boolalg][:BooleanFalse])
     populate_rewrite_dict()
     init_isympy()
 end
@@ -869,7 +873,8 @@ const symatapy = PyCall.PyNULL()
 
 function init_isympy()
     try
-        push!(pyimport("sys")["path"], symatapydir)
+        push!(pyimport("sys").path, symatapydir)
+#        push!(pyimport("sys")["path"], symatapydir)
         copy!(symatapy, pyimport("isympy"))
     catch
         nothing
@@ -883,7 +888,7 @@ enters the ipython shell with sympy imported.
 """
 function isympy()
     try
-        symatapy[:main]()
+        symatapy.main()
     catch
         nothing
     end
@@ -922,7 +927,7 @@ end
 @mkapprule PyDoc :nargs => 1
 
 function do_PyDoc(mx::Mxpr{:PyDoc},sym)
-    try eval(Meta.parse("println(sympy[:$(string(sym))][:__doc__])"))
+    try eval(Meta.parse("println(sympy.$(string(sym)).__doc__)"))
     catch
         Null
     end

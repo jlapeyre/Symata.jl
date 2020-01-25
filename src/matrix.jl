@@ -4,7 +4,7 @@
 convert spmat to a Symata `List` of `Lists`.
 """
 function sympy_matrix_to_sj(spmat)
-    jlist = pytosj(spmat[:tolist]())
+    jlist = pytosj(spmat.tolist())
     for i in 1:length(jlist)
         jlist[i] = pytosj(jlist[i])
     end
@@ -31,8 +31,8 @@ compute the matrix inverse of `m`.
 """
 @doap function Inverse(expr)
     arg1 = _sjtopy(mx[1])
-    mat = sympy[:Matrix](arg1)
-    pyres = mat[:inv]()
+    mat = sympy.Matrix(arg1)
+    pyres = mat.inv()
     sympy_matrix_to_sj(pyres)
 end
 
@@ -219,8 +219,8 @@ Compute the eigenvalues of matrix `m`.
 """
 @doap function Eigenvalues(expr)
     arg1 = _sjtopy(mx[1])
-    mat = sympy[:Matrix](arg1)
-    pyres = mat[:eigenvals]()
+    mat = sympy.Matrix(arg1)
+    pyres = mat.eigenvals()
     eigdict = pyres |> pytosj
     a = newargs()
     for (k,v) in eigdict
@@ -240,8 +240,8 @@ Compute the eigenvectors of matrix `m`.
 """
 @doap function Eigenvectors(expr)
     arg1 = _sjtopy(mx[1])
-    mat = sympy[:Matrix](arg1)
-    pyres = mat[:eigenvects]()
+    mat = sympy.Matrix(arg1)
+    pyres = mat.eigenvects()
     args = newargs()
     for x in pyres
         push!(args, sympy_matrix_to_sj(x[3][1]))

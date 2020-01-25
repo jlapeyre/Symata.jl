@@ -400,7 +400,7 @@ function write_sympy_apprule(sjf, sympyf, nargs::Int)
     sstr = join(sympyargs, ", ")
     aprpy = "function do_$sjf(mx::Mxpr{:$sjf},$cstr)
                try
-                 (sympy[:$sympyf]($sstr) |> pytosj)
+                 (sympy.$sympyf($sstr) |> pytosj)
                catch e
                  showerror(stdout, e)
                  mx
@@ -414,7 +414,7 @@ function set_up_sympy_default(sjf, sympyf)
     aprs = "Symata.apprules(mx::Mxpr{:$sjf}) = do_$sjf(mx,margs(mx)...)"
     aprs1 = "function do_$sjf(mx::Mxpr{:$sjf},x...)
                try
-                 (sympy[:$sympyf](map(sjtopy,x)...) |> pytosj)
+                 (sympy.$sympyf(map(sjtopy,x)...) |> pytosj)
                catch
                    mx
                end
@@ -502,8 +502,8 @@ set_sjtopy(:Erf, :sympy_erf)
 @mkapprule InverseErf :nargs => 1:2
 
 @doap InverseErf(x::T) where {T<:AbstractFloat} = x < 1 && x > -1 ? erfinv(x) : mx
-@doap InverseErf(x) = pytosj(sympy[:erfinv](sjtopy(x)))
-@doap InverseErf(x,y) = pytosj(sympy[:erf2inv](sjtopy(x),sjtopy(y)))
+@doap InverseErf(x) = pytosj(sympy.erfinv(sjtopy(x)))
+@doap InverseErf(x,y) = pytosj(sympy.erf2inv(sjtopy(x),sjtopy(y)))
 
 register_sjfunc_pyfunc(:InverseErf,:erfinv)
 register_only_pyfunc_to_sjfunc(:InverseErf,:erf2inv)
@@ -930,7 +930,7 @@ end
 
 @doap Conjugate(z::Number) = conj(z)
 @doap Conjugate(z::Mxpr{:Plus}) = mxpr(:Plus, mapmargs( x -> mxpr(:Conjugate, x), margs(z))...)
-@doap Conjugate(z::Mxpr) = z |> sjtopy |> sympy[:conjugate] |> pytosj
+@doap Conjugate(z::Mxpr) = z |> sjtopy |> sympy.conjugate |> pytosj
 
 ### Exp
 
@@ -962,7 +962,7 @@ the absolute value of `z`.
 @doap Abs(n::T) where {T<:Number} = mabs(n)
 
 @doap function Abs(x)
-    x |> sjtopy |> sympy[:Abs] |> pytosj
+    x |> sjtopy |> sympy.Abs |> pytosj
 end
 
 # The following code may be useful, but it is not complete
@@ -975,7 +975,7 @@ end
 doabs_pow(mx,b,e::T) where {T<:Real} = mxpr(:Power,mxpr(:Abs,b),e)
 
 function doabs_pow(mx,b,e)
-    mx[1] |> sjtopy |> sympy[:Abs] |> pytosj
+    mx[1] |> sjtopy |> sympy.Abs |> pytosj
 end
 
 # do_Abs(mx::Mxpr{:Abs},prod::Mxpr{:Times}) = do_Abs(mx,prod,prod[1])
@@ -1028,7 +1028,7 @@ end
 sign_number(x::Real) = convert(Int,sign(x))
 
 function do_Sign(mx::Mxpr{:Sign}, x)
-    x |> sjtopy |> sympy[:sign] |> pytosj
+    x |> sjtopy |> sympy.sign |> pytosj
 end
 
 # SymPy does not do Sign((I+1)*a), so we catch this case here.
@@ -1038,7 +1038,7 @@ function do_Sign(mx::Mxpr{:Sign}, x::Mxpr{:Times})
     if isa(x1,Number)
         mxpr(:Times, sign_number(x1), mxpr(:Sign , mxpr(:Times,x[2:end]...)))
     else
-        x |> sjtopy |> sympy[:sign] |> pytosj
+        x |> sjtopy |> sympy.sign |> pytosj
     end
 end
 
@@ -1176,7 +1176,7 @@ floating point `x`.
 end
 
 @doap function ProductLog(z)
-    pytosj(sympy[:LambertW](sjtopy(z)))
+    pytosj(sympy.LambertW(sjtopy(z)))
 end
 
 @doap function ProductLog(z::FloatRC, k::Number)
@@ -1184,7 +1184,7 @@ end
 end
 
 @doap function ProductLog(z,k)
-    pytosj(sympy[:LambertW](sjtopy(z), sjtopy(k)))
+    pytosj(sympy.LambertW(sjtopy(z), sjtopy(k)))
 end
 
 ### DirichletEta
@@ -1264,7 +1264,7 @@ end
 
 _polylog2(mx,s,z) = mx
 
-polylognum(mx,s::FloatRC,z::FloatRC) = sympy[:polylog](s,z) |> pytosj
+polylognum(mx,s::FloatRC,z::FloatRC) = sympy.polylog(s,z) |> pytosj
 polylognum(mx,s,z) = mx
 
 ### ExpPolar
@@ -1377,7 +1377,7 @@ dopowerE(mx, expt::Complex{T}) where {T<:AbstractFloat} = exp(expt)
 
 function dopowerE(mx, expt)
     syexpt = sjtopy(expt)
-    syres = sympy[:exp](syexpt)
+    syres = sympy.exp(syexpt)
     res = pytosj(syres)
     if is_Mxpr(res, :Exp)
         res[1] == expt && return mx
