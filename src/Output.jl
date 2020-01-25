@@ -224,7 +224,9 @@ function wrapout(x::Rational)
     WORational(x)
 end
 
-Base.show(io::IO,ws::WOSymbol) = show_symbol(io, ws.x)
+function Base.show(io::IO, ws::WOSymbol)
+    show_symbol(io, ws.x)
+end
 
 
 #### Symbol and SSJSym
@@ -242,13 +244,12 @@ Base.show(io::IO, s::SSJSym) = show_symbol(io, symname(s))
 #Base.show(io::IO, s::SJSym) = show_symbol(io,s)
 
 function show_symbol(io::IO, s::SJSym)
-#    println("*** showing $s")
     if haskey(unicode_output, s) && using_unicode_output()
-        Base.show_unquoted(io,unicode_output[s])
+        Base.show_unquoted(io, unicode_output[s])
     else
         ss = string(symname(s))
         ss = de_gensym(ss) # remove gensym characters
-        Base.show_unquoted(io,Symbol(ss))
+        Base.show_unquoted(io, Symbol(ss))
     end
 end
 

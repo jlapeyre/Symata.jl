@@ -6,27 +6,31 @@ mutable struct SymataCompletionProvider <: REPL.CompletionProvider
 end
 
 function symata_respond(f, repl, main; pass_empty = false)
-   return (s,buf,ok)->begin
+    return function do_respond(s, buf, ok)
         if !ok
-            return LineEdit.transition(s, :abort)
+            return transition(s, :abort)
         end
         line = String(take!(buf))
         if !isempty(line) || pass_empty
             REPL.reset(repl)
-            val, bt = REPL.send_to_backend(f(line), REPL.backend(repl))
-            if ! REPL.ends_with_semicolon(line) || bt !== nothing
-                wval = wrapout(val)
-                REPL.print_response(repl, wval, bt, true, Base.have_color)
-                # The following works more-or-less for ascii-art math. But, the LaTeX needs tweaking for this.
+            local response
+            try
+                ast = Base.invokelatest(f, line)
+                response0 = REPL.eval_with_backend(ast, REPL.backend(repl))
+                response = (wrapout(response0[1]), response0[2])
+            catch
+                response = (catch_stack(), true)
+            end
+            REPL.print_response(repl, response, !REPL.ends_with_semicolon(line), Base.have_color)
+            # The following works more-or-less for ascii-art math. But, the LaTeX needs tweaking for this.
                 # tex2mail interprets a negative thin space as several positive spaces
                 # lstr = latex_string(wval)
                 # str = readstring(pipeline(`echo $lstr`, `/home/lapeyre/.julia/v0.5/Nemo/local/bin/tex2mail --ignorefonts`))
                 # print("\n\n", str)
-            end
         end
         REPL.prepare_next(repl)
         REPL.reset_state(s)
-        s.current_mode.sticky || LineEdit.transition(s, main)
+        return s.current_mode.sticky ? true : LineEdit.transition(s, main)
     end
 end
 
