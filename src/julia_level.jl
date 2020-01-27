@@ -142,7 +142,8 @@ Base.:-(a::Mxpr) = mxpr(:Times,-1,a)
 Base.:^(base::Mxpr,expt::Integer) = mxpr(:Power,base,expt)
 Base.:^(base::Mxpr,expt) = mxpr(:Power,base,expt)
 
-Base.:/(a::Mxpr,b) = mxpr(:Times,a,mxpr(:Power,b,-1))
+Base.:/(a::Mxpr, b) = mxpr(:Times, a, mxpr(:Power, b, -1))
+Base.inv(m::Mxpr) = mxpr(:Power, m, -1)
 
 ## (Aug 16, 2018) Upgrading for Julia v1.0 from v0.7 Comment these
 ## out. I think this code is very old
