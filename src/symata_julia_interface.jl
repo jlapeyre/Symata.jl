@@ -222,9 +222,11 @@ end
 
 function mxpr_to_expr(mx::Mxpr{:Power}, aux::MtoECompile)
     if mx[1] == :E
-        return Expr(:call, :Exp, margs(mx)[2:end]...)
+        #        return Expr(:call, :Exp, margs(mx)[2:end]...)
+        return Expr(:call, :Exp, [mxpr_to_expr(x,aux) for x in margs(mx)[2:end]]...)
     else
-        return Expr(:call, :mpow, margs(mx)[1:end]...)
+#        return Expr(:call, :mpow, margs(mx)[1:end]...)
+        return Expr(:call, :mpow, [mxpr_to_expr(x,aux) for x in margs(mx)]...)
     end
 end
 
