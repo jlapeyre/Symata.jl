@@ -12,19 +12,6 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Symata](http://pkg.julialang.org/badges/Symata_0.6.svg)](http://pkg.julialang.org/?pkg=Symata&ver=0.6)
 [![Symata](http://pkg.julialang.org/badges/Symata_1.0.svg)](http://pkg.julialang.org/?pkg=Symata&ver=1.0)
 
-### Symata and Julia versions
-
-The master branch, and tagged versions 0.4.0 and later, support only Julia v0.7 and greater.
-
-The last version to support Julia v0.6.3 is tagged v0.3.0. Three percent of the tests fail.
-
-For Julia v0.5, install branch `jv0.5only`.
-
-### Syntax change in v0.4.0
-
-The syntax for `PatternTest` was changed in Symata v0.4.0.
-See "./symata_test/pattern_test.sj" for information on the new syntax.
-
 ### Examples and help
 
 -  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/TutorialNotebooks/)
@@ -71,10 +58,11 @@ implemented, including integration, transformation of special
 functions, expression manipulation, writing and reading expressions to
 and from a file etc.
 
-### Mathematica syntax.
+<!--  ### Mathematica syntax.
 
 You can use Symata with Mathematica syntax in addition to the usual Julia-like syntax. To use Mathematica syntax,
 install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.jl).
+-->
 
 ### Installing
 
