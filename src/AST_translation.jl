@@ -464,6 +464,12 @@ function extomx(ex::Expr)
     a = ex.args
     # We usually set the head and args in the conditional and construct Mxpr at the end
     if iscall(ex) return parse_call!(ex, newa)
+    elseif ohead == :toplevel
+        if length(a) == 1
+            return extomx(a[1])
+        else
+            error("extomx: Can't translate expression with head `toplevel' and length > 1")
+        end
     elseif ohead == :block && typeof(a[1]) == LineNumberNode  # g(x_Integer) = "int". julia finds line number node in rhs.
         return extomx(a[2])
     elseif ohead == :line return nothing # Ignore line number. part of misinterpretation of g(x_Integer) = "int".
