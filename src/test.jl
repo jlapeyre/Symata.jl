@@ -73,6 +73,11 @@ function runtest(test_type, fname; logfile="")
     nothing
 end
 
+"""
+    run_testsuite()
+
+Equivalent to the Symata expression `Tests()`.
+"""
 function run_testsuite()
     startfile = joinpath(SYMATA_LANG_TEST_PATH, "sjruntests.jl")
     include(startfile)

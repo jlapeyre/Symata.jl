@@ -268,12 +268,12 @@ function is_break()
 end
 
 function clear_break()
-    FLOWFLAGS.breakflag = false
+    return FLOWFLAGS.breakflag = false
 #    FLOWFLAGS[:Break] = false
 end
 
 function set_break()
-    FLOWFLAGS.breakflag = true
+    return FLOWFLAGS.breakflag = true
 #    FLOWFLAGS[:Break] = true
 end
 
@@ -283,6 +283,11 @@ set_throw() = FLOWFLAGS.throwflag = true
 
 ##### User options and info
 
+"""
+    Kerneloptions
+
+Global options for the Symata kernel.
+"""
 const Kerneloptions = Dict{Any,Any}(
     :unicode_output => false,
     :ijulia_latex_output => false,
@@ -302,13 +307,18 @@ const Kerneloptions = Dict{Any,Any}(
 )
 
 function getkerneloptions(sym::Symbol)
-    Kerneloptions[sym]
+    return Kerneloptions[sym]
 end
 
+"""
+    setkerneloptions(sym::Symbol, val)
+
+Set the Symata kernel option `sym` to `val`.
+"""
 function setkerneloptions(sym::Symbol, val)
     oval = Kerneloptions[sym]
     Kerneloptions[sym] = val
-    oval
+    return oval
 end
 
 #### UnicodeOutput
