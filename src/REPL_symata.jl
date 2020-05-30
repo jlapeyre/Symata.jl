@@ -315,10 +315,7 @@ end
 
 function transition_to_symata()
     mistate = Base.active_repl.mistate
- #   REPL.reset_state(mistate)
     symata_prompt = Base.active_repl.interface.modes[end]
     symata_prompt.sticky = true
     REPL.LineEdit.transition(mistate, symata_prompt) # prevent 42 appearing on input line
-#    REPL.prepare_next(Base.active_repl)
-#    REPL.reset_state(mistate)
 end
