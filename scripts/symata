@@ -1,4 +1,5 @@
 #!/bin/sh
 
-## Load Symata and enter the Symata prompt (REPL) mode
+## Load Symata and enter the Symata prompt (REPL) mode.
+
 julia --banner=no -i -e "using Symata;@async begin sleep(.1);run_repl();Symata.transition_to_symata() end"

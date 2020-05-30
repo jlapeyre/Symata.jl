@@ -1,0 +1,8 @@
+#!/bin/sh
+
+## Precompiled Symata
+## Start julia with an image with precompiled Symata and enter the Symat repl.
+
+IMAGE=symataimage.so
+
+julia -J "${IMAGE}" --banner=no -i -e "@async begin sleep(0.1); run_repl(); Symata.transition_to_symata() end"

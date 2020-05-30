@@ -10,6 +10,8 @@ TutorialNotebooks/.ipynb_checkpoints
 mod1.jl
 mod1a.jl
 papers/
+scripts/symataimage.so
+scripts/symata_precompile.jl
 stash/
 src/nomodule.jl
 src/tcode.jl

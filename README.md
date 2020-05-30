@@ -9,7 +9,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Coverage Status](https://coveralls.io/repos/github/jlapeyre/Symata.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/Symata.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
-### Examples and help
+## Examples and help
 
 -  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/TutorialNotebooks/)
    at `nbviewer.jupyter.org`. These are the same notebooks found in the [TutorialNotebooks](TutorialNotebooks/) directory
@@ -29,7 +29,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 -  If you have a question or a request, or want to contribute,
    please [open an issue](https://github.com/jlapeyre/Symata.jl/issues) here on github.
 
-### Symata is
+## Symata is
 
 - a language for symbolic computations and mathematics, where, for
 the most part, "mathematics" means what it typically
@@ -61,7 +61,7 @@ You can use Symata with Mathematica syntax in addition to the usual Julia-like s
 install the [SymataSyntax.jl package](https://github.com/jlapeyre/SymataSyntax.jl).
 -->
 
-### Installing
+## Installing
 
 Symata is a registered module. It can be installed like this
 
@@ -109,7 +109,10 @@ should be automatically installed when installing `sympy` via
 However, if you use `pip`, you should just be able to run `pip
 install mpmath`.
 
-### Running Symata
+## Running Symata
+
+See below for instructions on precompiling Symata to get more-or-less instant start up and many precompiled
+function calls.
 
 Three environments for running `Symata` are supported: the `Julia` REPL, `Jupyter`, and a dumb terminal.
 
@@ -126,8 +129,10 @@ symata 1>     # after entering `=`
 
 Under some circumstances, e.g. when using `PackageCompiler`, the `Symata` repl is not initialized after the module is loaded.
 You can initialize it with the exported Julia command `run_repl`. After this, the repl is entered with the `=` key.
-An executable [`symata`](symata) is included in top level directory of this distribution. It is a (UNIX
+An executable [`./scripts/symata`](./scripts/symata) is included. It is a (UNIX
 sh) shell script that just starts julia, loads the module, and enters `Symata` mode.
+There is also a script [`./scripts/symatap`](./scripts/symatap) for starting from an image
+with Symata precompiled. (See below.)
 Switch between `Julia` and `Symata` modes by typing `=`, or backspace, as the first character on a line.
 You can do tab completion to see a list of functions and symbols.
 
@@ -154,7 +159,15 @@ If you do `using Symata` in a dumb terminal, the `Symata` prompt should appear a
 
 From the julia prompt, type `isympy()` to enter the sympy shell.
 
-### Tests
+## NEW! Instant Symata
+
+You can precompile Symata. It will load very quickly and be generally much more responsive.
+The script [`./scripts/gen_compile.sh`](./scripts/gen_compile.sh) writes a Julia image.
+The script [`./scripts/symatap`](./scripts/symatap) runs Julia with this image and immediately
+enters the Symata repl. See the contents of these files if you can't run shell scripts on
+your platform.
+
+## Tests
 
 Run the test suite from the `symata` prompt with `Tests()`.
 This runs tests in the [symata_test directory](symata_test/)
