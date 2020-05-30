@@ -12,7 +12,7 @@ import Statistics
 import Formatting
 
 export @symExpr, @extomx
-export Mxpr, getsymata, isympy, margs, mhead, mxpr, mxpra, newargs, pytosj,
+export Mxpr, getsymata, isympy, margs, mhead, mxpr, mxpra, newargs, pytosj, run_repl,
        setsymata, sjtopy, @sym, symeval, symparseeval, symparsestring, symprintln, symtranseval,
        unpacktoList
 export mmul, mplus, mpow, mabs, mminus, symatamath
@@ -126,6 +126,14 @@ end
 
 is_loaded_IJulia() = isdefined(Main, :IJulia)
 
+function run_repl()
+    if isdefined(Base, :active_repl)
+        RunSymataREPL(Base.active_repl)
+    else
+        nothing
+    end
+end
+
 function do_init()
     init_sympy()
     sjimportall(:System, :Main) # These are Symata "contexts"
@@ -133,11 +141,7 @@ function do_init()
     if is_loaded_IJulia() # Use the Jupyter interface
         Jupyter.isymata()
     elseif isinteractive() # Started perhaps from the Julia REPL
-        if isdefined(Base, :active_repl)
-            RunSymataREPL(Base.active_repl)
-        else
-            nothing
-        end
+        run_repl()
     else
         nothing
     end
