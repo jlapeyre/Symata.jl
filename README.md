@@ -127,7 +127,9 @@ julia> using Symata
 symata 1>     # after entering `=`
 ```
 
-There is an executable [`symata`](symata) included in top level directory of this distribution. It is a (UNIX
+Under some circumstances, e.g. when using `PackageCompiler`, the `Symata` repl is not initialized after the module is loaded.
+You can initialize it with the exported Julia command `run_repl`. After this, the repl is entered with the `=` key.
+An executable [`symata`](symata) is included in top level directory of this distribution. It is a (UNIX
 sh) shell script that just starts julia, loads the module, and enters `Symata` mode.
 Switch between `Julia` and `Symata` modes by typing `=`, or backspace, as the first character on a line.
 You can do tab completion to see a list of functions and symbols.
