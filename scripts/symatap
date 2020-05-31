@@ -3,6 +3,7 @@
 ## Precompiled Symata
 ## Start julia with an image with precompiled Symata and enter the Symat repl.
 
+PATH_TO_IMAGE=.
 IMAGE=symataimage.so
 
-julia -J "${IMAGE}" --banner=no -i -e "@async begin sleep(0.1); run_repl(); Symata.transition_to_symata() end"
+julia -J "${PATH_TO_IMAGE}/${IMAGE}" --banner=no -i -e "@async begin sleep(0.1); run_repl(); Symata.transition_to_symata() end"

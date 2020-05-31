@@ -5,7 +5,7 @@
 
 ## See documentation for PackageCompiler for an explanation of the code below.
 ## After generating symataimage.so, run the image with
-## > julia -J symataimage.so
+## > julia -J /path/to/symataimage.so
 ## You have to call `run_repl()` before entering the repl with the `=` character
 
 IMAGE=symataimage.so
