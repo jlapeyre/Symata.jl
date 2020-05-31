@@ -169,10 +169,20 @@ From the julia prompt, type `isympy()` to enter the sympy shell.
 ## NEW! Instant Symata
 
 You can precompile Symata. It will load very quickly and be generally much more responsive.
-The script [`./scripts/gen_compile.sh`](./scripts/gen_compile.sh) writes a Julia image.
-The script [`./scripts/symatap`](./scripts/symatap) runs Julia with this image and immediately
+The script [`./scripts/gen_compile_symata.sh`](./scripts/gen_compile_symata.sh) writes a Julia image.
+The shell script [`./scripts/symatap`](./scripts/symatap) runs Julia with this image and immediately
 enters the Symata repl. See the contents of these files if you can't run shell scripts on
 your platform.
+
+### Instant Symata with Jupyter
+
+You can install a Jupyter kernel using the precompiled image.
+You must *not* insert any whitespace between `-J` and the path to the image.
+
+```julia
+julia> using IJulia
+julia> installkernel("Symata", "-J/home/username/path/to/symataimage.so")
+```
 
 ## Tests
 
