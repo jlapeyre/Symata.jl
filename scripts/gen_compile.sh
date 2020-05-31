@@ -8,7 +8,10 @@
 ## > julia -J /path/to/symataimage.so
 ## You have to call `run_repl()` before entering the repl with the `=` character
 
+# output Julia image
 IMAGE=symataimage.so
+
+# Temporary file storing method calls for precompilation are stored here.
 PRECOMPILE=symata_precompile.jl
 
 julia --trace-compile="${PRECOMPILE}" -e "using Symata; Symata.run_testsuite(); Symata.setkerneloptions(:bigint_input, true); Symata.run_testsuite()"

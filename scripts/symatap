@@ -3,7 +3,9 @@
 ## Precompiled Symata
 ## Start julia with an image with precompiled Symata and enter the Symat repl.
 
-PATH_TO_IMAGE=.
+# Set this to the absolute path where you want to store the image
+PATH_TO_IMAGE="${HOME}"
+
 IMAGE=symataimage.so
 
 julia -J "${PATH_TO_IMAGE}/${IMAGE}" --banner=no -i -e "@async begin sleep(0.1); run_repl(); Symata.transition_to_symata() end"
