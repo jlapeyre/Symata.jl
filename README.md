@@ -9,6 +9,13 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 [![Coverage Status](https://coveralls.io/repos/github/jlapeyre/Symata.jl/badge.svg?branch=master)](https://coveralls.io/github/jlapeyre/Symata.jl?branch=master)
 [![codecov.io](http://codecov.io/github/jlapeyre/Symata.jl/coverage.svg?branch=master)](http://codecov.io/github/jlapeyre/Symata.jl?branch=master)
 
+* [Examples and help](#examples-and-help)
+* [What is Symata?](#what-is-symata)
+* [Installing](#installing)
+* [Running Symata](#running-symata)
+* [NEW! Instant Symata](#new-instant-symata)
+* [Tests](#tests)
+
 ## Examples and help
 
 -  [Static snapshots of Symata tutorial notebooks](http://nbviewer.jupyter.org/github/jlapeyre/Symata.jl/tree/master/TutorialNotebooks/)
@@ -29,7 +36,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/jla
 -  If you have a question or a request, or want to contribute,
    please [open an issue](https://github.com/jlapeyre/Symata.jl/issues) here on github.
 
-## Symata is
+## What is Symata?
 
 - a language for symbolic computations and mathematics, where, for
 the most part, "mathematics" means what it typically
@@ -111,7 +118,7 @@ install mpmath`.
 
 ## Running Symata
 
-See below for instructions on precompiling Symata to get more-or-less instant start up and many precompiled
+See [below](#new-instant-symata) for instructions on precompiling Symata to get more-or-less instant start up and many precompiled
 function calls.
 
 Three environments for running `Symata` are supported: the `Julia` REPL, `Jupyter`, and a dumb terminal.

@@ -8,8 +8,11 @@
 ## > julia -J symataimage.so
 ## You have to call `run_repl()` before entering the repl with the `=` character
 
-#julia --trace-compile=symata_precompile.jl -e "using Symata; Symata.setkerneloptions(:bigint_input, true); Symata.run_testsuite()"
+IMAGE=symataimage.so
+PRECOMPILE=symata_precompile.jl
 
-julia --trace-compile=symata_precompile.jl -e "using Symata; Symata.run_testsuite(); Symata.setkerneloptions(:bigint_input, true); Symata.run_testsuite()"
+julia --trace-compile="${PRECOMPILE}" -e "using Symata; Symata.run_testsuite(); Symata.setkerneloptions(:bigint_input, true); Symata.run_testsuite()"
 
-julia -e "using PackageCompiler; PackageCompiler.create_sysimage(:Symata; precompile_statements_file=\"symata_precompile.jl\", sysimage_path=\"symataimage.so\", replace_default=false)"
+julia -e "using PackageCompiler; PackageCompiler.create_sysimage(:Symata; precompile_statements_file=\"${PRECOMPILE}\", sysimage_path=\"${IMAGE}\", replace_default=false)"
+
+#julia -e "using PackageCompiler; PackageCompiler.create_sysimage(:Symata; precompile_statements_file=\"symata_precompile.jl\", sysimage_path=\"symataimage.so\", replace_default=false)"
