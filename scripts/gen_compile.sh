@@ -14,5 +14,3 @@ PRECOMPILE=symata_precompile.jl
 julia --trace-compile="${PRECOMPILE}" -e "using Symata; Symata.run_testsuite(); Symata.setkerneloptions(:bigint_input, true); Symata.run_testsuite()"
 
 julia -e "using PackageCompiler; PackageCompiler.create_sysimage(:Symata; precompile_statements_file=\"${PRECOMPILE}\", sysimage_path=\"${IMAGE}\", replace_default=false)"
-
-#julia -e "using PackageCompiler; PackageCompiler.create_sysimage(:Symata; precompile_statements_file=\"symata_precompile.jl\", sysimage_path=\"symataimage.so\", replace_default=false)"
