@@ -264,6 +264,20 @@ T Map(f, x^2 + y^2, 2) == f(f(x)^f(2)) + f(f(y)^f(2))
 
 ClearAll(a,f,ex)
 
+###
+
+T MapAt(f, [a, b, c, d], 2) == [a, f(b), c, d]
+T MapAt(f, [a, b, c, d], [[1], [4]]) == [f(a), b, c, f(d)]
+T MapAt(f, [[a, b, c], [d, e]], [2, 1]) == [[a, b, c], [f(d), e]]
+# FIXME: returns unevaluated
+# T MapAt(f, [[a, b, c], [d, e]], [All, 2]) == [[a, f(b), c], [d, f(e)]]
+T MapAt(f, 1)([a, b, c, d]) == [f(a),b,c,d]
+T MapAt(f, a + b + c + d, 2) == a + c + d + f(b)
+T MapAt(f, x^2 + y^2, [[1, 1], [2, 1]]) == f(x)^2 + f(y)^2
+
+# TODO: what is syntax for Function with no argument ?
+T MapAt(Function(zz, x), [[a, b, c], [d, e, f]], [2, 1]) == [[a,b,c],[x,e,f]]
+
 ### Apply
 
   ClearAll(t)
