@@ -873,8 +873,7 @@ const symatapy = PyCall.PyNULL()
 
 function init_isympy()
     try
-        push!(pyimport("sys").path, symatapydir)
-#        push!(pyimport("sys")["path"], symatapydir)
+        pushfirst!(PyVector(pyimport("sys")."path"), symatapydir)
         copy!(symatapy, pyimport("isympy"))
     catch
         nothing
