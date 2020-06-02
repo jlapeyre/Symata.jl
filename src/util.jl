@@ -1,10 +1,16 @@
-## Copied from base. There is probably a trick to avoid this.
+## Copied from Base.print_to_string. There is probably a trick to avoid this.
+## FIXME. May want to update the copied part to agree with latest implementation in base
 function print_with_function_to_string(printfunc::Function, xs...; env=nothing)
     # specialized for performance reasons
-    s = IOBuffer(Array{UInt8}(undef, Base.tostr_sizehint(xs[1])), true, true)
+    siz::Int = 0
+    for x in xs
+        siz += Base._str_sizehint(x)
+    end
+    s = IOBuffer(sizehint=siz)
+#    s = IOBuffer(Array{UInt8}(undef, Base.tostr_sizehint(xs[1])), true, true)
     # specialized version of truncate(s,0)
-    s.size = 0
-    s.ptr = 1
+    # s.size = 0
+    # s.ptr = 1
     if env !== nothing
         env_io = IOContext(s, env)
         foreach( x -> printfunc(env_io, x), xs)
