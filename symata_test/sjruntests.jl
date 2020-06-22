@@ -68,7 +68,7 @@ save_biginput_state = Symata.setkerneloptions(:bigint_input, false)
 try
     runalltests()
 catch e
-    warn("Failed running Symata tests")
+    @warn "Failed running Symata tests"
     rethrow(e)
 finally
     Symata.setkerneloptions(:bigint_input, save_biginput_state)
@@ -83,7 +83,7 @@ setkerneloptions(:bigint_input, true)
 try
     runalltests()
 catch
-    warn("Failed running Symata tests")
+    @warn "Failed running Symata tests"
 finally
     setkerneloptions(:bigint_input, save_biginput_state)
 end
