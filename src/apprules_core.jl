@@ -247,12 +247,20 @@ macro olddoap(func)
 end
 
 macro doap(ex)
-    d = MacroTools.splitdef(ex)
-    quotename = QuoteNode(d[:name])
-    d[:name] = Symbol("do_", d[:name])
-    pushfirst!(d[:args], :(mx::Mxpr{$quotename}))
-    newfunc = MacroTools.combinedef(d)
-    :(($(esc(newfunc))))
+    dict = MacroTools.splitdef(ex)
+    quotename = QuoteNode(dict[:name])
+    dict[:name] = Symbol("do_", dict[:name])
+    pushfirst!(dict[:args], :(mx::Mxpr{$quotename}))
+    # The following broke mysteriously, with error message "dict undefined" in combinedef.
+    # So, we follow MacroTools docs and construct the function by hand.
+    # This is probably a Julia 1.7-dev bug. It may be fixed soon.
+#    newfunc = MacroTools.combinedef(dict)
+    rtype = get(dict, :rtype, :Any)
+    newfunc = :(function $(dict[:name])($(dict[:args]...);
+                              $(dict[:kwargs]...))::$rtype where {$(dict[:whereparams]...)}
+      $(dict[:body].args...)
+      end)
+    return :(($(esc(newfunc))))
 end
 
 ### Default apprule

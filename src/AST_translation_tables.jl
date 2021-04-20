@@ -128,8 +128,11 @@ const unicode_output = Dict{Symbol,Symbol}()
 for (k,v) in unicode_translation unicode_output[v] = k end
 
 # Reverse dict of ascii symbols for printing
-const MTOJSYM = Dict{Symbol,Symbol}()
-for (k,v) in JTOMSYM  MTOJSYM[v] = k end
+const MTOJSYM = Dict{Any,Any}()
+#const MTOJSYM = Dict{Symbol,Symbol}()
+for (k,v) in JTOMSYM
+    MTOJSYM[v] = k
+end
 
 # Finally, add the unicode symbols to the input translation table.
 merge!(JTOMSYM, unicode_translation)
@@ -177,7 +180,8 @@ end
 
 #### Operator type: infix, prefix, postfix
 
-const OPTYPE  = Dict{Symbol,Symbol}()
+#const OPTYPE  = Dict{Symbol,Symbol}()
+const OPTYPE  = Dict{Any,Any}()
 
 for op in (:(=), :(:=), :(=>), :Rule , :RuleDelayed, :Power, :(.>),
            :Set, :SetDelayed, :UpSet, :(*=), :(+=), :→, :(->), :Function,

@@ -296,7 +296,9 @@ iscall(ex::Expr, op::Symbol, len::Int) = ex.head == :call && ex.args[1] == op &&
 # is ex a call with len args (including the op) ?
 iscall(ex::Expr, len::Int) = iscall(ex) && length(ex.args) == len
 # is of the form    a op b , where op is <,>, etc.  i.e. this is  not a chained comparison
-is_single_comparison(ex::Expr, op::Symbol) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
+#is_single_comparison(ex::Expr, op::Symbol) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
+# op is now an Expr, not a Symbol. This is likely broken even with this workaround 2021Apr20
+is_single_comparison(ex::Expr, op) = ex.head == :comparison && length(ex.args) == 3 && ex.args[2] == op
 # We check for :call repeatedly. We can optimize this later.
 is_binary_minus(ex::Expr) = iscall(ex, :-, 3)
 is_unary_minus(ex::Expr) = iscall(ex, :-, 2)

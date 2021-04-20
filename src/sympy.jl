@@ -245,7 +245,7 @@ function populate_py_to_mx_dict()
                     (sympy.Mul, :Times),
                     (sympy.Pow ,:Power),
                     (sympy.Derivative, :D),  ## We need to implement or handle Derivative
-                    (sympy.containers.Tuple, :List),
+                    (sympy.Tuple, :List),
                     (sympy.oo, :Infinity),
                     (sympy.zoo,:ComplexInfinity),
                     (sympy.Eq, :Equal),
@@ -280,12 +280,12 @@ have_rewrite_function_sympy_to_julia(pytype::PyCall.PyObject) = haskey(py_to_mx_
 ## We put more than user symbols here
 function populate_user_symbol_dict()
     for onepair in (
-                    (sympy.numbers.ComplexInfinity(), :ComplexInfinity),
-                    (sympy.numbers.Pi(), :Pi),
-                    (sympy.numbers.EulerGamma(), :EulerGamma),
-                    (sympy.numbers.Exp1(), :E),
-                    (sympy.numbers.ImaginaryUnit(), complex(0,1)),
-                    (sympy.numbers.NegativeInfinity(), MinusInfinity))
+                    (sympy.S.ComplexInfinity, :ComplexInfinity),
+                    (sympy.S.Pi, :Pi),
+                    (sympy.S.EulerGamma, :EulerGamma),
+                    (sympy.S.Exp1, :E),
+                    (sympy.S.ImaginaryUnit, complex(0,1)),
+                    (sympy.S.NegativeInfinity, MinusInfinity))
         SYMPY_USER_SYMBOLS_REVERSE[onepair[1]] = onepair[2]
     end
 end
@@ -859,10 +859,8 @@ function init_sympy()
         @eval copy!($(Symbol("sympy_", s)) , sympy.$s)
 #        @eval copy!($(Symbol("sympy_", s)) , sympy[$(QuoteNode(s))])
     end
-    copy!(sympy_True,sympy.boolalg.BooleanTrue)
-    copy!(sympy_False,sympy.boolalg.BooleanFalse)
-    # copy!(sympy_True,sympy[:boolalg][:BooleanTrue])
-    # copy!(sympy_False,sympy[:boolalg][:BooleanFalse])
+    copy!(sympy_True,sympy.logic.boolalg.BooleanTrue)
+    copy!(sympy_False,sympy.logic.boolalg.BooleanFalse)
     populate_rewrite_dict()
     init_isympy()
 end
